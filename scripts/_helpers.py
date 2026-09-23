@@ -2080,7 +2080,7 @@ def parse_wscenario(s: pd.Series) -> pd.Series:
 
 def get_wscenario(wscenarios, planning_horizon):
     """
-    Select the weather scenario to use for a given planning year.
+    Select the weather scenario to use for a given planning horizon.
 
     Parameters
     ----------
@@ -2088,7 +2088,7 @@ def get_wscenario(wscenarios, planning_horizon):
         Mapping of planning year to a list of requested weather scenarios,
         e.g. ``{planning_horizon: [wscenario, ...]}``.
     planning_horizon : int
-        Planning year for which to select the weather scenario.
+        Planning horizon for which to select the weather scenario.
 
     Returns
     -------
@@ -2107,7 +2107,7 @@ def get_wscenario(wscenarios, planning_horizon):
         fallback_scenario = AVAILABLE_WSCENARIOS[planning_horizon][0]
         logger.warning(
             f"Weather scenario WS{wscenario:03d} not available for "
-            f"planning year {planning_horizon}, falling back to WS{fallback_scenario:03d}"
+            f"planning horizon {planning_horizon}, falling back to WS{fallback_scenario:03d}"
         )
         wscenario = fallback_scenario
 
