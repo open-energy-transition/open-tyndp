@@ -3,7 +3,7 @@
 # yaml-language-server: $schema=./schema.default.json
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#version
-version: v0.8
+version: v0.9
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#tutorial
 tutorial: false
@@ -21,6 +21,7 @@ remote:
   ssh: ""
   path: ""
   sync_file: {}
+  sync_exclude: []
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#run
 run:
@@ -935,7 +936,6 @@ sector:
   regional_co2_sequestration_potential:
     enable: true
     attribute:
-    - conservative estimate Mt
     - conservative estimate GAS Mt
     - conservative estimate OIL Mt
     - conservative estimate aquifer Mt
@@ -956,7 +956,14 @@ sector:
   co2_spatial: true
   co2_network: true
   co2_network_cost_factor: 1
+  co2_network_liquefaction: false
   cc_fraction: 0.9
+  cc_capital_cost_factor:
+    gas: 2.0
+    biomass: 1.1
+    coal: 1.1
+    waste: 1.2
+    cement: 1.0
   hydrogen_underground_storage: true
   hydrogen_underground_storage_locations:
   - onshore
@@ -1405,6 +1412,10 @@ solving:
 data:
   version_files:
   - data/versions.csv
+  local_cache:
+    enable: false
+    directory: "data/local-cache"
+    fill: false
   hotmaps_industrial_sites:
     source: archive
     version: latest
@@ -1596,6 +1607,9 @@ data:
     version: latest
   open_tyndp_prelim:
     source: archive
+    version: latest
+  countries_centroids:
+    source: primary
     version: latest
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#overpass_api

@@ -37,13 +37,13 @@ import pandas as pd
 
 from scripts._helpers import (
     configure_logging,
-    extract_grid_data_tyndp,
     set_scenario_config,
 )
 from scripts.build_tyndp_network import (
     MAP_GRID_TYNDP,
     add_links_missing_attributes,
 )
+from scripts.sb._helpers import extract_grid_data_tyndp
 
 logger = logging.getLogger(__name__)
 

@@ -538,7 +538,7 @@
               "type": "array"
             },
             "soc_boundary_carriers": {
-              "description": "Storage unit carriers for which the state of charge is pinned at the boundaries between rolling horizon windows, using values pre-computed from the perfect foresight (full-year) optimisation.",
+              "description": "Storage unit carriers for which the state of charge is pinned at the boundaries between rolling horizon windows, using values pre-computed from the perfect foresight (full-year) optimisation. Only carriers whose storage horizon (max_hours) exceeds the rolling horizon window need this. Therefore hydro-pondage is not listed.",
               "items": {
                 "type": "string"
               },
@@ -574,11 +574,11 @@
                 }
               ],
               "default": false,
-              "description": "Temporal resolution for extraction solve. False uses native resolution, or a string like '24H', '48H' for faster solve."
+              "description": "Temporal resolution for extraction solve. False uses the native resolution; 'NH' (e.g. '24H') averages over N hours and 'Nsn' (e.g. '2sn') uses every Nth snapshot. Can only coarsen the scenario building resolution, never refine it. Segmentation ('NSEG') is not supported, mirroring `clustering.temporal.resolution_sector`."
             },
             "resample_method": {
               "default": "ffill",
-              "description": "Method for resampling marginal storage value to target network resolution.",
+              "description": "Method for resampling marginal storage values and biomass/biogas bus marginal prices to the target network resolution. Does not apply to the reservoir state of charge, which is interpolated on snapshot period ends.",
               "enum": [
                 "ffill",
                 "interpolate"
@@ -834,7 +834,7 @@
           }
         },
         "temporal": {
-          "description": "Configuration for `clustering.temporal` settings.",
+          "description": "Configuration for `clustering.temporal` settings.  Follows the convention of {n}{unit}, e.g. 3H to aggregate over 3 hours time periods. `SEG` can be used to create n segments of varying time periods based on network similarities during those time periods.",
           "properties": {
             "resolution_elec": {
               "anyOf": [
@@ -1094,6 +1094,26 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "local_cache": {
+          "description": "Configuration for the local cache of retrieved data.",
+          "properties": {
+            "enable": {
+              "default": false,
+              "description": "\n        Switch to keep all retrieved data in a single, source-agnostic and local cache directory.\n\n        When enabled, retrieved data is read from and written to `{local_cache.directory}/{dataset}/{version}`\n        instead of `data/{dataset}/{source}/{version}`. Retrieval is disabled while the cache is enabled,\n        unless `fill` is also set: the workflow reads the cached files and fails with a list of the\n        missing ones instead of downloading them, enabling offline execution of the workflow.\n\n        Useful if you want to run the workflow on a machine without internet access: first use `fill`\n        (or the `collect-data` tasks) on a machine with internet access to populate the cache directory\n        with all needed data, then copy `{local_cache.directory}` to the offline machine and enable this\n        setting there with fill set to `false` to run fully offline. The cache holds retrieved data only,\n        so the offline machine also needs the repository itself, including the data files tracked in `data/`.\n        ",
+              "type": "boolean"
+            },
+            "directory": {
+              "default": "data/local-cache",
+              "description": "Directory holding the local cache, relative to the project root or absolute. Only used when `enable` is set.",
+              "type": "string"
+            },
+            "fill": {
+              "default": false,
+              "description": "Switch to allow the retrieve rules to populate the cache `directory`. Can also be evoked by the `collect-data` tasks; leave disabled for regular runs.",
+              "type": "boolean"
+            }
+          }
         },
         "hotmaps_industrial_sites": {
           "description": "Configuration for a single data source.",
@@ -2438,6 +2458,27 @@
               "type": "string"
             }
           }
+        },
+        "countries_centroids": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "tyndp-archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
         }
       }
     },
@@ -3590,6 +3631,13 @@
           },
           "description": "Files to pull from the remote cluster with the `sync_file` rule, keyed by top-level directory (`results`, `resources`, or `logs`). Each value is a list of paths behind `<dir>/<rdir>/<run-name>/`, e.g. `cba/indicators_2030.csv`. Every listed file is fetched for every configured run name.",
           "type": "object"
+        },
+        "sync_exclude": {
+          "description": "Patterns to skip when pulling files and directories from the remote connection with the `sync_file` and `sync_file_dry` rules, and when pulling the `results` and `resources` directories with the `sync` and `sync_dry` rules. Passed to `rsync --exclude`. Use unanchored patterns (e.g. `cba/networks`), which match at any depth, or use a leading `/` to anchor the pattern relative to the transfer root (e.g. `/results/tyndp/NT/cba/networks`, assuming the run name is `NT`).",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         }
       }
     },
@@ -5340,8 +5388,8 @@
         },
         "regional_co2_sequestration_potential": {
           "additionalProperties": true,
-          "description": "Add option for regionally-resolved geological carbon dioxide sequestration potentials based on `CO2StoP <https://setis.ec.europa.eu/european-co2-storage-database_en>`_.",
-          "markdownDescription": "Add option for regionally-resolved geological carbon dioxide sequestration potentials based on [CO2StoP ](https://setis.ec.europa.eu/european-co2-storage-database_en).",
+          "description": "Add option for regionally-resolved geological carbon dioxide sequestration potentials based on `CO2StoP <https://setis.ec.europa.eu/european-co2-storage-database_en>`_.Note that 'conservative estimate Mt' is not a summary of gas/oil fields and aquifers but contains storage potential for geological reservoirs suitable for CO2 storage excluding those. The more conservative assumption is to only include the three attributes mentioned above.",
+          "markdownDescription": "Add option for regionally-resolved geological carbon dioxide sequestration potentials based on [CO2StoP ](https://setis.ec.europa.eu/european-co2-storage-database_en).Note that 'conservative estimate Mt' is not a summary of gas/oil fields and aquifers but contains storage potential for geological reservoirs suitable for CO2 storage excluding those. The more conservative assumption is to only include the three attributes mentioned above.",
           "type": "object"
         },
         "co2_sequestration_potential": {
@@ -5376,10 +5424,22 @@
           "description": "The cost factor for the capital cost of the carbon dioxide transmission network.",
           "type": "number"
         },
+        "co2_network_liquefaction": {
+          "default": false,
+          "description": "Add option for including compressor stations with investment costs and electricity demand for liquefaction step for carbon dioxide before transport.",
+          "type": "boolean"
+        },
         "cc_fraction": {
           "default": 0.9,
           "description": "The default fraction of CO2 captured with post-combustion capture.",
           "type": "number"
+        },
+        "cc_capital_cost_factor": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "description": "Size of the carbon capture unit depending on the amount of carbon dioxide in the flue gas. The more CO2, the smaller the capture unit and thus the lower the capital cost factor. Factors are given relative to cement capture. The default values are based on the DEA technology-data report on carbon capture, transport and storage Table 8 / Figure 12 (https://ens.dk/en/analyses-and-statistics/technology-data-carbon-capture-transport-and-storage).",
+          "type": "object"
         },
         "hydrogen_underground_storage": {
           "default": true,
@@ -6702,11 +6762,11 @@
             }
           ],
           "default": false,
-          "description": "Temporal resolution for extraction solve. False uses native resolution, or a string like '24H', '48H' for faster solve."
+          "description": "Temporal resolution for extraction solve. False uses the native resolution; 'NH' (e.g. '24H') averages over N hours and 'Nsn' (e.g. '2sn') uses every Nth snapshot. Can only coarsen the scenario building resolution, never refine it. Segmentation ('NSEG') is not supported, mirroring `clustering.temporal.resolution_sector`."
         },
         "resample_method": {
           "default": "ffill",
-          "description": "Method for resampling marginal storage value to target network resolution.",
+          "description": "Method for resampling marginal storage values and biomass/biogas bus marginal prices to the target network resolution. Does not apply to the reservoir state of charge, which is interpolated on snapshot period ends.",
           "enum": [
             "ffill",
             "interpolate"
@@ -6856,7 +6916,7 @@
           "type": "array"
         },
         "soc_boundary_carriers": {
-          "description": "Storage unit carriers for which the state of charge is pinned at the boundaries between rolling horizon windows, using values pre-computed from the perfect foresight (full-year) optimisation.",
+          "description": "Storage unit carriers for which the state of charge is pinned at the boundaries between rolling horizon windows, using values pre-computed from the perfect foresight (full-year) optimisation. Only carriers whose storage horizon (max_hours) exceeds the rolling horizon window need this. Therefore hydro-pondage is not listed.",
           "items": {
             "type": "string"
           },
@@ -7819,6 +7879,26 @@
           "default": {},
           "description": "Dictionary of carriers and their specific load sink cost in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). If load sinks are added for all carriers, the default cost is assumed for non-listed carriers.",
           "type": "object"
+        }
+      }
+    },
+    "_LocalCacheConfig": {
+      "description": "Configuration for the local cache of retrieved data.",
+      "properties": {
+        "enable": {
+          "default": false,
+          "description": "\n        Switch to keep all retrieved data in a single, source-agnostic and local cache directory.\n\n        When enabled, retrieved data is read from and written to `{local_cache.directory}/{dataset}/{version}`\n        instead of `data/{dataset}/{source}/{version}`. Retrieval is disabled while the cache is enabled,\n        unless `fill` is also set: the workflow reads the cached files and fails with a list of the\n        missing ones instead of downloading them, enabling offline execution of the workflow.\n\n        Useful if you want to run the workflow on a machine without internet access: first use `fill`\n        (or the `collect-data` tasks) on a machine with internet access to populate the cache directory\n        with all needed data, then copy `{local_cache.directory}` to the offline machine and enable this\n        setting there with fill set to `false` to run fully offline. The cache holds retrieved data only,\n        so the offline machine also needs the repository itself, including the data files tracked in `data/`.\n        ",
+          "type": "boolean"
+        },
+        "directory": {
+          "default": "data/local-cache",
+          "description": "Directory holding the local cache, relative to the project root or absolute. Only used when `enable` is set.",
+          "type": "string"
+        },
+        "fill": {
+          "default": false,
+          "description": "Switch to allow the retrieve rules to populate the cache `directory`. Can also be evoked by the `collect-data` tasks; leave disabled for regular runs.",
+          "type": "boolean"
         }
       }
     },
@@ -9206,7 +9286,7 @@
       }
     },
     "_TemporalConfig": {
-      "description": "Configuration for `clustering.temporal` settings.",
+      "description": "Configuration for `clustering.temporal` settings.  Follows the convention of {n}{unit}, e.g. 3H to aggregate over 3 hours time periods. `SEG` can be used to create n segments of varying time periods based on network similarities during those time periods.",
       "properties": {
         "resolution_elec": {
           "anyOf": [
@@ -9343,7 +9423,7 @@
   "description": "Combined configuration schema for PyPSA-EUR.",
   "properties": {
     "version": {
-      "default": "v0.8",
+      "default": "v0.9",
       "description": "Version of Open-TYNDP. Descriptive only.",
       "type": "string"
     },
@@ -9409,6 +9489,13 @@
           },
           "description": "Files to pull from the remote cluster with the `sync_file` rule, keyed by top-level directory (`results`, `resources`, or `logs`). Each value is a list of paths behind `<dir>/<rdir>/<run-name>/`, e.g. `cba/indicators_2030.csv`. Every listed file is fetched for every configured run name.",
           "type": "object"
+        },
+        "sync_exclude": {
+          "description": "Patterns to skip when pulling files and directories from the remote connection with the `sync_file` and `sync_file_dry` rules, and when pulling the `results` and `resources` directories with the `sync` and `sync_dry` rules. Passed to `rsync --exclude`. Use unanchored patterns (e.g. `cba/networks`), which match at any depth, or use a leading `/` to anchor the pattern relative to the transfer root (e.g. `/results/tyndp/NT/cba/networks`, assuming the run name is `NT`).",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         }
       }
     },
@@ -12633,8 +12720,8 @@
         },
         "regional_co2_sequestration_potential": {
           "additionalProperties": true,
-          "description": "Add option for regionally-resolved geological carbon dioxide sequestration potentials based on `CO2StoP <https://setis.ec.europa.eu/european-co2-storage-database_en>`_.",
-          "markdownDescription": "Add option for regionally-resolved geological carbon dioxide sequestration potentials based on [CO2StoP ](https://setis.ec.europa.eu/european-co2-storage-database_en).",
+          "description": "Add option for regionally-resolved geological carbon dioxide sequestration potentials based on `CO2StoP <https://setis.ec.europa.eu/european-co2-storage-database_en>`_.Note that 'conservative estimate Mt' is not a summary of gas/oil fields and aquifers but contains storage potential for geological reservoirs suitable for CO2 storage excluding those. The more conservative assumption is to only include the three attributes mentioned above.",
+          "markdownDescription": "Add option for regionally-resolved geological carbon dioxide sequestration potentials based on [CO2StoP ](https://setis.ec.europa.eu/european-co2-storage-database_en).Note that 'conservative estimate Mt' is not a summary of gas/oil fields and aquifers but contains storage potential for geological reservoirs suitable for CO2 storage excluding those. The more conservative assumption is to only include the three attributes mentioned above.",
           "type": "object"
         },
         "co2_sequestration_potential": {
@@ -12669,10 +12756,22 @@
           "description": "The cost factor for the capital cost of the carbon dioxide transmission network.",
           "type": "number"
         },
+        "co2_network_liquefaction": {
+          "default": false,
+          "description": "Add option for including compressor stations with investment costs and electricity demand for liquefaction step for carbon dioxide before transport.",
+          "type": "boolean"
+        },
         "cc_fraction": {
           "default": 0.9,
           "description": "The default fraction of CO2 captured with post-combustion capture.",
           "type": "number"
+        },
+        "cc_capital_cost_factor": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "description": "Size of the carbon capture unit depending on the amount of carbon dioxide in the flue gas. The more CO2, the smaller the capture unit and thus the lower the capital cost factor. Factors are given relative to cement capture. The default values are based on the DEA technology-data report on carbon capture, transport and storage Table 8 / Figure 12 (https://ens.dk/en/analyses-and-statistics/technology-data-carbon-capture-transport-and-storage).",
+          "type": "object"
         },
         "hydrogen_underground_storage": {
           "default": true,
@@ -13661,7 +13760,7 @@
           }
         },
         "temporal": {
-          "description": "Configuration for `clustering.temporal` settings.",
+          "description": "Configuration for `clustering.temporal` settings.  Follows the convention of {n}{unit}, e.g. 3H to aggregate over 3 hours time periods. `SEG` can be used to create n segments of varying time periods based on network similarities during those time periods.",
           "properties": {
             "resolution_elec": {
               "anyOf": [
@@ -14256,6 +14355,26 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "local_cache": {
+          "description": "Configuration for the local cache of retrieved data.",
+          "properties": {
+            "enable": {
+              "default": false,
+              "description": "\n        Switch to keep all retrieved data in a single, source-agnostic and local cache directory.\n\n        When enabled, retrieved data is read from and written to `{local_cache.directory}/{dataset}/{version}`\n        instead of `data/{dataset}/{source}/{version}`. Retrieval is disabled while the cache is enabled,\n        unless `fill` is also set: the workflow reads the cached files and fails with a list of the\n        missing ones instead of downloading them, enabling offline execution of the workflow.\n\n        Useful if you want to run the workflow on a machine without internet access: first use `fill`\n        (or the `collect-data` tasks) on a machine with internet access to populate the cache directory\n        with all needed data, then copy `{local_cache.directory}` to the offline machine and enable this\n        setting there with fill set to `false` to run fully offline. The cache holds retrieved data only,\n        so the offline machine also needs the repository itself, including the data files tracked in `data/`.\n        ",
+              "type": "boolean"
+            },
+            "directory": {
+              "default": "data/local-cache",
+              "description": "Directory holding the local cache, relative to the project root or absolute. Only used when `enable` is set.",
+              "type": "string"
+            },
+            "fill": {
+              "default": false,
+              "description": "Switch to allow the retrieve rules to populate the cache `directory`. Can also be evoked by the `collect-data` tasks; leave disabled for regular runs.",
+              "type": "boolean"
+            }
+          }
         },
         "hotmaps_industrial_sites": {
           "description": "Configuration for a single data source.",
@@ -15600,6 +15719,27 @@
               "type": "string"
             }
           }
+        },
+        "countries_centroids": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "tyndp-archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
         }
       }
     },
@@ -15726,7 +15866,7 @@
               "type": "array"
             },
             "soc_boundary_carriers": {
-              "description": "Storage unit carriers for which the state of charge is pinned at the boundaries between rolling horizon windows, using values pre-computed from the perfect foresight (full-year) optimisation.",
+              "description": "Storage unit carriers for which the state of charge is pinned at the boundaries between rolling horizon windows, using values pre-computed from the perfect foresight (full-year) optimisation. Only carriers whose storage horizon (max_hours) exceeds the rolling horizon window need this. Therefore hydro-pondage is not listed.",
               "items": {
                 "type": "string"
               },
@@ -15762,11 +15902,11 @@
                 }
               ],
               "default": false,
-              "description": "Temporal resolution for extraction solve. False uses native resolution, or a string like '24H', '48H' for faster solve."
+              "description": "Temporal resolution for extraction solve. False uses the native resolution; 'NH' (e.g. '24H') averages over N hours and 'Nsn' (e.g. '2sn') uses every Nth snapshot. Can only coarsen the scenario building resolution, never refine it. Segmentation ('NSEG') is not supported, mirroring `clustering.temporal.resolution_sector`."
             },
             "resample_method": {
               "default": "ffill",
-              "description": "Method for resampling marginal storage value to target network resolution.",
+              "description": "Method for resampling marginal storage values and biomass/biogas bus marginal prices to the target network resolution. Does not apply to the reservoir state of charge, which is interpolated on snapshot period ends.",
               "enum": [
                 "ffill",
                 "interpolate"

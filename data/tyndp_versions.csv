@@ -7,6 +7,7 @@ co2stop,26-august-2020,tyndp-archive,latest supported,2026-05-08,,https://storag
 copernicus_land_cover,v3.0.1,tyndp-archive,latest supported,2026-05-08,"The primary is already from Zenodo, documentation in https://zenodo.org/records/4723921",https://storage.googleapis.com/open-tyndp-data-store/archive/eur/copernicus_land_cover/v3.0.1
 corine,v18_5,tyndp-archive,latest supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/corine/v18_5/corine.zip
 costs,v0.14.0,tyndp-archive,latest supported,2026-05-08,Part of the `technologydata` repository and versioned on GitHub.,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/costs/v0.14.0
+countries_centroids,v1.0.0,primary,latest supported,2026-09-14,World country centroids used for plotting,https://cdn.jsdelivr.net/gh/gavinr/world-countries-centroids@v1.0.0/dist/countries.geojson
 country_runoff,2025-08-13,tyndp-archive,latest supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/country_runoff/2025-08-13/era5-runoff-per-country.csv
 desnz_electricity_consumption,2026-02-16,tyndp-archive,latest supported,2026-02-16,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/desnz_electricity_consumption/2026-02-16/Subnational_electricity_consumption_statistics_2005-2024.xlsx
 dh_areas,341.5,tyndp-archive,latest supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/dh_areas/341.5/dh_areas.gpkg

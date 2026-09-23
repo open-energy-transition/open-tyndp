@@ -1,4 +1,4 @@
-name: pypsa-eur
+name: open-tyndp
 channels:
 - conda-forge
 - bioconda
@@ -6,6 +6,14 @@ channels:
 - https://repo.prefix.dev/open-tyndp
 - nodefaults
 dependencies:
+- snakemake-storage-plugin-cached-http >=0.3
+- snakemake-storage-plugin-cached-http >=0.2.1
+- pypsa-explorer >=0.1.2
+- pixi-pycharm >=0.0.9
+- python-calamine >=0.6.1
+- libblas * *openblas
+- libopenblas * openmp_*
+- pytest >=8.4.2
 - atlite >=0.3,!=0.5.0
 - bokeh >=3.8.0
 - cartopy >=0.25.0
@@ -44,7 +52,7 @@ dependencies:
 - pypsa >=0.35.2
 - pyscipopt >=5.6.0
 - pytables >=3.10.2
-- python >=3.10
+- python >=3.12,<3.14
 - pytz >=2025.2
 - pyxlsb >=1.0.10
 - rasterio >=1.4.3
@@ -55,7 +63,7 @@ dependencies:
 - seaborn >=0.13.2
 - shapely >=2.0
 - snakemake-executor-plugin-cluster-generic >=1.0.9
-- snakemake-minimal >=9.17.0
+- snakemake-minimal >=9.18.0
 - snakemake-storage-plugin-http >=0.3
 - tenacity >=9.1.2
 - tqdm >=4.67.1
@@ -63,11 +71,9 @@ dependencies:
 - xarray >=2026.1
 - xlrd >=2.0.2
 - yaml >=0.2.5
-- snakemake-storage-plugin-cached-http >=0.2.1
 - pandera >=0.28.1
 - natsort >=8.4.0
 - snakemake-logger-plugin-pypsa >=0.1.0
 - pydeflate >=2.3.4
-- grpcio <1.78
 - snakemake-logger-plugin-snkmt ==0.1.6
 - snakemake-executor-plugin-slurm >=1.9.2

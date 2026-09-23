@@ -55,12 +55,14 @@ from pathlib import Path
 import pandas as pd
 
 from scripts._helpers import (
-    align_demand_to_snapshots,
-    check_cyear,
     configure_logging,
     get_snapshots,
-    interpolate_demand,
     set_scenario_config,
+)
+from scripts.sb._helpers import (
+    align_demand_to_snapshots,
+    check_cyear,
+    interpolate_demand,
 )
 
 logger = logging.getLogger(__name__)

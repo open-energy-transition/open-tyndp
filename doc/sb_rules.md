@@ -46,11 +46,16 @@ Downloads country centroid geometry data by Copyright (c) 2021 Gavin Rehkemper f
 
 **Relevant Settings**
 
-None.
+```yaml
+data:
+    countries_centroids:
+        source:
+        version:
+```
 
 **Outputs**
 
-- `data/countries_centroids.geojson`
+- `data/countries_centroids/{source}/{version}/countries.geojson`
 
 ## Development
 

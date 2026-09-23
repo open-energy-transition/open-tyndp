@@ -11,10 +11,10 @@ import numpy as np
 import pandas as pd
 
 from scripts._helpers import (
-    SCENARIO_DICT,
     configure_logging,
     set_scenario_config,
 )
+from scripts.sb._helpers import SCENARIO_DICT
 
 logger = logging.getLogger(__name__)
 

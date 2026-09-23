@@ -367,6 +367,7 @@ rule create_scenarios:
         "config/create_scenarios.py"
 
 
+# fmt: off[next]
 rule purge:
     run:
         import builtins
@@ -423,7 +424,7 @@ rule rulegraph:
         r"""
         # Generate DOT file using nested snakemake with the dumped final config
         echo "[Rule rulegraph] Using final config file: {input.config_file}"
-        snakemake --rulegraph --configfile {input.config_file} --quiet | sed -n "/digraph/,\$p" > {output.dot}
+        snakemake --rulegraph --configfile {input.config_file} --quiet | sed -n "/digraph/,\$p" >{output.dot}
 
         # Generate visualizations from the DOT file
         if [ -s {output.dot} ]; then
@@ -462,7 +463,7 @@ rule filegraph:
         r"""
         # Generate DOT file using nested snakemake with the dumped final config
         echo "[Rule filegraph] Using final config file: {input.config_file}"
-        snakemake --filegraph all --configfile {input.config_file} --quiet | sed -n "/digraph/,\$p" > {output.dot}
+        snakemake --filegraph all --configfile {input.config_file} --quiet | sed -n "/digraph/,\$p" >{output.dot}
 
         # Generate visualizations from the DOT file
         if [ -s {output.dot} ]; then
@@ -495,11 +496,12 @@ rule doc:
 rule sync:
     params:
         cluster=f"{config['remote']['ssh']}:{config['remote']['path']}",
+        exclude=[f"--exclude='{p}'" for p in config["remote"]["sync_exclude"]],
     shell:
         """
         rsync -uvarh --ignore-missing-args --files-from=.sync-send . {params.cluster}
-        rsync -uvarh --no-g {params.cluster}/resources . || echo "No resources directory, skipping rsync"
-        rsync -uvarh --no-g {params.cluster}/results . || echo "No results directory, skipping rsync"
+        rsync -uvarh --no-g {params.exclude} {params.cluster}/resources . || echo "No resources directory, skipping rsync"
+        rsync -uvarh --no-g {params.exclude} {params.cluster}/results . || echo "No results directory, skipping rsync"
         rsync -uvarh --no-g {params.cluster}/logs . || echo "No logs directory, skipping rsync"
         rsync -uvarh --no-g {params.cluster}/.snakemake/log .snakemake || echo "No snakemake logs directory, skipping rsync"
         """
@@ -508,11 +510,12 @@ rule sync:
 rule sync_dry:
     params:
         cluster=f"{config['remote']['ssh']}:{config['remote']['path']}",
+        exclude=[f"--exclude='{p}'" for p in config["remote"]["sync_exclude"]],
     shell:
         """
         rsync -uvarh --ignore-missing-args --files-from=.sync-send . {params.cluster} -n
-        rsync -uvarh --no-g {params.cluster}/resources . -n || echo "No resources directory, skipping rsync"
-        rsync -uvarh --no-g {params.cluster}/results . -n || echo "No results directory, skipping rsync"
+        rsync -uvarh --no-g {params.exclude} {params.cluster}/resources . -n || echo "No resources directory, skipping rsync"
+        rsync -uvarh --no-g {params.exclude} {params.cluster}/results . -n || echo "No results directory, skipping rsync"
         rsync -uvarh --no-g {params.cluster}/logs . -n || echo "No logs directory, skipping rsync"
         rsync -uvarh --no-g {params.cluster}/.snakemake/log .snakemake -n || echo "No snakemake logs directory, skipping rsync"
         """
@@ -533,9 +536,10 @@ rule sync_file:
     params:
         cluster=f"{config['remote']['ssh']}:{config['remote']['path']}",
         files=remote_sync_files(),
+        exclude=[f"--exclude='{p}'" for p in config["remote"]["sync_exclude"]],
     shell:
         """
-        printf '%s\\n' {params.files} | rsync -uvarh --no-g --ignore-missing-args --files-from=- {params.cluster}/ .
+        printf '%s\\n' {params.files} | rsync -uvarh --no-g --ignore-missing-args {params.exclude} --files-from=- {params.cluster}/ .
         """
 
 
@@ -543,7 +547,77 @@ rule sync_file_dry:
     params:
         cluster=f"{config['remote']['ssh']}:{config['remote']['path']}",
         files=remote_sync_files(),
+        exclude=[f"--exclude='{p}'" for p in config["remote"]["sync_exclude"]],
     shell:
         """
-        printf '%s\\n' {params.files} | rsync -uvarh --no-g --ignore-missing-args --files-from=- {params.cluster}/ . -n
+        printf '%s\\n' {params.files} | rsync -uvarh --no-g --ignore-missing-args {params.exclude} --files-from=- {params.cluster}/ . -n
         """
+
+
+# Fail a cached run that would need a dataset the cache does not hold
+onstart:
+    if LOCAL_CACHE_READ:
+        from snakemake.exceptions import WorkflowError
+
+        uncached = sorted(
+            {
+                job.rule.name
+                for job in workflow.dag.needrun_jobs()
+                if job.rule.name.startswith("retrieve_")
+            }
+        )
+        if uncached:
+            listing = "\n  ".join(uncached)
+            raise WorkflowError(
+                f"Local cache '{LOCAL_CACHE['directory']}' does not cover this run, "
+                f"{len(uncached)} retrieve rule(s) would run against it:\n  {listing}\n\n"
+                "Re-run `pixi run collect-data` (or `collect-data-cba`) on a machine with "
+                "internet access to add the missing datasets."
+            )
+
+
+# Write local cache manifest for offline runs to verify themselves against
+onsuccess:
+    if LOCAL_CACHE["enable"] and LOCAL_CACHE["fill"]:
+        from snakemake.io import IOFile
+
+        cache = Path(LOCAL_CACHE["directory"])
+        collected = sorted(
+            str(path.relative_to(cache))
+            for path in cache.rglob("*")
+            if path.is_file() and path != LOCAL_CACHE_MANIFEST
+        )
+        LOCAL_CACHE_MANIFEST.write_text("\n".join(collected) + "\n")
+        # Update cached files metadata for correct provenance
+        for entry in collected:
+            workflow.persistence.cleanup_metadata(IOFile(str(cache / entry)))
+        logger.info(
+            f"Recorded {len(collected)} cache entries in {LOCAL_CACHE_MANIFEST}"
+        )
+
+
+# Clear error message on missing files in local cache
+if LOCAL_CACHE_READ:
+    from snakemake.exceptions import WorkflowError
+
+    if not LOCAL_CACHE_MANIFEST.exists():
+        raise WorkflowError(
+            f"Local cache '{LOCAL_CACHE['directory']}' has not been populated, no "
+            f"'{LOCAL_CACHE_MANIFEST.name}' manifest found.\n\n"
+            "Run `pixi run collect-data` (or `collect-data-cba`) on a machine with internet "
+            "access, or point `data: local_cache: directory:` at a populated cache."
+        )
+
+    cache_root = LOCAL_CACHE_MANIFEST.parent
+    if gone := [
+        entry
+        for entry in LOCAL_CACHE_MANIFEST.read_text().splitlines()
+        if entry and not (cache_root / entry).exists()
+    ]:
+        listing = "\n  ".join(gone)
+        raise WorkflowError(
+            f"Local cache '{LOCAL_CACHE['directory']}' is incomplete, {len(gone)} recorded "
+            f"file(s) are missing:\n  {listing}\n\n"
+            "Re-run `pixi run collect-data` (or `collect-data-cba`) on a machine with internet "
+            "access to restore them."
+        )
