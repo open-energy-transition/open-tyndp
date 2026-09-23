@@ -140,7 +140,7 @@ def get_power_capacities(
             .replace(SCENARIO_DICT, regex=True)
             .query(
                 f"Scenario==@scenario and "
-                f"Climate_Year=='WS{wscenario}' and "
+                f"Climate_Year=='CY{wscenario}' and "
                 f"Property_Name == 'Installed Capacity' and "
                 f"Country in @EU27_COUNTRIES"
             )

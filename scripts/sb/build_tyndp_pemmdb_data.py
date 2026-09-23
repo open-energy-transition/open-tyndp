@@ -1277,7 +1277,7 @@ def process_pemmdb_data(
     sns : pd.DatetimeIndex
         Modelled snapshots.
     sns_year_h : pd.DatetimeIndex
-        Hourly Datetime index for a full given wscenario.
+        Hourly Datetime index for a full snapshot year.
     carrier_mapping_fn : str
         Path to file with mapping from external carriers to available tyndp_carrier names.
 
@@ -1369,11 +1369,11 @@ if __name__ == "__main__":
 
     # Snapshot year
     sns = get_snapshots(snakemake.params.snapshots, snakemake.params.drop_leap_day)
-    wscenario = sns[0].year
+    sns_year = sns[0].year
     sns_year_h = get_snapshots(
         {
-            "start": f"{wscenario}-01-01",
-            "end": f"{wscenario + 1}-01-01",
+            "start": f"{sns_year}-01-01",
+            "end": f"{sns_year + 1}-01-01",
             "inclusive": "left",
         },
         drop_leap_day=True,
