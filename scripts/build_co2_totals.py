@@ -1,3 +1,4 @@
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
 # SPDX-FileCopyrightText: : 2025 The PyPSA-Eur Authors
 #
 # SPDX-License-Identifier: MIT
@@ -239,12 +240,17 @@ if __name__ == "__main__":
 
     params = snakemake.params.energy
     countries = snakemake.params.countries
-    base_year_emissions = params["base_emissions_year"]
-    emissions_scope = params["emissions"]
 
-    eurostat = pd.read_csv(snakemake.input.eurostat)
-    eea_co2 = build_eea_co2(snakemake.input.co2, base_year_emissions, emissions_scope)
-    eurostat_co2 = build_eurostat_co2(eurostat, base_year_emissions)
+    # The co2 input is empty when co2_budget is disabled, see rule build_co2_totals
+    if co2_fn := snakemake.input.co2:
+        base_year_emissions = params["base_emissions_year"]
+        emissions_scope = params["emissions"]
 
-    co2 = build_co2_totals(countries, eea_co2, eurostat_co2)
-    co2.to_csv(snakemake.output.co2_totals)
+        eurostat = pd.read_csv(snakemake.input.eurostat)
+        eea_co2 = build_eea_co2(co2_fn, base_year_emissions, emissions_scope)
+        eurostat_co2 = build_eurostat_co2(eurostat, base_year_emissions)
+
+        co2 = build_co2_totals(countries, eea_co2, eurostat_co2)
+        co2.to_csv(snakemake.output.co2_totals)
+    else:
+        pd.DataFrame().to_csv(snakemake.output.co2_totals)

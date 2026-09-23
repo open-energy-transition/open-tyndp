@@ -829,7 +829,9 @@ rule build_swiss_energy_balances:
 
 rule build_co2_totals:
     input:
-        co2=rules.retrieve_ghg_emissions.output["csv"],
+        co2=branch(
+            config_provider("co2_budget"), rules.retrieve_ghg_emissions.output["csv"]
+        ),
         eurostat=resources("eurostat_energy_balances.csv"),
     output:
         co2_totals=resources("co2_totals.csv"),
