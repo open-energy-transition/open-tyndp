@@ -5,6 +5,7 @@ on:
     branches:
     - master
     - tyndp-*
+    - scan-branch
   pull_request:
   schedule:
   - cron: "0 5 * * 1-6"

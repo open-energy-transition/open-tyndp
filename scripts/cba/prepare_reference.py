@@ -18,7 +18,7 @@ import pandas as pd
 import pypsa
 
 from scripts._helpers import configure_logging, set_scenario_config
-from scripts.cba._helpers import get_link_attrs
+from scripts.cba._helpers import get_transmission_attrs
 
 logger = logging.getLogger(__name__)
 
@@ -142,7 +142,9 @@ if __name__ == "__main__":
             d1 = row["Correction - Summary Direction 1"]
             d2 = row["Correction - Summary Direction 2"]
 
-            attrs = get_link_attrs(project, costs) if project is not None else {}
+            attrs = (
+                get_transmission_attrs(project, costs) if project is not None else {}
+            )
             update_or_add_link(n, bus0, bus1, d1, hurdle_costs, attrs)
             update_or_add_link(n, bus1, bus0, d2, hurdle_costs, attrs)
     else:

@@ -20,12 +20,11 @@ from matplotlib.ticker import AutoMinorLocator
 from tqdm import tqdm
 
 from scripts._helpers import (
-    add_metadata,
     configure_logging,
-    convert_units,
     get_snapshots,
     set_scenario_config,
 )
+from scripts.sb._helpers import add_metadata, convert_units
 from scripts.sb.make_benchmark import (
     SOURCES_MAP,
     get_bus_col_name,

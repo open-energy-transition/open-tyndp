@@ -8,13 +8,14 @@ authors = ["Contributors to Open-TYNDP"]
 channels = ["conda-forge", "bioconda", "gurobi", "https://repo.prefix.dev/open-tyndp"]
 name = "pypsa-eur"
 platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]
-version = "v0.8"
+version = "v0.9"
 exclude-newer = "7d"
 
 [exclude-newer]
 linopy = "0d"
 pypsa = "0d"
 atlite = "0d"
+snakemake-executor-plugin-slurm = "0d"  # drop once the pandas 3 build is older than 7d
 
 [target.win-64.activation.env]
 
@@ -51,10 +52,10 @@ update-dags = """
 """
 
 sync-locks = """
-    pixi install -e default && \
-    pixi workspace export conda-explicit-spec -e default envs && \
+    pixi install -e open-tyndp && \
+    pixi workspace export conda-explicit-spec -e open-tyndp envs && \
     bash -c 'for f in envs/*_conda_spec*; do mv "$f" "${f/_conda_spec/.pin}"; done' && \
-    pixi workspace export conda-environment -e default envs/environment.yaml -n pypsa-eur
+    pixi workspace export conda-environment -e open-tyndp envs/environment.yaml -n open-tyndp
 """
 
 [dependencies]
@@ -96,7 +97,7 @@ pydeck = ">0.6"  # pypsa fails to import with pydeck <0.6, lower bound was only 
 pypsa = ">=0.35.2"
 pyscipopt = ">=5.6.0"
 pytables = ">=3.10.2"
-python = ">=3.10"
+python = ">=3.12,<3.14"  # remove upper bound once issue has been fixed https://github.com/PyPSA/pypsa-eur/issues/2245
 pytz = ">=2025.2"
 pyxlsb = ">=1.0.10"
 rasterio = ">=1.4.3"
@@ -107,7 +108,7 @@ scipy = ">=1.16.3"
 seaborn = ">=0.13.2"
 shapely = ">=2.0"
 snakemake-executor-plugin-cluster-generic = ">=1.0.9"
-snakemake-minimal = ">=9.17.0"
+snakemake-minimal = ">=9.18.0"
 snakemake-storage-plugin-http = ">=0.3"
 tenacity = ">=9.1.2"
 tqdm = ">=4.67.1"
@@ -120,7 +121,6 @@ pandera = ">=0.28.1"
 natsort = ">=8.4.0"
 snakemake-logger-plugin-pypsa = ">=0.1.0"
 pydeflate = ">=2.3.4"
-grpcio = "<1.78"
 snakemake-logger-plugin-snkmt = "==0.1.6" # For better pypsa-app integration
 
 [target.unix.dependencies]
@@ -153,7 +153,7 @@ mkdocs-bibtex = ">=2.16"
 pymdown-extensions = ">=10.0"
 mkdocs-macros-plugin = ">=1.0"
 mkdocs-table-reader-plugin = ">=3.1"
-snakemake-minimal = ">=9.17.0"
+snakemake-minimal = ">=9.18.0"
 powerplantmatching = ">=0.5.15"
 pydot = ">=4.0.1"
 pypsa = ">=0.35.2"
@@ -217,6 +217,8 @@ create-tyndp-graphs = """
 tyndp-sb = """
     snakemake -call --configfile config/config.tyndp.yaml
 """
+collect-data = "python utils/collect_data.py --configfile config/config.tyndp.yaml"
+collect-data-cba = "python utils/collect_data.py --cba --configfile config/config.tyndp.yaml"
 tyndp-checkpoint = """
     snakemake -call cba --configfile config/config.tyndp.yaml --until clean_projects
 """
@@ -240,10 +242,8 @@ clean-tyndp = """
 all-tests = {depends-on = ["tyndp-sb-test", "tyndp-cba-test", "clean-tyndp", "integration-tests", "clean-tests", "unit-tests"]}
 
 [feature.open-tyndp.dependencies]
-# open-tyndp channel contains vendored versions of snakemake with patches for mainly windows compatibility not merged into upstream snakemake yet
-snakemake-minimal = { version = ">=9.17.0", channel = "https://repo.prefix.dev/open-tyndp" }
 snakemake-storage-plugin-cached-http = ">=0.3"
-pypsa-explorer = ">=0.1.1"
+pypsa-explorer = ">=0.1.2"
 pixi-pycharm = ">=0.0.9"
 python-calamine = ">=0.6.1"
 # Pin the BLAS provider: unconstrained it drifts (netlib/blis/openblas) between resolves,
