@@ -8,6 +8,7 @@ Adds all sector-coupling components to the network, including demand and supply
 technologies for the buildings, transport and industry sectors.
 """
 
+import functools
 import logging
 import os
 from itertools import product
@@ -54,6 +55,7 @@ from scripts.sb._helpers import (
     remove_disconnected_storage_buses,
     remove_zero_capacity_non_extendable,
 )
+from scripts.sb.build_statistics import NODE_MAP
 
 spatial = SimpleNamespace()
 logger = logging.getLogger(__name__)
