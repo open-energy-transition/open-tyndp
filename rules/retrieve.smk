@@ -393,7 +393,6 @@ if (BIDDING_ZONES_ENTSOEPY_DATASET := dataset_version("bidding_zones_entsoepy"))
             logger = logging.getLogger(__name__)
             logger.setLevel(config["logging"]["level"])
             logger.addHandler(logging.FileHandler(log[0]))
-
             logger.info("Downloading entsoe-py zones...")
             gdfs: list[gpd.GeoDataFrame] = []
             url = f"{BIDDING_ZONES_ENTSOEPY_DATASET['url']}"
@@ -922,7 +921,6 @@ if (EEZ_DATASET := dataset_version("eez"))["source"] in ["primary"]:
             output_folder = Path(output["zip_file"]).parent
             unpack_archive(output["zip_file"], output_folder)
 
-
 elif (EEZ_DATASET := dataset_version("eez"))["source"] in ARCHIVE_SOURCES:
 
     rule retrieve_eez:
@@ -1251,11 +1249,9 @@ if (TYNDP_DATASET := dataset_version("tyndp"))["source"] in [
                 for key in input.keys():
                     # Keep zip file
                     copy2(input[key], output[f"{key}_zip"])
-
                     # unzip
                     output_folder = Path(output[f"{key}_zip"]).parent
                     unpack_archive(output[f"{key}_zip"], output_folder)
-
                     # Remove __MACOSX directory if it exists
                     macosx_dir = output_folder / "__MACOSX"
                     rmtree(macosx_dir, ignore_errors=True)
@@ -1344,15 +1340,12 @@ if (TYNDP_DATASET := dataset_version("tyndp"))["source"] in [
                 for key in input.keys():
                     # Keep zip file
                     copy2(input[key], output[f"{key}_zip"])
-
                     # unzip
                     output_folder = Path(output[f"{key}_zip"]).parent
                     unpack_archive(output[f"{key}_zip"], output_folder)
-
                     # Remove __MACOSX directory if it exists
                     macosx_dir = output_folder / "__MACOSX"
                     rmtree(macosx_dir, ignore_errors=True)
-
 
 
 def get_osm_archive_files(version):
@@ -1672,7 +1665,6 @@ if (JRC_ARDECO_DATASET := dataset_version("jrc_ardeco"))["source"] in [
         run:
             for key in input.keys():
                 copy2(input[key], output[key])
-
 
 elif (JRC_ARDECO_DATASET := dataset_version("jrc_ardeco"))["source"] in ARCHIVE_SOURCES:
 

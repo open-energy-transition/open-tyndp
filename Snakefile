@@ -588,11 +588,9 @@ onsuccess:
             if path.is_file() and path != LOCAL_CACHE_MANIFEST
         )
         LOCAL_CACHE_MANIFEST.write_text("\n".join(collected) + "\n")
-
         # Update cached files metadata for correct provenance
         for entry in collected:
             workflow.persistence.cleanup_metadata(IOFile(str(cache / entry)))
-
         logger.info(
             f"Recorded {len(collected)} cache entries in {LOCAL_CACHE_MANIFEST}"
         )
