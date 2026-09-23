@@ -79,7 +79,7 @@ def get_elec_demand(
         .replace(SCENARIO_DICT, regex=True)
         .query(
             f"Scenario==@scenario and "
-            f"Climate_Year=='WS{wscenario}' and "
+            f"Climate_Year=='CY{wscenario}' and "
             f"Technology=='Native Demand (excl. pump load and battery charge)' and "
             f"Country in @EU27_COUNTRIES"
         )
