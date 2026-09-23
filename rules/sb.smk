@@ -159,7 +159,7 @@ if not "pre-built" in PECD_DATASET["version"]:
                 "pre_built",
                 "wscenarios",
             ),
-            available_planning_horizons=config_provider(
+            available_years=config_provider(
                 "electricity", "pecd_renewable_profiles", "available_years"
             ),
         script:

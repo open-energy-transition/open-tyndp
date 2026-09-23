@@ -75,14 +75,14 @@ if __name__ == "__main__":
         )
         wscenarios = pd.Series(list(set(wscenarios).intersection(available_wscenarios)))
     # Planning years for which PECD data is available for in the specified PECD version
-    available_planning_horizons = snakemake.params.available_planning_horizons
+    available_years = snakemake.params.available_years
     # Input and output directories and prebuilt version
     dir_pecd = snakemake.input.pecd_raw
     prebuilt_dir = snakemake.output.pecd_prebuilt
 
     # Iterate over available planning years
     #######################################
-    for year in available_planning_horizons:
+    for year in available_years:
         dir_pecd_year = Path(dir_pecd, str(year))
         pecd_files = [
             f
