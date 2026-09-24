@@ -838,7 +838,7 @@ rule build_co2_totals:
     log:
         logs("build_co2_totals.log"),
     benchmark:
-        benchmarks("build_co2_totals")
+        benchmarks("performances/build_co2_totals")
     threads: 1
     resources:
         mem_mb=1000,
@@ -857,7 +857,7 @@ rule build_transformation_output_coke:
     log:
         logs("build_transformation_output_coke.log"),
     benchmark:
-        benchmarks("build_transformation_output_coke")
+        benchmarks("performances/build_transformation_output_coke")
     threads: 1
     resources:
         mem_mb=1000,
