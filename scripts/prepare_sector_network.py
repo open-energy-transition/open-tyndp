@@ -3574,6 +3574,7 @@ def add_electricity_grid_connection(n, costs):
 
 def add_h2_production_tyndp(
     n: pypsa.Network,
+    spatial: SimpleNamespace,
     nodes: pd.Index,
     buses_h2: pd.Index,
     costs: pd.DataFrame,
@@ -3586,6 +3587,8 @@ def add_h2_production_tyndp(
     ----------
     n : pypsa.Network
         The PyPSA network container object.
+    spatial : SimpleNamespace
+        Namespace object with spatial nodes for different carriers such as `gas` and `co2`.
     nodes : pd.Index
         Pandas Index of electricity node locations/nodes.
     buses_h2 : pd.Index
@@ -4135,7 +4138,12 @@ def add_h2_topology_tyndp(
     # add H2 production (Z1: Electrolysis, SMR (optional), SMR CC (optional), ATR; Z2: Electrolysis)
     buses_h2 = buses_h2_z1 if options["h2_zones_tyndp"] else buses_h2_z2
     add_h2_production_tyndp(
-        n=n, nodes=nodes, buses_h2=buses_h2, costs=costs, options=options
+        n=n,
+        spatial=spatial,
+        nodes=nodes,
+        buses_h2=buses_h2,
+        costs=costs,
+        options=options,
     )
 
     # add H2 DRES electricity nodes and Electrolysis to H2 Z2
