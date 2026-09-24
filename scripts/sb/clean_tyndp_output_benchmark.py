@@ -550,6 +550,12 @@ if __name__ == "__main__":
         snakemake.params["weather_scenarios"], planning_horizon
     )
 
+    # Logs which weather scenario and planning year is being processed
+    logger.info(
+        f"Processing planning year {planning_horizon}, "
+        f"weather scenario WS{weather_scenario:03d}"
+    )
+
     # load carrier mapping
     mm_carrier_mapping = _load_mm_carrier_mapping(
         snakemake.input.carrier_mapping, options["tables"]
