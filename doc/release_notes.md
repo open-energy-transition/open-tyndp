@@ -19,6 +19,8 @@
 
 **Documentation**
 
+* Fix the broken links in the documentation ([#997](https://github.com/open-energy-transition/open-tyndp/pull/997)).
+
 
 **Developers Note**
 
