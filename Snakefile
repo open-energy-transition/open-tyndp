@@ -524,32 +524,35 @@ def remote_sync_files():
     names = run["name"] if isinstance(run["name"], list) else [run["name"]]
     rdir = get_rdir(run)
     return [
-        f"{d}/{rdir.replace('{run}', n)}{f}"
-        for d, files in config["remote"]["sync_file"].items()
+        f"--include='/*/{rdir.replace('{run}', n)}{f}'"
         for n in names
-        for f in files
+        for f in config["remote"]["sync_file"]
     ]
 
 
 rule sync_file:
     params:
-        cluster=f"{config['remote']['ssh']}:{config['remote']['path']}",
-        files=remote_sync_files(),
-        exclude=[f"--exclude='{p}'" for p in config["remote"]["sync_exclude"]],
+        sources=f"{config['remote']['ssh']}:"
+        + " :".join(
+            f"{config['remote']['path']}/{d}" for d in ["results", "resources", "logs"]
+        ),
+        include=remote_sync_files(),
     shell:
         """
-        printf '%s\\n' {params.files} | rsync -uvarh --no-g --ignore-missing-args {params.exclude} --files-from=- {params.cluster}/ .
+        rsync -uvarh --no-g -m --ignore-missing-args --include='*/' {params.include} --exclude='*' {params.sources} .
         """
 
 
 rule sync_file_dry:
     params:
-        cluster=f"{config['remote']['ssh']}:{config['remote']['path']}",
-        files=remote_sync_files(),
-        exclude=[f"--exclude='{p}'" for p in config["remote"]["sync_exclude"]],
+        sources=f"{config['remote']['ssh']}:"
+        + " :".join(
+            f"{config['remote']['path']}/{d}" for d in ["results", "resources", "logs"]
+        ),
+        include=remote_sync_files(),
     shell:
         """
-        printf '%s\\n' {params.files} | rsync -uvarh --no-g --ignore-missing-args {params.exclude} --files-from=- {params.cluster}/ . -n
+        rsync -uvarh --no-g -m --ignore-missing-args --include='*/' {params.include} --exclude='*' {params.sources} . -n
         """
 
 
