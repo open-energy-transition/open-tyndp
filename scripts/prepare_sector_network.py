@@ -2671,9 +2671,10 @@ def _add_other_res_profiles(
     component_df: pd.DataFrame,
     component_t: dict[str, pd.DataFrame],
     profiles: pd.DataFrame,
+    attr: str = "p_set",
 ) -> None:
     """
-    Add p_set profiles to existing network for a given Other RES carrier and component.
+    Add Other RES profiles to existing network for a given carrier and component.
 
     Parameters
     ----------
@@ -2687,6 +2688,9 @@ def _add_other_res_profiles(
         Component dictionary containing time-dependent attributes for the given component.
     profiles : pd.DataFrame
         Dataframe containing the profiles to add to the network.
+    attr : str
+        Time-dependent attribute to write the profile to. ``p_set`` fixes the
+        dispatch to the profile, ``p_max_pu`` only caps it.
 
     Returns
     -------
@@ -2702,15 +2706,18 @@ def _add_other_res_profiles(
             p_set=lambda df: df.p_set.div(component_df.loc[asset_i].efficiency.iloc[0])
         )
 
-    p_set = (
+    profile = (
         profiles.pivot_table(values="p_set", index="time", columns="bus")
         .rename(columns=lambda x: f"{x} {carrier}")
         .reindex(asset_i, axis=1, fill_value=0.0)
     )
-    p_set = p_set.loc[:, (p_set != 0.0).any()]
+    if attr == "p_max_pu":
+        profile = profile.div(component_df.loc[asset_i, "p_nom"], axis=1)
+    else:
+        profile = profile.loc[:, (profile != 0.0).any()]
 
     _add_new_profiles_to_existing(
-        component_t=component_t, attr="p_set", new_profiles=p_set
+        component_t=component_t, attr=attr, new_profiles=profile
     )
 
 
@@ -2763,12 +2770,17 @@ def _add_other_res_capacities(
 
     # Add fixed per-unit generation profiles
     # Other RES Biomass
+    # TODO The profile only caps the dispatch instead of fixing it, because the
+    # PEMMDB 2024 must-run biomass demand is inconsistent with the TYNDP 2026
+    # Supply Tool biomass potentials and renders the network infeasible. Revisit
+    # once PEMMDB 2026 data is added to the network.
     _add_other_res_profiles(
         carrier="other-res-biomass",
         asset_i=n.links.query("carrier == 'other-res-biomass' and p_nom > 0").index,
         component_df=n.links,
         component_t=n.links_t,
         profiles=pemmdb_profiles,
+        attr="p_max_pu",
     )
     # Other RES Mix
     _add_other_res_profiles(
