@@ -9,6 +9,8 @@
 
 **Features**
 
+* Allow the `sync_file` and `sync_file_dry` rules to retrieve files by pattern.  ([#996](https://github.com/open-energy-transition/open-tyndp/pull/996)). The `sync` and `sync_dry` rules now retrieve the reference networks and skip only the project networks. `remote.sync_exclude` no longer applies to `sync_file` and `sync_file_dry`.
+
 
 **Changes**
 

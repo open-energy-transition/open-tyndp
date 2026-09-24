@@ -9,7 +9,7 @@ run:
   - NT
 
 remote:
-  # Configure project specific files for sync_file rule
+  # Project-specific files to pull with sync_file rule
   sync_file:
   - cba/networks/project_t335_*.nc  # PINT
   - cba/networks/project_t339_*.nc  # TOOT
@@ -17,7 +17,7 @@ remote:
   - cba/networks/project_s1001_*.nc  # PHS
   - cba/networks/project_s1013_*.nc  # CAES
   - cba/networks/project_s1035_*.nc  # battery
-  # Configure exclusions for sync rule
+  # Paths to skip with sync rule
   sync_exclude:
   - cba/networks/project_*
 

@@ -1,3 +1,4 @@
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
 # SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: MIT
@@ -68,7 +69,7 @@ class RemoteConfig(ConfigModel):
     )
     sync_file: list[str] = Field(
         default_factory=list,
-        description="Files to pull from the remote cluster with the `sync_file` and `sync_file_dry` rules. Each entry is an rsync include pattern relative to `<dir>/<prefix>/<run-name>/`, where `<dir>` is `results`, `resources` or `logs`. The pattern is applied for every configured run name. `*` matches within one path level (e.g. `cba/networks/project_t335_*.nc`), `**` matches across levels, and `***` matches the directory and everything below it (e.g. `cba/***`). Patterns without a match are skipped silently. `sync_exclude` does not apply to these rules.",
+        description="Files to pull from the remote cluster with the `sync_file` and `sync_file_dry` rules. Each entry is an rsync include pattern relative to `<dir>/<prefix>/<run-name>/`, where `<dir>` is `results`, `resources` or `logs`. Each pattern applies to every configured run name. `*` matches within one path level (e.g. `cba/networks/project_t335_*.nc`), `**` matches across levels, and `***` matches the directory and everything below it (e.g. `cba/***`). Patterns without a match are skipped silently. `sync_exclude` does not apply to these rules.",
     )
     sync_exclude: list[str] = Field(
         default_factory=list,
