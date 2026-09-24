@@ -3,7 +3,6 @@ channels:
 - conda-forge
 - bioconda
 - gurobi
-- https://repo.prefix.dev/open-tyndp
 - nodefaults
 dependencies:
 - snakemake-storage-plugin-cached-http >=0.3

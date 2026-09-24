@@ -5,7 +5,7 @@
 
 [workspace]
 authors = ["Contributors to Open-TYNDP"]
-channels = ["conda-forge", "bioconda", "gurobi", "https://repo.prefix.dev/open-tyndp"]
+channels = ["conda-forge", "bioconda", "gurobi"]
 name = "pypsa-eur"
 platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]
 version = "v0.9"
@@ -15,6 +15,7 @@ exclude-newer = "7d"
 linopy = "0d"
 pypsa = "0d"
 atlite = "0d"
+pypsa-explorer = "0d"
 snakemake-executor-plugin-slurm = "0d"  # drop once the pandas 3 build is older than 7d
 
 [target.win-64.activation.env]
