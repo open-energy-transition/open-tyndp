@@ -15,12 +15,14 @@
 
 **Bugfixes and Compatibility**
 
+* Remove `__init__` override from `heat_system.py` for compatibility with python>=3.14 ([#990](https://github.com/open-energy-transition/open-tyndp/pull/990)).
 
 **Documentation**
 
 
 **Developers Note**
 
+* Remove `open-tyndp` channel from pixi.toml and add `pypsa-explorer` to exclude-newer exceptions ([#988](https://github.com/open-energy-transition/open-tyndp/pull/988)).
 
 
 ## Upcoming PyPSA-Eur Release
