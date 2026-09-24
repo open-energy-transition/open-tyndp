@@ -25,6 +25,8 @@
 
 **Changes**
 
+* feat: align processing of outputs files for benchmarking for the TYNDP 2026 cycle ([#960](https://github.com/open-energy-transition/open-tyndp/pull/960)).These include installed capacities, prices, loads, exchanges and generation timeseries.
+
 **Bugfixes and Compatibility**
 
 **Documentation**
