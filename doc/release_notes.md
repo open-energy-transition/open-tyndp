@@ -3708,7 +3708,7 @@ Other:
 
 * Added [FSFE REUSE](https://reuse.software) compliant license information. Documentation now licensed under CC-BY-4.0 [[#160](https://github.com/PyPSA/pypsa-eur/pull/160)].
 
-* Added a 30 minute [video introduction](https://pypsa-eur.readthedocs.io/en/latest/introduction.html) and a 20 minute [video tutorial](https://pypsa-eur.readthedocs.io/en/latest/tutorial.html)
+* Added a 30 minute [video introduction](https://pypsa-eur.readthedocs.io/en/latest/introduction/) and a 20 minute [video tutorial](https://pypsa-eur.readthedocs.io/en/latest/tutorial/)
 
 * Networks now store a color and a nicely formatted name for each carrier, accessible via `n.carrier['color']` and `n.carrier['nice_name'] `(networks after `elec.nc`).
 
