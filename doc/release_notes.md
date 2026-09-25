@@ -30,7 +30,8 @@
 **Documentation**
 
 **Developers Note**
-Rename `pyear` to `planning_horizon` and `cyear` to `wscenario` ([#878](https://github.com/open-energy-transition/open-tyndp/pull/878)). The CBA scenarios {NT,DE,GA}-ws{1995,2008,2009} still align with the TYNDP 2024 climate years; only the prefix has been changed. They are not TYNDP 2026 weather scenarios, which are indices (WS003, WS021, ...) configured through the `wscenarios_tyndp` config option (renamed from `weather_scenarios_tyndp`). The `ws` prefix is now shared by both numbering schemes in 2024 and 2026, but `ws1995` should not be read as a 2026 weather scenario . Additionally, some functions were renamed as well (e.g., `safe_pyear` to `safe_planning_horizon`). 
+
+* Rename `pyear` to `planning_horizon` and `cyear` to `wscenario` ([#878](https://github.com/open-energy-transition/open-tyndp/pull/878)). The CBA scenarios {NT,DE,GA}-ws{1995,2008,2009} still align with the TYNDP 2024 climate years; only the prefix has been changed. They are not TYNDP 2026 weather scenarios, which are indices (WS003, WS021, ...) configured through the `wscenarios_tyndp` config option (renamed from `weather_scenarios_tyndp`). The `ws` prefix is now shared by both numbering schemes in 2024 and 2026, but `ws1995` should not be read as a 2026 weather scenario . Additionally, some functions were renamed as well (e.g., `safe_pyear` to `safe_planning_horizon`). 
 
 **2024**
 
