@@ -71,9 +71,9 @@
 * doc: Add FAQ section to docs (`faq.md`) with troubleshooting for `SSL: CERTIFICATE_VERIFY_FAILED` during data retrieval behind proxy servers ([#2228](https://github.com/PyPSA/pypsa-eur/pull/2228)).
 * Fix Ultranet (TYNDP 254) to end in Philippsburg (#2236)
 
-## Open-TYNDP v0.8.1 (24th September 2026)
+## Open-TYNDP v0.8.1 (25th September 2026)
 
-This is a security patch release. It contains no functional changes;
+This is an IT security patch release following a screening by ENTSO-E. It contains no functional changes;
 model results are unchanged with respect to v0.8. Upgrading is recommended
 for all users of v0.8.
 
