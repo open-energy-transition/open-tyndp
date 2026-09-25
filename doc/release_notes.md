@@ -21,6 +21,8 @@
 
 * feat: update processing and preparation of PEMMDB 2.X technologies, capacities and profiles for TYNDP 2026: Thermals, Other Non-RES, Solar, Wind, Battery, Electrolyser, Hydro, and DSR ([#865](https://github.com/open-energy-transition/open-tyndp/pull/865)). Full integration of 2026 technologies with their capacities and profiles will follow in subsequent PRs.
 
+* feat: align the electricity and hydrogen topology with the TYNDP 2026 ([#920](https://github.com/open-energy-transition/open-tyndp/pull/920)). The electricity and hydrogen reference grids are now read directly per planning horizon, bus names and a new `category` tag (`onshore`/`offshore` for electricity, `Z1`/`Z2`/`offshore`/`import`/`bottleneck` for hydrogen) are taken from the 2026 node list instead of being synthesised, and the new `build_tyndp_electricity_ntc` rule extracts the per-horizon NTC that are applied in `prepare_sector_network`. `MD`, `TR` and `UA` are added as modelled countries. The TYNDP 2024 offshore-hub feature (`build_tyndp_offshore_hubs`, `plot_offshore_network`, the `AC_OH`/`H2_OH`/`DC_OH` carriers) and the investment-candidate corrections (`build_tyndp_transmission_projects`, `tyndp_investment_candidates`, `offshore_hubs_tyndp`) are removed, since 2026 offshore nodes are real substations with real reference-grid topology.
+
 **Changes**
 
 **Bugfixes and Compatibility**
@@ -28,7 +30,8 @@
 **Documentation**
 
 **Developers Note**
-Rename `pyear` to `planning_horizon` and `cyear` to `wscenario` ([#878](https://github.com/open-energy-transition/open-tyndp/pull/878)). The CBA scenarios {NT,DE,GA}-ws{1995,2008,2009} still align with the TYNDP 2024 climate years; only the prefix has been changed. They are not TYNDP 2026 weather scenarios, which are indices (WS003, WS021, ...) configured through the `wscenarios_tyndp` config option (renamed from `weather_scenarios_tyndp`). The `ws` prefix is now shared by both numbering schemes in 2024 and 2026, but `ws1995` should not be read as a 2026 weather scenario . Additionally, some functions were renamed as well (e.g., `safe_pyear` to `safe_planning_horizon`). 
+
+* Rename `pyear` to `planning_horizon` and `cyear` to `wscenario` ([#878](https://github.com/open-energy-transition/open-tyndp/pull/878)). The CBA scenarios {NT,DE,GA}-ws{1995,2008,2009} still align with the TYNDP 2024 climate years; only the prefix has been changed. They are not TYNDP 2026 weather scenarios, which are indices (WS003, WS021, ...) configured through the `wscenarios_tyndp` config option (renamed from `weather_scenarios_tyndp`). The `ws` prefix is now shared by both numbering schemes in 2024 and 2026, but `ws1995` should not be read as a 2026 weather scenario . Additionally, some functions were renamed as well (e.g., `safe_pyear` to `safe_planning_horizon`). 
 
 **2024**
 

@@ -44,17 +44,15 @@ def read_pecd_file(
     sns: pd.DatetimeIndex,
 ):
 
+    pecd_node = node.replace("GB", "UK")  # PECD files keep the raw TYNDP node codes
+
     if "Solar" in technology:
-        fn = Path(
-            dir_pecd,
-            str(planning_horizon),
-            f"{technology} {node.replace('UK', 'GB')}.csv",
-        )
+        fn = Path(dir_pecd, str(planning_horizon), f"{technology} {pecd_node}.csv")
     else:
         fn = Path(
             dir_pecd,
             str(planning_horizon),
-            f"{node.replace('UK', 'GB')}_CapacityFactors_{technology}_{planning_horizon}.csv",
+            f"{pecd_node}_CapacityFactors_{technology}_{planning_horizon}.csv",
         )
 
     if not os.path.isfile(fn):
@@ -82,7 +80,7 @@ if __name__ == "__main__":
         from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake(
-            "clean_pecd_data",
+            "clean_tyndp_pecd_data",
             clusters="all",
             technology="Wind_Offshore",
             planning_horizons=2030,
@@ -107,19 +105,13 @@ if __name__ == "__main__":
     # Technology as in PECD terminology
     pecd_tech = snakemake.wildcards.technology
 
-    df_nodes = pd.read_excel(snakemake.input.nodes, sheet_name=None)
-    onshore_buses = df_nodes["Electricity"]["NODE"].tolist()
+    buses_tyndp = pd.read_csv(snakemake.input.buses_tyndp).set_index("bus_id")
 
-    # Nodes present in the TYNDP 2026 node list but absent from the rest of the workflow,
-    # which still relies on the TYNDP 2024 node set. Dropped to keep PECD consistent with it.
-    # TODO Remove once the TYNDP 2026 nodes are integrated
-    # excluded nodes - "MD00", "NOS1", "NOS2", "NOS3", "TR00", "UA00", "PL00E", "PL00I"
-    busmap = pd.read_csv(snakemake.input.busmap).name.tolist()
-    onshore_buses = [x for x in onshore_buses if x in busmap]
+    # Offshore wind is also given at onshore nodes, other technologies are onshore only
+    if pecd_tech != "Wind_Offshore":
+        buses_tyndp = buses_tyndp[buses_tyndp["category"] == "onshore"]
 
-    offshore_buses = onshore_buses + df_nodes["Electricity_Offshore"]["NODE"].tolist()
-    nodes = offshore_buses if pecd_tech == "Wind_Offshore" else onshore_buses
-    nodes = [x.replace("UK", "GB") for x in nodes]
+    nodes = buses_tyndp.index.tolist()
 
     dir_pecd = snakemake.input.pecd_prebuilt
 

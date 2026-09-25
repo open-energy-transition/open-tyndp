@@ -257,8 +257,7 @@ def get_pecd_prebuilt(w):
 rule clean_tyndp_pecd_data:
     input:
         pecd_prebuilt=get_pecd_prebuilt,
-        nodes=rules.retrieve_tyndp_2026.output.nodes,
-        busmap=resources("busmap_base_s_all.csv"),
+        buses_tyndp=rules.build_tyndp_network.output.substations,
     output:
         pecd_data_clean=resources("pecd_data_{technology}_{planning_horizons}.csv"),
     log:
@@ -334,8 +333,7 @@ rule build_tyndp_pemmdb_data:
     input:
         pemmdb_dir=rules.retrieve_tyndp_2026.output.pemmdb,
         carrier_mapping="data/tyndp_technology_map.csv",
-        busmap=resources("busmap_base_s_all.csv"),
-        nodes=rules.retrieve_tyndp_2026.output.nodes,
+        buses_tyndp=rules.build_tyndp_network.output.substations,
     output:
         pemmdb_capacities=resources("pemmdb_capacities_{planning_horizons}.csv"),
         pemmdb_profiles=resources("pemmdb_profiles_{planning_horizons}.nc"),
@@ -357,40 +355,6 @@ rule build_tyndp_pemmdb_data:
         tyndp_scenario=config_provider("tyndp_scenario"),
     script:
         scripts("sb/build_tyndp_pemmdb_data.py")
-
-
-def get_elec_project_build_years(w):
-    return config_provider("tyndp_investment_candidates", "elec_projects")(w)[
-        int(w.planning_horizons)
-    ]
-
-
-def get_h2_project_build_years(w):
-    return config_provider("tyndp_investment_candidates", "h2_projects")(w)[
-        int(w.planning_horizons)
-    ]
-
-
-rule build_tyndp_transmission_projects:
-    input:
-        buses_elec=rules.build_tyndp_network.output.substations_geojson,
-        buses_h2=rules.build_tyndp_network.output.substations_h2_geojson,
-        invest_grid=rules.retrieve_tyndp.output.invest_grid,
-    output:
-        new_links_elec=resources("tyndp/new_links_{planning_horizons}.csv"),
-        new_links_h2=resources("tyndp/new_links_h2_{planning_horizons}.csv"),
-    log:
-        logs("build_tyndp_transmission_projects_{planning_horizons}.log"),
-    benchmark:
-        benchmarks("performances/build_tyndp_transmission_projects_{planning_horizons}")
-    threads: 1
-    resources:
-        mem_mb=1000,
-    params:
-        build_years_elec=get_elec_project_build_years,
-        build_years_h2=get_h2_project_build_years,
-    script:
-        scripts("sb/build_tyndp_transmission_projects.py")
 
 
 rule build_tyndp_trajectories:
@@ -549,23 +513,11 @@ rule build_tyndp_h2_demand:
 
 if config["sector"]["h2_topology_tyndp"]:
 
-    def include_tyndp_h2_projects(w):
-        horizons = config_provider("tyndp_investment_candidates", "h2_projects")(w)
-        if not horizons:
-            return False
-        return int(w.planning_horizons) in horizons
-
     rule build_tyndp_h2_network:
         input:
-            h2_reference_grid_entsoe=rules.retrieve_tyndp.output.h2_reference_grid_entsoe,
-            h2_reference_grid_entsos=rules.retrieve_tyndp.output.h2_reference_grid_entsos,
-            h2_projects=branch(
-                include_tyndp_h2_projects,
-                resources("tyndp/new_links_h2_{planning_horizons}.csv"),
-            ),
+            h2_reference_grid=rules.retrieve_tyndp_2026.output.h2_reference_grid_entsos,
         output:
             h2_grid_prepped=resources("h2_reference_grid_tyndp_{planning_horizons}.csv"),
-            interzonal_prepped=resources("h2_interzonal_tyndp_{planning_horizons}.csv"),
         log:
             logs("build_tyndp_h2_network_{planning_horizons}.log"),
         benchmark:
@@ -575,12 +527,6 @@ if config["sector"]["h2_topology_tyndp"]:
         threads: 1
         resources:
             mem_mb=4000,
-        params:
-            snapshots=config_provider("snapshots"),
-            scenario=config_provider("tyndp_scenario"),
-            h2_reference_grid_source=config_provider(
-                "sector", "h2_reference_grid_source"
-            ),
         script:
             scripts("sb/build_tyndp_h2_network.py")
 
@@ -639,7 +585,6 @@ if config["sector"]["h2_topology_tyndp"]:
             mem_mb=4000,
         params:
             tyndp_scenario=config_provider("tyndp_scenario"),
-            h2_zones_tyndp=config_provider("sector", "h2_zones_tyndp"),
         script:
             scripts("sb/clean_tyndp_smr.py")
 
@@ -659,43 +604,8 @@ if config["sector"]["h2_topology_tyndp"]:
             mem_mb=4000,
         params:
             tyndp_scenario=config_provider("tyndp_scenario"),
-            h2_zones_tyndp=config_provider("sector", "h2_zones_tyndp"),
         script:
             scripts("sb/clean_tyndp_h2_storages.py")
-
-
-if config["sector"]["offshore_hubs_tyndp"]["enable"]:
-
-    rule build_tyndp_offshore_hubs:
-        input:
-            nodes=rules.retrieve_tyndp.output.offshore_nodes,
-            grid=rules.retrieve_tyndp.output.offshore_grid,
-            electrolysers=rules.retrieve_tyndp.output.offshore_electrolysers,
-            generators=rules.retrieve_tyndp.output.offshore_generators,
-        output:
-            offshore_buses=resources("offshore_buses.csv"),
-            offshore_grid=resources("offshore_grid.csv"),
-            offshore_electrolysers=resources("offshore_electrolysers.csv"),
-            offshore_generators=resources("offshore_generators.csv"),
-            offshore_zone_trajectories=resources("offshore_zone_trajectories.csv"),
-        log:
-            logs("build_tyndp_offshore_hubs.log"),
-        benchmark:
-            benchmarks("performances/build_tyndp_offshore_hubs")
-        conda:
-            "../envs/environment.yaml"
-        threads: 1
-        resources:
-            mem_mb=4000,
-        params:
-            planning_horizons=config_provider("scenario", "planning_horizons"),
-            scenario=config_provider("tyndp_scenario"),
-            countries=config_provider("countries"),
-            offshore_hubs_tyndp=config_provider("sector", "offshore_hubs_tyndp"),
-            extendable_carriers=config_provider("electricity", "extendable_carriers"),
-            h2_zones_tyndp=config_provider("sector", "h2_zones_tyndp"),
-        script:
-            scripts("sb/build_tyndp_offshore_hubs.py")
 
 
 rule group_tyndp_conventionals:
@@ -759,51 +669,6 @@ if config["foresight"] != "perfect":
         script:
             scripts("sb/plot_base_hydrogen_network.py")
 
-    rule plot_base_offshore_network:
-        input:
-            network=resources(
-                "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc"
-            ),
-            regions_offshore=resources("regions_offshore.geojson"),
-        output:
-            map=resources(
-                "maps/base_offshore_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}_{carrier}.pdf"
-            ),
-        log:
-            RESULTS
-            + "logs/plot_base_offshore_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}_{carrier}.log",
-        benchmark:
-            benchmarks(
-                "performances/plot_base_offshore_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}_{carrier}"
-            )
-        conda:
-            "../envs/environment.yaml"
-        threads: 1
-        resources:
-            mem_mb=4000,
-        params:
-            plotting=config_provider("plotting"),
-            expanded=False,
-        script:
-            scripts("sb/plot_offshore_network.py")
-
-    use rule plot_base_offshore_network as plot_offshore_network with:
-        input:
-            network=RESULTS
-            + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",
-        output:
-            map=RESULTS
-            + "maps/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}-offshore_network_{carrier}.pdf",
-        log:
-            RESULTS
-            + "logs/plot_offshore_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}_{carrier}.log",
-        benchmark:
-            benchmarks(
-                "performances/plot_offshore_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}_{carrier}"
-            )
-        params:
-            expanded=True,
-
 
 # Benchmark
 ###########
@@ -844,7 +709,6 @@ if config["benchmarking"]["enable"]:
             snapshots=config_provider("snapshots"),
             drop_leap_day=config_provider("enable", "drop_leap_day"),
             countries=config_provider("countries"),
-            offshore_hubs=config_provider("sector", "offshore_hubs_tyndp", "enable"),
         script:
             scripts("sb/clean_tyndp_output_benchmark.py")
 

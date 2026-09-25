@@ -49,7 +49,6 @@ from scripts._helpers import (
     safe_planning_horizon,
     set_scenario_config,
 )
-from scripts.cba.clean_projects import read_tyndp_electricity_buses
 
 # for compatibility with future pandas downcasting behaviour
 pd.set_option("future.no_silent_downcasting", True)
@@ -1346,23 +1345,8 @@ if __name__ == "__main__":
         {PEMMDB_SHEET_MAPPING.get(tech, tech) for tech in pemmdb_techs}
     )
     thermal_techs = [k for k, v in PEMMDB_SHEET_MAPPING.items() if v == "Thermal"]
-    # Union of the model's busmap and the raw TYNDP node lists for electricity
-    # Todo: Revert to the busmap alone once it covers all modelled electricity nodes.
-    nodes = (
-        pd.read_csv(snakemake.input.busmap, index_col=0)
-        .index.union(
-            read_tyndp_electricity_buses(
-                snakemake.input.nodes, col_name="NODE", sheet_name="Electricity"
-            )
-        )
-        .union(
-            read_tyndp_electricity_buses(
-                snakemake.input.nodes,
-                col_name="NODE",
-                sheet_name="Electricity_Offshore",
-            )
-        )
-    )
+    # Electricity nodes of the TYNDP network, onshore and offshore
+    nodes = pd.read_csv(snakemake.input.buses_tyndp, index_col="bus_id").index
     pemmdb_dir = snakemake.input.pemmdb_dir
     tyndp_scenario = snakemake.params.tyndp_scenario
     carrier_mapping_fn = snakemake.input.carrier_mapping
