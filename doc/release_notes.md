@@ -11,7 +11,7 @@
 
 **Features**
 
-* feat: Rename `pyear` to `planning_horizon` and `cyear` to `wscenario` across all files in the repository ([#878](https://github.com/open-energy-transition/open-tyndp/pull/878))
+* feat: Rename `pyear` to `planning_horizon` and `cyear` to `wscenario` across all files in the repository. The CBA scenarios {NT,DE,GA}-ws{1995,2008,2009} still identify TYNDP 2024 climate years; only the prefix has been changed. They are not TYNDP 2026 weather scenarios, which are indices (WS003, WS021, ...) configured through wscenarios_tyndp:. The ws prefix is now shared by both numbering schemes, so ws1995 should not be read as a 2026 weather scenario. ([#878](https://github.com/open-energy-transition/open-tyndp/pull/878))
 
 * feat: add rule to retrieve TYNDP 2026 data ([#815](https://github.com/open-energy-transition/open-tyndp/pull/815)).
 
