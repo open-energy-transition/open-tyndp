@@ -833,6 +833,10 @@ class SectorConfig(BaseModel):
         1.0,
         description="Multiplies the investment cost of the electricity distribution grid.",
     )
+    electricity_distribution_grid_tyndp: bool = Field(
+        False,
+        description="Use TYNDP conventions for the electricity distribution grid link: non-extendable with infinite capacity and TYNDP wheeling charges as marginal cost (split into two unidirectional links, one per flow direction), instead of an investable capital cost on a single bidirectional link.",
+    )
     electricity_grid_connection: bool = Field(
         True,
         description="Add the cost of electricity grid connection for onshore wind and solar.",
