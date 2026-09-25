@@ -8,11 +8,6 @@
 ## Upcoming Open-TYNDP Release
 
 
-* Configure the CodeQL and test workflows for `scan-branch`, and exclude it from the lockfile update to keep its environments pinned to the latest release with security patches on top ([#928](https://github.com/open-energy-transition/open-tyndp/pull/928)).
-
-* Apply security patches on top of v0.8 by relocking all `pixi` environments ([#989](https://github.com/open-energy-transition/open-tyndp/pull/989)). The `grpcio <1.78` pin is removed, since it blocked the `pyarrow` upgrade and no dependency requires `grpcio` any more.
-
-* Configure the CodeQL and test workflows for `release/*` branches, and exclude them from the lockfile update to keep their environments manually managed ([#989](https://github.com/open-energy-transition/open-tyndp/pull/989)).
 
 ## Upcoming PyPSA-Eur Release
 
@@ -71,6 +66,7 @@
 * doc: Add FAQ section to docs (`faq.md`) with troubleshooting for `SSL: CERTIFICATE_VERIFY_FAILED` during data retrieval behind proxy servers ([#2228](https://github.com/PyPSA/pypsa-eur/pull/2228)).
 * Fix Ultranet (TYNDP 254) to end in Philippsburg (#2236)
 
+
 ## Open-TYNDP v0.8.1 (25th September 2026)
 
 This is an IT security patch release following a screening by ENTSO-E. It contains no functional changes;
@@ -82,6 +78,7 @@ for all users of v0.8.
 * Apply security patches on top of v0.8 by relocking all `pixi` environments ([#989](https://github.com/open-energy-transition/open-tyndp/pull/989)). The `grpcio <1.78` pin is removed, since it blocked the `pyarrow` upgrade and no dependency requires `grpcio` any more.
 
 * Configure the CodeQL and test workflows for `release/*` branches, and exclude them from the lockfile update to keep their environments manually managed ([#989](https://github.com/open-energy-transition/open-tyndp/pull/989)).
+
 
 ## Open-TYNDP v0.8 (7th August 2026)
 
@@ -194,6 +191,7 @@ for all users of v0.8.
 * Switch Snakemake persistence backend to SQLite ([#833](https://github.com/open-energy-transition/open-tyndp/pull/833)).
 
 * Refactor `clean_projects` script to reduce the redundancy in its outputs ([#807](https://github.com/open-energy-transition/open-tyndp/pull/807)).
+
 
 ## PyPSA-Eur v2026.02.0 (18th February 2026, merged 17th June 2026)
 
