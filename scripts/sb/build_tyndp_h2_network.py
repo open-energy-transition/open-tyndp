@@ -22,7 +22,7 @@ from scripts._helpers import (
 logger = logging.getLogger(__name__)
 
 
-def load_h2_grid(fn_grid: str, pyear: int) -> pd.DataFrame:
+def load_h2_grid(fn_grid: str, planning_horizon: int) -> pd.DataFrame:
     """
     Load and clean the TYNDP 2026 H2 reference grid for a given planning horizon.
 
@@ -31,7 +31,7 @@ def load_h2_grid(fn_grid: str, pyear: int) -> pd.DataFrame:
     fn_grid : str
         Path to the TYNDP 2026 H2 reference grid Excel file
         ("ReferenceGrid_Hydrogen.xlsx").
-    pyear : int
+    planning_horizon : int
         Planning horizon used to select the corresponding sheet.
 
     Returns
@@ -39,7 +39,7 @@ def load_h2_grid(fn_grid: str, pyear: int) -> pd.DataFrame:
     pd.DataFrame
         Cleaned TYNDP H2 reference grid.
     """
-    h2_grid_raw = pd.read_excel(fn_grid, sheet_name=f"Year_{pyear}")
+    h2_grid_raw = pd.read_excel(fn_grid, sheet_name=f"Year_{planning_horizon}")
     h2_grid_raw["Border"] = format_bz_names(h2_grid_raw["Border"])
     h2_grid = extract_grid_data_tyndp(
         links=h2_grid_raw, idx_prefix="H2 pipeline", idx_connector="->"
@@ -63,10 +63,13 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     # Parameters
-    pyear = int(snakemake.wildcards.planning_horizons)
+    planning_horizon = int(snakemake.wildcards.planning_horizons)
 
     # Load and clean H2 reference grid
-    h2_grid = load_h2_grid(fn_grid=snakemake.input.h2_reference_grid, pyear=pyear)
+    h2_grid = load_h2_grid(
+        fn_grid=snakemake.input.h2_reference_grid,
+        planning_horizon=planning_horizon,
+    )
 
     # Save cleaned H2 grid
     h2_grid.to_csv(snakemake.output.h2_grid_prepped)

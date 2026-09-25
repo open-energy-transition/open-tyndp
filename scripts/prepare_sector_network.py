@@ -2906,7 +2906,7 @@ def add_existing_tyndp_capacities(
     h2_storage_capacities : pd.DataFrame
         DataFrame containing existing H2 storage capacities.
     trajectories : pd.DataFrame
-        DataFrame containing the trajectories for the current pyear to attach (p_nom_min and p_nom_max).
+        DataFrame containing the trajectories for the current planning_horizon to attach (p_nom_min and p_nom_max).
     tyndp_renewable_carriers : list[str]
         List of TYNDP renewable carriers.
     tyndp_conventional_thermals : list[str]
@@ -2953,7 +2953,7 @@ def add_existing_tyndp_capacities(
         if tyndp_solar_onwind:
             ppl = pemmdb_capacities.query("carrier.isin(@tyndp_solar_onwind)")
             trajectories_solar_onwind = trajectories.query(
-                "pyear == @investment_year and carrier.isin(@tyndp_solar_onwind)"
+                "planning_horizon == @investment_year and carrier.isin(@tyndp_solar_onwind)"
             )
 
             attach_wind_and_solar(
@@ -2979,7 +2979,7 @@ def add_existing_tyndp_capacities(
         # Add existing conventional thermal capacities from PEMMDB to already attached conventional technologies
         if tyndp_conventional_thermals:
             trajectories_nuclear = trajectories.query(
-                "pyear == @investment_year and index_carrier == 'nuclear'"
+                "planning_horizon == @investment_year and index_carrier == 'nuclear'"
             ).set_index("bus")
 
             _add_conventional_thermal_capacities(
@@ -3009,7 +3009,7 @@ def add_existing_tyndp_capacities(
         # Add existing electrolyzer capacities from PEMMDB to already attached electrolyzer components
         if h2_topology_tyndp:
             trajectories_electrolyser = trajectories.query(
-                "pyear == @investment_year and carrier == 'electrolyser'"
+                "planning_horizon == @investment_year and carrier == 'electrolyser'"
             ).set_index("bus")
 
             _add_electrolyzer_capacities(
