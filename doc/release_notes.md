@@ -15,15 +15,14 @@
 
 **Bugfixes and Compatibility**
 
-
-* Fix read mode of the local cache layer to avoid re-retrieving datasets with directory outputs after filling the cache in the same working directory ([#1008](https://github.com/open-energy-transition/open-tyndp/pull/1008)).
-
 * Fix units for non-CO2 emission factors in CBA ([#1124](https://github.com/open-energy-transition/open-tyndp/pull/1124)).
 
 **Documentation**
 
 
 **Developers Note**
+
+* Add pre-solved SB networks for release v0.9 to list of supported pre-solved networks ([#1000](https://github.com/open-energy-transition/open-tyndp/pull/1000)).
 
 
 ## Upcoming PyPSA-Eur Release
@@ -95,6 +94,7 @@ This is an IT security patch release following a screening by ENTSO-E. It contai
 * Fix `build_swiss_energy_balances` to read the October 2026 edition of the Swiss energy balances (data for 2000-2025), which renamed table rows ([#1139](https://github.com/open-energy-transition/open-tyndp/pull/1139)).
 
 * Fix read mode of the local cache layer to avoid re-retrieving datasets with directory outputs after filling the cache in the same working directory ([#1141](https://github.com/open-energy-transition/open-tyndp/pull/1141)).
+
 
 ## Open-TYNDP v0.9 (22nd September 2026)
 
