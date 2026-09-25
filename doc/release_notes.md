@@ -17,6 +17,8 @@
 
 * Remove `__init__` override from `heat_system.py` for compatibility with python>=3.14 ([#990](https://github.com/open-energy-transition/open-tyndp/pull/990)).
 
+* Fix read mode of the local cache layer to avoid re-retrieving datasets with directory outputs after filling the cache in the same working directory ([#1008](https://github.com/open-energy-transition/open-tyndp/pull/1008)).
+
 **Documentation**
 
 
