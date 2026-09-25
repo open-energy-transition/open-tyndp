@@ -199,7 +199,7 @@ def _drop_duplicate_price_bands(
         # Some datasets have duplicate pemmdb_tech price bands with same wscenario, type, purpose and price
         # but different capacities. Using first entry.
         logger.info(
-            f"Found duplicate '{pemmdb_tech}' price bands at {node} (wscenario {wscenario:03d}) with same type, purpose, and price but different capacities. Aggregating capacities."
+            f"Found duplicate '{pemmdb_tech}' price bands at {node} (wscenario WS{wscenario:03d}) with same type, purpose, and price but different capacities. Aggregating capacities."
         )
     agg = {c: "sum" if c in ["p_nom", "p_max"] else "first" for c in df.columns}
     return df.groupby(groupby, **kwargs).agg(agg)
