@@ -34,12 +34,12 @@ jobs:
         fetch-depth: 0
         fetch-tags: true
 
-    - name: Check that origin/master contains the tag and reset local master to it
+    - name: Check that origin/master or a release branch contains the tag and reset local master to it
       if: ${{ env.TAG }}
       run: |
-        git fetch origin master
-        if ! git merge-base --is-ancestor "$TAG" origin/master; then
-          echo "Error: Tag $TAG is not in master branch history"
+        git fetch origin '+refs/heads/master:refs/remotes/origin/master' '+refs/heads/release/*:refs/remotes/origin/release/*'
+        if [ -z "$(git branch -r --contains "$TAG" --list 'origin/master' 'origin/release/*')" ]; then
+          echo "Error: Tag $TAG is not in master or release/* branch history"
           exit 1
         fi
         git branch --force master HEAD
