@@ -8,6 +8,7 @@ Adds all sector-coupling components to the network, including demand and supply
 technologies for the buildings, transport and industry sectors.
 """
 
+import functools
 import logging
 import os
 from itertools import product
@@ -54,6 +55,7 @@ from scripts.sb._helpers import (
     remove_disconnected_storage_buses,
     remove_zero_capacity_non_extendable,
 )
+from scripts.sb.build_statistics import NODE_MAP
 
 spatial = SimpleNamespace()
 logger = logging.getLogger(__name__)
@@ -1561,290 +1563,6 @@ def cycling_shift(df, steps=1):
     """
     new_index = np.roll(df.index, steps)
     return df.reindex(index=new_index).set_axis(df.index)
-
-
-def _add_other_non_res_tyndp(
-    n: pypsa.Network,
-    generator: str,
-    carrier: str,
-    carrier_nodes: list,
-    spatial: SimpleNamespace,
-    costs: pd.DataFrame,
-    pemmdb_capacities: pd.DataFrame,
-    co2_price: float,
-) -> None:
-    """
-    Add TYNDP Other Non-RES price bands to the network.
-
-    Creates links between carrier buses and demand nodes for Other Non-RES generators of different price bands,
-    including their efficiency, costs, and CO2 emissions.
-
-    Parameters
-    ----------
-    n : pypsa.Network
-        The PyPSA network container object.
-    generator : str
-        Name of the Other Non-RES generator.
-    carrier : str
-        Name of the Other Non-RES fuel carrier.
-    carrier_nodes : list
-        Nodes of the fuel carrier.
-    spatial : SimpleNamespace
-        Namespace containing spatial information for different carriers,
-        including nodes and locations.
-    costs : pd.DataFrame
-        DataFrame containing cost and technical parameters for different technologies.
-    pemmdb_capacities : pd.DataFrame
-        Dataframe containing PEMMDB capacities including information on the different Other Non-RES price bands.
-    co2_price: float
-        Emission price for the given planning year.
-
-    Returns
-    -------
-    None
-        Modifies the network object in-place by adding TYNDP Other Non-RES price bands
-    """
-    query = "" if "ccs" in generator else "not"
-
-    price_bands = pemmdb_capacities.query(
-        f"index_carrier.str.startswith(@generator) and {query} index_carrier.str.contains('ccs') and efficiency > 0"
-    ).reset_index()
-    nodes = price_bands.bus.values
-    offer_price = price_bands.price
-    fuel_price = costs.at[carrier, "fuel"]
-    adjusted_price = (
-        offer_price * price_bands.efficiency  # EUR/MWhel * efficiency = EUR/MWhth
-        - fuel_price  # EUR/MWhth
-        - price_bands.co2_factor * co2_price  # tCO2/MWhth * EUR/tCO2 = EUR/MWhth
-    ).values
-
-    if "ccs" in generator:
-        capture_rate = costs.at[generator, "capture_rate"]
-        co2_capture = capture_rate * price_bands.co2_factor.values / (1 - capture_rate)
-
-        n.add(
-            "Link",
-            price_bands["bus"].astype(str)
-            + "-"
-            + price_bands["index_carrier"].astype(str)
-            + "-"
-            + price_bands["price"].round(2).astype(str)
-            + "eur",
-            bus0=carrier_nodes,
-            bus1=nodes,
-            bus2="co2 atmosphere",
-            bus3=spatial.co2.df.loc[nodes, "nodes"].values,
-            carrier=generator,
-            p_nom_extendable=False,
-            marginal_cost=adjusted_price,
-            efficiency=price_bands.efficiency.values,
-            efficiency2=price_bands.co2_factor.values,
-            efficiency3=co2_capture,
-            lifetime=costs.at[generator, "lifetime"],
-        )
-
-    # Else add as regular conventional power plants
-    else:
-        n.add(
-            "Link",
-            price_bands["bus"].astype(str)
-            + "-"
-            + price_bands["index_carrier"].astype(str)
-            + "-"
-            + price_bands["price"].round(2).astype(str)
-            + "eur",
-            bus0=carrier_nodes,
-            bus1=nodes,
-            bus2="co2 atmosphere",
-            carrier=generator,
-            p_nom_extendable=False,
-            marginal_cost=adjusted_price,
-            efficiency=price_bands.efficiency.values,
-            efficiency2=price_bands.co2_factor.values,
-            lifetime=costs.at[generator, "lifetime"],
-        )
-
-
-def add_thermal_generation_tyndp(
-    n: pypsa.Network,
-    costs: pd.DataFrame,
-    nodes: pd.Index,
-    tyndp_conventionals: dict[str, str],
-    spatial: SimpleNamespace,
-    options: dict,
-    cf_industry: dict,
-    pemmdb_capacities: pd.DataFrame,
-    co2_price: float,
-) -> None:
-    """
-    Add TYNDP conventional thermal electricity generation technologies to the network.
-
-    Creates links between carrier buses and demand nodes for conventional generators,
-    including their efficiency, costs, and CO2 emissions.
-
-    Parameters
-    ----------
-    n : pypsa.Network
-        The PyPSA network container object.
-    costs : pd.DataFrame
-        DataFrame containing cost and technical parameters for different technologies.
-    nodes : pd.Index
-        pd.Index with demand nodes.
-    tyndp_conventionals : dict[str, str]
-        Dictionary mapping TYNDP conventional generation technologies to their energy carriers.
-    spatial : SimpleNamespace
-        Namespace containing spatial information for different carriers,
-        including nodes and locations.
-    options : dict
-        Configuration dictionary containing settings for the model.
-    cf_industry : dict
-        Dictionary of industrial conversion factors, needed for carrier buses.
-    pemmdb_capacities: pd.DataFrame
-        Dataframe containing PEMMDB capacities including Other Non-RES price band information.
-    co2_price: float
-        Emission price for the given planning year.
-
-    Returns
-    -------
-    None
-        Modifies the network object in-place by adding TYNDP generation components
-
-    Notes
-    -----
-    - Currently, default PyPSA-Eur technology assumptions are used, hence costs (VOM and fixed) are given per MWel and automatically adjusted by efficiency
-    - CO2 emissions are tracked through a link to the 'co2 atmosphere' bus
-    - Generator lifetimes are considered in the capital cost calculation
-    """
-
-    for generator, carrier in tyndp_conventionals.items():
-        carrier_nodes = vars(spatial)[carrier].nodes
-
-        add_carrier_buses(
-            n=n,
-            carrier=carrier,
-            costs=costs,
-            spatial=spatial,
-            options=options,
-            cf_industry=cf_industry,
-        )
-
-        # Add TYNDP Other Non-RES price bands to the network
-        if "other-non-res" in generator:
-            _add_other_non_res_tyndp(
-                n=n,
-                generator=generator,
-                carrier=carrier,
-                carrier_nodes=carrier_nodes,
-                spatial=spatial,
-                costs=costs,
-                pemmdb_capacities=pemmdb_capacities,
-                co2_price=co2_price,
-            )
-
-        # Otherwise, add CCS conventional power plants using default PyPSA-Eur assumptions for capture rates and capital cost
-        # TODO: Update with TYNDP specific assumptions
-        elif "ccs" in generator:
-            n.add(
-                "Link",
-                nodes + " " + generator,
-                bus0=carrier_nodes,
-                bus1=nodes,
-                bus2="co2 atmosphere",
-                bus3=spatial.co2.df.loc[nodes, "nodes"].values,
-                carrier=generator,
-                p_nom_extendable=False,
-                capital_cost=costs.at[generator, "capital_cost"],
-                marginal_cost=costs.at[generator, "marginal_cost"],
-                efficiency=costs.at[generator, "efficiency"],
-                efficiency2=costs.at[generator, "CO2 intensity"],
-                efficiency3=costs.at[generator, "CO2 capture"],
-                lifetime=costs.at[generator, "lifetime"],
-            )
-
-        # Else add regular conventional power plants
-        else:
-            n.add(
-                "Link",
-                nodes + " " + generator,
-                bus0=carrier_nodes,
-                bus1=nodes,
-                bus2="co2 atmosphere",
-                marginal_cost=costs.at[generator, "marginal_cost"],
-                capital_cost=costs.at[generator, "capital_cost"],
-                p_nom_extendable=False,
-                carrier=generator,
-                efficiency=costs.at[generator, "efficiency"],
-                efficiency2=costs.at[carrier, "CO2 intensity"],
-                lifetime=costs.at[generator, "lifetime"],
-            )
-
-
-def add_other_res_tyndp(
-    n: pypsa.Network,
-    costs: pd.DataFrame,
-    pop_layout: pd.DataFrame,
-    spatial: SimpleNamespace,
-    options: dict,
-) -> None:
-    """
-    Add Other RES technologies to the network. This includes two groups of plants:
-    * Small Biomass
-    * Geothermal, Marine, Waste, Not defined
-
-    Parameters
-    ----------
-    n : pypsa.Network
-        The PyPSA network container object.
-    costs : pd.DataFrame
-        DataFrame containing cost and technical parameters for different technologies.
-    pop_layout : SimpleNamespace.
-        Namespace containing spatial information for different carriers,
-        including nodes and locations.
-    spatial : SimpleNamespace
-        Namespace containing spatial information for different carriers,
-        including nodes and locations.
-    options : dict
-        Configuration dictionary containing settings for the model.
-
-    Returns
-    -------
-    None
-        Modifies the network object in-place by adding TYNDP Other RES components.
-    """
-    logger.info("Add Other RES from TYNDP.")
-
-    nodes = pop_layout.index
-
-    # Add biomass components to the model incl. biomass bus
-    # TODO: refactor with add_carrier_buses both here and in add_biomass
-    if options["biomass"]:
-        n.add(
-            "Bus",
-            spatial.biomass.nodes,
-            location=spatial.biomass.locations,
-            carrier="solid biomass",
-            unit="MWh_LHV",
-        )
-
-        # Add Other RES Biomass as Links
-        n.add(
-            "Link",
-            nodes + " other-res-biomass",
-            bus0=spatial.biomass.df.loc[nodes, "nodes"].values,
-            bus1=nodes,
-            carrier="other-res-biomass",
-            p_nom_extendable=False,
-            efficiency=costs.at["central solid biomass CHP", "efficiency"],
-        )
-
-    # Add Other RES Mix as Generators
-    n.add(
-        "Generator",
-        nodes + " other-res-mix",
-        bus=nodes,
-        carrier="other-res-mix",
-        p_nom_extendable=False,
-    )
 
 
 def _add_other_non_res_tyndp(
@@ -3856,6 +3574,7 @@ def add_electricity_grid_connection(n, costs):
 
 def add_h2_production_tyndp(
     n: pypsa.Network,
+    spatial: SimpleNamespace,
     nodes: pd.Index,
     buses_h2: pd.Index,
     costs: pd.DataFrame,
@@ -3868,6 +3587,8 @@ def add_h2_production_tyndp(
     ----------
     n : pypsa.Network
         The PyPSA network container object.
+    spatial : SimpleNamespace
+        Namespace object with spatial nodes for different carriers such as `gas` and `co2`.
     nodes : pd.Index
         Pandas Index of electricity node locations/nodes.
     buses_h2 : pd.Index
@@ -4417,7 +4138,12 @@ def add_h2_topology_tyndp(
     # add H2 production (Z1: Electrolysis, SMR (optional), SMR CC (optional), ATR; Z2: Electrolysis)
     buses_h2 = buses_h2_z1 if options["h2_zones_tyndp"] else buses_h2_z2
     add_h2_production_tyndp(
-        n=n, nodes=nodes, buses_h2=buses_h2, costs=costs, options=options
+        n=n,
+        spatial=spatial,
+        nodes=nodes,
+        buses_h2=buses_h2,
+        costs=costs,
+        options=options,
     )
 
     # add H2 DRES electricity nodes and Electrolysis to H2 Z2
