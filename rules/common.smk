@@ -85,7 +85,8 @@ def config_provider(*keys, default=None):
 
 
 # Retrieval is disabled while reading from a populated local cache
-LOCAL_CACHE = config["data"]["local_cache"]
+# Validated config coerces the strings that nested `--config` overrides pass
+LOCAL_CACHE = validate_config(config).data.local_cache
 LOCAL_CACHE_READ = LOCAL_CACHE["enable"] and not LOCAL_CACHE["fill"]
 LOCAL_CACHE_MANIFEST = Path(LOCAL_CACHE["directory"], ".collected")
 
