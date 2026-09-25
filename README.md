@@ -30,7 +30,7 @@ This repository introduces the open-source model of the Open-TYNDP research and 
 
 To build trust in and ensure reproducibility with the new open-source toolchain, the project first focuses on replicating key figures from the 2024 TYNDP cycle, before aligning with the current 2026 TYNDP cycle. This process involves developing new features within the open-source domain to address existing gaps, integrating tools for data interoperability and dynamic visualizations, and publishing best practices to encourage the adoption of open energy models. Additionally, the project emphasizes stakeholder consultations and [interactive workshops](https://open-energy-transition.github.io/open-tyndp-workshops/intro.html) alongside the development of the open-source tool, further promoting collaboration and transparency throughout the process.
 
-First outcomes for the TYNDP 2024 NT scenario are presented [here](https://open-tyndp.openenergytransition.org/), while preliminary outcomes and outputs for every release can be found on [Zenodo](https://zenodo.org/records/18608105).
+First outcomes for the TYNDP 2024 NT scenario are presented [here](https://open-tyndp.openenergytransition.org/), while preliminary outcomes and outputs for every release can be found on [Zenodo](https://zenodo.org/records/18608105). To follow the project's development, subscribe to the [Open-TYNDP newsletter](https://openenergytransition.eo.page/opentyndp).
 
 This repository is a soft-fork of [OET/PyPSA-Eur](https://github.com/open-energy-transition/pypsa-eur) and contains the entire project `Open-TYNDP` supported by OET, including code and documentation. The philosophy behind this repository is that no intermediary results are included, but all results are computed from raw data and code.
 
@@ -129,7 +129,7 @@ We strongly welcome anyone interested in contributing to this project. If you ha
 # Contact
 For any questions about Open-TYNDP or other queries, reach out via the [pypsa-open-tyndp](https://discord.com/channels/911692131440148490/1414977512089321564) channel or <a href="mailto:tyndp@openenergytransition.org">tyndp@openenergytransition.org</a>.
 
-Sign Up for the [project newsletter](https://openenergytransitionnewsletter.eo.page/tyndp-oet) for updates!
+Sign Up for the [project newsletter](https://openenergytransition.eo.page/opentyndp) for updates!
 
 # Citation
 

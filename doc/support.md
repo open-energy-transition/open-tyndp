@@ -10,6 +10,6 @@ Please consider the following ways to reach out to the community and the contrib
 
   * The [PyPSA mailing](https://groups.google.com/group/pypsa) list previously was used for all kind of questions. Please use Discord server going forward, while the mailing list remains accessible as a knowledge archive.
   * For questions about Open-TYNDP or other queries, reach out via [tyndp@openenergytransition.org](mailto:tyndp@openenergytransition.org).
-  * Stay updated by signing up for the [project newsletter](https://openenergytransitionnewsletter.eo.page/tyndp-oet).
+  * Stay updated by signing up for the [project newsletter](https://openenergytransition.eo.page/opentyndp).
 * For **bugs and feature requests**, please use the relevant issue tracker. The [Open-TYNDP issues](https://github.com/open-energy-transition/open-tyndp/issues) collects known topics we are working on. Since this project relies on a soft-fork strategy, upstream issues should be addressed in the [PyPSA-Eur repository](https://github.com/PyPSA/PyPSA-Eur/issues). Package-related issues should be addressed in the [PyPSA repository](https://github.com/PyPSA/PyPSA/issues).
 * We strongly welcome anyone interested in providing **contributions** to this project. If you have any ideas, suggestions or encounter problems, feel invited to file issues or make pull requests on [Github](https://github.com/open-energy-transition/open-tyndp) or directly on the [PyPSA-Eur Upstream](https://github.com/PyPSA/PyPSA-Eur).
