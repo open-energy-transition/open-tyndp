@@ -7,7 +7,7 @@
 test-NT:
   tyndp_scenario: NT
 
-test-NT-cy1995:
+test-NT-ws1995:
   snapshots:
     start: "2013-03-01"
     end: "2013-03-08"
@@ -16,7 +16,7 @@ test-NT-cy1995:
     sb_scenario: test-NT
 
 
-test-NT-cy2008:
+test-NT-ws2008:
   snapshots:
     start: "2013-03-01"
     end: "2013-03-08"
@@ -25,7 +25,7 @@ test-NT-cy2008:
     sb_scenario: test-NT
 
 
-test-NT-cy2009:
+test-NT-ws2009:
   snapshots:
     start: "2013-03-01"
     end: "2013-03-08"
@@ -34,6 +34,6 @@ test-NT-cy2009:
     sb_scenario: test-NT
 
 
-test-NT-cyears:
+test-NT-wscenarios:
   cba:
-    scenarios: [test-NT-cy2009, test-NT-cy1995]
+    scenarios: [test-NT-ws2009, test-NT-ws1995]

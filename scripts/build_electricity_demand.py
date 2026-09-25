@@ -267,12 +267,12 @@ if __name__ == "__main__":
         )
 
         # need to reindex load time series to snapshots year
-        cyear = snapshots[0].year
-        if cyear != snapshots[-1].year:
+        sns_year = snapshots[0].year
+        if sns_year != snapshots[-1].year:
             logger.warning(
                 "Snapshots covers more than one year, consider limiting your analysis to a single full year."
             )
-        load.index = load.index.map(lambda t: t.replace(year=cyear))
+        load.index = load.index.map(lambda t: t.replace(year=sns_year))
     else:
         opsd = load_timeseries(snakemake.input.opsd, years, countries, OPSD_DATE_FORMAT)
 
