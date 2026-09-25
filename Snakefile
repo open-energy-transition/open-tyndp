@@ -588,9 +588,9 @@ onsuccess:
         )
         LOCAL_CACHE_MANIFEST.write_text("\n".join(collected) + "\n")
 
-        # Update cached files metadata for correct provenance
-        for entry in collected:
-            workflow.persistence.cleanup_metadata(IOFile(str(cache / entry)))
+        # Clean metadata of cached files and directories for correct provenance
+        for path in cache.rglob("*"):
+            workflow.persistence.cleanup_metadata(IOFile(str(path)))
 
         logger.info(
             f"Recorded {len(collected)} cache entries in {LOCAL_CACHE_MANIFEST}"
