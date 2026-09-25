@@ -28,6 +28,7 @@
 
 * Allow the Windows installer workflow to build releases tagged on `release/*` branches, in addition to `master`, so that patch releases also get a signed installer ([#1009](https://github.com/open-energy-transition/open-tyndp/pull/1009)).
 
+
 ## Upcoming PyPSA-Eur Release
 
 * fix: update stale contribution docs (linting and formatting ruff)
@@ -189,6 +190,19 @@
 * Remove `collect_cba_scenario` rule and the empty `all_scenarios.txt` file it creates; refactor `cba` rule ([#958](https://github.com/open-energy-transition/open-tyndp/pull/958)).
 
 * Clarify logger warnings in `clean_projects` (CBA checkpoint) to specify reasons for projects being ignored ([#978](https://github.com/open-energy-transition/open-tyndp/pull/978)).
+
+
+## Open-TYNDP v0.8.1 (25th September 2026)
+
+This is an IT security patch release following a screening by ENTSO-E. It contains no functional changes;
+model results are unchanged with respect to v0.8. Upgrading is recommended
+for all users of v0.8.
+
+* Configure the CodeQL and test workflows for `scan-branch`, and exclude it from the lockfile update to keep its environments pinned to the latest release with security patches on top ([#928](https://github.com/open-energy-transition/open-tyndp/pull/928)).
+
+* Apply security patches on top of v0.8 by relocking all `pixi` environments ([#989](https://github.com/open-energy-transition/open-tyndp/pull/989)). The `grpcio <1.78` pin is removed, since it blocked the `pyarrow` upgrade and no dependency requires `grpcio` any more.
+
+* Configure the CodeQL and test workflows for `release/*` branches, and exclude them from the lockfile update to keep their environments manually managed ([#989](https://github.com/open-energy-transition/open-tyndp/pull/989)).
 
 
 ## Open-TYNDP v0.8 (7th August 2026)
