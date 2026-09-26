@@ -118,7 +118,6 @@ if config.get("cba", {}).get("cba_scenario_input", {}).get("use_presolved", Fals
                         shutil.copyfileobj(src, dst)
 
 
-
 # Build MSV
 ############
 

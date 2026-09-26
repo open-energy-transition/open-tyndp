@@ -367,6 +367,7 @@ rule create_scenarios:
         "config/create_scenarios.py"
 
 
+# fmt: off[next]
 rule purge:
     run:
         import builtins
@@ -423,7 +424,7 @@ rule rulegraph:
         r"""
         # Generate DOT file using nested snakemake with the dumped final config
         echo "[Rule rulegraph] Using final config file: {input.config_file}"
-        snakemake --rulegraph --configfile {input.config_file} --quiet | sed -n "/digraph/,\$p" > {output.dot}
+        snakemake --rulegraph --configfile {input.config_file} --quiet | sed -n "/digraph/,\$p" >{output.dot}
 
         # Generate visualizations from the DOT file
         if [ -s {output.dot} ]; then
@@ -462,7 +463,7 @@ rule filegraph:
         r"""
         # Generate DOT file using nested snakemake with the dumped final config
         echo "[Rule filegraph] Using final config file: {input.config_file}"
-        snakemake --filegraph all --configfile {input.config_file} --quiet | sed -n "/digraph/,\$p" > {output.dot}
+        snakemake --filegraph all --configfile {input.config_file} --quiet | sed -n "/digraph/,\$p" >{output.dot}
 
         # Generate visualizations from the DOT file
         if [ -s {output.dot} ]; then
@@ -587,11 +588,9 @@ onsuccess:
             if path.is_file() and path != LOCAL_CACHE_MANIFEST
         )
         LOCAL_CACHE_MANIFEST.write_text("\n".join(collected) + "\n")
-
         # Update cached files metadata for correct provenance
         for entry in collected:
             workflow.persistence.cleanup_metadata(IOFile(str(cache / entry)))
-
         logger.info(
             f"Recorded {len(collected)} cache entries in {LOCAL_CACHE_MANIFEST}"
         )

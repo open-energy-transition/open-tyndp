@@ -196,7 +196,6 @@ if (POPULATION_COUNT_DATASET := dataset_version("population_count"))["source"] i
             "Retrieving population count data"
         run:
             copy2(input["tif"], output["tif"])
-
             if POPULATION_COUNT_DATASET["source"] == "primary":
                 import xarray as xr
                 import rioxarray as rio
@@ -205,7 +204,6 @@ if (POPULATION_COUNT_DATASET := dataset_version("population_count"))["source"] i
                 ds = xr.open_dataarray(file_path)
                 ds_reqd = ds.sel(x=slice(15.55, 40.41), y=slice(52.49, 41.72))
                 ds_reqd.rio.to_raster(file_path)
-
 
 
 if (GHG_EMISSIONS_DATASET := dataset_version("ghg_emissions"))["source"] in [
@@ -239,7 +237,6 @@ if (GHG_EMISSIONS_DATASET := dataset_version("ghg_emissions"))["source"] in [
                 copy2(input["ghg"], output["csv"])
 
 
-
 if (GEBCO_DATASET := dataset_version("gebco"))["source"] in [
     "primary",
     *ARCHIVE_SOURCES,
@@ -262,17 +259,14 @@ if (GEBCO_DATASET := dataset_version("gebco"))["source"] in [
                 import xarray as xr
 
                 copy2(input[0], output["zip_file"])
-
                 output_folder = Path(output["zip_file"]).parent
                 unpack_archive(output["zip_file"], output_folder)
-
                 # Limit extent to Europe to reduce file size
                 ds = xr.open_dataset(output["gebco"])
                 ds = ds.sel(lat=slice(32, 73), lon=slice(-21, 45))
                 ds.to_netcdf(output["gebco"])
             else:
                 copy2(input[0], output["gebco"])
-
 
 
 if (ATTRIBUTED_PORTS_DATASET := dataset_version("attributed_ports"))["source"] in [
@@ -399,7 +393,6 @@ if (BIDDING_ZONES_ENTSOEPY_DATASET := dataset_version("bidding_zones_entsoepy"))
             logger = logging.getLogger(__name__)
             logger.setLevel(config["logging"]["level"])
             logger.addHandler(logging.FileHandler(log[0]))
-
             logger.info("Downloading entsoe-py zones...")
             gdfs: list[gpd.GeoDataFrame] = []
             url = f"{BIDDING_ZONES_ENTSOEPY_DATASET['url']}"
@@ -423,11 +416,8 @@ if (BIDDING_ZONES_ENTSOEPY_DATASET := dataset_version("bidding_zones_entsoepy"))
                 except (Timeout, ConnectionError, TimeoutError) as e:
                     raise Exception(f"Network error retrieving {name}: {e}")
             shapes = pd.concat(gdfs, ignore_index=True)  # type: ignore
-
             logger.info("Downloading entsoe-py zones... Done")
-
             shapes.to_file(output.geojson)
-
 
 
 if (CUTOUT_DATASET := dataset_version("cutout"))["source"] in ARCHIVE_SOURCES:
@@ -735,7 +725,6 @@ if (ENERGY_ATLAS_DATASET := dataset_version("jrc_energy_atlas"))["source"] in [
                 f.write(response.content)
 
 
-
 if (
     DESNZ_ELECTRICITY_CONSUMPTION_DATASET := dataset_version(
         "desnz_electricity_consumption"
@@ -755,7 +744,6 @@ if (
             response.raise_for_status()
             with open(output["xlsx"], "wb") as f:
                 f.write(response.content)
-
 
 
 if (ONS_LAD_DATASET := dataset_version("ons_lad"))["source"] in [*ARCHIVE_SOURCES]:
@@ -789,7 +777,6 @@ elif ONS_LAD_DATASET["source"] in ["primary"]:
             response = requests.get(url, params=params)
             with open(output["geojson"], "wb") as f:
                 f.write(response.content)
-
 
 
 if (SHIP_RASTER_DATASET := dataset_version("ship_raster"))["source"] in [
@@ -826,6 +813,23 @@ if (ENSPRESO_BIOMASS_DATASET := dataset_version("enspreso_biomass"))["source"] i
         retries: 1
         message:
             "Retrieving ENSPRESO biomass data"
+        run:
+            copy2(input["xlsx"], output["xlsx"])
+
+
+if (TABULA_CALCULATOR := dataset_version("tabula_calculator"))["source"] in [
+    "primary",
+    "archive",
+]:
+
+    rule retrieve_tabula_calculator:
+        input:
+            xlsx=storage(TABULA_CALCULATOR["url"]),
+        output:
+            xlsx=f"{TABULA_CALCULATOR['folder']}/tabula-calculator.xlsx",
+        retries: 2
+        message:
+            "Retrieving TABULA building typology data calculator"
         run:
             copy2(input["xlsx"], output["xlsx"])
 
@@ -916,7 +920,6 @@ if (EEZ_DATASET := dataset_version("eez"))["source"] in ["primary"]:
 
             name = str(uuid4())[:8]
             org = str(uuid4())[:8]
-
             response = requests.post(
                 f"{EEZ_DATASET['url']}",
                 params={"name": f"World_EEZ_{EEZ_DATASET['version']}_LR.zip"},
@@ -930,12 +933,10 @@ if (EEZ_DATASET := dataset_version("eez"))["source"] in ["primary"]:
                     "agree": "1",
                 },
             )
-
             with open(output["zip_file"], "wb") as f:
                 f.write(response.content)
             output_folder = Path(output["zip_file"]).parent
             unpack_archive(output["zip_file"], output_folder)
-
 
 elif (EEZ_DATASET := dataset_version("eez"))["source"] in ARCHIVE_SOURCES:
 
@@ -971,7 +972,6 @@ if (WB_URB_POP_DATASET := dataset_version("worldbank_urban_population"))["source
         run:
             copy2(input["zip"], output["zip"])
             unpack_archive(output["zip"], WB_URB_POP_DATASET["folder"])
-
             # Filename contains some added numbers when downloaded,
             # remove them to have a consistent filename across versions
             target_filename = Path(output["csv"])
@@ -1151,13 +1151,11 @@ if (WDPA_DATASET := dataset_version("wdpa"))["source"] in [
             output_folder = Path(output["zip_file"]).parent
             copy2(input["zip_file"], output["zip_file"])
             unpack_archive(output["zip_file"], output_folder)
-
             # Extract {bYYYY} from the input file / URL
             bYYYY = re.search(
                 r"WDPA_(\w{3}\d{4})_Public_shp.zip",
                 input["zip_file"],
             ).group(1)
-
             for i in range(3):
                 # vsizip is special driver for directly working with zipped shapefiles in ogr2ogr
                 layer_path = (
@@ -1165,7 +1163,6 @@ if (WDPA_DATASET := dataset_version("wdpa"))["source"] in [
                 )
                 print(f"Adding layer {i+1} of 3 to combined output file.")
                 shell("ogr2ogr -f gpkg -update -append {output.gpkg} {layer_path}")
-
 
 
 if (WDPA_MARINE_DATASET := dataset_version("wdpa_marine"))["source"] in [
@@ -1189,19 +1186,16 @@ if (WDPA_MARINE_DATASET := dataset_version("wdpa_marine"))["source"] in [
             output_folder = Path(output["zip_file"]).parent
             copy2(input["zip_file"], output["zip_file"])
             unpack_archive(output["zip_file"], output_folder)
-
             # Extract {bYYYY} from the input file / URL
             bYYYY = re.search(
                 r"WDPA_WDOECM_(\w{3}\d{4})_Public_marine_shp.zip",
                 input["zip_file"],
             ).group(1)
-
             for i in range(3):
                 # vsizip is special driver for directly working with zipped shapefiles in ogr2ogr
                 layer_path = f"/vsizip/{output_folder}/WDPA_WDOECM_{bYYYY}_Public_marine_shp_{i}.zip"
                 print(f"Adding layer {i+1} of 3 to combined output file.")
                 shell("ogr2ogr -f gpkg -update -append {output.gpkg} {layer_path}")
-
 
 
 if (INSTRAT_CO2_PRICES_DATASET := dataset_version("instrat_co2_prices"))["source"] in [
@@ -1227,10 +1221,8 @@ if (INSTRAT_CO2_PRICES_DATASET := dataset_version("instrat_co2_prices"))["source
                 "Accept": "application/json",
                 "Referer": "https://energy.instrat.pl/",
             }
-
             r = requests.get(url, headers=headers)
             r.raise_for_status()
-
             df = pd.read_json(r.text)
             df.to_csv(output["csv"], index=False)
 
@@ -1274,11 +1266,9 @@ if (TYNDP_DATASET := dataset_version("tyndp"))["source"] in [
                 for key in input.keys():
                     # Keep zip file
                     copy2(input[key], output[f"{key}_zip"])
-
                     # unzip
                     output_folder = Path(output[f"{key}_zip"]).parent
                     unpack_archive(output[f"{key}_zip"], output_folder)
-
                     # Remove __MACOSX directory if it exists
                     macosx_dir = output_folder / "__MACOSX"
                     rmtree(macosx_dir, ignore_errors=True)
@@ -1367,15 +1357,12 @@ if (TYNDP_DATASET := dataset_version("tyndp"))["source"] in [
                 for key in input.keys():
                     # Keep zip file
                     copy2(input[key], output[f"{key}_zip"])
-
                     # unzip
                     output_folder = Path(output[f"{key}_zip"]).parent
                     unpack_archive(output[f"{key}_zip"], output_folder)
-
                     # Remove __MACOSX directory if it exists
                     macosx_dir = output_folder / "__MACOSX"
                     rmtree(macosx_dir, ignore_errors=True)
-
 
 
 def get_osm_archive_files(version):
@@ -1423,7 +1410,6 @@ if OSM_DATASET["source"] in ARCHIVE_SOURCES:
                 copy2(input[key], output[key])
 
 
-
 # Only create incumbent rule if it points to a different folder
 OSM_DATASET_INCUMBENT = dataset_version(
     "osm",
@@ -1464,7 +1450,6 @@ if OSM_DATASET_INCUMBENT["source"] in ARCHIVE_SOURCES and OSM_DATASET_INCUMBENT[
         run:
             for key in input.keys():
                 copy2(input[key], output[key])
-
 
 
 if OSM_DATASET["source"] == "build":
@@ -1698,7 +1683,6 @@ if (JRC_ARDECO_DATASET := dataset_version("jrc_ardeco"))["source"] in [
             for key in input.keys():
                 copy2(input[key], output[key])
 
-
 elif (JRC_ARDECO_DATASET := dataset_version("jrc_ardeco"))["source"] in ARCHIVE_SOURCES:
 
     rule retrieve_jrc_ardeco:
@@ -1717,7 +1701,6 @@ elif (JRC_ARDECO_DATASET := dataset_version("jrc_ardeco"))["source"] in ARCHIVE_
         run:
             for key in input.keys():
                 copy2(input[key], output[key])
-
 
 
 if (AQUIFER_DATA_DATASET := dataset_version("aquifer_data"))["source"] in [
