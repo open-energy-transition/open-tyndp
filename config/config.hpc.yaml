@@ -9,13 +9,17 @@ run:
   - NT
 
 remote:
-  # sync all results files
+  # Project-specific files to pull with sync_file rule
   sync_file:
-    results:
-    - ""
-  # except for cba/networks
+  - cba/networks/project_t335_*.nc  # PINT
+  - cba/networks/project_t339_*.nc  # TOOT
+  - cba/networks/project_t1106_*.nc  # TOOT, offshore
+  - cba/networks/project_s1001_*.nc  # PHS
+  - cba/networks/project_s1013_*.nc  # CAES
+  - cba/networks/project_s1035_*.nc  # battery
+  # Paths to skip with sync rule
   sync_exclude:
-  - cba/networks
+  - cba/networks/project_*
 
 # Remote runs usually can't launch the explorer
 launch_explorer: false
