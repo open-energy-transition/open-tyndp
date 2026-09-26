@@ -588,25 +588,6 @@ rule plot_cba_benchmark:
         scripts("cba/plot_benchmark_indicators.py")
 
 
-rule plot_weather_benchmark:
-    input:
-        # indicators=rules.combine_indicators.output.indicators,
-        indicators=rules.make_indicators.output.indicators,
-    output:
-        plot_file=RESULTS
-        + "cba/graphs/{planning_horizons}/ensemble_{cba_project}_{planning_horizons}.png",
-    log:
-        logs("cba/plot_weather_benchmark_{cba_project}_{planning_horizons}.log"),
-    benchmark:
-        benchmarks(
-            "performances/cba/plot_weather_benchmark_{cba_project}_{planning_horizons}"
-        )
-    params:
-        area=config_provider("cba", "area"),
-    script:
-        scripts("cba/plot_benchmark_indicators.py")
-
-
 rule average_indicators_per_project_and_planning_horizon:
     input:
         indicators=lambda w: expand(
@@ -689,7 +670,7 @@ rule plot_summary_projects_benchmark:
 rule summarize_all_indicators:
     input:
         indicators=lambda w: expand(
-            rules.plot_weather_benchmark.input.indicators,
+            rules.make_indicators.output.indicators,
             planning_horizons=config_provider("cba", "planning_horizons")(w),
             cba_project=cba_projects(w),
             run=cba_source_runs(w),
@@ -834,17 +815,6 @@ def collect_cba_scenario_inputs(w):
             run=cba_scenarios(w),
         )
     )
-
-    run = get_run_name(w)
-    if run in cba_collection_scenarios(w):
-        inputs.extend(
-            expand(
-                rules.plot_weather_benchmark.output.plot_file,
-                planning_horizons=config_provider("cba", "planning_horizons")(w),
-                cba_project=cba_projects(w),
-                run=cba_scenarios(w),
-            )
-        )
 
     return inputs
 
