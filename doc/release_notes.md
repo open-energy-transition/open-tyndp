@@ -27,6 +27,8 @@
 
 **Bugfixes and Compatibility**
 
+* fix: remove the hardcoded lines to change the emissions factor for the AT node in 2040/2050. The PEMMDB value of 0 will be used for 2040/2050 ([#1012](https://github.com/open-energy-transition/open-tyndp/pull/1012)).
+
 **Documentation**
 
 **Developers Note**
