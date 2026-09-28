@@ -27,7 +27,7 @@
 
 **Bugfixes and Compatibility**
 
-* fix: remove the hardcoded lines to change the emissions factor for the AT node in 2040/2050. The PEMMDB value of 0 will be used for 2040/2050 ([#1012](https://github.com/open-energy-transition/open-tyndp/pull/1012)).
+* fix: remove hardcoded changes to the emissions factors of AT Other Non-RES gas CCGTs in 2040/2050 ([#1012](https://github.com/open-energy-transition/open-tyndp/pull/1012)). The reported PEMMDB value of 0 is used for 2040/2050 instead.
 
 **Documentation**
 
