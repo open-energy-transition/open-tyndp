@@ -16,7 +16,7 @@ Each planning horizon Excel file contains 30 climate year columns (labeled
 for the corresponding planning horizon (the rest are zero-filled placeholders).
 Which 3 are populated is dependent on data package and identical across
 demand types for a given planning horizon. The availability is recorded in
-`AVAILABLE_WEATHER_SCENARIOS` in `scripts/_helpers.py`.
+`AVAILABLE_WSCENARIOS` in `scripts/_helpers.py`.
 
 Current implementation selects first weather scenario of a planning horizon,
 This needs to be revisit once we have implemented the full weather scenario
@@ -33,7 +33,7 @@ Inputs
 
 - `data/tyndp/.../2026/Demand`: TYNDP 2026 demand profiles, with one
   subfolder per planning horizon containing one Excel file per demand type
-  (e.g. ``ELECTRICITY_MARKET {pyear}.xlsx``, ``Hydrogen_Zone 1_{pyear}.xlsx``),
+  (e.g. ``ELECTRICITY_MARKET {planning_horizon}.xlsx``, ``Hydrogen_Zone 1_{planning_horizon}.xlsx``),
   each with one sheet per node.
 
 Outputs
@@ -52,7 +52,7 @@ import pandas as pd
 from scripts._helpers import (
     configure_logging,
     get_snapshots,
-    get_weather_scenario,
+    get_wscenario,
     set_scenario_config,
 )
 
@@ -156,11 +156,11 @@ def multiindex_to_datetimeindex(df: pd.DataFrame, year: int) -> pd.DataFrame:
     return df_new
 
 
-def get_file_path(fn: str, pyear: int, demand_type: str) -> Path:
+def get_file_path(fn: str, planning_horizon: int, demand_type: str) -> Path:
     """
     Construct file path to the demand Excel file for a given planning year and demand type.
 
-    Filenames follow the pattern ``{prefix}[ |_]{pyear}.xlsx``, where `prefix`
+    Filenames follow the pattern ``{prefix}[ |_]{planning_horizon}.xlsx``, where `prefix`
     is the raw token `DEMAND_TYPE_MAP` associates with `demand_type`. Neither
     the separator before the year nor the casing of the prefix is consistent
     across demand types, so the file is looked up by matching on the prefix
@@ -171,7 +171,7 @@ def get_file_path(fn: str, pyear: int, demand_type: str) -> Path:
     fn : str
         Path to the base directory containing per-year demand data
         subdirectories.
-    pyear : int
+    planning_horizon : int
         Planning year for which to locate the demand file.
     demand_type : str
         Key identifying the demand type, must be present in
@@ -188,19 +188,19 @@ def get_file_path(fn: str, pyear: int, demand_type: str) -> Path:
     KeyError
         If `demand_type` is not a known demand type.
     FileNotFoundError
-        If no file matches the demand type for `pyear`.
+        If no file matches the demand type for `planning_horizon`.
     """
     prefix = DEMAND_TYPE_MAP[demand_type]
-    pyear_dir = Path(fn, str(pyear))
-    matches = sorted(pyear_dir.glob(f"{prefix}[ _]{pyear}.xlsx"))
+    planning_horizon_dir = Path(fn, str(planning_horizon))
+    matches = sorted(planning_horizon_dir.glob(f"{prefix}[ _]{planning_horizon}.xlsx"))
 
     if not matches:
         raise FileNotFoundError(
-            f"No demand file found for demand type '{demand_type}' in {pyear_dir}"
+            f"No demand file found for demand type '{demand_type}' in {planning_horizon_dir}"
         )
     if len(matches) > 1:
         logger.warning(
-            f"Multiple demand files match demand type '{demand_type}' in {pyear_dir}: "
+            f"Multiple demand files match demand type '{demand_type}' in {planning_horizon_dir}: "
             f"{[m.name for m in matches]}. Using {matches[0].name}."
         )
 
@@ -282,7 +282,7 @@ def drop_zero_demand_columns(demand: pd.DataFrame) -> pd.DataFrame:
 
 
 def read_demand_excel(
-    demand_fn: str, weather_scenario: int, year: int, demand_type: str
+    demand_fn: str, wscenario: int, year: int, demand_type: str
 ) -> pd.DataFrame:
     """
     Read demand data for one weather scenario from a TYNDP demand Excel file.
@@ -291,7 +291,7 @@ def read_demand_excel(
     ----------
     demand_fn : str
         Path to the demand Excel file.
-    weather_scenario : int
+    wscenario : int
         Climate year column index to read, e.g. 3 for ``WS003``.
     year : int
         Year to assign to the resulting DatetimeIndex.
@@ -305,7 +305,7 @@ def read_demand_excel(
         Demand indexed by DatetimeIndex, one column per bus.
         Empty DataFrame if reading or parsing fails.
     """
-    ws_code = f"WS{weather_scenario:03d}"
+    ws_code = f"WS{wscenario:03d}"
     try:
         data = pd.read_excel(
             demand_fn,
@@ -343,9 +343,9 @@ def read_demand_excel(
 
 def load_demand(
     fn: str,
-    pyear: int,
+    planning_horizon: int,
     demand_type: str,
-    weather_scenario: int,
+    wscenario: int,
     year: int,
 ) -> pd.DataFrame:
     """
@@ -356,12 +356,12 @@ def load_demand(
     fn : str
         Path to the base directory containing per-year demand data
         subdirectories.
-    pyear : int
+    planning_horizon : int
         Planning horizon for which to load demand data.
     demand_type : str
         Key identifying the demand type, must be present in
         `DEMAND_TYPE_MAP`.
-    weather_scenario : int
+    wscenario : int
         Climate year column index to load, e.g. 3 for ``WS003``.
     year : int
         Year to assign to the resulting DatetimeIndex.
@@ -371,14 +371,14 @@ def load_demand(
     pd.DataFrame
         Demand data for the given planning year and demand type.
     """
-    demand_fn = get_file_path(fn, pyear, demand_type)
+    demand_fn = get_file_path(fn, planning_horizon, demand_type)
     logger.info(
         f"Processing '{demand_type}' demand ({DEMAND_TYPE_UNITS[demand_type]}) for "
-        f"planning horizon {pyear}, weather scenario WS{weather_scenario:03d}: "
+        f"planning horizon {planning_horizon}, weather scenario WS{wscenario:03d}: "
         f"reading {demand_fn.name}"
     )
 
-    return read_demand_excel(demand_fn, weather_scenario, year, demand_type)
+    return read_demand_excel(demand_fn, wscenario, year, demand_type)
 
 
 if __name__ == "__main__":
@@ -398,9 +398,9 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     # Parameters
-    pyear = int(snakemake.wildcards.planning_horizons)
+    planning_horizon = int(snakemake.wildcards.planning_horizons)
     demand_type = snakemake.wildcards.demand_type
-    weather_scenarios = snakemake.params.weather_scenarios
+    wscenarios = snakemake.params.wscenarios
     snapshots = get_snapshots(
         snakemake.params.snapshots, snakemake.params.drop_leap_day
     )
@@ -409,8 +409,8 @@ if __name__ == "__main__":
     year = snapshots[0].year
     check_snapshot_year(year, snakemake.params.drop_leap_day)
 
-    weather_scenario = get_weather_scenario(weather_scenarios, pyear)
-    demand = load_demand(fn, pyear, demand_type, weather_scenario, year)
+    wscenario = get_wscenario(wscenarios, planning_horizon)
+    demand = load_demand(fn, planning_horizon, demand_type, wscenario, year)
 
     # Export to CSV
     demand.to_csv(snakemake.output.demand, index=True)

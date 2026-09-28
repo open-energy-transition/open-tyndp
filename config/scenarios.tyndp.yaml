@@ -180,7 +180,7 @@ GA:
           2050: 0
 
 
-NT-cy1995:
+NT-ws1995:
 #  <<: *cba-common
   snapshots:
     start: "1995-01-01"
@@ -193,7 +193,7 @@ NT-cy1995:
     sb_scenario: NT
 
 
-NT-cy2008:
+NT-ws2008:
 #  <<: *cba-common
   snapshots:
     start: "2008-01-01"
@@ -206,7 +206,7 @@ NT-cy2008:
     sb_scenario: NT
 
 
-NT-cy2009:
+NT-ws2009:
 #  <<: *cba-common
   snapshots:
     start: "2009-01-01"
@@ -219,7 +219,7 @@ NT-cy2009:
     sb_scenario: NT
 
 
-DE-cy1995:
+DE-ws1995:
 #  <<: *cba-common
   cba:
     sb_scenario: DE
@@ -232,7 +232,7 @@ DE-cy1995:
     default_cutout: europe-1995-sarah3-era5
 
 
-DE-cy2008:
+DE-ws2008:
 #  <<: *cba-common
   cba:
     sb_scenario: DE
@@ -245,7 +245,7 @@ DE-cy2008:
     default_cutout: europe-2008-sarah3-era5
 
 
-DE-cy2009:
+DE-ws2009:
 #  <<: *cba-common
   cba:
     sb_scenario: DE
@@ -258,7 +258,7 @@ DE-cy2009:
     default_cutout: europe-2009-sarah3-era5
 
 
-GA-cy1995:
+GA-ws1995:
 #  <<: *cba-common
   cba:
     sb_scenario: GA
@@ -271,7 +271,7 @@ GA-cy1995:
     default_cutout: europe-1995-sarah3-era5
 
 
-GA-cy2008:
+GA-ws2008:
 #  <<: *cba-common
   cba:
     sb_scenario: GA
@@ -284,7 +284,7 @@ GA-cy2008:
     default_cutout: europe-2008-sarah3-era5
 
 
-GA-cy2009:
+GA-ws2009:
 #  <<: *cba-common
   cba:
     sb_scenario: GA
@@ -297,16 +297,16 @@ GA-cy2009:
     default_cutout: europe-2009-sarah3-era5
 
 
-NT-cyears:
+NT-wscenarios:
   cba:
-    scenarios: [NT-cy2009, NT-cy2008, NT-cy1995]
+    scenarios: [NT-ws2009, NT-ws2008, NT-ws1995]
 
 
-DE-cyears:
+DE-wscenarios:
   cba:
-    scenarios: [DE-cy2009, DE-cy2008, DE-cy1995]
+    scenarios: [DE-ws2009, DE-ws2008, DE-ws1995]
 
 
-GA-cyears:
+GA-wscenarios:
   cba:
-    scenarios: [GA-cy2009, GA-cy2008, GA-cy1995]
+    scenarios: [GA-ws2009, GA-ws2008, GA-ws1995]
