@@ -7,10 +7,6 @@
 rule solve_network:
     input:
         network=resources("networks/base_s_{clusters}_elec_{opts}.nc"),
-        offshore_zone_trajectories=branch(
-            config_provider("sector", "offshore_hubs_tyndp", "enable"),
-            resources("offshore_zone_trajectories.csv"),
-        ),
     output:
         network=RESULTS + "networks/base_s_{clusters}_elec_{opts}.nc",
         config=RESULTS + "configs/config.base_s_{clusters}_elec_{opts}.yaml",
@@ -44,9 +40,6 @@ rule solve_network:
         ),
         custom_extra_functionality=input_custom_extra_functionality,
         renewable_carriers=config_provider("electricity", "renewable_carriers"),
-        renewable_carriers_tyndp=config_provider(
-            "electricity", "tyndp_renewable_carriers"
-        ),
     message:
         "Solving electricity network optimization for {wildcards.clusters} clusters and {wildcards.opts} electric options"
     script:

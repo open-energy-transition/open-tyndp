@@ -72,23 +72,6 @@ class RemoteConfig(ConfigModel):
     )
 
 
-class TyndpInvestmentCandidatesConfig(ConfigModel):
-    """Configuration for top level `tyndp_investment_candidates` settings."""
-
-    patch_sb_with_annexe: bool = Field(
-        False,
-        description="Whether to apply capacity corrections to SB electricity transmission projects to align them with the CBA reference grid guidelines. Corrections are only relevant for the 2040 horizon.",
-    )
-    elec_projects: dict[int, list[int]] = Field(
-        default_factory=dict,
-        description="Mapping of planning horizons to the build years of TYNDP 2024 electricity transmission investment candidates to include in the reference grid for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
-    )
-    h2_projects: dict[int, list[int]] = Field(
-        default_factory=dict,
-        description="Mapping of planning horizons to the build years of TYNDP 2024 hydrogen transmission investment candidates to include in the reference grid for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
-    )
-
-
 class ConfigSchema(BaseModel):
     """
     Combined configuration schema for PyPSA-EUR.
@@ -136,9 +119,9 @@ class ConfigSchema(BaseModel):
         False,
         description="Scenario configuration of the TYNDP data, which is one of NT, DE or GA. False disables the TYNDP-specific rules.",
     )
-    weather_scenarios_tyndp: dict[int, list[int]] = Field(
+    wscenarios_tyndp: dict[int, list[int]] = Field(
         default_factory=dict,
-        description="Mapping of planning horizons to the weather scenarios (climate year column indices, e.g. 3 for `WS003`) to model in the TYNDP 2026 data. Only the first entry per horizon is currently used, falling back to the first entry of `AVAILABLE_WEATHER_SCENARIOS` in `scripts/_helpers.py` if unavailable (see `get_weather_scenario`); to be revisited once Scenario Building supports modelling multiple weather years at once.",
+        description="Mapping of planning horizons to the weather scenarios (climate year column indices, e.g. 3 for `WS003`) to model in the TYNDP 2026 data. Only the first entry per horizon is currently used, falling back to the first entry of `AVAILABLE_WSCENARIOS` in `scripts/_helpers.py` if unavailable (see `get_wscenario`); to be revisited once Scenario Building supports modelling multiple weather years at once.",
     )
     launch_explorer: bool = Field(
         False,
@@ -191,10 +174,6 @@ class ConfigSchema(BaseModel):
     transmission_projects: TransmissionProjectsConfig = Field(
         default_factory=TransmissionProjectsConfig,
         description="Transmission projects configuration.",
-    )
-    tyndp_investment_candidates: TyndpInvestmentCandidatesConfig = Field(
-        default_factory=TyndpInvestmentCandidatesConfig,
-        description="TYNDP investment candidates configuration.",
     )
     transformers: TransformersConfig = Field(
         default_factory=TransformersConfig,

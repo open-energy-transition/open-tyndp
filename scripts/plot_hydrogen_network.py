@@ -279,7 +279,6 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     n = pypsa.Network(snakemake.input.network)
-    options = snakemake.params.sector
 
     regions = gpd.read_file(snakemake.input.regions).set_index("name")
 
@@ -297,8 +296,16 @@ if __name__ == "__main__":
         if n.buses.country.isin(["MA", "DZ"]).any():
             map_opts["boundaries"] = list(np.add(map_opts["boundaries"], [0, 0, -6, 0]))
 
-        suffix = "H2" if not options["h2_zones_tyndp"] else "H2 Z2"
-        regions.index = regions.index + f" {suffix}"
+        # map each electricity region onto the H2 Z2 bus of its country
+        # TODO countries with several H2 Z2 buses (e.g. FR) are collapsed onto
+        # their first one, so every region of such a country shows the storage
+        # of that single bus only
+        buses_h2_z2 = n.buses.query("carrier == 'H2' and category == 'Z2'")
+        country_to_bus = pd.Series(buses_h2_z2.index.values, index=buses_h2_z2.country)
+        country_to_bus = country_to_bus[~country_to_bus.index.duplicated()]
+        regions.index = regions.index.map(n.buses.country).map(country_to_bus)
+        regions = regions[regions.index.notna()]
+
         plot_h2_map_base(
             n, map_opts, proj, map_fn, expanded=True, regions_for_storage=regions
         )

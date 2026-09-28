@@ -1337,9 +1337,6 @@ if (TYNDP_DATASET := dataset_version("tyndp"))["source"] in [
                 invest_grid=f"{TYNDP_DATASET['folder']}/Investment Datasets/GRID.xlsx",
                 offshore_hubs_zip=f"{TYNDP_DATASET['folder']}/Offshore-hubs.zip",
                 offshore_nodes=f"{TYNDP_DATASET['folder']}/Offshore hubs/NODE.xlsx",
-                offshore_grid=f"{TYNDP_DATASET['folder']}/Offshore hubs/GRID.xlsx",
-                offshore_electrolysers=f"{TYNDP_DATASET['folder']}/Offshore hubs/ELECTROLYSER.xlsx",
-                offshore_generators=f"{TYNDP_DATASET['folder']}/Offshore hubs/GENERATOR.xlsx",
                 market_outputs_NT2030_CY2009_zip=f"{TYNDP_DATASET['folder']}/MMStandardOutputFile_NT2030_Plexos_CY2009_2.5_v40.xlsx.zip",
                 market_outputs_NT2030_CY2009=f"{TYNDP_DATASET['folder']}/MMStandardOutputFile_NT2030_Plexos_CY2009_2.5_v40.xlsx",
                 market_outputs_NT2040_CY2009_zip=f"{TYNDP_DATASET['folder']}/MMStandardOutputFile_NT2040_Plexos_CY2009_2.5_v40.xlsx.zip",
@@ -1367,10 +1364,56 @@ if (TYNDP_DATASET := dataset_version("tyndp"))["source"] in [
 # replacing it. Subsequent rules are going to be migrated to it gradually.
 # TODO: rename to retrieve_tyndp for 2026 and phase out 2024 retrieve
 
-if config["tyndp_scenario"]:
-    if (TYNDP_2026_DATASET := dataset_version("tyndp_2026"))[
-        "source"
-    ] in ARCHIVE_SOURCES:
+if (TYNDP_2026_DATASET := dataset_version("tyndp_2026"))["source"] in ARCHIVE_SOURCES:
+
+    def _unpack_tyndp_2026(input, output):
+        for key in input.keys():
+            # Keep zip file
+            zip_file = Path(output[f"{key}_zip"])
+            copy2(input[key], zip_file)
+
+            # unzip
+            output_folder = zip_file.parent
+            unpack_archive(zip_file, output_folder)
+
+            # Flatten duplicated top-level folder, e.g. `Demand/Demand`
+            extracted = output_folder / zip_file.stem
+            if (nested := extracted / extracted.name).is_dir():
+                for path in nested.iterdir():
+                    target = extracted / path.name
+                    if target.is_dir():
+                        rmtree(target)
+                    move(path, target)
+                nested.rmdir()
+
+            # Drop `_corrected` suffix from re-issued files
+            for path in extracted.rglob("*_corrected.*"):
+                path.replace(path.with_stem(path.stem.removesuffix("_corrected")))
+
+            # Remove __MACOSX directories if they exist
+            for folder in [output_folder, extracted]:
+                rmtree(folder / "__MACOSX", ignore_errors=True)
+
+    if not config["tyndp_scenario"]:
+
+        rule retrieve_tyndp_2026:
+            input:
+                line_data=storage(TYNDP_2026_DATASET["url"] + "/inputs/Line-data.zip"),
+                nodes=storage(TYNDP_2026_DATASET["url"] + "/inputs/Nodes.zip"),
+            output:
+                line_data_zip=f"{TYNDP_2026_DATASET['folder']}/Line-data.zip",
+                nodes_zip=f"{TYNDP_2026_DATASET['folder']}/Nodes.zip",
+                elec_reference_grid=f"{TYNDP_2026_DATASET['folder']}/Line-data/ReferenceGrid_Electricity.xlsx",
+                h2_reference_grid_entsos=f"{TYNDP_2026_DATASET['folder']}/Line-data/ReferenceGrid_Hydrogen.xlsx",
+                nodes=f"{TYNDP_2026_DATASET['folder']}/Nodes/LIST OF NODES.xlsx",
+            log:
+                "logs/retrieve_tyndp_2026.log",
+            message:
+                "Retrieving TYNDP 2026 network topology data"
+            run:
+                _unpack_tyndp_2026(input, output)
+
+    else:
 
         rule retrieve_tyndp_2026:
             input:
@@ -1430,35 +1473,7 @@ if config["tyndp_scenario"]:
             message:
                 "Retrieving TYNDP 2026 data package"
             run:
-                for key in input.keys():
-                    # Keep zip file
-                    zip_file = Path(output[f"{key}_zip"])
-                    copy2(input[key], zip_file)
-
-                    # unzip
-                    output_folder = zip_file.parent
-                    unpack_archive(zip_file, output_folder)
-
-                    # Flatten duplicated top-level folder, e.g. `Demand/Demand`
-                    extracted = output_folder / zip_file.stem
-                    if (nested := extracted / extracted.name).is_dir():
-                        for path in nested.iterdir():
-                            target = extracted / path.name
-                            if target.is_dir():
-                                rmtree(target)
-                            move(path, target)
-                        nested.rmdir()
-
-                    # Drop `_corrected` suffix from re-issued files
-                    for path in extracted.rglob("*_corrected.*"):
-                        path.replace(
-                            path.with_stem(path.stem.removesuffix("_corrected"))
-                        )
-
-                    # Remove __MACOSX directories if they exist
-                    for folder in [output_folder, extracted]:
-                        rmtree(folder / "__MACOSX", ignore_errors=True)
-
+                _unpack_tyndp_2026(input, output)
 
 
 def get_osm_archive_files(version):

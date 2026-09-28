@@ -168,14 +168,14 @@ class _AutarkyConfig(BaseModel):
 class _PecdPreBuiltConfig(BaseModel):
     """Configuration for `electricity.pecd_renewable_profiles.pre_built` settings."""
 
-    cyears: list[int] = Field(
+    wscenarios: list[int] = Field(
         default_factory=lambda: [3, 21, 29, 32, 37, 59, 65, 71, 77, 91, 92, 106],
         description="List of weather scenarios to filter for when creating the PECD pre-built. The scenario numbering ranges between 1-120.",
     )
 
-    @field_validator("cyears")
+    @field_validator("wscenarios")
     @classmethod
-    def validate_cyears(cls, v: list[int]) -> list[int]:
+    def validate_wscenarios(cls, v: list[int]) -> list[int]:
         """Validate that weather scenarios are between 1 and 120."""
         for year in v:
             if not 1 <= year <= 120:
@@ -314,6 +314,10 @@ class ElectricityConfig(BaseModel):
     base_network: Literal["entsoegridkit", "osm", "tyndp"] = Field(
         "osm",
         description="Specify the underlying base network, i.e. GridKit (based on ENTSO-E web map extract), OpenStreetMap (OSM), or TYNDP.",
+    )
+    tyndp_reference_year: int = Field(
+        2030,
+        description="Planning-horizon year of the TYNDP reference grid used to build the static base network topology and its initial NTC, when `base_network` is 'tyndp'. The node/link topology is identical across all TYNDP planning horizons, only NTC differs, so a single fixed year is used here; per-horizon NTC for `tyndp_scenario` runs is instead applied later, in `prepare_sector_network`.",
     )
     gaslimit_enable: bool = Field(
         False,

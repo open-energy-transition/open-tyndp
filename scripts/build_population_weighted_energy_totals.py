@@ -42,7 +42,13 @@ if __name__ == "__main__":
     totals = pd.read_csv(snakemake.input.energy_totals, index_col=[0, 1])
     totals = totals.loc[idx[:, data_years], :].groupby("country").mean()
 
-    nodal_totals = totals.loc[pop_layout.ct].fillna(0.0)
+    missing = sorted(set(pop_layout.ct) - set(totals.index))
+    if missing:
+        logger.warning(
+            f"No energy totals for countries: {', '.join(missing)}. Assuming zero."
+        )
+
+    nodal_totals = totals.reindex(pop_layout.ct).fillna(0.0)
     nodal_totals.index = pop_layout.index
     nodal_totals = nodal_totals.multiply(pop_layout.fraction, axis=0)
 
