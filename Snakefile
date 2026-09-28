@@ -492,16 +492,32 @@ rule doc:
         "pixi run build-docs {output} html"
 
 
+def remote_run_dirs():
+    names = run["name"] if isinstance(run["name"], list) else [run["name"]]
+    return [get_rdir(run).replace("{run}", n) for n in names]
+
+
+def remote_run_filters():
+    # Keep the configured runs, skip their sibling runs, keep all shared files
+    dirs = ["results", "resources", "logs", "logs/slurm"]
+    rdirs = remote_run_dirs()
+    parents = {str(Path(r).parent) for r in rdirs} - {"."}
+    return [f"--include='/{d}/{r}***'" for d in dirs for r in rdirs] + [
+        f"--exclude='/{d}/{p}/*/'" for d in dirs for p in parents
+    ]
+
+
 rule sync:
     params:
         cluster=f"{config['remote']['ssh']}:{config['remote']['path']}",
         exclude=[f"--exclude='{p}'" for p in config["remote"]["sync_exclude"]],
+        runs=remote_run_filters(),
     shell:
         """
         rsync -uvarh --ignore-missing-args --files-from=.sync-send . {params.cluster}
-        rsync -uvarh --no-g {params.exclude} {params.cluster}/resources . || echo "No resources directory, skipping rsync"
-        rsync -uvarh --no-g {params.exclude} {params.cluster}/results . || echo "No results directory, skipping rsync"
-        rsync -uvarh --no-g {params.cluster}/logs . || echo "No logs directory, skipping rsync"
+        rsync -uvarh --no-g {params.exclude} {params.runs} {params.cluster}/resources . || echo "No resources directory, skipping rsync"
+        rsync -uvarh --no-g {params.exclude} {params.runs} {params.cluster}/results . || echo "No results directory, skipping rsync"
+        rsync -uvarh --no-g {params.runs} {params.cluster}/logs . || echo "No logs directory, skipping rsync"
         rsync -uvarh --no-g {params.cluster}/.snakemake/log .snakemake || echo "No snakemake logs directory, skipping rsync"
         """
 
@@ -510,23 +526,22 @@ rule sync_dry:
     params:
         cluster=f"{config['remote']['ssh']}:{config['remote']['path']}",
         exclude=[f"--exclude='{p}'" for p in config["remote"]["sync_exclude"]],
+        runs=remote_run_filters(),
     shell:
         """
         rsync -uvarh --ignore-missing-args --files-from=.sync-send . {params.cluster} -n
-        rsync -uvarh --no-g {params.exclude} {params.cluster}/resources . -n || echo "No resources directory, skipping rsync"
-        rsync -uvarh --no-g {params.exclude} {params.cluster}/results . -n || echo "No results directory, skipping rsync"
-        rsync -uvarh --no-g {params.cluster}/logs . -n || echo "No logs directory, skipping rsync"
+        rsync -uvarh --no-g {params.exclude} {params.runs} {params.cluster}/resources . -n || echo "No resources directory, skipping rsync"
+        rsync -uvarh --no-g {params.exclude} {params.runs} {params.cluster}/results . -n || echo "No results directory, skipping rsync"
+        rsync -uvarh --no-g {params.runs} {params.cluster}/logs . -n || echo "No logs directory, skipping rsync"
         rsync -uvarh --no-g {params.cluster}/.snakemake/log .snakemake -n || echo "No snakemake logs directory, skipping rsync"
         """
 
 
 def remote_sync_files():
-    names = run["name"] if isinstance(run["name"], list) else [run["name"]]
-    rdir = get_rdir(run)
     return [
-        f"--include='/{d}/{rdir.replace('{run}', n)}{f}'"
+        f"--include='/{d}/{r}{f}'"
         for d, files in config["remote"]["sync_file"].items()
-        for n in names
+        for r in remote_run_dirs()
         for f in files
     ]
 
