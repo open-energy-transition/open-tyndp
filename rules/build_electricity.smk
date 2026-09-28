@@ -1010,7 +1010,7 @@ rule build_tyndp_network:
         elec_reference_grid=rules.retrieve_tyndp_2026.output.elec_reference_grid,
         buses=rules.retrieve_tyndp_2026.output.nodes,
         bidding_shapes=resources("bidding_zones.geojson"),
-        offshore_bus_locations="data/tyndp_offshore_bus_location.csv",
+        manual_bus_locations="data/tyndp_manual_bus_locations.csv",
     output:
         lines=resources("tyndp/build/lines.csv"),
         links=resources("tyndp/build/links.csv"),

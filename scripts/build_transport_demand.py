@@ -67,6 +67,7 @@ def build_transport_demand(traffic_fn, airtemp_fn, nodes, nodal_transport_data):
 
     # get heating demand for correction to demand time series
     temperature = xr.open_dataarray(airtemp_fn).to_pandas().reindex(columns=nodes)
+    # Fill missing country data with average from remaining countries
     row_mean = temperature.mean(axis=1)
     temperature = temperature.apply(lambda col: col.fillna(row_mean))
 

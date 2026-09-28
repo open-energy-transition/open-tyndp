@@ -257,6 +257,7 @@ rule simplify_sb_network:
 
 # Placeholder for reference corrections aligning the SB base network with the
 # CBA reference grid of a given planning horizon
+# TODO: Update once CBA corrections are clarified
 rule fix_reference_sb_to_cba:
     output:
         corrections=resources("cba/reference_sb_to_cba_{planning_horizons}.csv"),
@@ -807,7 +808,7 @@ def collect_cba_scenario_inputs(w):
 ##########
 
 
-# collect files to be stored in the scenario directory, e.g., NT-cy1995
+# collect files to be stored in the scenario directory, e.g., NT-ws1995
 rule collect_cba_scenario:
     input:
         collect_cba_scenario_inputs,
@@ -858,11 +859,11 @@ def cba_ensemble_inputs(w):
     return inputs
 
 
-# collect files to be stored in the scenario collection directory, e.g., NT-cyears
+# collect files to be stored in the scenario collection directory, e.g., NT-wscenarios
 rule cba:
     input:
         cba_ensemble_inputs,
-        # collect files to be stored in the scenario directory, e.g., NT-cy1995
+        # collect files to be stored in the scenario directory, e.g., NT-ws1995
         lambda w: expand(
             rules.collect_cba_scenario.output[0],
             run=cba_target_runs(w),

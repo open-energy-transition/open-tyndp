@@ -1442,7 +1442,6 @@ def _add_other_non_res_tyndp(
 
     price_bands = pemmdb_capacities.query(
         f"index_carrier.str.startswith(@generator) and {query} index_carrier.str.contains('ccs') and efficiency > 0",
-        engine="python",  # numexpr chokes on "not" combined with .str methods here
     ).reset_index()
     nodes = price_bands.bus.values
     offer_price = price_bands.price
@@ -1984,6 +1983,12 @@ def _add_dsr_components(
     profiles = pemmdb_profiles.query("carrier == 'dsr'")
     if not profiles.empty:
         profiles = profiles.assign(name=lambda df: _format_dsr_names(df))
+        unmatched = pd.Index(profiles["name"].unique()).difference(caps.index)
+        if not unmatched.empty:
+            logger.warning(
+                f"{len(unmatched)} PEMMDB DSR availability profiles have no matching capacity and are discarded, "
+                f"e.g. {unmatched[:5].tolist()}. These price bands fall back to the default availability."
+            )
         p_min_pu = profiles.pivot_table(
             values="p_min_pu", index="time", columns="name"
         ).reindex(caps.index, axis=1, fill_value=0.0)
@@ -2172,12 +2177,21 @@ def _add_electrolyzer_capacities(
     if electrolyser_i.empty:
         return
 
-    # Filter for capacities and add to the network
+    # Filter for capacities and add to the network. PEMMDB reports separate
+    # Z1/Z2 (and SRES/DRES) "h2-electrolysis" capacities per bus; match each
+    # electrolyser link to its own zone's capacity (SRES/DRES are handled
+    # separately, see `add_h2_dres_tyndp`).
     # TODO: Add split between zones for DE/GA
-    caps = pemmdb_capacities.query("carrier == 'H2 Electrolysis'")["p_nom"]
-    n.links.loc[electrolyser_i, ["p_nom", "p_nom_min"]] = (
-        n.links.loc[electrolyser_i, "bus0"].map(caps).fillna(0.0)
+    base = pemmdb_capacities.query(
+        "carrier == 'H2 Electrolysis' and open_tyndp_type == 'h2-electrolysis'"
     )
+    caps_z1 = base.query("index_carrier.str.endswith('Z1')")["p_nom"]
+    caps_z2 = base.query("index_carrier.str.endswith('Z2')")["p_nom"]
+
+    z1_i = electrolyser_i[electrolyser_i.str.contains(" Z1 ")]
+    z2_i = electrolyser_i[electrolyser_i.str.contains(" Z2 ")]
+    n.links.loc[z1_i, "p_nom"] = n.links.loc[z1_i, "bus0"].map(caps_z1).fillna(0.0)
+    n.links.loc[z2_i, "p_nom"] = n.links.loc[z2_i, "bus0"].map(caps_z2).fillna(0.0)
 
     # For NT, no trajectories will be added to the model and electrolyser capacities will be fixed
     if trajectories.empty:
@@ -2414,7 +2428,7 @@ def _add_phs_capacities(
     p_nom_pump = pemmdb_capacities.loc[
         (pemmdb_capacities["open_tyndp_type"] == f"{tech}-pump")
         & (pemmdb_capacities["unit"] == "MW")
-    ]["p_nom"].mul(-1)  # input pump capacities are given in negative direction
+    ]["p_nom"].abs()  # input pump capacities can be given in negative direction
     e_nom = pemmdb_capacities.loc[
         (pemmdb_capacities["carrier"] == tech) & (pemmdb_capacities["unit"] == "MWh")
     ].rename(index=lambda x: f"{x} {tech}")["e_nom"]
@@ -2892,7 +2906,7 @@ def add_existing_tyndp_capacities(
     h2_storage_capacities : pd.DataFrame
         DataFrame containing existing H2 storage capacities.
     trajectories : pd.DataFrame
-        DataFrame containing the trajectories for the current pyear to attach (p_nom_min and p_nom_max).
+        DataFrame containing the trajectories for the current planning_horizon to attach (p_nom_min and p_nom_max).
     tyndp_renewable_carriers : list[str]
         List of TYNDP renewable carriers.
     tyndp_conventional_thermals : list[str]
@@ -2939,7 +2953,7 @@ def add_existing_tyndp_capacities(
         if tyndp_solar_onwind:
             ppl = pemmdb_capacities.query("carrier.isin(@tyndp_solar_onwind)")
             trajectories_solar_onwind = trajectories.query(
-                "pyear == @investment_year and carrier.isin(@tyndp_solar_onwind)"
+                "planning_horizon == @investment_year and carrier.isin(@tyndp_solar_onwind)"
             )
 
             attach_wind_and_solar(
@@ -2965,7 +2979,7 @@ def add_existing_tyndp_capacities(
         # Add existing conventional thermal capacities from PEMMDB to already attached conventional technologies
         if tyndp_conventional_thermals:
             trajectories_nuclear = trajectories.query(
-                "pyear == @investment_year and index_carrier == 'nuclear'"
+                "planning_horizon == @investment_year and index_carrier == 'nuclear'"
             ).set_index("bus")
 
             _add_conventional_thermal_capacities(
@@ -2995,7 +3009,7 @@ def add_existing_tyndp_capacities(
         # Add existing electrolyzer capacities from PEMMDB to already attached electrolyzer components
         if h2_topology_tyndp:
             trajectories_electrolyser = trajectories.query(
-                "pyear == @investment_year and carrier == 'electrolyser'"
+                "planning_horizon == @investment_year and carrier == 'electrolyser'"
             ).set_index("bus")
 
             _add_electrolyzer_capacities(
@@ -3838,7 +3852,7 @@ def add_h2_storage_tyndp(
         storage_tech="cavern-storage",
         buses=buses_h2_z2,
         costs=costs,
-        extendable=True,
+        extendable=True,  # TODO intermediate fix to keep the workflow feasible, see PR #920
     )
 
     # add overground hydrogen tank storage to all H2 Z1 nodes
@@ -5199,6 +5213,9 @@ def add_land_transport(
     p_set = transport[nodes]
 
     # temperature for correction factor for heating/cooling
+    # TODO: PyPSA-Eur merge issue - reindex needed because pop_layout covers TYNDP
+    # nodes without an own Voronoi region (e.g. ITVI, LUF1), so they are missing
+    # from the region-based temperature
     temperature = (
         xr.open_dataarray(temp_air_total_file).to_pandas().reindex(columns=nodes)
     )
@@ -7315,7 +7332,12 @@ def add_industry(
     )
 
     if options["h2_topology_tyndp"]:
-        nodes_ind_h2 = pd.Index(pop_layout.ct + " H2 Z2")
+        zone_country_z2 = spatial.h2_tyndp.df.country.reindex(spatial.buses_h2_z2)
+        country_to_bus_z2 = pd.Series(
+            zone_country_z2.index, index=zone_country_z2.values
+        )
+        country_to_bus_z2 = country_to_bus_z2[~country_to_bus_z2.index.duplicated()]
+        nodes_ind_h2 = pd.Index(pop_layout.ct.map(country_to_bus_z2))
 
     else:
         nodes_ind_h2 = nodes + " H2"
@@ -7874,6 +7896,9 @@ def add_shipping(
     domestic_navigation = pop_weighted_energy_totals.loc[
         nodes, ["total domestic navigation"]
     ].squeeze()
+    # TODO: PyPSA-Eur merge issue - reindex needed because pop_layout covers TYNDP
+    # nodes without an own Voronoi region (e.g. ITVI, LUF1), so they are missing
+    # from the region-based shipping demand
     international_navigation = (
         pd.read_csv(shipping_demand_file, index_col=0)
         .squeeze(axis=1)

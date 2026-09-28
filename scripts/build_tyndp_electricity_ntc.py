@@ -14,6 +14,10 @@ same reference grid's ``Year_{planning_horizons}`` sheet to extract the
 per-horizon NTC, later overlaid onto the network in `prepare_sector_network`
 (see `apply_tyndp_electricity_ntc`) whenever `electricity: base_network` is
 `tyndp`.
+
+This script also defines `apply_tyndp_electricity_ntc`, the function that
+applies this NTC onto a PyPSA network. The function is called in
+`prepare_sector_network.py`.
 """
 
 import logging
@@ -73,8 +77,6 @@ def apply_tyndp_electricity_ntc(
         f"Adding new TYNDP electricity links for planning horizon {investment_year}: "
         f"{', '.join(sorted(new_links))}"
     )
-    p_max_pu = n.links["p_max_pu"].iloc[0] if not n.links.empty else 1.0
-    p_min_pu = n.links["p_min_pu"].iloc[0] if not n.links.empty else -p_max_pu
     bus0 = ntc.loc[new_links, "bus0"]
     bus1 = ntc.loc[new_links, "bus1"]
     n.add(
@@ -90,8 +92,6 @@ def apply_tyndp_electricity_ntc(
         tags=bus0 + " -> " + bus1,
         carrier="DC",
         dc=True,
-        p_max_pu=p_max_pu,
-        p_min_pu=p_min_pu,
     )
 
 
