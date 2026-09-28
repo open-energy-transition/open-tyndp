@@ -598,7 +598,7 @@ def attach_wind_and_solar(
             ds = ds.stack(bus_bin=["bus", "bin"])
 
             supcar = car.split("-", 2)[0]
-            if supcar == "offwind":
+            if supcar == "offwind" and "average_distance" in ds:
                 distance = ds["average_distance"].to_pandas()
                 distance.index = distance.index.map(flatten)
                 submarine_cost = costs.at[car + "-connection-submarine", "capital_cost"]

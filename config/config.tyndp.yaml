@@ -82,12 +82,10 @@ electricity:
   - solar-pv-utility
   - solar-pv-rooftop
   - solar-pv-utility-dres
-  - solar-pv-rooftop-sres
+  - solar-pv-utility-sres
   - offwind
   - offwind-dres
   - offwind-sres
-
-
   tyndp_stores:
   - battery
   - h2_cavern

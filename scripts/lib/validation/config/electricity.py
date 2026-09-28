@@ -412,7 +412,7 @@ class ElectricityConfig(BaseModel):
             "solar-pv",
             "solar-pv-utility",
             "solar-pv-rooftop",
-            "solar-pv-rooftop-sres",
+            "solar-pv-utility-sres",
             "solar-pv-utility-dres",
             "onwind",
             "onwind-sres",
