@@ -633,8 +633,10 @@ def compare_sources(
         # Generation profiles only available in TYNDP 2024 for climate year 2009 and DE/GA scenarios
         show_warning = True
         if table == "generation_profiles":
-            cyear = int(pd.DatetimeIndex(df.index.get_level_values("snapshot")).year[0])
-            show_warning = scenario in ["TYNDP DE", "TYNDP GA"] and cyear == 2009
+            wscenario = int(
+                pd.DatetimeIndex(df.index.get_level_values("snapshot")).year[0]
+            )
+            show_warning = scenario in ["TYNDP DE", "TYNDP GA"] and wscenario == 2009
 
         if show_warning:
             logger.warning(
@@ -642,7 +644,7 @@ def compare_sources(
             )
         else:
             logger.info(
-                f"Skipping table {table} for scenario {scenario} and climate year {cyear}, generation profiles only available in TYNDP 2024 for climate year 2009 and DE/GA scenarios."
+                f"Skipping table {table} for scenario {scenario} and weather scenario {wscenario}, generation profiles only available in TYNDP 2024 for climate year 2009 and DE/GA scenarios."
             )
         return pd.DataFrame(), pd.DataFrame(
             [["NA", "NA"]],
@@ -771,7 +773,7 @@ def orchestrate_benchmark(
             benchmark_i.to_csv(
                 Path(
                     output_dir_bus_col,
-                    f"{table}_cy{snapshots['start'][:4]}_s_{clusters}_{opts}_{sector_opts}_all_years.csv",
+                    f"{table}_ws{snapshots['start'][:4]}_s_{clusters}_{opts}_{sector_opts}_all_years.csv",
                 )
             )
 

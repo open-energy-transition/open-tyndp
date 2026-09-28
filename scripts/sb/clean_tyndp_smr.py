@@ -18,7 +18,7 @@ from scripts._helpers import (
 logger = logging.getLogger(__name__)
 
 
-def load_smr_data(fn: str, pyear: int, scenario: str) -> pd.DataFrame:
+def load_smr_data(fn: str, planning_horizon: int, scenario: str) -> pd.DataFrame:
     """
     Load and clean TYNDP SMR capacity and CCS information.
 
@@ -26,7 +26,7 @@ def load_smr_data(fn: str, pyear: int, scenario: str) -> pd.DataFrame:
     ----------
     fn : str
         Path to Excel file containing TYNDP SMR data.
-    pyear : int
+    planning_horizon : int
         Planning horizon to read SMR data for.
     scenario : str
         TYNDP scenario to filter for.
@@ -55,7 +55,9 @@ def load_smr_data(fn: str, pyear: int, scenario: str) -> pd.DataFrame:
         pd.read_excel(fn, sheet_name="TEMPLATE")
         .rename(columns=column_dict)
         .replace(replace_dict)
-        .query("year == @pyear and (scenario == @scenario or scenario == 'all')")
+        .query(
+            "year == @planning_horizon and (scenario == @scenario or scenario == 'all')"
+        )
         .assign(
             bus=lambda df: df.bus.str.replace("^UK", "GB", regex=True),
             carrier=lambda df: np.where(df.ccs, "SMR CC", "SMR"),
@@ -89,12 +91,16 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     # Parameters
-    pyear = int(snakemake.wildcards.planning_horizons)
+    planning_horizon = int(snakemake.wildcards.planning_horizons)
     smr_fn = snakemake.input.smr
     scenario = snakemake.params.tyndp_scenario
 
     # Load and prep SMR data
-    smr = load_smr_data(fn=smr_fn, pyear=pyear, scenario=scenario)
+    smr = load_smr_data(
+        fn=smr_fn,
+        planning_horizon=planning_horizon,
+        scenario=scenario,
+    )
 
     # Save clean H2 SMR data
     smr.to_csv(snakemake.output.smr_prepped)

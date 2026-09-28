@@ -28,7 +28,7 @@ from tqdm import tqdm
 from scripts._helpers import (
     configure_logging,
     get_snapshots,
-    safe_pyear,
+    safe_planning_horizon,
     set_scenario_config,
 )
 
@@ -38,8 +38,8 @@ logger = logging.getLogger(__name__)
 def read_pecd_file(
     node: str,
     dir_pecd: str,
-    cyear: int,
-    pyear: int,
+    wscenario: int,
+    planning_horizon: int,
     technology: str,
     sns: pd.DatetimeIndex,
 ):
@@ -47,12 +47,12 @@ def read_pecd_file(
     pecd_node = node.replace("GB", "UK")  # PECD files keep the raw TYNDP node codes
 
     if "Solar" in technology:
-        fn = Path(dir_pecd, str(pyear), f"{technology} {pecd_node}.csv")
+        fn = Path(dir_pecd, str(planning_horizon), f"{technology} {pecd_node}.csv")
     else:
         fn = Path(
             dir_pecd,
-            str(pyear),
-            f"{pecd_node}_CapacityFactors_{technology}_{pyear}.csv",
+            str(planning_horizon),
+            f"{pecd_node}_CapacityFactors_{technology}_{planning_horizon}.csv",
         )
 
     if not os.path.isfile(fn):
@@ -69,8 +69,8 @@ def read_pecd_file(
     cf_pecd = (
         pecd_bus.set_index(datetime_idx)
         .drop(columns=["Date", "Hour"])
-        .loc[sns, [cyear]]  # filter for snapshots and weather scenario only
-        .rename(columns={cyear: node})
+        .loc[sns, [wscenario]]  # filter for snapshots and weather scenario only
+        .rename(columns={wscenario: node})
     )
     return cf_pecd
 
@@ -93,10 +93,10 @@ if __name__ == "__main__":
 
     # Climate year from snapshots
     sns = get_snapshots(snakemake.params.snapshots, snakemake.params.drop_leap_day)
-    cyear = f"WS{snakemake.params.weather_scenario:03d}"
+    wscenario = f"WS{snakemake.params.wscenario:03d}"
 
-    # Planning year (falls back to latest available pyear if not in list of available years)
-    pyear = safe_pyear(
+    # Planning year (falls back to latest available planning_horizon if not in list of available years)
+    planning_horizon = safe_planning_horizon(
         snakemake.wildcards.planning_horizons,
         available_years=snakemake.params.available_years,
         source="PECD",
@@ -128,8 +128,8 @@ if __name__ == "__main__":
     func = partial(
         read_pecd_file,
         dir_pecd=dir_pecd,
-        cyear=cyear,
-        pyear=pyear,
+        wscenario=wscenario,
+        planning_horizon=planning_horizon,
         technology=pecd_tech,
         sns=sns,
     )
@@ -139,7 +139,7 @@ if __name__ == "__main__":
 
     if all(data is None for data in pecd):
         raise ValueError(
-            f"No PECD data found for {pecd_tech} in {pyear}. Please specify a technology covered within the TYNDP PECD data."
+            f"No PECD data found for {pecd_tech} in {planning_horizon}. Please specify a technology covered within the TYNDP PECD data."
         )
     pecd_df = pd.concat(pecd, axis=1)
     fill_na = (
