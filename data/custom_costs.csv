@@ -17,23 +17,23 @@ all,all,coal,CO2 intensity,0.354,tCO2/MWh_th,"TYNDP 2026 Supply Tool NT+ SCN 202
 all,all,lignite,CO2 intensity,0.364,tCO2/MWh_th,"TYNDP 2026 Supply Tool NT+ SCN 2026, Carbon budget sheet, Table - Emission factors from IPCC, lignite",Converted from kg/TJ to tCO2/MWh with factor 0.0000036.
 all,all,gas,CO2 intensity,0.202,tCO2/MWh_th,"TYNDP 2026 Supply Tool NT+ SCN 2026, Carbon budget sheet, Table - Emission factors from IPCC, Natural Gas",Converted from kg/TJ to tCO2/MWh with factor 0.0000036.
 NT,all,uranium,fuel,2.19,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Nuclear",Converted from EUR/GJ to EUR/MWh with factor 3.6
-HEV,all,uranium,fuel,2.41,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx, HEV sheet, Nuclear",Converted from EUR/GJ to EUR/MWh
-LEV,all,uranium,fuel,1.97,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Nuclear",Converted from EUR/GJ to EUR/MWh
+HEV,all,uranium,fuel,2.41,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx, HEV sheet, Nuclear",Converted from EUR/GJ to EUR/MWh with factor 3.6
+LEV,all,uranium,fuel,1.97,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Nuclear",Converted from EUR/GJ to EUR/MWh with factor 3.6
 NT,all,lignite,fuel,8.6,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Lignite G2 (SK-DE-RS-PL-ME-UKNI-BA-IE)","to be improved, assume G2 and neglect regional lignite fuel cost variation. Converted from EUR/GJ to EUR/MWh"
 HEV,all,lignite,fuel,9.46,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx, HEV sheet, Lignite G2 (SK-DE-RS-PL-ME-UKNI-BA-IE)","to be improved, assume G2 and neglect regional lignite fuel cost variation. Converted from EUR/GJ to EUR/MWh"
 LEV,all,lignite,fuel,7.74,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Lignite G2 (SK-DE-RS-PL-ME-UKNI-BA-IE)","to be improved, assume G2 and neglect regional lignite fuel cost variation. Converted from EUR/GJ to EUR/MWh"
-NT,2030,coal,fuel,14.77,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Hard coal",Converted from EUR/GJ to EUR/MWh
-NT,2035,coal,fuel,14.41,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Hard coal",Converted from EUR/GJ to EUR/MWh
-NT,2040,coal,fuel,14.04,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Hard coal",Converted from EUR/GJ to EUR/MWh
-NT,2050,coal,fuel,14.77,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Hard coal",Converted from EUR/GJ to EUR/MWh
-HEV,2030,coal,fuel,16.25,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx, HEV sheet, Hard coal",Converted from EUR/GJ to EUR/MWh
-HEV,2035,coal,fuel,15.85,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx, HEV sheet, Hard coal",Converted from EUR/GJ to EUR/MWh
-HEV,2040,coal,fuel,15.44,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx, HEV sheet, Hard coal",Converted from EUR/GJ to EUR/MWh
-HEV,2050,coal,fuel,16.25,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx, HEV sheet, Hard coal",Converted from EUR/GJ to EUR/MWh
-LEV,2030,coal,fuel,13.3,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Hard coal",Converted from EUR/GJ to EUR/MWh
-LEV,2035,coal,fuel,12.96,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Hard coal",Converted from EUR/GJ to EUR/MWh
-LEV,2040,coal,fuel,12.63,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Hard coal",Converted from EUR/GJ to EUR/MWh
-LEV,2050,coal,fuel,13.3,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Hard coal",Converted from EUR/GJ to EUR/MWh
+NT,2030,coal,fuel,14.77,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Hard coal",Converted from EUR/GJ to EUR/MWh with factor 3.6
+NT,2035,coal,fuel,14.41,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Hard coal",Converted from EUR/GJ to EUR/MWh with factor 3.6
+NT,2040,coal,fuel,14.04,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Hard coal",Converted from EUR/GJ to EUR/MWh with factor 3.6
+NT,2050,coal,fuel,14.77,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Hard coal",Converted from EUR/GJ to EUR/MWh with factor 3.6
+HEV,2030,coal,fuel,16.25,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx, HEV sheet, Hard coal",Converted from EUR/GJ to EUR/MWh with factor 3.6
+HEV,2035,coal,fuel,15.85,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx, HEV sheet, Hard coal",Converted from EUR/GJ to EUR/MWh with factor 3.6
+HEV,2040,coal,fuel,15.44,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx, HEV sheet, Hard coal",Converted from EUR/GJ to EUR/MWh with factor 3.6
+HEV,2050,coal,fuel,16.25,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx, HEV sheet, Hard coal",Converted from EUR/GJ to EUR/MWh with factor 3.6
+LEV,2030,coal,fuel,13.3,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Hard coal",Converted from EUR/GJ to EUR/MWh with factor 3.6
+LEV,2035,coal,fuel,12.96,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Hard coal",Converted from EUR/GJ to EUR/MWh with factor 3.6
+LEV,2040,coal,fuel,12.63,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Hard coal",Converted from EUR/GJ to EUR/MWh with factor 3.6
+LEV,2050,coal,fuel,13.3,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Hard coal",Converted from EUR/GJ to EUR/MWh with factor 3.6
 NT,2030,gas,fuel,34.72,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Gas","Blended price of natural gas, biomethane and synthetic methane, weighted as in 'Shares for gas calculation'. Converted from EUR/GJ to EUR/MWh"
 NT,2035,gas,fuel,33.93,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Gas","Blended price of natural gas, biomethane and synthetic methane, weighted as in 'Shares for gas calculation'. Converted from EUR/GJ to EUR/MWh"
 NT,2040,gas,fuel,42.43,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Gas","Blended price of natural gas, biomethane and synthetic methane, weighted as in 'Shares for gas calculation'. Converted from EUR/GJ to EUR/MWh"
@@ -46,18 +46,18 @@ LEV,2030,gas,fuel,31.25,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx,
 LEV,2035,gas,fuel,30.54,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Gas","Blended price of natural gas, biomethane and synthetic methane, weighted as in the 'Shares for gas calculation'. Converted from EUR/GJ to EUR/MWh"
 LEV,2040,gas,fuel,38.19,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Gas","Blended price of natural gas, biomethane and synthetic methane, weighted as in the 'Shares for gas calculation'. Converted from EUR/GJ to EUR/MWh"
 LEV,2050,gas,fuel,45.99,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Gas","Blended price of natural gas, biomethane and synthetic methane, weighted as in the 'Shares for gas calculation'. Converted from EUR/GJ to EUR/MWh"
-NT,2030,oil,fuel,51.34,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh"
-NT,2035,oil,fuel,54.85,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh"
-NT,2040,oil,fuel,58.36,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh"
-NT,2050,oil,fuel,72.76,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh"
-HEV,2030,oil,fuel,56.48,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx, HEV sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh"
-HEV,2035,oil,fuel,60.34,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx, HEV sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh"
-HEV,2040,oil,fuel,64.19,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx, HEV sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh"
-HEV,2050,oil,fuel,80.04,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx, HEV sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh"
-LEV,2030,oil,fuel,46.21,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh"
-LEV,2035,oil,fuel,49.37,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh"
-LEV,2040,oil,fuel,52.52,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh"
-LEV,2050,oil,fuel,65.49,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh"
+NT,2030,oil,fuel,51.34,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh  with factor 3.6"
+NT,2035,oil,fuel,54.85,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh  with factor 3.6"
+NT,2040,oil,fuel,58.36,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh  with factor 3.6"
+NT,2050,oil,fuel,72.76,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh with factor 3.6"
+HEV,2030,oil,fuel,56.48,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx, HEV sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh with factor 3.6"
+HEV,2035,oil,fuel,60.34,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx, HEV sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh with factor 3.6"
+HEV,2040,oil,fuel,64.19,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx, HEV sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh  with factor 3.6"
+HEV,2050,oil,fuel,80.04,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx, HEV sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh with factor 3.6"
+LEV,2030,oil,fuel,46.21,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh  with factor 3.6"
+LEV,2035,oil,fuel,49.37,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh with factor 3.6"
+LEV,2040,oil,fuel,52.52,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh with factor 3.6"
+LEV,2050,oil,fuel,65.49,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh with factor 3.6"
 all,2030,electrolysis,efficiency,0.69,per unit,"TYNDP 2026 Hydrogen/P2G_emarket_template_corrected_requirecheck.xlsx, TEMPLATE sheet, LOSS_INCREMENT",efficiency = 1 - LOSS_INCREMENT
 all,2035,electrolysis,efficiency,0.7,per unit,"TYNDP 2026 Hydrogen/P2G_emarket_template_corrected_requirecheck.xlsx, TEMPLATE sheet, LOSS_INCREMENT",efficiency = 1 - LOSS_INCREMENT
 all,2040,electrolysis,efficiency,0.71,per unit,"TYNDP 2026 Hydrogen/P2G_emarket_template_corrected_requirecheck.xlsx, TEMPLATE sheet, LOSS_INCREMENT",efficiency = 1 - LOSS_INCREMENT
