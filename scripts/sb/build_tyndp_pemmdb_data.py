@@ -345,19 +345,9 @@ def _process_other_nonres_capacities(
         df.pemmdb_type,
     )
 
-    # Manually fix missing efficiency and CO2 factor information for AT, PL, ITS1
+    # Manually fix missing efficiency and CO2 factor information for PL, ITS1
     # with values of equivalent plant types of other countries (same for all countries)
     df[["efficiency", "co2_factor"]] = df[["efficiency", "co2_factor"]].astype(float)
-    if node == "AT00":
-        # gas CCGT old 1 CO2 emissions factor missing in 2040 and 2050 (average derived from NL00 and ITN1 for those planning years)
-        co2_factors = {2040: 0.3521, 2050: 0.1308}
-        missing_co2 = (
-            (df.pemmdb_carrier == "Other Non-RES Gas")
-            & (df.pemmdb_type == "ccgt old 1")
-            & (df.co2_factor == 0)
-        )
-        df.loc[missing_co2, "co2_factor"] = co2_factors.get(planning_horizon, 0)
-
     if node in ["ITS1", "PL00"]:
         # hydrogen CCGT efficiency missing in 2050
         missing_efficiency = (
