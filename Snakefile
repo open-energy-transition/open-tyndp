@@ -582,15 +582,17 @@ onsuccess:
 
         cache = Path(LOCAL_CACHE["directory"])
         collected = sorted(
-            str(path.relative_to(cache))
+            path.relative_to(cache).as_posix()
             for path in cache.rglob("*")
             if path.is_file() and path != LOCAL_CACHE_MANIFEST
         )
-        LOCAL_CACHE_MANIFEST.write_text("\n".join(collected) + "\n")
+        LOCAL_CACHE_MANIFEST.write_text(
+            "\n".join(collected) + "\n", encoding="utf-8"
+        )
 
         # Clean metadata of cached files and directories for correct provenance
         for path in cache.rglob("*"):
-            workflow.persistence.cleanup_metadata(IOFile(str(path)))
+            workflow.persistence.cleanup_metadata(IOFile(path.as_posix()))
 
         logger.info(
             f"Recorded {len(collected)} cache entries in {LOCAL_CACHE_MANIFEST}"
@@ -612,7 +614,7 @@ if LOCAL_CACHE_READ:
     cache_root = LOCAL_CACHE_MANIFEST.parent
     if gone := [
         entry
-        for entry in LOCAL_CACHE_MANIFEST.read_text().splitlines()
+        for entry in LOCAL_CACHE_MANIFEST.read_text(encoding="utf-8").splitlines()
         if entry and not (cache_root / entry).exists()
     ]:
         listing = "\n  ".join(gone)
