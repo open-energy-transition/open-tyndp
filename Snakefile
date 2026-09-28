@@ -524,9 +524,10 @@ def remote_sync_files():
     names = run["name"] if isinstance(run["name"], list) else [run["name"]]
     rdir = get_rdir(run)
     return [
-        f"--include='/*/{rdir.replace('{run}', n)}{f}'"
+        f"--include='/{d}/{rdir.replace('{run}', n)}{f}'"
+        for d, files in config["remote"]["sync_file"].items()
         for n in names
-        for f in config["remote"]["sync_file"]
+        for f in files
     ]
 
 

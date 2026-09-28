@@ -67,9 +67,9 @@ class RemoteConfig(ConfigModel):
         "",
         description="Optionally specify the file path within the remote cluster to be synchronized.",
     )
-    sync_file: list[str] = Field(
-        default_factory=list,
-        description="Files to pull from the remote cluster with the `sync_file` and `sync_file_dry` rules. Each entry is an rsync include pattern relative to `<dir>/<prefix>/<run-name>/`, where `<dir>` is `results`, `resources` or `logs`. Each pattern applies to every configured run name. `*` matches within one path level (e.g. `cba/networks/project_t335_*.nc`), `**` matches across levels, and `***` matches the directory and everything below it (e.g. `cba/***`). Patterns without a match are skipped silently. `sync_exclude` does not apply to these rules.",
+    sync_file: dict[str, list[str]] = Field(
+        default_factory=dict,
+        description="Files to pull from the remote cluster with the `sync_file` and `sync_file_dry` rules, keyed by top-level directory (`results`, `resources` or `logs`). Each value is a list of rsync include patterns relative to `<dir>/<prefix>/<run-name>/`. Each pattern applies to every configured run name. `*` matches within one path level (e.g. `cba/networks/project_t335_*.nc`), `**` matches across levels, and `***` matches the directory and everything below it (e.g. `cba/***`). Patterns without a match are skipped silently. `sync_exclude` does not apply to these rules.",
     )
     sync_exclude: list[str] = Field(
         default_factory=list,
