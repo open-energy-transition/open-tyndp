@@ -498,13 +498,15 @@ def remote_run_dirs():
 
 
 def remote_run_filters():
-    # Keep the configured runs, skip their sibling runs, keep all shared files
+    # Keep the configured runs and loose (shared) files, skip all other directories
     dirs = ["results", "resources", "logs", "logs/slurm"]
-    rdirs = remote_run_dirs()
-    parents = {str(Path(r).parent) for r in rdirs} - {"."}
-    return [f"--include='/{d}/{r}***'" for d in dirs for r in rdirs] + [
-        f"--exclude='/{d}/{p}/*/'" for d in dirs for p in parents
-    ]
+    runs = dict.fromkeys(Path(d, r) for d in dirs for r in remote_run_dirs())
+    parents = dict.fromkeys(p for r in runs for p in r.parents if p.name)
+    return (
+        [f"--include='/{r}/***'" for r in runs]
+        + [f"--include='/{p}/'" for p in parents if p.parent.name]
+        + [f"--exclude='/{p}/*/'" for p in parents]
+    )
 
 
 rule sync:
