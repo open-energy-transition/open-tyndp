@@ -345,7 +345,7 @@ def _process_other_nonres_capacities(
         df.pemmdb_type,
     )
 
-    # Manually fix missing efficiency and CO2 factor information for PL, ITS1
+    # Manually fix missing efficiency information for PL, ITS1
     # with values of equivalent plant types of other countries (same for all countries)
     df[["efficiency", "co2_factor"]] = df[["efficiency", "co2_factor"]].astype(float)
     if node in ["ITS1", "PL00"]:
