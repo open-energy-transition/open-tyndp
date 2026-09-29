@@ -424,10 +424,6 @@ class DataConfig(BaseModel):
         default_factory=_DataSourceConfig,
         description="TYNDP PECD (Pan-European Climate Database) data source configuration.",
     )
-    tyndp_vis_plfm: _DataSourceConfig = Field(
-        default_factory=_DataSourceConfig,
-        description="TYNDP visualisation platform data source configuration.",
-    )
     tyndp_cba_projects: _DataSourceConfig = Field(
         default_factory=_DataSourceConfig,
         description="TYNDP CBA projects data source configuration.",
