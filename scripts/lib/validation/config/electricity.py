@@ -168,14 +168,14 @@ class _AutarkyConfig(BaseModel):
 class _PecdPreBuiltConfig(BaseModel):
     """Configuration for `electricity.pecd_renewable_profiles.pre_built` settings."""
 
-    cyears: list[int] = Field(
+    wscenarios: list[int] = Field(
         default_factory=lambda: [3, 21, 29, 32, 37, 59, 65, 71, 77, 91, 92, 106],
         description="List of weather scenarios to filter for when creating the PECD pre-built. The scenario numbering ranges between 1-120.",
     )
 
-    @field_validator("cyears")
+    @field_validator("wscenarios")
     @classmethod
-    def validate_cyears(cls, v: list[int]) -> list[int]:
+    def validate_wscenarios(cls, v: list[int]) -> list[int]:
         """Validate that weather scenarios are between 1 and 120."""
         for year in v:
             if not 1 <= year <= 120:
@@ -259,7 +259,7 @@ class _PemmdbCapacitiesConfig(BaseModel):
         description="Number of parallel processes when reading pemmdb data.",
     )
     available_years: list[int] = Field(
-        default_factory=lambda: [2030, 2040, 2050],
+        default_factory=lambda: [2030, 2035, 2040, 2050],
         description="List of years for which PEMMDB data is available.",
     )
     technologies: list[
