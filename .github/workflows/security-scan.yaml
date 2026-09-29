@@ -78,7 +78,7 @@ jobs:
 
     - name: Upload SARIF
       if: github.ref == 'refs/heads/master'
-      uses: github/codeql-action/upload-sarif@v4.38.1
+      uses: github/codeql-action/upload-sarif@v4.38.2
       with:
         sarif_file: ${{ steps.scan.outputs.sarif }}
         category: pixi-vuln-scan
@@ -95,7 +95,7 @@ jobs:
     # All PRs gate on new CVEs vs the master baseline
     - name: Download master baseline
       if: github.event_name == 'pull_request'
-      uses: dawidd6/action-download-artifact@v24
+      uses: dawidd6/action-download-artifact@v25
       with:
         workflow: security-scan.yaml
         name: master-sbom
