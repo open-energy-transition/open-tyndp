@@ -2002,8 +2002,6 @@ def normalize_direction(
         df.loc[
             :, ["prefix", "bus0", "bus0_suffix", "bus1", "bus1_suffix", "suffix"]
         ] = extract_crossborder_pattern(df, connector).values
-    # Protect swapping of direction for H2 import links and the bus0 starting with "X"
-    mask_import_link = df["prefix"].str.contains("H2 import", na=False)
     mask = df["bus0"] > df["bus1"]
     assignments = {col: np.where(mask, -df[col], df[col]) for col in cols}
 
