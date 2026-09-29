@@ -28,6 +28,7 @@ import subprocess
 import sys
 
 FILL_CACHE_CONFIG = "data={local_cache: {enable: true, fill: true}}"
+READ_CACHE_CONFIG = "data={local_cache: {enable: true, fill: false}}"
 RETRIEVE_RULE = re.compile(r"retrieve_[a-z0-9_]+")
 DRY_RUN_FLAGS = {"-n", "--dry-run", "--dryrun"}
 
@@ -141,6 +142,9 @@ def check_cba_coverage(*args: str, verbose: bool = False) -> None:
     """
     Confirm the cache holds every dataset the expanded CBA graph asks for.
 
+    The dry run reads from the cache, as a CBA run against it does, so datasets that are
+    missing and cached outputs that Snakemake would still re-retrieve are both reported.
+
     Parameters
     ----------
     *args : str
@@ -154,7 +158,7 @@ def check_cba_coverage(*args: str, verbose: bool = False) -> None:
         If the CBA workflow would still retrieve a dataset.
     """
     listing = run_snakemake(
-        "Checking that the cache covers the CBA workflow",
+        "Checking that the cache covers the CBA workflow in read mode",
         "cba",
         "-n",
         *args,
@@ -194,6 +198,7 @@ def main() -> None:
     args, forwarded = parse_arguments()
     configfiles = ["--configfile", *args.configfile] if args.configfile else []
     base = [*configfiles, "--config", FILL_CACHE_CONFIG, *forwarded]
+    read_base = [*configfiles, "--config", READ_CACHE_CONFIG, *forwarded]
     dry_run = bool(DRY_RUN_FLAGS.intersection(forwarded))
 
     print(
@@ -231,7 +236,7 @@ def main() -> None:
             "job listing in more detail."
         )
     run_snakemake(
-        f"Collecting {len(needed)} dataset(s)",
+        f"{len(needed)} dataset(s) needed. Collecting missing ones",
         "-c",
         "all",
         *base,
@@ -248,7 +253,7 @@ def main() -> None:
             "a dry run and the CBA graph is not expanded yet."
         )
         return
-    check_cba_coverage(*base, verbose=args.verbose)
+    check_cba_coverage(*read_base, verbose=args.verbose)
 
 
 if __name__ == "__main__":
