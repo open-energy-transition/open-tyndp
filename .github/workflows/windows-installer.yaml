@@ -34,16 +34,19 @@ jobs:
         fetch-depth: 0
         fetch-tags: true
 
-    - name: Check that origin/master contains the tag and reset local master to it
+    - name: Check that origin/master or a release branch contains the tag and check it out as that branch
       if: ${{ env.TAG }}
       run: |
-        git fetch origin master
-        if ! git merge-base --is-ancestor "$TAG" origin/master; then
-          echo "Error: Tag $TAG is not in master branch history"
+        git fetch origin '+refs/heads/master:refs/remotes/origin/master' '+refs/heads/release/*:refs/remotes/origin/release/*'
+        BRANCHES=$(git branch -r --contains "$TAG" --format='%(refname:lstrip=3)' --list 'origin/master' 'origin/release/*')
+        if [ -z "$BRANCHES" ]; then
+          echo "Error: Tag $TAG is not in master or release/* branch history"
           exit 1
         fi
-        git branch --force master HEAD
-        git checkout master
+        # Prefer master, else the release branch, so that the bundled repo tracks it
+        BRANCH=$(echo "$BRANCHES" | grep -x master || echo "$BRANCHES" | head -n 1)
+        git branch --force "$BRANCH" HEAD
+        git checkout "$BRANCH"
 
     - name: Setup Pixi
       uses: prefix-dev/setup-pixi@v0.10.2
