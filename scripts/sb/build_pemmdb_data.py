@@ -485,6 +485,8 @@ def _process_battery_capacities(
     """
     # Fill missing data for FR15
     if node == "FR15":
+        cols = node_tech_data.columns[[5, 7, 8]]
+        node_tech_data[cols] = node_tech_data[cols].astype(object)
         node_tech_data.iloc[-1, [5, 7, 8]] = 0
 
     # Extract data
@@ -773,7 +775,7 @@ def _process_other_nonres_profiles(
 
     # Extract plant type
     price_band_type = _extract_price_band_type(df.T).rename("price_band_type")
-    price = df.T.price
+    price = df.T.price.astype(float)
     pemmdb_carrier = (
         "Other Non-RES" + " " + df.T.pemmdb_type.str.split("/").str[1]
     ).rename("pemmdb_carrier")
