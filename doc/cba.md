@@ -75,11 +75,11 @@ and Open-TYNDP configuration options.
     mismatch. If you encounter errors, please
     [report them](https://github.com/open-energy-transition/open-tyndp/issues) and fall back to
     the code of the latest release, which is what the networks were produced with (e.g.
-    pre-solve `0.8` with the `v0.8` tag). For doing so, open a terminal in your open-tyndp folder and run e.g.:
+    pre-solve `0.9` with the `v0.9` tag). For doing so, open a terminal in your open-tyndp folder and run e.g.:
 
     ```bash
     git fetch --tags
-    git checkout v0.8
+    git checkout v0.9
     ```
 
     The pre-solved networks also assume the default settings of `config.tyndp.yaml` and `config.hpc.yaml`, 
