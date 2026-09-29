@@ -9384,7 +9384,11 @@ if __name__ == "__main__":
     tyndp_carrier_mapping = pd.read_csv(snakemake.input.carrier_mapping).set_index(
         "open_tyndp_index"
     )
-    profiles_pecd = tyndp_carrier_mapping.set_index("open_tyndp_carrier").pecd_carrier.dropna().to_dict()
+    profiles_pecd = (
+        tyndp_carrier_mapping.set_index("open_tyndp_carrier")
+        .pecd_carrier.dropna()
+        .to_dict()
+    )
     tyndp_renewable_carriers = snakemake.params.electricity["tyndp_renewable_carriers"]
     profiles_pecd = {
         f"profile_{k}": snakemake.input.get(f"profile_pecd_{v}")
