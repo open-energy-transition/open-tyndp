@@ -11,6 +11,7 @@ import pandas as pd
 
 from scripts._helpers import (
     configure_logging,
+    format_bz_names,
     set_scenario_config,
 )
 
@@ -62,9 +63,7 @@ def load_h2_storage_data(fn: str, planning_horizon: int, scenario: str) -> pd.Da
         e_nom=lambda df: df.e_nom * 1e3,  # [MWh]
         efficiency_charge=lambda df: df.efficiency_charge / 100,  # [1]
         efficiency_discharge=lambda df: df.efficiency_discharge / 100,  # [1]
-        bus=lambda df: (
-            df.bus.str.replace("^UK", "GB", regex=True) + " Storage_" + df.flexibility
-        ),
+        bus=lambda df: format_bz_names(df.bus) + " Storage_" + df.flexibility,
     ).drop(columns="flexibility")
 
     storages = storages.loc[

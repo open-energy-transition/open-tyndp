@@ -12,6 +12,7 @@ import pandas as pd
 
 from scripts._helpers import (
     configure_logging,
+    format_bz_names,
     set_scenario_config,
 )
 
@@ -59,7 +60,7 @@ def load_smr_data(fn: str, planning_horizon: int, scenario: str) -> pd.DataFrame
             "year == @planning_horizon and (scenario == @scenario or scenario == 'all')"
         )
         .assign(
-            bus=lambda df: df.bus.str.replace("^UK", "GB", regex=True),
+            bus=lambda df: format_bz_names(df.bus),
             carrier=lambda df: np.where(df.ccs, "SMR CCS", "SMR"),
             p_min_pu=0,
             efficiency=lambda df: 3.6 / df.heat_rate,  # convert to [MW_CH4/MW_H2]
