@@ -62,7 +62,6 @@ def load_h2_storage_data(fn: str, planning_horizon: int, scenario: str) -> pd.Da
         e_nom=lambda df: df.e_nom * 1e3,  # [MWh]
         efficiency_charge=lambda df: df.efficiency_charge / 100,  # [1]
         efficiency_discharge=lambda df: df.efficiency_discharge / 100,  # [1]
-        # NODE already spells the UK bus as "UKh2"
         bus=lambda df: (
             df.bus.str.replace("^UK", "GB", regex=True) + " Storage_" + df.flexibility
         ),

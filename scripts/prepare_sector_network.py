@@ -3808,9 +3808,9 @@ def add_h2_storage_tyndp(
     Adds TYNDP daily (tank) and monthly (cavern) H2 storage with default assumptions.
 
     Both storage technologies are added as a non-extendable skeleton (zero
-    capacity by default) at every real H2 bus, since TYNDP capacity data may
-    report either flexibility class at any bus (e.g. Germany has real tank
-    storage at its dedicated Z1 bus, while the Netherlands has both daily and
+    capacity by default) at every Z2 and bottleneck H2 bus, since TYNDP capacity data may
+    report either flexibility class at any bus of those categories (e.g. Germany has real tank
+    storage at its dedicated Z2 bus, while the Netherlands has both daily and
     monthly storage at the same Z2 bus). `_add_h2_storage_capacities` later
     fills in real capacities wherever TYNDP reports them; buses with no
     matching data keep zero capacity and get cleaned up.
@@ -3820,7 +3820,7 @@ def add_h2_storage_tyndp(
     n : pypsa.Network
         The PyPSA network container object.
     buses_h2 : pd.Index
-        Nodes of all H2 buses.
+        Nodes of H2 buses to add components to.
     costs : pd.DataFrame
         Technology cost assumptions.
     options : dict, optional
