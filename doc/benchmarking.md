@@ -82,21 +82,19 @@ The SB benchmarking workflow is controlled by `config/benchmarking.default.yaml`
 1. `retrieve_tyndp`: Retrieve the TYNDP 2024 Scenarios Report Data Figures package.
 2. `clean_tyndp_report_benchmark`: Read and process the raw Scenarios Report data into
    a long-format table.
-3. `clean_tyndp_vp_data`: Read and process the Visualisation Platform data into a
-   long-format table.
-4. `clean_tyndp_output_benchmark`: Read and process the Market Model Outputs, including
+3. `clean_tyndp_output_benchmark`: Read and process the Market Model Outputs, including
    cross-border flows, prices, and country and EU27 level values.
-5. `build_statistics`: Compute benchmarking statistics from the optimised network for
+4. `build_statistics`: Compute benchmarking statistics from the optimised network for
    every planning horizon.
-6. `make_benchmark`: Compute accuracy indicators comparing model outcomes against the
-   Market Model Outputs, Scenarios Report, and Visualisation Platform.
-7. `make_benchmarks`: Collect outputs from all `make_benchmark` runs.
-8. `plot_benchmark`: Generate visualisation outputs.
-9. `plot_benchmarks`: Collect outputs from all `plot_benchmark` runs.
+5. `make_benchmark`: Compute accuracy indicators comparing model outcomes against the
+   Market Model Outputs and Scenarios Report.
+6. `make_benchmarks`: Collect outputs from all `make_benchmark` runs.
+7. `plot_benchmark`: Generate visualisation outputs.
+8. `plot_benchmarks`: Collect outputs from all `plot_benchmark` runs.
 
-The full set of benchmarking output files is stored under `results/benchmarks/tyndp-2024/`:
+The full set of benchmarking output files is stored under `results/benchmarks/tyndp-2026/`:
 
-* `resources/` — processed benchmarking inputs from both Open-TYNDP and TYNDP 2024.
+* `resources/` — processed benchmarking inputs from both Open-TYNDP and TYNDP 2026.
 * `csvs_s_{clusters}_{opts}_{sector_opts}_all_years/` — quantitative tables.
 * `graphics_s_{clusters}_{opts}_{sector_opts}_all_years/` — figures.
 * `kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_bus.csv` — summary table aggregated from bus level KPIs.

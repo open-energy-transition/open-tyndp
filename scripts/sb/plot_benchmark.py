@@ -731,7 +731,6 @@ if __name__ == "__main__":
     scenario = snakemake.params["scenario"]
     snapshots = snakemake.params.snapshots
     benchmarks_fn = snakemake.input.benchmarks
-    vp_data_fn = snakemake.input.vp_data
     mm_data_fn = snakemake.input.mm_data
     results_fn = snakemake.input.results
     output_dir = Path(snakemake.output.dir)
@@ -742,7 +741,6 @@ if __name__ == "__main__":
         benchmarks_fn=benchmarks_fn,
         results_fn=results_fn,
         scenario="TYNDP " + scenario,
-        vp_data_fn=vp_data_fn,
         mm_data_fn=mm_data_fn,
     )
 
