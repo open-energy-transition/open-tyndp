@@ -3453,9 +3453,11 @@ def add_h2_production_tyndp(
         lifetime=costs.at["electrolysis", "lifetime"],
     )
 
-    buses_h2_smr = spatial.h2_tyndp.nodes[
-        spatial.h2_tyndp.df.category.isin(["Z1", "Z2", "bottleneck"])
-    ],
+    buses_h2_smr = (
+        spatial.h2_tyndp.nodes[
+            spatial.h2_tyndp.df.category.isin(["Z1", "Z2", "bottleneck"])
+        ],
+    )
 
     if options["SMR_cc"]:
         # TODO: this does currently only work for no gas spatial
