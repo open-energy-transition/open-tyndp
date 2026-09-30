@@ -1978,7 +1978,7 @@ def normalize_direction(
         String separator between bus0 and bus1 in the index.
     format_index : bool, default=False
         If True, reformat the index after normalization to
-        ``"bus0[_suffix]->bus1[_suffix]"``.
+        ``"bus0[_suffix]-bus1[_suffix]"``.
 
     Returns
     -------
@@ -2032,14 +2032,10 @@ def normalize_direction(
     if format_index:
         idx_groups = extract_crossborder_pattern(df, connector)
 
-        mask_h2_pipeline = idx_groups[0] == "H2 pipeline "
-        idx_groups.loc[mask_h2_pipeline, [2, 4]] = " H2"
-
         mask_import = idx_groups[0].str.contains("H2 import")
         idx_groups.loc[mask_import, 1] = "X" + idx_groups.loc[mask_import, 1]
-        idx_groups.loc[mask_import, 4] = " H2"
 
-        df.index = idx_groups[1] + idx_groups[2] + "->" + idx_groups[3] + idx_groups[4]
+        df.index = idx_groups[1] + idx_groups[2] + "-" + idx_groups[3] + idx_groups[4]
 
     if buses_from_index:
         df.index.name = "border"
