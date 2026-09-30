@@ -461,7 +461,7 @@ def remove_tyndp_fixed_p(
                 "H2 Electrolysis",
                 "H2 pipeline",
                 "SMR",
-                "SMR CC",
+                "SMR CCS",
                 "H2 tank-storage charger",
                 "H2 tank-storage discharger",
                 "H2 cavern-storage charger",

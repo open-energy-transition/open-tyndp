@@ -60,9 +60,7 @@ def load_smr_data(fn: str, planning_horizon: int, scenario: str) -> pd.DataFrame
         )
         .assign(
             bus=lambda df: df.bus.str.replace("^UK", "GB", regex=True),
-            carrier=lambda df: np.where(df.ccs, "SMR CC", "SMR"),
-            # match the TYNDP market-output asset naming convention
-            name_suffix=lambda df: np.where(df.ccs, "SMR CCS", "SMR"),
+            carrier=lambda df: np.where(df.ccs, "SMR CCS", "SMR"),
             p_min_pu=0,
             efficiency=lambda df: 3.6 / df.heat_rate,  # convert to [MW_CH4/MW_H2]
             p_nom=lambda df: df.p_nom / df.efficiency,  # convert to [MW_CH4]
@@ -71,8 +69,7 @@ def load_smr_data(fn: str, planning_horizon: int, scenario: str) -> pd.DataFrame
         .drop(columns=["heat_rate", "marginal_cost", "ccs", "efficiency"])
     )
 
-    smr.index = smr.bus + " " + smr.name_suffix
-    smr = smr.drop(columns="name_suffix")
+    smr.index = smr.bus + " " + smr.carrier
 
     return smr
 

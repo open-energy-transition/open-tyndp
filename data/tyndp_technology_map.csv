@@ -169,7 +169,7 @@ Battery,Battery Utility Scale Store,,,Batteries Utility,,,,,battery,battery-util
 ,,,,,,CH4 International maritime bunkers,,,exogenous gas demand,,Gas Exogenous Demand,,,,,,exogenous demand,,,,,,,,,,Methane demand benchmark
 ,,,,,,CH4 SMR,,,,,,,,,,,smr (grey) and smr with ccs (blue),,,,,,,,,,Methane demand benchmark
 ,,,,,Steam methane reformer,SMR (Grey),,,SMR,,SMR (Grey Hydrogen),,,,,,smr (grey) and smr with ccs (blue),,,smr (grey) and smr with ccs (blue),,,,,,,"Hydrogen supply benchmark, Methane demand benchmark, TYNDP market model doesn't distinguish between grey and blue SMR in the output files"
-,,,,,Steam methane reformer,SMR with CCS (Blue),,,SMR CC,,SMR (CCS) (Blue Hydrogen),,,,,,smr (grey) and smr with ccs (blue),,,smr (grey) and smr with ccs (blue),,,,,,,"Hydrogen supply benchmark, Methane demand benchmark, TYNDP market model doesn't distinguish between grey and blue SMR in the output files"
+,,,,,Steam methane reformer,SMR with CCS (Blue),,,SMR CCS,,SMR (CCS) (Blue Hydrogen),,,,,,smr (grey) and smr with ccs (blue),,,smr (grey) and smr with ccs (blue),,,,,,,"Hydrogen supply benchmark, Methane demand benchmark, TYNDP market model doesn't distinguish between grey and blue SMR in the output files"
 ,,,,,,Undefined for generation,,,,,,,,,,,,,,undefined for generation,,,,,,,Hydrogen supply benchmark
 ,,,,,,Low carbon imports,,,H2 import Pipeline,,H2 Import Pipeline,,,,,,,,,imports (renewable & low carbon),,,,,,,Hydrogen supply benchmark
 ,,,,,,Renewable imports,,,H2 import Pipeline,,H2 Import Pipeline,,,,,,,,,imports (renewable & low carbon),,,,,,,Hydrogen supply benchmark
