@@ -41,28 +41,6 @@
 
 **Features**
 
-* feat: add rule to retrieve TYNDP 2026 data ([#815](https://github.com/open-energy-transition/open-tyndp/pull/815)).
-
-* feat: update the TYNDP 2026 data bundle to ENTSO-E's corrected reference dataset of 2026-08-21 ([#893](https://github.com/open-energy-transition/open-tyndp/pull/893)). The bundle is now a separate `tyndp_2026` dataset, configured via `data: tyndp_2026:`. Extraction in the retrieve rule is adjusted to account for double nested zips and drops the `_corrected` file suffix, so downstream paths stay unchanged.
-
-* feat: add `build_tyndp_demand` rule to process TYNDP 2026 demand profiles (electricity, EV, hydrogen, thermal energy, synthetic fuels) ([#808](https://github.com/open-energy-transition/open-tyndp/pull/808)).
-
-* feat: add complete processing and preparation of PECD v4.2 renewable profiles for all renewable technologies: Solar PV rooftop, Solar PV utility, Onshore Wind, Offshore Wind, and Solar CSP  ([#843](https://github.com/open-energy-transition/open-tyndp/pull/843)).  The data processing infrastructure for renewable profile creation is complete, but full integration into the model workflow will follow in a subsequent PRs.
-
-* feat: update processing and preparation of PEMMDB 2.X technologies, capacities and profiles for TYNDP 2026: Thermals, Other Non-RES, Solar, Wind, Battery, Electrolyser, Hydro, and DSR ([#865](https://github.com/open-energy-transition/open-tyndp/pull/865)). Full integration of 2026 technologies with their capacities and profiles will follow in subsequent PRs.
-
-**Changes**
-
-**Bugfixes and Compatibility**
-
-**Documentation**
-
-**Developers Note**
-
-**2024**
-
-**Features**
-
 * Add storage projects to the CBA assessment, using the PINT method ([#838](https://github.com/open-energy-transition/open-tyndp/pull/838)).
 
 **Changes**

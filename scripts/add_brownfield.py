@@ -479,6 +479,13 @@ def remove_tyndp_fixed_p(
                 "onwind",
                 "solar-pv-rooftop",
                 "solar-pv-utility",
+                "onwind-dres",
+                "onwind-sres",
+                "solar-pv-utility-dres",
+                "solar-pv-utility-sres",
+                "offwind",
+                "offwind-dres",
+                "offwind-sres",
                 "battery",
             ]
         )
