@@ -469,7 +469,7 @@ def create_network_topology(
     return topo
 
 
-def create_h2_topology_tyndp(n, fn_h2_network, options):
+def create_h2_topology_tyndp(n, fn_h2_network):
     """
     Create a TYNDP H2 network topology from the TYNDP H2 reference grid.
 
@@ -479,8 +479,6 @@ def create_h2_topology_tyndp(n, fn_h2_network, options):
         Network to create H2 topology for.
     fn_h2_network : str
         Pointing to the input TYNDP H2 reference grid csv file.
-    options : dict
-        Dictionary of configuration options.
 
     Returns
     -------
@@ -3676,7 +3674,6 @@ def add_h2_grid_tyndp(
     n: pypsa.Network,
     h2_pipes_file: str,
     costs: pd.DataFrame,
-    options: dict,
 ) -> None:
     """
     Adds TYNDP hydrogen pipelines.
@@ -3689,8 +3686,6 @@ def add_h2_grid_tyndp(
         Path to CSV file containing prepped H2 reference grid data.
     costs : pd.DataFrame
         Technology cost assumptions.
-    options : dict
-        Dictionary of configuration options.
 
     Returns
     -------
@@ -3698,9 +3693,7 @@ def add_h2_grid_tyndp(
         The function modifies the network object in-place by adding components.
     """
 
-    h2_pipes = create_h2_topology_tyndp(
-        n=n, fn_h2_network=h2_pipes_file, options=options
-    )
+    h2_pipes = create_h2_topology_tyndp(n=n, fn_h2_network=h2_pipes_file)
 
     logger.info("Adding TYNDP H2 reference grid pipelines.")
     n.add(
@@ -3806,7 +3799,7 @@ def add_h2_storage_tyndp(
     n: pypsa.Network,
     buses_h2: pd.Index,
     costs: pd.DataFrame,
-    options: dict = {},
+    tyndp_stores: list[str],
 ) -> None:
     """
     Adds TYNDP daily (tank) and monthly (cavern) H2 storage with default assumptions.
@@ -3827,8 +3820,8 @@ def add_h2_storage_tyndp(
         Nodes of H2 buses to add components to.
     costs : pd.DataFrame
         Technology cost assumptions.
-    options : dict, optional
-        Dictionary of configuration options. Defaults to empty dict if not provided.
+    tyndp_stores : list[str]
+        TYNDP storage technologies to add. H2 tanks are added for `h2_tank` and caverns for `h2_cavern`.
 
     Returns
     -------
@@ -3836,23 +3829,27 @@ def add_h2_storage_tyndp(
         The function modifies the network object in-place by adding components.
     """
 
-    logger.info("Adding TYNDP H2 daily (tank) and monthly (cavern) storage.")
-    _add_h2_stores_and_links_tyndp(
-        n=n,
-        storage_tech="tank-storage",
-        name_suffix="Storage_Daily",
-        buses=buses_h2,
-        costs=costs,
-        extendable=False,
-    )
-    _add_h2_stores_and_links_tyndp(
-        n=n,
-        storage_tech="cavern-storage",
-        name_suffix="Storage_Monthly",
-        buses=buses_h2,
-        costs=costs,
-        extendable=False,
-    )
+    if "h2_tank" in tyndp_stores:
+        logger.info("Adding TYNDP H2 daily (tank) storage.")
+        _add_h2_stores_and_links_tyndp(
+            n=n,
+            storage_tech="tank-storage",
+            name_suffix="Storage_Daily",
+            buses=buses_h2,
+            costs=costs,
+            extendable=False,
+        )
+
+    if "h2_cavern" in tyndp_stores:
+        logger.info("Adding TYNDP H2 monthly (cavern) storage.")
+        _add_h2_stores_and_links_tyndp(
+            n=n,
+            storage_tech="cavern-storage",
+            name_suffix="Storage_Monthly",
+            buses=buses_h2,
+            costs=costs,
+            extendable=False,
+        )
 
 
 def add_h2_topology_tyndp(
@@ -3864,6 +3861,7 @@ def add_h2_topology_tyndp(
     options: dict,
     h2_demand_z1_file: str,
     h2_demand_z2_file: str,
+    tyndp_stores: list[str],
 ) -> None:
     """
     Add TYNDP H2 topology to the network.
@@ -3895,6 +3893,8 @@ def add_h2_topology_tyndp(
         Path to CSV file containing exogenous Z1 hydrogen demand time series.
     h2_demand_z2_file : str
         Path to CSV file containing exogenous Z2 hydrogen demand time series.
+    tyndp_stores : list[str]
+        TYNDP storage technologies to add (`h2_tank`, `h2_cavern`).
 
 
     Returns
@@ -3979,7 +3979,6 @@ def add_h2_topology_tyndp(
         n=n,
         h2_pipes_file=h2_pipes_file,
         costs=costs,
-        options=options,
     )
 
     # add H2 storage (daily tank and monthly cavern storage at every H2 bus)
@@ -3989,7 +3988,7 @@ def add_h2_topology_tyndp(
             spatial.h2_tyndp.df.category.isin(["Z2", "bottleneck"])
         ],
         costs=costs,
-        options=options,
+        tyndp_stores=tyndp_stores,
     )
 
     # add exogenous hydrogen demand
@@ -4525,6 +4524,7 @@ def add_h2_gas_infrastructure(
     options,
     h2_demand_z1_file,
     h2_demand_z2_file,
+    tyndp_stores,
 ):
     """
     Add hydrogen and gas infrastructure to the network.
@@ -4566,6 +4566,8 @@ def add_h2_gas_infrastructure(
         Path to CSV file containing exogenous Z1 hydrogen demand data.
     h2_demand_z2_file : str
         Path to CSV file containing exogenous Z2 hydrogen demand data.
+    tyndp_stores : list[str]
+        TYNDP storage technologies to add (`h2_tank`, `h2_cavern`).
 
     Returns
     -------
@@ -4594,6 +4596,7 @@ def add_h2_gas_infrastructure(
             options=options,
             h2_demand_z1_file=h2_demand_z1_file,
             h2_demand_z2_file=h2_demand_z2_file,
+            tyndp_stores=tyndp_stores,
         )
     else:
         # add base h2 technologies (carrier, production, reconversion, storage)
@@ -9312,6 +9315,7 @@ if __name__ == "__main__":
         options=options,
         h2_demand_z1_file=snakemake.input.h2_demand_z1,
         h2_demand_z2_file=snakemake.input.h2_demand_z2,
+        tyndp_stores=snakemake.params.tyndp_stores,
     )
 
     # Hydrogen already implemented in add_h2_gas_infrastructure
