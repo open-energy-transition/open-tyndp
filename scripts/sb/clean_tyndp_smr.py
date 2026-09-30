@@ -66,7 +66,7 @@ def load_smr_data(fn: str, planning_horizon: int, scenario: str) -> pd.DataFrame
             p_nom=lambda df: df.p_nom / df.efficiency,  # convert to [MW_CH4]
             unit="MW_CH4",
         )
-        .drop(columns=["heat_rate", "marginal_cost", "ccs", "efficiency"])
+        .drop(columns=["heat_rate", "ccs"])
     )
 
     smr.index = smr.bus + " " + smr.carrier
