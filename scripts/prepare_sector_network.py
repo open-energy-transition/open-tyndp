@@ -3249,7 +3249,6 @@ def insert_electricity_distribution_grid(
             carrier="electricity distribution grid",
             efficiency=1,
             marginal_cost=wheeling_charges.loc[nodes, "e_market_to_prosumer"].values,
-            lifetime=costs.at["electricity distribution grid", "lifetime"],
         )
         n.add(
             "Link",
