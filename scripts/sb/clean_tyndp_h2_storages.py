@@ -47,6 +47,7 @@ def load_h2_storage_data(fn: str, planning_horizon: int, scenario: str) -> pd.Da
         "MAX LOAD [MW]": "p_nom_charge",
         "CHARGE EFFICIENCY [%]": "efficiency_charge",
         "DISCHARGE EFFICIENCY [%]": "efficiency_discharge",
+        "Initial SoC [GWh]": "e_initial",
     }
 
     replace_dict = {"All": "all"}
@@ -56,13 +57,14 @@ def load_h2_storage_data(fn: str, planning_horizon: int, scenario: str) -> pd.Da
         pd.read_excel(fn, sheet_name="TEMPLATE")
         .rename(columns=column_dict)
         .replace(replace_dict)
-        .drop(columns=["H2 ZONE", "Initial SoC [GWh]"])
+        .drop(columns=["H2 ZONE"])
     )
 
     storages = storages.assign(
         e_nom=lambda df: df.e_nom * 1e3,  # [MWh]
         efficiency_charge=lambda df: df.efficiency_charge / 100,  # [1]
         efficiency_discharge=lambda df: df.efficiency_discharge / 100,  # [1]
+        e_initial=lambda df: df.e_initial * 1e3,  # [MWh]
         bus=lambda df: format_bz_names(df.bus) + " Storage_" + df.flexibility,
     ).drop(columns="flexibility")
 
