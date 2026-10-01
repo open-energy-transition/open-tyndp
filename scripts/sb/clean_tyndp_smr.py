@@ -63,24 +63,30 @@ def load_smr_data(fn: str, planning_horizon: int, scenario: str) -> pd.DataFrame
         .rename(columns=column_dict)
         .replace(replace_dict)
         .query(
-            "year == @planning_horizon and (scenario == @scenario or scenario == 'all')"
+            "year == @planning_horizon and (scenario == @scenario or scenario == 'all') and p_nom > 0"
         )
-        .assign(
-            bus=lambda df: format_bz_names(df.bus),
-            carrier=lambda df: np.where(df.ccs, "SMR CCS", "SMR"),
-            p_min_pu=0,
-            ramp_limit_up=lambda df: (
-                df.ramp_limit_up * 60 / df.p_nom
-            ),  # convert [MW_H2/min] to [p.u./h]
-            ramp_limit_down=lambda df: (
-                df.ramp_limit_down * 60 / df.p_nom
-            ),  # convert [MW_H2/min] to [p.u./h]
-            efficiency=lambda df: 3.6 / df.heat_rate,  # convert to [MW_CH4/MW_H2]
-            p_nom=lambda df: df.p_nom / df.efficiency,  # convert to [MW_CH4]
-            unit="MW_CH4",
-        )
-        .drop(columns=["heat_rate", "ccs", "country", "object", "name", "fuels"])
     )
+
+    if (invalid := ~(smr.heat_rate > 0)).any():
+        logger.warning(
+            f"Dropping SMR plants with non-positive or missing heat rate: {smr.loc[invalid, 'name'].tolist()}"
+        )
+        smr = smr[~invalid]
+
+    smr = smr.assign(
+        bus=lambda df: format_bz_names(df.bus),
+        carrier=lambda df: np.where(df.ccs, "SMR CCS", "SMR"),
+        p_min_pu=0,
+        ramp_limit_up=lambda df: (
+            df.ramp_limit_up * 60 / df.p_nom
+        ),  # convert [MW_H2/min] to [p.u./h]
+        ramp_limit_down=lambda df: (
+            df.ramp_limit_down * 60 / df.p_nom
+        ),  # convert [MW_H2/min] to [p.u./h]
+        efficiency=lambda df: 3.6 / df.heat_rate,  # convert to [MW_CH4/MW_H2]
+        p_nom=lambda df: df.p_nom / df.efficiency,  # convert to [MW_CH4]
+        unit="MW_CH4",
+    ).drop(columns=["heat_rate", "ccs", "country", "object", "name", "fuels"])
 
     smr.index = smr.bus + " " + smr.carrier
 
