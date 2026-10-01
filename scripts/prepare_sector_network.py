@@ -3254,7 +3254,6 @@ def insert_electricity_distribution_grid(
             nodes + " electricity distribution grid reverse",
             bus0=nodes + lv_suffix,
             bus1=nodes,
-            p_nom_extendable=False,
             p_nom=np.inf,
             carrier="electricity distribution grid",
             efficiency=1,
