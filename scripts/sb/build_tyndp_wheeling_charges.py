@@ -26,7 +26,7 @@ import logging
 
 import pandas as pd
 
-from scripts._helpers import configure_logging, set_scenario_config
+from scripts._helpers import configure_logging, format_bz_names, set_scenario_config
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ COLUMN_MAP = {
 def load_wheeling_charges(fn: str) -> pd.DataFrame:
     charges = pd.read_excel(fn, sheet_name="Prosumer", engine="calamine")
     charges = charges.rename(columns=COLUMN_MAP).set_index("node")
-    charges.index = charges.index.str.replace("UK", "GB")
+    charges.index = format_bz_names(charges.index.to_series())
     return charges[["e_market_to_prosumer", "prosumer_to_e_market"]]
 
 
