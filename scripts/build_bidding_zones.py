@@ -342,8 +342,7 @@ if __name__ == "__main__":
     bidding_zones["geometry"] = bidding_zones["geometry"].apply(remove_holes)
 
     # Northern Cyprus ("XX", filed under electricitymaps' "CY" country group)
-    # has no separate TYNDP node - always drop it, regardless of whether CY or
-    # TR are modelled.
+    # has no separate TYNDP node
     bidding_zones = bidding_zones[~bidding_zones.zone_name.eq("XX")]
 
     # rename zones

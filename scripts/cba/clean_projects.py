@@ -136,7 +136,10 @@ def load_storage_technology_carrier_map(carrier_mapping_fn: str) -> pd.Series:
 
 
 def read_tyndp_electricity_buses(
-    buses_fn: str, col_name: str, virtual_buses: list[str] | None = None
+    buses_fn: str,
+    col_name: str,
+    virtual_buses: list[str] | None = None,
+    sheet_name: str | int = 0,
 ) -> pd.Index:
     """
     Read node list for electricity from tyndp data input.
@@ -151,6 +154,8 @@ def read_tyndp_electricity_buses(
     virtual_buses : list
         List of virtual buses to add, not present in the raw node list
         (e.g. added later in build_tyndp_network.py).
+    sheet_name : str | int
+        Sheet to read from `buses_fn`. Defaults to the first sheet.
 
     Returns
     -------
@@ -163,7 +168,11 @@ def read_tyndp_electricity_buses(
     """
     virtual_buses = virtual_buses if virtual_buses is not None else []
 
-    buses = pd.read_excel(buses_fn).replace("UK", "GB", regex=True).set_index(col_name)
+    buses = (
+        pd.read_excel(buses_fn, sheet_name=sheet_name)
+        .replace("UK", "GB", regex=True)
+        .set_index(col_name)
+    )
 
     if "OFFSHORE_NODE_TYPE" in buses.columns:
         # drop radial offshore nodes, which are not built as hub buses
