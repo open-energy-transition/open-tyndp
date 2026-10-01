@@ -514,6 +514,7 @@ rule build_tyndp_h2_demand:
 rule build_tyndp_wheeling_charges:
     input:
         wheeling_charges=rules.retrieve_tyndp_2026.output.wheeling_charges,
+        demand=rules.retrieve_tyndp_2026.output.demand_profiles,
     output:
         wheeling_charges=resources("wheeling_charges_tyndp.csv"),
     log:

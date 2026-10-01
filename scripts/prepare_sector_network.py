@@ -3225,9 +3225,8 @@ def insert_electricity_distribution_grid(
         missing = nodes.difference(wheeling_charges.index)
         if not missing.empty:
             logger.warning(
-                "No TYNDP wheeling charge data for "
-                f"{len(missing)} node(s), skipping electricity distribution grid "
-                f"for: {', '.join(missing)}"
+                f"TYNDP models no prosumer node for {len(missing)} node(s), "
+                f"skipping electricity distribution grid for: {', '.join(missing)}"
             )
         nodes = nodes.intersection(wheeling_charges.index)
 
