@@ -69,6 +69,7 @@ def load_h2_storage_data(fn: str, planning_horizon: int, scenario: str) -> pd.Da
     storages = storages.loc[
         ((storages.scenario == scenario) | (storages.scenario == "all"))
         & (storages.year == planning_horizon)
+        & (storages.e_nom > 0)
     ]
 
     return storages
