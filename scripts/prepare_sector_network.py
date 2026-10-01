@@ -2523,6 +2523,7 @@ def _add_hydro_capacities(
 def _add_smr_capacities(
     n: pypsa.Network,
     smr_capacities: pd.DataFrame,
+    ramp_limits: bool,
 ) -> None:
     """
     Add existing SMR and SMR CC capacities and potential must-runs.
@@ -2533,6 +2534,8 @@ def _add_smr_capacities(
         The PyPSA network container object.
     smr_capacities : pd.DataFrame
         Existing SMR and SMR CC capacities.
+    ramp_limits : bool
+        Whether to add the TYNDP ramp limits to the SMR links.
 
     Returns
     -------
@@ -2546,16 +2549,17 @@ def _add_smr_capacities(
 
     # Add capacities for SMR and SMR CC
     smr_caps = smr_capacities.p_nom
-    n.links.loc[smr_i, ["p_nom", "p_nom_min"]] = smr_caps.reindex(
-        n.links.loc[smr_i, :].index
-    ).fillna(0.0)
+    n.links.loc[smr_i, ["p_nom", "p_nom_min"]] = smr_caps.reindex(smr_i).fillna(0.0)
+
+    # add ramp limits
+    if ramp_limits:
+        ramp_attrs = ["ramp_limit_up", "ramp_limit_down"]
+        n.links.loc[smr_i, ramp_attrs] = smr_capacities[ramp_attrs].reindex(smr_i)
 
     # Add must-runs if given for any units
     if (smr_capacities.p_min_pu > 0).any():
         smr_p_min_pu = smr_capacities.p_min_pu
-        n.links.loc[smr_i, "p_min_pu"] = smr_p_min_pu.reindex(
-            n.links.loc[smr_i, :].index
-        ).fillna(0.0)
+        n.links.loc[smr_i, "p_min_pu"] = smr_p_min_pu.reindex(smr_i).fillna(0.0)
 
     remove_zero_capacity_non_extendable(
         n,
@@ -2840,6 +2844,7 @@ def add_existing_tyndp_capacities(
     tyndp_renewable_carriers: list[str],
     tyndp_conventional_thermals: list[str],
     h2_topology_tyndp: bool,
+    smr_ramp_limits: bool,
     tyndp_stores: list[str],
     costs: pd.DataFrame,
     profiles_pecd: dict[str, str],
@@ -2885,6 +2890,8 @@ def add_existing_tyndp_capacities(
         List of TYNDP conventional thermal technologies that were added to the network.
     h2_topology_tyndp : bool
         Whether TYNDP H2 topology is modeled, so that existing capacities are added for associated components.
+    smr_ramp_limits : bool
+        Whether to add the TYNDP ramp limits to the SMR links.
     tyndp_stores : list[str]
         List of TYNDP storage technologies that were added to the network.
     costs : pd.DataFrame
@@ -3004,6 +3011,7 @@ def add_existing_tyndp_capacities(
         _add_smr_capacities(
             n=n,
             smr_capacities=smr_capacities,
+            ramp_limits=smr_ramp_limits,
         )
         _add_h2_storage_capacities(
             n=n,
@@ -9353,6 +9361,7 @@ if __name__ == "__main__":
             tyndp_renewable_carriers=tyndp_renewable_carriers,
             tyndp_conventional_thermals=tyndp_conventional_thermals,
             h2_topology_tyndp=options["h2_topology_tyndp"],
+            smr_ramp_limits=options["smr_ramp_limits_tyndp"],
             tyndp_stores=snakemake.params.tyndp_stores,
             costs=costs,
             profiles_pecd=profiles_pecd,

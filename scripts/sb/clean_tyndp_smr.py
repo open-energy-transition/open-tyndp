@@ -39,13 +39,19 @@ def load_smr_data(fn: str, planning_horizon: int, scenario: str) -> pd.DataFrame
     """
 
     column_dict = {
+        "Object": "object",
+        "Name": "name",
+        "Fuels": "fuels",
+        "NODE": "bus",
         "YEAR": "year",
         "SCENARIO": "scenario",
-        "NODE": "bus",
         "CAPACITY [MW]": "p_nom",
         "HEAT RATE [GJ/MWh]": "heat_rate",
         "VO&M CHARGE [€/MWh]": "marginal_cost",
         "CCS": "ccs",
+        "COUNTRY": "country",
+        "MAX RAMP UP [MW/min]": "ramp_limit_up",
+        "MAX RAMP DOWN [MW/min]": "ramp_limit_down",
     }
 
     # TYNDP 2026 has no more scenario split: SCENARIO is always "All"
@@ -63,11 +69,17 @@ def load_smr_data(fn: str, planning_horizon: int, scenario: str) -> pd.DataFrame
             bus=lambda df: format_bz_names(df.bus),
             carrier=lambda df: np.where(df.ccs, "SMR CCS", "SMR"),
             p_min_pu=0,
+            ramp_limit_up=lambda df: (
+                df.ramp_limit_up * 60 / df.p_nom
+            ),  # convert [MW_H2/min] to [p.u./h]
+            ramp_limit_down=lambda df: (
+                df.ramp_limit_down * 60 / df.p_nom
+            ),  # convert [MW_H2/min] to [p.u./h]
             efficiency=lambda df: 3.6 / df.heat_rate,  # convert to [MW_CH4/MW_H2]
             p_nom=lambda df: df.p_nom / df.efficiency,  # convert to [MW_CH4]
             unit="MW_CH4",
         )
-        .drop(columns=["heat_rate", "ccs"])
+        .drop(columns=["heat_rate", "ccs", "country", "object", "name", "fuels"])
     )
 
     smr.index = smr.bus + " " + smr.carrier
