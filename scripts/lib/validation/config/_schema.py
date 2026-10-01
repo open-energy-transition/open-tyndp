@@ -252,6 +252,21 @@ class ConfigSchema(BaseModel):
             )
         return data
 
+    @model_validator(mode="after")
+    def check_tyndp_distribution_grid_without_transmission_efficiency(self):
+        if (
+            self.tyndp_scenario
+            and "electricity distribution grid"
+            in self.sector.transmission_efficiency.enable
+        ):
+            raise ValueError(
+                "'sector:transmission_efficiency:enable' must not contain 'electricity distribution grid' "
+                "for a TYNDP scenario. The TYNDP distribution grid is already modelled as two unidirectional "
+                "links carrying the wheeling charges; splitting them again adds a reverse link per direction "
+                "that bypasses the charge."
+            )
+        return self
+
     # TODO: Remove when adding MM output compatibility with DE/GA
     @model_validator(mode="after")
     def check_patch_demand_requires_nt_scenario(self):

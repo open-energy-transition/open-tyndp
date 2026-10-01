@@ -3153,6 +3153,7 @@ def insert_electricity_distribution_grid(
     pop_layout: pd.DataFrame,
     solar_rooftop_potentials_fn: str,
     ext_stores: list[str],
+    tyndp_scenario: str | bool = False,
     wheeling_charges_fn: str = "",
 ) -> None:
     """
@@ -3174,21 +3175,24 @@ def insert_electricity_distribution_grid(
         Configuration options containing at least:
         - transmission_efficiency: dict with distribution grid parameters
         - marginal_cost_storage: float for storage operation costs
-        - electricity_distribution_grid_tyndp: bool to switch to TYNDP low voltage
-          bus naming and wheeling charges
     pop_layout : pd.DataFrame
         Population data per node with at least:
         - 'total' column containing population in thousands
         Index should match network nodes
     ext_stores : list[str]
         List of extendable Stores
+    tyndp_scenario : str | bool, default False
+        TYNDP scenario to follow the conventions of. If set, low voltage buses
+        are suffixed 'RETE' and the distribution grid is modelled as two
+        non-extendable unidirectional links priced with the TYNDP wheeling
+        charges instead of one extendable bidirectional link.
     wheeling_charges_fn : str, optional
         Path to a CSV of per-node TYNDP wheeling charges (columns
         'e_market_to_prosumer'/'prosumer_to_e_market', €/MWh), only required
-        when `options["electricity_distribution_grid_tyndp"]` is True. Nodes
-        in `pop_layout` without a wheeling charge entry are skipped entirely
-        (no low voltage bus/link, loads and other components stay on the
-        main AC bus).
+        when `tyndp_scenario` is set. It covers the nodes given in TYNDP as
+        prosumer nodes input; nodes in `pop_layout` outside of it are skipped
+        entirely (no low voltage bus/link, loads and other components stay
+        on the main AC bus).
 
     Returns
     -------
@@ -3199,8 +3203,7 @@ def insert_electricity_distribution_grid(
     -----
     Components added to the network:
     - Low voltage buses for each node (all of `pop_layout` normally, or only
-      nodes with TYNDP wheeling charge data when
-      `options["electricity_distribution_grid_tyndp"]` is True)
+      the TYNDP prosumer nodes when `tyndp_scenario` is set)
     - Distribution grid links connecting high to low voltage
     - Rooftop solar potential based on population density
     - Home battery storage systems with separate charger/discharger links if `home battery` is included
@@ -3215,11 +3218,9 @@ def insert_electricity_distribution_grid(
     """
 
     nodes = pop_layout.index
-    lv_suffix = (
-        "RETE" if options["electricity_distribution_grid_tyndp"] else " low voltage"
-    )
+    lv_suffix = "RETE" if tyndp_scenario else " low voltage"
 
-    if options["electricity_distribution_grid_tyndp"]:
+    if tyndp_scenario:
         wheeling_charges = pd.read_csv(wheeling_charges_fn, index_col=0)
         missing = nodes.difference(wheeling_charges.index)
         if not missing.empty:
@@ -3238,7 +3239,7 @@ def insert_electricity_distribution_grid(
         unit="MWh_el",
     )
 
-    if options["electricity_distribution_grid_tyndp"]:
+    if tyndp_scenario:
         n.add(
             "Link",
             nodes + " electricity distribution grid",
@@ -9640,6 +9641,7 @@ if __name__ == "__main__":
             pop_layout=pop_layout,
             solar_rooftop_potentials_fn=snakemake.input.solar_rooftop_potentials,
             ext_stores=extendable_stores,
+            tyndp_scenario=tyndp_scenario,
             wheeling_charges_fn=snakemake.input.get("wheeling_charges", ""),
         )
 
