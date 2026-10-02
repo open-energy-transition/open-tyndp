@@ -3146,6 +3146,36 @@ def add_ammonia(
     )
 
 
+def add_hurdle_costs_tyndp(n: pypsa.Network, hurdle_costs: float) -> None:
+    """
+    Apply the TYNDP hurdle cost to the electricity and hydrogen grids.
+
+    TYNDP charges a small uniform wheeling charge on the e-market, hydrogen
+    and offshore grids to discourage loop flows. The TYNDP transmission links
+    are unidirectional, so the charge is applied as a marginal cost on each
+    link.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object to be modified
+    hurdle_costs : float
+        Hurdle cost in EUR/MWh.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place
+    """
+    links = n.links.index[n.links.carrier.isin(["DC", "H2 pipeline"])]
+    n.links.loc[links, "marginal_cost"] = hurdle_costs
+
+    logger.info(
+        f"Applied hurdle costs of {hurdle_costs} EUR/MWh to {len(links)} "
+        "electricity and hydrogen transmission links"
+    )
+
+
 def insert_electricity_distribution_grid(
     n: pypsa.Network,
     costs: pd.DataFrame,
@@ -3153,6 +3183,8 @@ def insert_electricity_distribution_grid(
     pop_layout: pd.DataFrame,
     solar_rooftop_potentials_fn: str,
     ext_stores: list[str],
+    tyndp_scenario: str | bool = False,
+    wheeling_charges_fn: str = "",
 ) -> None:
     """
     Insert electricity distribution grid components into the network.
@@ -3179,6 +3211,18 @@ def insert_electricity_distribution_grid(
         Index should match network nodes
     ext_stores : list[str]
         List of extendable Stores
+    tyndp_scenario : str | bool, default False
+        TYNDP scenario to follow the conventions of. If set, low voltage buses
+        are suffixed 'RETE' and the distribution grid is modelled as two
+        non-extendable unidirectional links priced with the TYNDP wheeling
+        charges instead of one extendable bidirectional link.
+    wheeling_charges_fn : str, optional
+        Path to a CSV of per-node TYNDP wheeling charges (columns
+        'e_market_to_prosumer'/'prosumer_to_e_market', €/MWh), only required
+        when `tyndp_scenario` is set. It covers the nodes given in TYNDP as
+        prosumer nodes input; nodes in `pop_layout` outside of it are skipped
+        entirely (no low voltage bus/link, loads and other components stay
+        on the main AC bus).
 
     Returns
     -------
@@ -3188,7 +3232,8 @@ def insert_electricity_distribution_grid(
     Notes
     -----
     Components added to the network:
-    - Low voltage buses for each node
+    - Low voltage buses for each node (all of `pop_layout` normally, or only
+      the TYNDP prosumer nodes when `tyndp_scenario` is set)
     - Distribution grid links connecting high to low voltage
     - Rooftop solar potential based on population density
     - Home battery storage systems with separate charger/discharger links if `home battery` is included
@@ -3202,28 +3247,61 @@ def insert_electricity_distribution_grid(
     - Micro-CHP units
     """
 
-    nodes = n.buses.query("carrier == 'AC'").index
+    nodes = pop_layout.index
+    lv_suffix = "RETE" if tyndp_scenario else " low voltage"
+
+    if tyndp_scenario:
+        wheeling_charges = pd.read_csv(wheeling_charges_fn, index_col=0)
+        missing = nodes.difference(wheeling_charges.index)
+        if not missing.empty:
+            logger.warning(
+                f"TYNDP models no prosumer node for {len(missing)} node(s), "
+                f"skipping electricity distribution grid for: {', '.join(missing)}"
+            )
+        nodes = nodes.intersection(wheeling_charges.index)
 
     n.add(
         "Bus",
-        nodes + " low voltage",
+        nodes + lv_suffix,
         location=nodes,
         carrier="low voltage",
         unit="MWh_el",
     )
 
-    n.add(
-        "Link",
-        nodes + " electricity distribution grid",
-        bus0=nodes,
-        bus1=nodes + " low voltage",
-        p_nom_extendable=True,
-        p_min_pu=-1,
-        carrier="electricity distribution grid",
-        efficiency=1,
-        lifetime=costs.at["electricity distribution grid", "lifetime"],
-        capital_cost=costs.at["electricity distribution grid", "capital_cost"],
-    )
+    if tyndp_scenario:
+        n.add(
+            "Link",
+            nodes + " electricity distribution grid",
+            bus0=nodes,
+            bus1=nodes + lv_suffix,
+            p_nom=np.inf,
+            carrier="electricity distribution grid",
+            efficiency=1,
+            marginal_cost=wheeling_charges.loc[nodes, "e_market_to_prosumer"].values,
+        )
+        n.add(
+            "Link",
+            nodes + " electricity distribution grid reverse",
+            bus0=nodes + lv_suffix,
+            bus1=nodes,
+            p_nom=np.inf,
+            carrier="electricity distribution grid",
+            efficiency=1,
+            marginal_cost=wheeling_charges.loc[nodes, "prosumer_to_e_market"].values,
+        )
+    else:
+        n.add(
+            "Link",
+            nodes + " electricity distribution grid",
+            bus0=nodes,
+            bus1=nodes + lv_suffix,
+            p_nom_extendable=True,
+            p_min_pu=-1,
+            carrier="electricity distribution grid",
+            efficiency=1,
+            lifetime=costs.at["electricity distribution grid", "lifetime"],
+            capital_cost=costs.at["electricity distribution grid", "capital_cost"],
+        )
 
     # deduct distribution losses from electricity demand as these are included in total load
     # https://nbviewer.org/github/Open-Power-System-Data/datapackage_timeseries/blob/2020-10-06/main.ipynb
@@ -3241,33 +3319,47 @@ def insert_electricity_distribution_grid(
 
     # this catches regular electricity load and "industry electricity" and
     # "agriculture machinery electric" and "agriculture electricity"
-    loads = n.loads.index[n.loads.carrier.str.contains("electric")]
-    n.loads.loc[loads, "bus"] += " low voltage"
+    loads = n.loads.index[
+        n.loads.carrier.str.contains("electric") & n.loads.bus.isin(nodes)
+    ]
+    n.loads.loc[loads, "bus"] += lv_suffix
 
-    bevs = n.links.index[n.links.carrier == "BEV charger"]
-    n.links.loc[bevs, "bus0"] += " low voltage"
+    bevs = n.links.index[(n.links.carrier == "BEV charger") & n.links.bus0.isin(nodes)]
+    n.links.loc[bevs, "bus0"] += lv_suffix
 
-    v2gs = n.links.index[n.links.carrier == "V2G"]
-    n.links.loc[v2gs, "bus1"] += " low voltage"
+    v2gs = n.links.index[(n.links.carrier == "V2G") & n.links.bus1.isin(nodes)]
+    n.links.loc[v2gs, "bus1"] += lv_suffix
 
-    hps = n.links.index[n.links.carrier.str.contains("heat pump")]
-    n.links.loc[hps, "bus1"] += " low voltage"
+    hps = n.links.index[
+        n.links.carrier.str.contains("heat pump") & n.links.bus1.isin(nodes)
+    ]
+    n.links.loc[hps, "bus1"] += lv_suffix
 
-    rh = n.links.index[n.links.carrier.str.contains("resistive heater")]
-    n.links.loc[rh, "bus0"] += " low voltage"
+    rh = n.links.index[
+        n.links.carrier.str.contains("resistive heater") & n.links.bus0.isin(nodes)
+    ]
+    n.links.loc[rh, "bus0"] += lv_suffix
 
-    mchp = n.links.index[n.links.carrier.str.contains("micro gas")]
-    n.links.loc[mchp, "bus1"] += " low voltage"
+    mchp = n.links.index[
+        n.links.carrier.str.contains("micro gas") & n.links.bus1.isin(nodes)
+    ]
+    n.links.loc[mchp, "bus1"] += lv_suffix
 
     # attach TYNDP rooftop solar to low voltage bus
-    rtsolar = n.generators.index[n.generators.carrier == "solar-pv-rooftop"]
-    n.generators.loc[rtsolar, "bus"] += " low voltage"
+    rtsolar = n.generators.index[
+        (n.generators.carrier == "solar-pv-rooftop") & n.generators.bus.isin(nodes)
+    ]
+    n.generators.loc[rtsolar, "bus"] += lv_suffix
 
-    dsr = n.generators.index[n.generators.carrier == "dsr"]
-    n.generators.loc[dsr, "bus"] += " low voltage"
+    dsr = n.generators.index[
+        (n.generators.carrier == "dsr") & n.generators.bus.isin(nodes)
+    ]
+    n.generators.loc[dsr, "bus"] += lv_suffix
 
     # set existing solar to cost of utility cost rather the 50-50 rooftop-utility
-    solar = n.generators.index[n.generators.carrier == "solar"]
+    solar = n.generators.index[
+        (n.generators.carrier == "solar") & n.generators.bus.isin(nodes)
+    ]
     n.generators.loc[solar, "capital_cost"] = costs.at["solar-utility", "capital_cost"]
 
     fn = solar_rooftop_potentials_fn
@@ -3279,7 +3371,7 @@ def insert_electricity_distribution_grid(
             "Generator",
             solar,
             suffix=" rooftop",
-            bus=n.generators.loc[solar, "bus"] + " low voltage",
+            bus=n.generators.loc[solar, "bus"] + lv_suffix,
             carrier="solar rooftop",
             p_nom_extendable=True,
             p_nom_max=potential.loc[solar],
@@ -3316,7 +3408,7 @@ def insert_electricity_distribution_grid(
         n.add(
             "Link",
             nodes + " home battery charger",
-            bus0=nodes + " low voltage",
+            bus0=nodes + lv_suffix,
             bus1=nodes + " home battery",
             carrier="home battery charger",
             efficiency=costs.at["battery inverter", "efficiency"] ** 0.5,
@@ -3329,7 +3421,7 @@ def insert_electricity_distribution_grid(
             "Link",
             nodes + " home battery discharger",
             bus0=nodes + " home battery",
-            bus1=nodes + " low voltage",
+            bus1=nodes + lv_suffix,
             carrier="home battery discharger",
             efficiency=costs.at["battery inverter", "efficiency"] ** 0.5,
             marginal_cost=costs.at["home battery storage", "marginal_cost"],
@@ -9578,7 +9670,12 @@ if __name__ == "__main__":
             pop_layout=pop_layout,
             solar_rooftop_potentials_fn=snakemake.input.solar_rooftop_potentials,
             ext_stores=extendable_stores,
+            tyndp_scenario=tyndp_scenario,
+            wheeling_charges_fn=snakemake.input.get("wheeling_charges", ""),
         )
+
+    if tyndp_scenario and snakemake.params.hurdle_costs:
+        add_hurdle_costs_tyndp(n, snakemake.params.hurdle_costs)
 
     if options["enhanced_geothermal"].get("enable", False):
         logger.info("Adding Enhanced Geothermal Systems (EGS).")
