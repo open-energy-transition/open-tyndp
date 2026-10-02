@@ -3176,6 +3176,69 @@ def add_hurdle_costs_tyndp(n: pypsa.Network, hurdle_costs: float) -> None:
     )
 
 
+def add_ev_tyndp(
+    n: pypsa.Network, ev_demand_fn: str, charging_stations_fn: str
+) -> None:
+    """
+    Add the TYNDP fixed EV fleets as loads behind their charging links.
+
+    Each fleet segment (e.g. 'DE00 Street Fixed', 'DE00 Prosumer Fixed')
+    gets its own bus carrying the EV demand as a load, supplied by a charging
+    link with the TYNDP charging efficiency. Street charging is connected to
+    the e-market node, home charging to the prosumer node ('{node}RETE') if
+    the electricity distribution grid is modelled, otherwise to the e-market
+    node.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object to be modified
+    ev_demand_fn : str
+        Path to the EV demand per segment in MW, with columns
+        '{node} {Street|Prosumer} Fixed'.
+    charging_stations_fn : str
+        Path to the charging station parameters indexed by segment
+        ('Street', 'Prosumer'), containing at least 'charge_efficiency'.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place
+    """
+    demand = pd.read_csv(ev_demand_fn, index_col=0, parse_dates=True)
+    demand = demand.reindex(n.snapshots)
+    charging_stations = pd.read_csv(charging_stations_fn, index_col=0)
+
+    fleets = demand.columns
+    nodes = fleets.str.split(" ").str[0]
+    location = fleets.str.split(" ").str[1]
+    carriers = "EV " + fleets.str.split(" ", n=1).str[1]
+
+    missing = nodes.difference(n.buses.index)
+    if not missing.empty:
+        raise ValueError(f"EV demand given for nodes not in the network: {missing}")
+
+    prosumer_buses = nodes + "RETE"
+    on_prosumer = (location == "Prosumer") & prosumer_buses.isin(n.buses.index)
+    bus0 = prosumer_buses.where(on_prosumer, nodes)
+    efficiency = charging_stations.loc[location, "charge_efficiency"].values
+
+    n.add("Carrier", carriers.unique().union(["EV charge"]))
+    n.add("Bus", fleets, location=nodes, carrier=carriers, unit="MWh_el")
+    n.add(
+        "Link",
+        fleets + " EV charge",
+        bus0=bus0,
+        bus1=fleets,
+        carrier="EV charge",
+        p_nom=demand.max().div(efficiency).values,
+        efficiency=efficiency,
+    )
+    n.add("Load", fleets, bus=fleets, carrier=carriers, p_set=demand)
+
+    logger.info(f"Added {len(fleets)} TYNDP fixed EV fleets")
+
+
 def insert_electricity_distribution_grid(
     n: pypsa.Network,
     costs: pd.DataFrame,
@@ -9672,6 +9735,13 @@ if __name__ == "__main__":
             ext_stores=extendable_stores,
             tyndp_scenario=tyndp_scenario,
             wheeling_charges_fn=snakemake.input.get("wheeling_charges", ""),
+        )
+
+    if tyndp_scenario:
+        add_ev_tyndp(
+            n,
+            ev_demand_fn=snakemake.input.ev_demand,
+            charging_stations_fn=snakemake.input.ev_charging_stations,
         )
 
     if tyndp_scenario and snakemake.params.hurdle_costs:

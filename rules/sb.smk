@@ -511,6 +511,37 @@ rule build_tyndp_h2_demand:
         scripts("sb/build_tyndp_h2_demand.py")
 
 
+rule build_tyndp_ev_demand:
+    input:
+        ev_market=expand(
+            rules.build_tyndp_demand.output.demand,
+            demand_type="ev_market",
+            allow_missing=True,
+        )[0],
+        ev_prosumer=expand(
+            rules.build_tyndp_demand.output.demand,
+            demand_type="ev_prosumer",
+            allow_missing=True,
+        )[0],
+        ev_modelling=rules.retrieve_tyndp_2026.output.ev_modelling,
+    output:
+        ev_demand=resources("ev_demand_tyndp_{planning_horizons}.csv"),
+        charging_stations=resources(
+            "ev_charging_stations_tyndp_{planning_horizons}.csv"
+        ),
+    log:
+        logs("build_tyndp_ev_demand_{planning_horizons}.log"),
+    benchmark:
+        benchmarks("performances/build_tyndp_ev_demand_{planning_horizons}")
+    conda:
+        "../envs/environment.yaml"
+    threads: 1
+    resources:
+        mem_mb=1000,
+    script:
+        scripts("sb/build_tyndp_ev_demand.py")
+
+
 rule build_tyndp_wheeling_charges:
     input:
         wheeling_charges=rules.retrieve_tyndp_2026.output.wheeling_charges,
