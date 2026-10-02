@@ -4786,9 +4786,7 @@ def attach_gas_hybrid_heating(
         return
 
     bus_labels = hybrid.columns + " hybrid heating gas demand"
-    locations = [
-        spatial.gas.locations[gas_buses.get_loc(c)] for c in hybrid.columns
-    ]
+    locations = [spatial.gas.locations[gas_buses.get_loc(c)] for c in hybrid.columns]
     n.add(
         "Bus",
         bus_labels,
