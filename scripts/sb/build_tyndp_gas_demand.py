@@ -2,27 +2,29 @@
 #
 # SPDX-License-Identifier: MIT
 """
-Builds TYNDP Scenario Building gas demand for Open-TYNDP.
+Builds TYNDP 2026 Scenario Building gas demand for Open-TYNDP (#966).
 
-Processes methane (gas) demand from the TYNDP Supply Tool, with TYNDP 2026
-support:
+Reads methane demand from the TYNDP 2026 Supply Tool ``All data`` sheet
+(``ETM | Parameter | Unit | Year | AT..SK | EU27`` layout, ``Year`` covering
+2030/2035/2040/2050 in one block, TWh/year -> MWh).
 
-- TYNDP 2024: ``NT+ data``, ``Other data and Conversions`` and ``IT`` sheets
-  of the single-file Supply Tool (GWh -> MWh). Unchanged legacy path.
-- TYNDP 2026: single ``All data`` sheet with an ``ETM | Parameter | Unit |
-  Year | AT..SK | EU27`` layout, ``Year`` column covering 2030/2035/2040/2050
-  in one block, units TWh/year -> MWh.
-
-For 2026 the gas demand for hybrid heating (``Methane for hybrid heating``)
-is part of the Supply Tool total (``Methane Total Energy Demand``). Hourly
-``thermal_ch4`` profiles built by ``build_tyndp_demand`` (upstream
-``tyndp-2026``, PR #808) provide the temporal shape downstream; this script
-outputs the residual annual gas demand (total minus hybrid gas) to avoid
-double-counting, plus an hourly per-bus hybrid-heating series shaped by
-``thermal_ch4`` and scaled to the Supply Tool hybrid totals. No
+The gas demand for hybrid heating (``Methane for hybrid heating``) is part of
+the Supply Tool total (``Methane Total Energy Demand``). Hourly
+``thermal_ch4`` profiles built by ``build_tyndp_demand`` provide the temporal
+shape; this script outputs the residual annual gas demand (total minus hybrid
+gas) to avoid double-counting, plus an hourly per-bus hybrid-heating series
+shaped by ``thermal_ch4`` and scaled to the Supply Tool hybrid totals. No
 boiler-efficiency conversion is applied because both Supply Tool rows are
 already gas input (MWh_LHV) and the thermal profiles are used as dimensionless
 shape weights only.
+
+Supply Tool file selection: the 2026 ``Supply-Tool`` directory holds three
+files — ``Supply Tool NT+ SCN 2026`` (scenario), ``Supply Tool LEV SCN 2026``
+and ``Supply Tool HEV SCN 2026`` (sensitivities). DE/GA were 2024 scenarios
+and are not mapped to LEV/HEV. Gas demand reads the NT+ file; non-NT workflow
+scenarios fall back to NT+ with an explicit warning until a 2026
+scenario-to-sensitivity mapping is confirmed (maintainer direction). An
+explicit file path always overrides directory resolution.
 
 Thermal-shape mapping (documented, not silently filled):
 
@@ -31,24 +33,16 @@ Thermal-shape mapping (documented, not silently filled):
   extracted with ``-<BUS>_`` and countries aggregate by first two letters.
 - Upstream drops all-zero buses, so a country with hybrid gas but no thermal
   buses raises an explicit error instead of being silently flattened.
-- Thermal files span 8760 hourly rows while snapshots may hold 8736h; the
-  hourly output keeps the thermal index as-is and downstream reindexing
-  (truncation/fill) belongs to ``prepare_sector_network``.
+- The hourly output keeps the thermal index as-is; snapshot alignment is
+  owned by #965, not this script.
 - Supply Tool ``All data`` has no GB column while thermal has GB/NI buses;
-  multi-bus countries (ITx7, SEx4, DKx2) aggregate by first two letters.
-  Remaining mapping gaps raise explicit errors; see #966.
-
-Dependencies requiring maintainer direction:
-
-- Scenario file mapping for the 2026 Supply-Tool directory (NT -> NT+) is
-  assumed; DE -> LEV / GA -> HEV mapping is unconfirmed and logs a warning.
-- Country coverage differences (e.g. GB/NI) are reported, not filled.
+  multi-bus countries aggregate by first two letters. Remaining mapping gaps
+  raise explicit errors; see #966.
 """
 
 import logging
 import re
 from pathlib import Path
-from typing import Literal
 
 import country_converter as coco
 import pandas as pd
@@ -58,17 +52,7 @@ from scripts._helpers import configure_logging, interpolate_demand, set_scenario
 logger = logging.getLogger(__name__)
 cc = coco.CountryConverter()
 
-AVAILABLE_YEARS_TYNDP2026 = [2030, 2035, 2040, 2050]
-AVAILABLE_YEARS_TYNDP2024 = [2030, 2040]
-GAS_FED_CARRIERS_2024 = [
-    "E-Methane",
-    "Other fossil gas",
-    "Biomethane",
-    "Natural gas",
-    "Waste gas",
-    "Gas for Cooking",
-    "Methane (LNG)",
-]
+AVAILABLE_YEARS = [2030, 2035, 2040, 2050]
 
 
 def _is_country_col(col: str) -> bool:
@@ -108,24 +92,25 @@ def _unit_factor(unit_str: str) -> float:
 
 def _find_supply_tool_file(fn: str | Path, scenario: str = "NT") -> Path | None:
     """
-    Resolve supply_tool path: file or directory.
+    Resolve the 2026 Supply Tool file: directory or explicit file path.
 
-    For a 2026 directory, prefer the scenario-specific file (NT -> NT+).
-    DE/GA mapping (LEV/HEV) requires maintainer confirmation; currently
-    attempts LEV for DE and HEV for GA, else first supply file.
+    A directory resolves to the NT+ scenario file. LEV/HEV files are 2026
+    sensitivities, not workflow-scenario mappings: non-NT scenarios fall back
+    to NT+ with a warning until a scenario-to-sensitivity mapping is confirmed.
+    An explicit file path is always used as-is (sensitivity runs).
     """
     p = Path(fn)
     if p.is_dir():
         candidates = list(p.rglob("*.xls*"))
         if not candidates:
             return None
-        scenario_map = {"NT": "NT+", "DE": "LEV", "GA": "HEV"}
-        target = scenario_map.get(scenario, scenario)
+        if scenario != "NT":
+            logger.warning(
+                f"No confirmed 2026 gas mapping for scenario {scenario} "
+                "(LEV/HEV are sensitivities, not scenario mappings); using NT+."
+            )
         for c in candidates:
-            if target.lower() in c.name.lower():
-                return c
-        for c in candidates:
-            if "supply" in c.name.lower():
+            if "nt+" in c.name.lower():
                 return c
         return candidates[0]
     if p.is_file():
@@ -321,143 +306,6 @@ def build_hybrid_hourly(
     return shaped
 
 
-def read_fed_data(
-    fn: str, scenario: str, planning_horizon: int
-) -> tuple[pd.Series, pd.Series]:
-    """
-    Read and process final gas demand data and final heat demand data from Supply Tool for a specific year.
-    """
-    try:
-        demand_fed = pd.read_excel(
-            fn,
-            usecols="B:AC",
-            header=1,
-            index_col=0,
-            nrows=25,
-            skiprows=27 if planning_horizon == 2040 else 0,
-            sheet_name="NT+ data",
-        )
-
-        # Set buses as column names
-        demand_fed.columns = pd.Index(cc.convert(demand_fed.columns, to="iso2"))
-
-        # Extract final heat demand
-        demand_heat = demand_fed.loc["Heat"].mul(1e3)  # MWh
-
-        # Extract final methane demand
-        demand_fed = demand_fed.loc[GAS_FED_CARRIERS_2024].mul(1e3).sum()  # MWh
-
-    except Exception as e:
-        logger.warning(
-            f"Failed to read final gas demand for scenario {scenario} and planning_horizon {planning_horizon}: "
-            f"{type(e).__name__}: {e}"
-        )
-        demand_fed = pd.Series()
-        demand_heat = pd.Series()
-
-    return demand_fed, demand_heat
-
-
-def read_heat_frame(
-    fn: str, planning_horizon: int, type: Literal["distribution", "efficiency"]
-) -> pd.DataFrame:
-    """Read heat distribution and efficiency tables in 'Other data and Conversions' sheet of Supply Tool."""
-    if type not in ["distribution", "efficiency"]:
-        raise ValueError(
-            f"Invalid type '{type}'. Must be 'distribution' or 'efficiency'."
-        )
-    if planning_horizon not in [2030, 2040, 2050]:
-        raise ValueError(
-            f"Invalid planning_horizon '{planning_horizon}'. Must be 2030, 2040, or 2050."
-        )
-
-    offset = ((planning_horizon - 2030) // 10) * 34
-    offset += 17 if type == "efficiency" else 0
-
-    df = pd.read_excel(
-        fn,
-        usecols="A:AB",
-        header=1,
-        index_col=0,
-        nrows=16,
-        skiprows=45 + offset,
-        sheet_name="Other data and Conversions ",
-    )
-
-    # Set buses as column names
-    df.columns = pd.Index(cc.convert(df.columns, to="iso2"))
-
-    return df
-
-
-def read_it_gas_prod(fn: str, planning_horizon: int) -> float:
-    """Read Italian gas production used for heat. This data is hardcoded in Supply Tool IT sheet."""
-    return (
-        pd.read_excel(
-            fn,
-            usecols="H:K",
-            header=0,
-            index_col=0,
-            nrows=2,
-            skiprows=31,
-            sheet_name="IT",
-        ).loc[planning_horizon, "For heat"]
-        * 1e6
-    )  # MWh
-
-
-def read_heat_data(
-    heat_fed: pd.Series, fn: str, scenario: str, planning_horizon: int
-) -> pd.Series:
-    """Read and process heat-related gas demand data from Supply Tool for a specific year."""
-    try:
-        shares = read_heat_frame(fn, planning_horizon, "distribution")
-        efficiencies = read_heat_frame(fn, planning_horizon, "efficiency")
-
-        # Compute heat primary energy demand
-        demand_primary = heat_fed * shares * (1 / efficiencies)
-
-        # Filter energy carriers
-        demand = demand_primary.loc[
-            [
-                "Biogas",
-                "E-Methane",
-                "Natural gas",
-                "Other fossil gas",
-                "Waste gas",
-            ]
-        ].sum()  # MWh
-
-        # Apply Italian solution as specified in Supply Tool
-        demand.loc["IT"] = read_it_gas_prod(fn, planning_horizon)
-
-    except Exception as e:
-        logger.warning(
-            f"Failed to read heat demand data for scenario {scenario} and planning_horizon {planning_horizon}: "
-            f"{type(e).__name__}: {e}"
-        )
-        demand = pd.Series()
-
-    return demand
-
-
-def read_supply_tool_2024(fn: str, scenario: str, planning_horizon: int) -> pd.Series:
-    """Read and process both final gas demand and heat demand data from Supply Tool for a specific year."""
-    demand_fed, heat_fed = read_fed_data(fn, scenario, planning_horizon)
-    demand_heat = read_heat_data(heat_fed, fn, scenario, planning_horizon)
-
-    demand = pd.concat([demand_fed, demand_heat], axis=1).sum(axis=1)
-    demand.name = "p_nom"
-
-    return demand
-
-
-def _is_2026_input(fn: str, scenario: str) -> bool:
-    if not fn:
-        return False
-    return _read_all_data_df(fn, scenario) is not None
-
-
 def demand_align(a: pd.Series, b: pd.Series):
     return a.align(b, fill_value=0, join="outer")
 
@@ -466,75 +314,53 @@ def load_single_year(fn: str, scenario: str, planning_horizon: int) -> pd.Series
     """
     Load residual annual demand for a single year.
 
-    For 2026: residual = Methane Total - Methane for hybrid heating.
+    Residual = Methane Total - Methane for hybrid heating.
     Raises ValueError on negative residual (invalid input, never masked).
     Raises ValueError when the total exists but the hybrid row is missing.
-    For 2024: legacy FED + heat path (unchanged).
     """
-    is_2026 = _is_2026_input(fn, scenario)
+    total = read_methane_total_2026(fn, scenario, planning_horizon)
+    if total is None or total.empty:
+        logger.warning(f"No Methane Total for {planning_horizon} scenario {scenario}")
+        return pd.Series(dtype=float, name="p_nom")
 
-    if is_2026:
-        if scenario in ["DE", "GA"]:
-            logger.warning(
-                "2026 DE/GA scenario file mapping (LEV/HEV) requires maintainer "
-                f"confirmation; attempting scenario-specific file for {scenario}."
-            )
-        total = read_methane_total_2026(fn, scenario, planning_horizon)
-        if total is None or total.empty:
-            logger.warning(
-                f"No 2026 Methane Total for {planning_horizon} scenario {scenario}"
-            )
-            return pd.Series(dtype=float, name="p_nom")
-
-        hybrid = read_hybrid_heating_gas_2026(fn, scenario, planning_horizon)
-        if hybrid is None or hybrid.empty:
-            raise ValueError(
-                f"2026 Methane Total exists for {planning_horizon} but "
-                "'Methane for hybrid heating' row is missing; refusing to "
-                "proceed without explicit heating data to avoid double-counting."
-            )
-
-        demand, hybrid = demand_align(total, hybrid)
-        total_before = float(demand.sum())
-        residual = demand - hybrid
-        neg = residual[residual < -1e-6]
-        if not neg.empty:
-            raise ValueError(
-                f"Negative residual after hybrid subtraction for {planning_horizon}: "
-                f"{neg.index.tolist()}. Total {total_before / 1e6:.2f} TWh, "
-                f"hybrid {float(hybrid.sum()) / 1e6:.2f} TWh."
-            )
-        residual = residual.clip(lower=0)
-        residual.name = "p_nom"
-        # Energy balance verification (exact, no tolerance threshold)
-        balance = float(residual.sum() + hybrid.sum())
-        logger.info(
-            f"2026 gas demand for {planning_horizon}: total {total_before / 1e6:.1f} TWh - "
-            f"hybrid {float(hybrid.sum()) / 1e6:.2f} TWh = "
-            f"residual {float(residual.sum() / 1e6):.1f} TWh "
-            f"(balance {balance / 1e6:.1f} TWh)"
+    hybrid = read_hybrid_heating_gas_2026(fn, scenario, planning_horizon)
+    if hybrid is None or hybrid.empty:
+        raise ValueError(
+            f"Methane Total exists for {planning_horizon} but "
+            "'Methane for hybrid heating' row is missing; refusing to "
+            "proceed without explicit heating data to avoid double-counting."
         )
-        return residual
 
-    # 2024 legacy path (unchanged, preserves existing workflow)
-    if scenario == "NT":
-        return read_supply_tool_2024(fn, scenario, planning_horizon)
-    logger.warning(f"Gas demand processing is not supported yet for {scenario}.")
-    return pd.Series(dtype=float, name="p_nom")
+    demand, hybrid = demand_align(total, hybrid)
+    total_before = float(demand.sum())
+    residual = demand - hybrid
+    neg = residual[residual < -1e-6]
+    if not neg.empty:
+        raise ValueError(
+            f"Negative residual after hybrid subtraction for {planning_horizon}: "
+            f"{neg.index.tolist()}. Total {total_before / 1e6:.2f} TWh, "
+            f"hybrid {float(hybrid.sum()) / 1e6:.2f} TWh."
+        )
+    residual = residual.clip(lower=0)
+    residual.name = "p_nom"
+    # Energy balance verification (exact, no tolerance threshold)
+    balance = float(residual.sum() + hybrid.sum())
+    logger.info(
+        f"2026 gas demand for {planning_horizon}: total {total_before / 1e6:.1f} TWh - "
+        f"hybrid {float(hybrid.sum()) / 1e6:.2f} TWh = "
+        f"residual {float(residual.sum() / 1e6):.1f} TWh "
+        f"(balance {balance / 1e6:.1f} TWh)"
+    )
+    return residual
 
 
 def load_gas_demand(fn: str, scenario: str, planning_horizon: int) -> pd.Series:
-    """Load gas demand, selecting 2026 vs 2024 available years by input type."""
-    is_2026 = _is_2026_input(fn, scenario)
-    available_years = (
-        AVAILABLE_YEARS_TYNDP2026 if is_2026 else AVAILABLE_YEARS_TYNDP2024
-    )
-
-    if planning_horizon in available_years:
+    """Load gas demand for 2026 available years, interpolating between them."""
+    if planning_horizon in AVAILABLE_YEARS:
         return load_single_year(fn, scenario, planning_horizon)
 
     return interpolate_demand(
-        available_years=available_years,
+        available_years=AVAILABLE_YEARS,
         planning_horizon=planning_horizon,
         load_single_year_func=load_single_year,
         fn=fn,
@@ -548,19 +374,20 @@ def load_hybrid_hourly(
     """
     Build hourly per-bus hybrid heating gas demand for a 2026 year.
 
-    Returns an empty DataFrame when the input is not 2026 or no thermal
-    file is provided (2024 behaviour: no hybrid series).
+    The thermal_ch4 hourly input is required; a missing or empty thermal
+    input raises instead of silently writing a flat or empty series.
     """
-    if not thermal_fn or not _is_2026_input(fn, scenario):
-        return pd.DataFrame()
     if isinstance(thermal_fn, (list, tuple)):
         thermal_fn = thermal_fn[0] if thermal_fn else None
-    if thermal_fn is None:
-        return pd.DataFrame()
+    if not thermal_fn:
+        raise ValueError(
+            "thermal_ch4 hourly input is required to shape hybrid heating "
+            "(see #966); refusing to write an unshaped series."
+        )
     hybrid = read_hybrid_heating_gas_2026(fn, scenario, planning_horizon)
     if hybrid is None or hybrid.empty:
         raise ValueError(
-            f"2026 Methane Total exists for {planning_horizon} but "
+            f"Methane Total exists for {planning_horizon} but "
             "'Methane for hybrid heating' row is missing; refusing to "
             "proceed without explicit heating data to avoid double-counting."
         )
@@ -597,19 +424,9 @@ if __name__ == "__main__":
     logger.info(f"Processing gas demand for scenario: {scenario}")
     demand = load_gas_demand(fn, scenario, planning_horizon)
 
-    # Hourly per-bus hybrid heating shaped by thermal_ch4 (2026 only)
-    try:
-        hybrid_hourly = load_hybrid_hourly(fn, scenario, planning_horizon, thermal_fn)
-    except ValueError:
-        raise
+    # Hourly per-bus hybrid heating shaped by thermal_ch4
+    hybrid_hourly = load_hybrid_hourly(fn, scenario, planning_horizon, thermal_fn)
 
     # Export to CSV
     demand.to_csv(snakemake.output.gas_demand, index=True)
-    if hybrid_hourly.empty:
-        pd.DataFrame(columns=["Bus"]).to_csv(snakemake.output.gas_hybrid, index=True)
-        logger.warning(
-            "No hybrid hourly series written (2024 input or no thermal_ch4); "
-            "wrote empty hybrid file."
-        )
-    else:
-        hybrid_hourly.to_csv(snakemake.output.gas_hybrid, index=True)
+    hybrid_hourly.to_csv(snakemake.output.gas_hybrid, index=True)

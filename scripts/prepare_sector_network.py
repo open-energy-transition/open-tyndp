@@ -4751,8 +4751,8 @@ def attach_gas_hybrid_heating(
     The hybrid file holds hourly per-bus gas demand (MWh) whose country
     totals equal the Supply Tool hybrid-heating annuals; the flat residual
     in ``gas_demand`` already excludes hybrid gas, so the two loads sum to
-    the Supply total with no double-counting. Missing or empty files (2024
-    path) leave the network unchanged.
+    the Supply total with no double-counting. A missing or empty file leaves
+    the network unchanged.
     """
     if not gas_hybrid_fn:
         return
@@ -4766,8 +4766,8 @@ def attach_gas_hybrid_heating(
         return
     if hybrid.empty:
         logger.warning(
-            "Hybrid heating gas demand file holds no series (2024 input or no "
-            "thermal_ch4); skipping hourly hybrid heating loads."
+            "Hybrid heating gas demand file holds no series; "
+            "skipping hourly hybrid heating loads."
         )
         return
 

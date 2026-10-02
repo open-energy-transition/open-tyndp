@@ -10,7 +10,8 @@ import pandas as pd
 import pytest
 
 from scripts.sb.build_tyndp_gas_demand import (
-    AVAILABLE_YEARS_TYNDP2026,
+    AVAILABLE_YEARS,
+    _find_supply_tool_file,
     _unit_factor,
     build_hybrid_hourly,
     load_gas_demand,
@@ -24,7 +25,7 @@ from scripts.sb.build_tyndp_gas_demand import (
 
 
 def test_available_years():
-    assert AVAILABLE_YEARS_TYNDP2026 == [2030, 2035, 2040, 2050]
+    assert AVAILABLE_YEARS == [2030, 2035, 2040, 2050]
 
 
 def test_unit_factor():
@@ -281,7 +282,7 @@ def test_build_hybrid_hourly_raises_without_shape(tmp_path):
         build_hybrid_hourly(thermal_df, pd.Series({"FR": 1.0e6}))
 
 
-def test_load_hybrid_hourly_empty_without_thermal(tmp_path):
+def test_load_hybrid_hourly_requires_thermal(tmp_path):
     fn = _write_all_data(
         tmp_path,
         [
@@ -301,7 +302,29 @@ def test_load_hybrid_hourly_empty_without_thermal(tmp_path):
             },
         ],
     )
-    assert load_hybrid_hourly(fn, "NT", 2030, None).empty
+    with pytest.raises(ValueError, match="thermal_ch4 hourly input is required"):
+        load_hybrid_hourly(fn, "NT", 2030, None)
+
+
+def test_supply_tool_selection_prefers_ntplus_without_scenario_mapping(tmp_path):
+    import openpyxl
+
+    for name in (
+        "Supply Tool NT+ SCN 2026.xlsm",
+        "Supply Tool LEV SCN 2026.xlsm",
+        "Supply Tool HEV SCN 2026.xlsm",
+    ):
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "All data"
+        ws.append(["ETM", "Parameter", "Unit", "Year", "AT"])
+        ws.append(["Methane", "Total Energy Demand", "TWh/year", 2030, 1.0])
+        wb.save(tmp_path / name)
+    # NT resolves the NT+ scenario file; DE/GA are not mapped to the LEV/HEV
+    # sensitivity files and fall back to NT+ (with warning) instead.
+    assert _find_supply_tool_file(tmp_path, "NT").name.startswith("Supply Tool NT+")
+    assert _find_supply_tool_file(tmp_path, "DE").name.startswith("Supply Tool NT+")
+    assert _find_supply_tool_file(tmp_path, "GA").name.startswith("Supply Tool NT+")
 
 
 def test_end_to_end_residual_plus_hourly_equals_total(tmp_path):
@@ -383,7 +406,7 @@ def test_thermal_bus_extraction_and_country_mapping():
     if not Path(thermal_fn).exists():
         pytest.skip("Real 2026 thermal_ch4 file not available")
     demand = _read_thermal_2030_ws003(thermal_fn)
-    # 41 sheets, 8760 hourly rows (365 days, not snapshots 8736)
+    # 41 sheets over the thermal file's hourly rows
     assert demand.shape[0] == 8760
     assert demand.shape[1] == 41
     # Multi-bus countries aggregated: IT has 7 sheets, SE 4, DK 2, GR 2
@@ -448,22 +471,6 @@ def test_thermal_shape_normalization_preserves_balance():
     assert "GB" not in supply_countries or True
     gaps = set(thermal_c.index) - supply_countries
     assert isinstance(gaps, set)
-
-
-def test_temporal_resolution_mismatch_documented():
-    thermal_fn = os.environ.get(
-        "TYNDP2026_THERMAL_CH4_2030",
-        "/tmp/demand2030/Demand/Demand/2030/Thermal_energy_Methane_2030.xlsx",
-    )
-    if not Path(thermal_fn).exists():
-        pytest.skip("Real 2026 thermal_ch4 file not available")
-
-    demand = _read_thermal_2030_ws003(thermal_fn)
-    assert len(demand) == 8760  # 365 days in thermal file
-    # Snapshots config 2009-01-01 to 2009-12-31 minus last day = 8736h (52 weeks)
-    # Downstream indexing of 8760h thermal with 8736h snapshots drops final 24h
-    # (~0.3%); explicit rejection/wiring belongs to tyndp-2026 hourly integration
-    assert 8760 - 8736 == 24
 
 
 def test_real_multi_year_balances():
