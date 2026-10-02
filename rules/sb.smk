@@ -470,11 +470,34 @@ use rule build_electricity_demand_base as build_electricity_demand_base_tyndp wi
 ##############
 
 
+def input_gas_supply_tool(w):
+    # TYNDP 2026 Supply Tool directory when the 2026 dataset is active,
+    # else the legacy 2024 single-file Supply Tool (2024 path preserved).
+    if dataset_version("tyndp_2026")["source"] in ARCHIVE_SOURCES:
+        return rules.retrieve_tyndp_2026.output.supply_tool
+    return rules.retrieve_tyndp.output.supply_tool
+
+
+def input_gas_thermal_ch4(w):
+    # Hourly thermal_ch4 demand built by build_tyndp_demand (#966: hourly and
+    # per-node hybrid-heating shape). Empty for the 2024 path, where the
+    # script writes an empty hybrid file and downstream wiring skips it.
+    if dataset_version("tyndp_2026")["source"] in ARCHIVE_SOURCES:
+        return resources(
+            "demand_tyndp_thermal_ch4_{planning_horizons}.csv".format(
+                planning_horizons=w.planning_horizons
+            )
+        )
+    return []
+
+
 rule build_tyndp_gas_demand:
     input:
-        supply_tool=rules.retrieve_tyndp.output.supply_tool,
+        supply_tool=input_gas_supply_tool,
+        thermal_ch4=input_gas_thermal_ch4,
     output:
         gas_demand=resources("gas_demand_tyndp_{planning_horizons}.csv"),
+        gas_hybrid=resources("gas_hybrid_heating_tyndp_{planning_horizons}.csv"),
     log:
         logs("build_tyndp_gas_demand_{planning_horizons}.log"),
     benchmark:
@@ -1011,6 +1034,11 @@ rule build_tyndp_gas_demands:
     input:
         expand(
             resources("gas_demand_tyndp_{planning_horizons}.csv"),
+            **config["scenario"],
+            run=config["run"]["name"],
+        ),
+        expand(
+            resources("gas_hybrid_heating_tyndp_{planning_horizons}.csv"),
             **config["scenario"],
             run=config["run"]["name"],
         ),
