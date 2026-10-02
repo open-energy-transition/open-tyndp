@@ -27,6 +27,8 @@
 
 **Changes**
 
+* feat: align CO2 prices with TYNDP 2026 NT+ (97.47 / 197.51 / 297.54 / 502.74 €/t for 2030 / 2035 / 2040 / 2050) ([#1036](https://github.com/open-energy-transition/open-tyndp/issues/1036)). The interpolated 2045 value is dropped.
+
 **Bugfixes and Compatibility**
 
 * fix: remove hardcoded changes to the emissions factors of AT Other Non-RES gas CCGTs in 2040/2050 ([#1012](https://github.com/open-energy-transition/open-tyndp/pull/1012)). The reported PEMMDB value of 0 is used for 2040/2050 instead.
