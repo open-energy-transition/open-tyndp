@@ -250,7 +250,7 @@ sector:
     2040: 0
     2045: 0
     2050: 0
-  land_transport_electric_share:  # included in exogenous demand
+  land_transport_electric_share:  # EVs modelled explicitly from TYNDP data (add_ev_tyndp)
     2030: 0
     2035: 0
     2040: 0
