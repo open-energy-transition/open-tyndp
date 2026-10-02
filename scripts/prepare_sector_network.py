@@ -4738,6 +4738,84 @@ def attach_gas_load(
     )
 
 
+def attach_gas_hybrid_heating(
+    n: pypsa.Network,
+    gas_hybrid_fn: str | None,
+    options: dict,
+    costs: pd.DataFrame,
+    spatial: SimpleNamespace,
+) -> None:
+    """
+    Attach hourly hybrid-heating gas demand shaped by thermal_ch4 (#966).
+
+    The hybrid file holds hourly per-bus gas demand (MWh) whose country
+    totals equal the Supply Tool hybrid-heating annuals; the flat residual
+    in ``gas_demand`` already excludes hybrid gas, so the two loads sum to
+    the Supply total with no double-counting. A missing or empty file leaves
+    the network unchanged.
+    """
+    if not gas_hybrid_fn:
+        return
+    try:
+        hybrid = pd.read_csv(gas_hybrid_fn, index_col=0, parse_dates=True)
+    except (FileNotFoundError, pd.errors.EmptyDataError):
+        logger.warning(
+            f"Hybrid heating gas demand file {gas_hybrid_fn} not found or empty; "
+            "skipping hourly hybrid heating loads."
+        )
+        return
+    if hybrid.empty:
+        logger.warning(
+            "Hybrid heating gas demand file holds no series; "
+            "skipping hourly hybrid heating loads."
+        )
+        return
+
+    hybrid = hybrid.reindex(n.snapshots)
+
+    gas_buses = pd.Index(spatial.gas.nodes)
+    if not hybrid.columns.difference(gas_buses).empty:
+        missing = hybrid.columns.difference(gas_buses)
+        logger.warning(
+            "The following hybrid heating buses are not gas buses and are "
+            f"dropped {list(missing)}"
+        )
+        hybrid = hybrid.drop(columns=missing)
+    if hybrid.empty:
+        logger.warning("No hybrid heating buses map to gas buses; skipping.")
+        return
+
+    bus_labels = hybrid.columns + " hybrid heating gas demand"
+    locations = [spatial.gas.locations[gas_buses.get_loc(c)] for c in hybrid.columns]
+    n.add(
+        "Bus",
+        bus_labels,
+        location=locations,
+        carrier="hybrid heating gas demand",
+        unit="MWh_LHV",
+    )
+
+    n.add(
+        "Load",
+        bus_labels,
+        bus=bus_labels,
+        carrier="hybrid heating gas demand",
+        p_set=hybrid.rename(columns=dict(zip(hybrid.columns, bus_labels))),
+    )
+
+    n.add(
+        "Link",
+        bus_labels,
+        bus0=hybrid.columns,
+        bus1=bus_labels,
+        bus2="co2 atmosphere",
+        carrier="hybrid heating gas demand",
+        p_nom=np.inf,
+        efficiency=1.0,
+        efficiency2=costs.at["gas", "CO2 intensity"],
+    )
+
+
 def check_land_transport_shares(shares):
     # Sums up the shares, ignoring None values
     total_share = sum(filter(None, shares))
@@ -9384,6 +9462,13 @@ if __name__ == "__main__":
             costs=costs,
             spatial=spatial,
             nhours=nhours,
+        )
+        attach_gas_hybrid_heating(
+            n=n,
+            gas_hybrid_fn=snakemake.input.get("gas_hybrid", None),
+            options=options,
+            costs=costs,
+            spatial=spatial,
         )
 
     if options["transport"]:

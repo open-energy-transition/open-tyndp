@@ -470,11 +470,23 @@ use rule build_electricity_demand_base as build_electricity_demand_base_tyndp wi
 ##############
 
 
+def input_gas_thermal_ch4(w):
+    # Hourly thermal_ch4 demand built by build_tyndp_demand (#966: hourly and
+    # per-node hybrid-heating shape).
+    return resources(
+        "demand_tyndp_thermal_ch4_{planning_horizons}.csv".format(
+            planning_horizons=w.planning_horizons
+        )
+    )
+
+
 rule build_tyndp_gas_demand:
     input:
-        supply_tool=rules.retrieve_tyndp.output.supply_tool,
+        supply_tool=rules.retrieve_tyndp_2026.output.supply_tool,
+        thermal_ch4=input_gas_thermal_ch4,
     output:
         gas_demand=resources("gas_demand_tyndp_{planning_horizons}.csv"),
+        gas_hybrid=resources("gas_hybrid_heating_tyndp_{planning_horizons}.csv"),
     log:
         logs("build_tyndp_gas_demand_{planning_horizons}.log"),
     benchmark:
@@ -1011,6 +1023,11 @@ rule build_tyndp_gas_demands:
     input:
         expand(
             resources("gas_demand_tyndp_{planning_horizons}.csv"),
+            **config["scenario"],
+            run=config["run"]["name"],
+        ),
+        expand(
+            resources("gas_hybrid_heating_tyndp_{planning_horizons}.csv"),
             **config["scenario"],
             run=config["run"]["name"],
         ),
