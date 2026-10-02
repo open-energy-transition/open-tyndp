@@ -3146,6 +3146,36 @@ def add_ammonia(
     )
 
 
+def add_hurdle_costs_tyndp(n: pypsa.Network, hurdle_costs: float) -> None:
+    """
+    Apply the TYNDP hurdle cost to the electricity and hydrogen grids.
+
+    TYNDP charges a small uniform wheeling charge on the e-market, hydrogen
+    and offshore grids to discourage loop flows. The TYNDP transmission links
+    are unidirectional, so the charge is applied as a marginal cost on each
+    link.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object to be modified
+    hurdle_costs : float
+        Hurdle cost in EUR/MWh.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place
+    """
+    links = n.links.index[n.links.carrier.isin(["DC", "H2 pipeline"])]
+    n.links.loc[links, "marginal_cost"] = hurdle_costs
+
+    logger.info(
+        f"Applied hurdle costs of {hurdle_costs} EUR/MWh to {len(links)} "
+        "electricity and hydrogen transmission links"
+    )
+
+
 def insert_electricity_distribution_grid(
     n: pypsa.Network,
     costs: pd.DataFrame,
@@ -9643,6 +9673,9 @@ if __name__ == "__main__":
             tyndp_scenario=tyndp_scenario,
             wheeling_charges_fn=snakemake.input.get("wheeling_charges", ""),
         )
+
+    if tyndp_scenario and snakemake.params.hurdle_costs:
+        add_hurdle_costs_tyndp(n, snakemake.params.hurdle_costs)
 
     if options["enhanced_geothermal"].get("enable", False):
         logger.info("Adding Enhanced Geothermal Systems (EGS).")

@@ -1949,6 +1949,7 @@ rule prepare_sector_network:
         scaling_factor=config_provider("load", "scaling_factor"),
         patch_load_mm=config_provider("load", "patch_demand_with_mm"),
         tyndp_scenario=config_provider("tyndp_scenario"),
+        hurdle_costs=config_provider("hurdle_costs"),
     message:
         "Preparing integrated sector-coupled energy network for {wildcards.clusters} clusters, {wildcards.planning_horizons} planning horizon, {wildcards.opts} electric options and {wildcards.sector_opts} sector options"
     script:
