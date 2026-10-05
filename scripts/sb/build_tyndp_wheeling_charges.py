@@ -5,9 +5,9 @@
 Builds per-node TYNDP wheeling charges between the e-market and prosumer nodes.
 
 TYNDP applies a wheeling charge between the e-market and prosumer nodes to
-represent distribution grid costs. The charge is applied in both directions,
-but the TYNDP 2026 data only prices the e-market to prosumer direction; the
-prosumer to e-market direction is zero for every node.
+represent distribution grid costs. The file gives one charge per flow
+direction, and each is applied to its own direction. In the TYNDP 2026 data,
+the prosumer to e-market charge is zero for every node.
 
 The prosumer nodes are taken from the sheet names of the prosumer demand
 files, not from the wheeling charges file, because the two differ: e.g. CH00
