@@ -3168,6 +3168,9 @@ def add_hurdle_costs_tyndp(n: pypsa.Network, hurdle_costs: float) -> None:
         Modifies the network object in-place
     """
     links = n.links.index[n.links.carrier.isin(["DC", "H2 pipeline"])]
+    assert (n.links.loc[links, "p_min_pu"] >= 0).all(), (
+        "Hurdle costs require unidirectional transmission links (p_min_pu >= 0)."
+    )    
     n.links.loc[links, "marginal_cost"] = hurdle_costs
 
     logger.info(
