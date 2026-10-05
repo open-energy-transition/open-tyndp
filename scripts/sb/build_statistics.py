@@ -256,7 +256,7 @@ def compute_benchmark(
             .loc[lambda x: x > 0]
             .reset_index()
             .loc[lambda df: ~df.carrier.isin(exclusions)]
-            .assign(bus=lambda df: df.bus.str.split(" ").str[0])
+            .assign(bus=lambda df: df.bus.map(n.buses.location))
             .groupby(["bus"] + grouper)
             .sum()
             .iloc[:, 0]
@@ -269,7 +269,7 @@ def compute_benchmark(
                 n.generators.query("carrier.isin(@off_car)")
                 .assign(
                     p_nom_opt=lambda df: df.p_nom_opt / df.efficiency_dc_to_h2,
-                    bus=lambda df: df.bus.str.split(" ").str[0],
+                    bus=lambda df: df.bus.map(n.buses.location),
                 )
                 .groupby(by=["bus"] + grouper)
                 .p_nom_opt.sum()
@@ -321,7 +321,7 @@ def compute_benchmark(
         df = res_gen.combine_first(df)
 
         df = (
-            df.rename(index=lambda x: x.split(" ")[0], level=0)
+            df.rename(index=n.buses.location.to_dict(), level=0)
             .groupby(["bus"] + grouper)
             .sum()
         )

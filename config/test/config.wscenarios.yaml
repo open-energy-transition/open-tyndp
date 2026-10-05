@@ -328,12 +328,11 @@ costs:
   emission_prices:
     enable: true
     co2:
-      # Source: Methodology report, p32
-      2030: 113.4
-      2035: 130.2 # interpolated
-      2040: 147
-      2045: 157.5 # interpolated
-      2050: 168
+      # Source: TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, sheet NT
+      2030: 97.47
+      2035: 197.51
+      2040: 297.54
+      2050: 502.74
 
 clustering:
   mode: administrative
