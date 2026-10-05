@@ -75,11 +75,11 @@ def get_prosumer_nodes(fn: str) -> pd.Index:
         raise FileNotFoundError(f"No prosumer demand file found in {fn}")
 
     nodes = {
-        sheet.removesuffix("_corrected")
+        format_bz_names(sheet.removesuffix("_corrected"))
         for match in matches
         for sheet in pd.ExcelFile(match, engine="calamine").sheet_names
     }
-    return pd.Index(format_bz_names(pd.Series(sorted(nodes))))
+    return pd.Index(sorted(nodes))
 
 
 def load_wheeling_charges(fn: str, nodes: pd.Index) -> pd.DataFrame:
