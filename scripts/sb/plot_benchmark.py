@@ -23,7 +23,7 @@ from scripts._helpers import (
     add_metadata,
     configure_logging,
     convert_units,
-    get_snapshots,
+    get_wscenario,
     set_scenario_config,
 )
 from scripts.sb.make_benchmark import (
@@ -424,6 +424,7 @@ def plot_benchmark(
     output_dir: str,
     scenario: str,
     snapshots: dict[str, str],
+    wscenarios: dict[int, int],
     options: dict,
     tech_colors: dict,
     bench_colors: dict,
@@ -446,6 +447,8 @@ def plot_benchmark(
         Scenario name.
     snapshots : dict[str, str]
         Dictionary defining the temporal range with 'start' and 'end' keys.
+    wscenarios : dict[int, int]
+        Weather scenario per planning horizon.
     options : dict
         Full benchmarking configuration containing table units and conversions.
     tech_colors : dict
@@ -462,7 +465,6 @@ def plot_benchmark(
     source_unit = "TWh" if "crossborder" in table else opt["unit"]
     rfc_cols = [SOURCES_MAP.get(s, s) for s in opt["rfc_sources"]]
     rfc_source = rfc_cols[0]
-    wscenario = get_snapshots(snapshots)[0].year
 
     # Filter data and Convert back to source unit
     logger.debug(
@@ -479,7 +481,7 @@ def plot_benchmark(
 
     if benchmarks.empty:
         logger.warning(
-            f"No data available for table '{table}' and bus {bus} in Open-TYNDP or TYNDP 2024 datasets"
+            f"No data available for table '{table}' and bus {bus} in Open-TYNDP or TYNDP reference datasets"
         )
         return
 
@@ -509,6 +511,7 @@ def plot_benchmark(
 
     for year in bench_wide.index.get_level_values("year").unique():
         bench_year = bench_wide.query("year==@year").copy()
+        wscenario = wscenarios[year]
 
         if table_type == "scenario_comparison":
             _plot_scenario_comparison(
@@ -566,6 +569,7 @@ def orchestrate_benchmark(
     output_dir: str,
     scenario: str,
     snapshots: dict[str, str],
+    wscenarios: dict[int, int],
     options: dict,
     tech_colors: dict,
     bench_colors: dict,
@@ -608,6 +612,7 @@ def orchestrate_benchmark(
         output_dir=output_dir_bus_col,
         scenario=scenario,
         snapshots=snapshots,
+        wscenarios=wscenarios,
         options=options,
         tech_colors=tech_colors,
         bench_colors=bench_colors,
@@ -621,7 +626,7 @@ def plot_overview(
     indicators: pd.DataFrame,
     fn: str,
     scenario: str,
-    snapshots: dict[str, str],
+    wscenarios: dict[int, int],
     metric: str = "sMAPE",
     bus_col_name: str = "bus",
 ):
@@ -636,8 +641,8 @@ def plot_overview(
         Output filename.
     scenario : str
         Scenario name.
-    snapshots : dict[str, str]
-        Dictionary defining the temporal range with 'start' and 'end' keys.
+    wscenarios : dict[int, int]
+        Weather scenario per planning horizon.
     metric : str, default "sMAPE"
         Metric to plot.
     bus_col_name : str, default "bus"
@@ -646,7 +651,7 @@ def plot_overview(
     fig = Figure(figsize=(12, FIGURE_HEIGHT_DEFAULT))
     FigureCanvasAgg(fig)
     ax = fig.subplots()
-    wscenario = get_snapshots(snapshots)[0].year
+    wscenario = ", ".join(f"{ws} ({year})" for year, ws in wscenarios.items())
 
     # Keep relevant indicators and rows
     df_clean = indicators[[metric, "Missing carriers"]].dropna()
@@ -662,7 +667,7 @@ def plot_overview(
         width=0.7,
         xlabel="",
         ylabel=metric,
-        title=f"Comparison of Open-TYNDP and TYNDP 2024 outputs by {bus_col_name}, WS {wscenario} and {scenario} scenario\n{metric} accuracy indicator (a lower error is better)",
+        title=f"Comparison of Open-TYNDP and TYNDP reference outputs by {bus_col_name}, WS {wscenario} and {scenario} scenario\n{metric} accuracy indicator (a lower error is better)",
         legend=True,
         ylim=[0, max(df_clean[metric].max() + 0.1, 1)],
     )
@@ -737,6 +742,10 @@ if __name__ == "__main__":
         scenario="TYNDP " + scenario,
         dashboard_data_fn=dashboard_data_fn,
     )
+    wscenarios = {
+        year: get_wscenario(snakemake.params.wscenarios, year)
+        for year in sorted(benchmarks_raw.year.unique())
+    }
 
     # Produce benchmark figures
     for bus_col_name, kpis_in, kpis_out, enabled in [
@@ -760,6 +769,7 @@ if __name__ == "__main__":
                 output_dir=output_dir,
                 scenario=scenario,
                 snapshots=snapshots,
+                wscenarios=wscenarios,
                 options=options,
                 tech_colors=tech_colors,
                 bench_colors=bench_colors,
@@ -767,7 +777,7 @@ if __name__ == "__main__":
             )
             indicators = pd.read_csv(kpis_in, index_col=0)
             plot_overview(
-                indicators, kpis_out, scenario, snapshots, bus_col_name=bus_col_name
+                indicators, kpis_out, scenario, wscenarios, bus_col_name=bus_col_name
             )
         else:
             Path(kpis_out).touch()

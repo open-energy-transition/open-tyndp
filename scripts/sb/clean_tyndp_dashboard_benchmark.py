@@ -26,6 +26,7 @@ from scripts._helpers import (
     convert_units,
     format_bz_names,
     get_snapshots,
+    get_wscenario,
     normalize_direction,
     set_scenario_config,
 )
@@ -526,10 +527,6 @@ def assign_meta_data(df, planning_horizon, scenario):
     df["source"] = "TYNDP 2026 Dashboard Outputs"
 
 
-def get_weather_scenario(ws_dict, pyear):
-    return ws_dict[pyear][0]
-
-
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -549,9 +546,7 @@ if __name__ == "__main__":
     scenario = snakemake.params["scenario"]
     planning_horizon = int(snakemake.wildcards.planning_horizons)
     countries = snakemake.params["countries"]
-    weather_scenario = get_weather_scenario(
-        snakemake.params["wscenarios_tyndp"], planning_horizon
-    )
+    weather_scenario = get_wscenario(snakemake.params["wscenarios"], planning_horizon)
 
     # Logs which weather scenario and planning year is being processed
     logger.info(

@@ -685,7 +685,7 @@ if config["benchmarking"]["enable"]:
             snapshots=config_provider("snapshots"),
             drop_leap_day=config_provider("enable", "drop_leap_day"),
             countries=config_provider("countries"),
-            wscenarios_tyndp=config_provider("wscenarios_tyndp"),
+            wscenarios=config_provider("wscenarios_tyndp"),
         script:
             scripts("sb/clean_tyndp_dashboard_benchmark.py")
 
@@ -839,6 +839,7 @@ if config["benchmarking"]["enable"]:
             snapshots=config_provider("snapshots"),
             tech_colors=config_provider("plotting", "tech_colors"),
             bench_colors=config_provider("plotting", "benchmarking", "colors"),
+            wscenarios=config_provider("wscenarios_tyndp"),
         script:
             scripts("sb/plot_benchmark.py")
 
