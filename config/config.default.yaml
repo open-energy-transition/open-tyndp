@@ -42,6 +42,9 @@ foresight: overnight
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#tyndp_scenario
 tyndp_scenario: false
 
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#hurdle_costs
+hurdle_costs: 0.01
+
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#wscenarios_tyndp
 wscenarios_tyndp: {}
 
@@ -1610,7 +1613,6 @@ overpass_api:
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#cba
 cba:
-  hurdle_costs: 0.01
   co2_societal_cost: {}
   planning_horizons: []
   cba_scenario_input:
