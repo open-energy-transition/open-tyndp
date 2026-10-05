@@ -8904,7 +8904,6 @@ def add_import_options(
                 bus1=import_potentials_h2.bus1.values,
                 p_nom_extendable=False,
                 p_nom=import_potentials_h2.p_nom.values,
-                bidirectional=False,
                 carrier="H2 import " + import_potentials_h2.Type.values,
             )
 
