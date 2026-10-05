@@ -192,7 +192,6 @@ To align naming conventions across data sources, Open-TYNDP uses a mapping table
 * **investment_dataset_carrier**: Carrier names as listed in the TYNDP 2024 investment dataset.
 * **tyndp_dashboard_carrier**: Carrier names as listed in the TYNDP 2026 Time Series Dashboards.
 * **tyndp_report_carrier**: Carrier names as listed in the TYNDP 2024 Scenarios Report.
-* **tyndp_vp_carrier**: Carrier names as listed on the TYNDP 2024 Visualization Platform.
 * **open_tyndp_carrier**: Open-TYNDP carrier naming convention representing either an energy carrier or a technology, depending on the context.
 * **open_tyndp_index**: Open-TYNDP technology naming convention found in the component index.
 * **open_tyndp_nice_names**: Open-TYNDP nice names for better readability and aggregation of technologies for reporting purposes.

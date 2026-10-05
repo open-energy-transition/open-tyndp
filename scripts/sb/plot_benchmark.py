@@ -61,12 +61,6 @@ def _plot_scenario_comparison(
         c for c in rfc_cols if c in df.columns and c != rfc_source
     ]
 
-    tyndp_str = "TYNDP 2024 Scenarios Report"
-    if "TYNDP 2024 Vis Pltfm" in idx and tyndp_str in idx:
-        tyndp_str_ext = "TYNDP 2024 Scenarios Report"
-        idx = [tyndp_str_ext if i == tyndp_str else i for i in idx]
-        df = df.rename(columns={tyndp_str: tyndp_str_ext})
-
     # Wrap long x-axis labels
     df = df.set_index("carrier")
     df.index = [textwrap.fill(label, width=30) for label in df.index]

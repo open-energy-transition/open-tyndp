@@ -17,7 +17,6 @@ benchmarking:
       rfc_sources:
       - dashboard_out
       - report
-      - vp
       unit: GW
       report:
         sheet_name: 25-
@@ -75,7 +74,6 @@ benchmarking:
       rfc_sources:
       - dashboard_out
       - report
-      - vp
       unit: TWh
       report:
         sheet_name: 23-

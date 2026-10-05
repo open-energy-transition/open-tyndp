@@ -28,7 +28,6 @@ logger = logging.getLogger(__name__)
 SOURCES_MAP = {
     "dashboard_out": "TYNDP 2026 Dashboard Outputs",
     "report": "TYNDP 2024 Scenarios Report",
-    "vp": "TYNDP 2024 Vis Pltfm",
 }
 
 
