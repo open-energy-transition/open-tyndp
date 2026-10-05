@@ -1859,12 +1859,14 @@ rule prepare_sector_network:
             resources("wheeling_charges_tyndp.csv"),
         ),
         elec_demand_prosumer_tyndp=branch(
-            config_provider("sector", "electricity_distribution_grid_tyndp"),
+            lambda w: config_provider("tyndp_scenario")(w)
+            and config_provider("sector", "electricity_distribution_grid")(w),
             resources("demand_tyndp_electricity_prosumer_{planning_horizons}.csv"),
             [],
         ),
         elec_demand_prosumer_btm_tyndp=branch(
-            config_provider("sector", "electricity_distribution_grid_tyndp"),
+            lambda w: config_provider("tyndp_scenario")(w)
+            and config_provider("sector", "electricity_distribution_grid")(w),
             resources("demand_tyndp_electricity_prosumer_btm_{planning_horizons}.csv"),
             [],
         ),
