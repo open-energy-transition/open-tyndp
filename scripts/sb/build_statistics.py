@@ -581,6 +581,12 @@ def compute_benchmark(
         df = pd.concat([df, df_x])
         df.index = df.index.droplevel("bus0")
 
+        is_import = df.index.isin(
+            n.links.index[n.links.carrier.str.startswith("H2 import")]
+        )
+        imports = df[is_import]
+        df = df[~is_import]
+
         if carrier == "H2":
             df = df.rename(
                 lambda x: re.sub(r"\b([A-Z]+)00\b", r"\1", x).replace("UK", "GB")
@@ -591,6 +597,17 @@ def compute_benchmark(
         df = normalize_direction(
             df, buses_from_index=True, connector=connector, format_index=True
         )
+
+        import_bus0 = n.links.bus0.reindex(imports.index)
+        import_origin = import_bus0.where(
+            import_bus0.map(n.buses.carrier) != "import H2",
+            import_bus0.str.split("-").str[0],
+        )
+        imports.index = pd.Index(
+            "X" + import_origin + "-" + n.links.bus1.reindex(imports.index),
+            name="border",
+        )
+        df = pd.concat([df, imports])
 
         df = (
             df.reset_index()
