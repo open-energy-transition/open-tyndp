@@ -264,10 +264,13 @@ class ConfigSchema(BaseModel):
             in self.sector.transmission_efficiency.enable
         ):
             raise ValueError(
-                "'sector:transmission_efficiency:enable' must not contain 'electricity distribution grid' "
-                "for a TYNDP scenario. The TYNDP distribution grid is already modelled as two unidirectional "
-                "links carrying the wheeling charges; splitting them again adds a reverse link per direction "
-                "that bypasses the charge."
+                "'sector:transmission_efficiency:enable' must not contain "
+                "'electricity distribution grid' for a TYNDP scenario. TYNDP "
+                "transmission and distribution grid losses are already included in "
+                "the electricity demand time series. The TYNDP distribution grid is "
+                "also modelled as two unidirectional links carrying wheeling charges; "
+                "splitting them again adds a reverse link per direction that bypasses "
+                "the charge."
             )
         return self
 
