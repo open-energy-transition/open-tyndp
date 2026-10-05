@@ -2,11 +2,11 @@
 #
 # SPDX-License-Identifier: MIT
 """
-This script computes accuracy indicators for comparing workflow results against reference data from TYNDP 2024.
+This script computes accuracy indicators for comparing workflow results against reference data
+from the TYNDP 2024 Scenarios Report and the TYNDP 2026 dashboard outputs.
 
-Benchmarks are computed only for planning years available in the TYNDP 2024 Scenarios data:
-- NT (National Trends): 2030, 2040
-- DE (Distributed Energy) and GA (Global Ambition): 2040, 2050
+Benchmarks are computed per table only for planning years available in both the workflow results
+and the reference data.
 
 This module implements a methodology introduced by Wen et al. (2022) for evaluating performance of energy system
 models using multiple accuracy indicators.
@@ -36,57 +36,65 @@ def load_data(
     results_fn: str,
     scenario: str,
     dashboard_data_fn: str = "",
+    model_col: str = "Open-TYNDP",
 ) -> pd.DataFrame:
     """
-    Load Open-TYNDP and TYNDP 2024 results.
+    Load Open-TYNDP results and TYNDP reference data.
+
+    Only tables and years for which both Open-TYNDP results and at least one
+    reference source are available are kept.
 
     Parameters
     ----------
     benchmarks_fn : str
-        Path to the TYNDP 2024 benchmark data file.
+        Path to the TYNDP 2024 Scenarios Report benchmark data file.
     results_fn : str
         Path to the Open-TYNDP results data file.
     scenario : str
         Name of scenario to compare.
     dashboard_data_fn : str, optional
         Path to the TYNDP 2026 dashboard data file.
+    model_col : str, default "Open-TYNDP"
+        Source name of model values.
 
     Returns
     -------
     pd.DataFrame
-        Combined DataFrame containing both Open-TYNDP and TYNDP 2024 data.
+        Combined DataFrame containing both Open-TYNDP and TYNDP reference data.
 
     """
 
     # Load data
-    logger.info("Loading benchmark using TYNDP 2024 and Open-TYNDP")
+    logger.info("Loading benchmark using TYNDP reference data and Open-TYNDP")
     benchmarks_tyndp = pd.read_csv(benchmarks_fn).query("scenario==@scenario")
     benchmarks_n = []
     for fn in results_fn:
         benchmarks_n.append(pd.read_csv(fn).query("scenario==@scenario"))
     benchmarks_n = pd.concat(benchmarks_n)
-    benchmarks_raw = pd.concat([benchmarks_tyndp, benchmarks_n]).dropna(
-        how="all", axis=1
-    )
-
-    # Filter to keep only years available in the TYNDP 2024 Scenarios data
-    available_years = set(benchmarks_tyndp.year).intersection(benchmarks_n.year)  # noqa: F841
+    benchmarks_raw = [benchmarks_tyndp, benchmarks_n]
 
     # Add TYNDP 2026 dashboard outputs (optional)
     if dashboard_data_fn:
-        dashboard_data = []
-        for fn in dashboard_data_fn:
-            dashboard_data.append(pd.read_csv(fn))
-        dashboard_data = pd.concat(dashboard_data)
+        dashboard_data = pd.concat([pd.read_csv(fn) for fn in dashboard_data_fn])
         if not dashboard_data.empty:
-            available_years = set(dashboard_data.year).intersection(available_years)
-            benchmarks_raw = pd.concat([benchmarks_raw, dashboard_data])
+            benchmarks_raw.append(dashboard_data)
         else:
             logger.info(
                 "Skipping comparison with TYNDP 2026 dashboard outputs, as only available for NT."
             )
 
-    benchmarks_raw = benchmarks_raw.query("year in @available_years")
+    benchmarks_raw = pd.concat(benchmarks_raw).dropna(how="all", axis=1)
+
+    is_model = benchmarks_raw.source.eq(model_col)
+    has_model = is_model.groupby([benchmarks_raw.table, benchmarks_raw.year]).transform(
+        "any"
+    )
+    has_reference = (
+        (~is_model)
+        .groupby([benchmarks_raw.table, benchmarks_raw.year])
+        .transform("any")
+    )
+    benchmarks_raw = benchmarks_raw[has_model & has_reference]
 
     # Add Country column
     country_map = {
@@ -103,14 +111,16 @@ def load_data(
 
     def _bus_to_country(bus: str) -> str:
         code = bus.split(" ")[0]
-        return country_map.get(bus, code[:3] if code.startswith("X") else code[:2])
+        return country_map.get(
+            bus, code.split("_")[0] if code.startswith("X") else code[:2]
+        )
 
     benchmarks_raw.loc[:, "country"] = benchmarks_raw["bus"].map(
         lambda x: _bus_to_country(x) if pd.notna(x) else x
     )
     benchmarks_raw.loc[:, "corridor"] = benchmarks_raw["border"].map(
         lambda x: (
-            "->".join(_bus_to_country(b) for b in x.split("->")) if pd.notna(x) else x
+            "-".join(_bus_to_country(b) for b in x.split("-")) if pd.notna(x) else x
         )
     )
 
@@ -411,7 +421,7 @@ def compute_indicators(
     """
     Calculate accuracy indicators following Wen et al. (2022) methodology to assess model performance
     against reference data. The function expects paired columns representing workflow estimates
-    and TYNDP 2024 baseline values. The function computes both per-carrier and overall indicators.
+    and TYNDP reference values. The function computes both per-carrier and overall indicators.
 
     Hourly time series from the rfc_col will be aggregated to match the temporal resolution of model_col.
 
@@ -534,7 +544,7 @@ def compare_sources(
 ) -> tuple[pd.DataFrame, pd.Series]:
     """
     Compare data sources for a specified table using accuracy indicators. The function expects
-    paired columns representing workflow results estimates and TYNDP 2024 baseline values.
+    paired columns representing workflow results estimates and TYNDP reference values.
     Results are written to CSV in output_dir.
 
     Parameters
@@ -542,7 +552,7 @@ def compare_sources(
     table : str
         Benchmark metric to compute.
     benchmarks_raw : pd.DataFrame
-        Combined DataFrame containing both Open-TYNDP and TYNDP 2024 data.
+        Combined DataFrame containing both Open-TYNDP and TYNDP reference data.
     scenario : str
         Name of scenario to compare.
     snapshots : dict[str, str]
@@ -589,7 +599,7 @@ def compare_sources(
 
     if benchmarks.empty:
         logger.warning(
-            f"No data available for table '{table}' in {model_col} or TYNDP 2024 datasets"
+            f"No data available for table '{table}' in {model_col} or TYNDP reference datasets"
         )
         return pd.DataFrame(), pd.DataFrame(
             [["NA", "NA"]],
@@ -615,22 +625,7 @@ def compare_sources(
 
     # Check if at least two sources are available to compare
     if len(df.columns) != 2:
-        # Generation profiles only available in TYNDP 2024 for climate year 2009 and DE/GA scenarios
-        show_warning = True
-        if table == "generation_profiles":
-            wscenario = int(
-                pd.DatetimeIndex(df.index.get_level_values("snapshot")).year[0]
-            )
-            show_warning = scenario in ["TYNDP DE", "TYNDP GA"] and wscenario == 2009
-
-        if show_warning:
-            logger.warning(
-                f"Skipping table {table}, need exactly two sources to compare."
-            )
-        else:
-            logger.info(
-                f"Skipping table {table} for scenario {scenario} and weather scenario {wscenario}, generation profiles only available in TYNDP 2024 for climate year 2009 and DE/GA scenarios."
-            )
+        logger.warning(f"Skipping table {table}, need exactly two sources to compare.")
         return pd.DataFrame(), pd.DataFrame(
             [["NA", "NA"]],
             index=[table],
@@ -657,7 +652,7 @@ def compute_overall_accuracy(
     Parameters
     ----------
     benchmarks_raw : pd.DataFrame
-        Combined DataFrame containing both Open-TYNDP and TYNDP 2024 data.
+        Combined DataFrame containing both Open-TYNDP and TYNDP reference data.
     options : dict
         Full benchmarking configuration.
     bus_col_name : str, optional
@@ -670,7 +665,7 @@ def compute_overall_accuracy(
     pd.Series
         Series containing overall accuracy metrics.
     """
-    logger.info("Making global benchmark using TYNDP 2024 and Open-TYNDP")
+    logger.info("Making global benchmark using TYNDP reference data and Open-TYNDP")
     tables_series = [  # noqa: F841
         t for t, v in options["tables"].items() if v["table_type"] == "time_series"
     ]
