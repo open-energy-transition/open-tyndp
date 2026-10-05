@@ -10,6 +10,7 @@ run:
 
 remote:
   # Project-specific files to pull with sync_file rule
+  # TODO Improve the feature to collect project-specific data across weather scenarios
   sync_file:
     results:
     - cba/networks/project_t335_*.nc  # PINT
