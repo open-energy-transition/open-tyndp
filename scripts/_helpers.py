@@ -51,6 +51,15 @@ ENERGY_UNITS = {"TWh", "GWh", "MWh", "kWh"}
 POWER_UNITS = {"GW", "MW", "kW"}
 PRICE_UNITS = {"EUR/MWh", "EUR/MWh_e", "EUR/MWh_H2"}
 
+# Weather scenarios that contain data in the TYNDP 2026 data,
+# per planning horizon.
+AVAILABLE_WSCENARIOS = {
+    2030: [3, 21, 29],
+    2035: [32, 37, 59],
+    2040: [65, 71, 77],
+    2050: [91, 92, 106],
+}
+
 PYPSA_V1 = bool(re.match(r"^1\.\d", pypsa.__version__))
 
 
@@ -1200,6 +1209,31 @@ def make_index(
     return separator.join(idx)
 
 
+def format_bz_names(
+    obj: str | pd.Series | pd.DataFrame,
+) -> str | pd.Series | pd.DataFrame:
+    """
+    Standardize TYNDP bidding zone / node name conventions to Open-TYNDP's.
+
+    Currently only rewrites the "UK" country-code convention to "GB" (and the
+    "UK-N" sub-zone code to "GBNI"). Works both on a single string and,
+    element-wise, on a pandas Series/DataFrame.
+
+    Parameters
+    ----------
+    obj : str | pd.Series | pd.DataFrame
+        Raw bidding zone / node name(s) to format.
+
+    Returns
+    -------
+    str | pd.Series | pd.DataFrame
+        Formatted name(s) with standardized region codes.
+    """
+    if isinstance(obj, str):
+        return obj.replace("UK-N", "UKNI").replace("UK", "GB")
+    return obj.replace("UK-N", "UKNI", regex=True).replace("UK", "GB", regex=True)
+
+
 def extract_grid_data_tyndp(
     links,
     replace_dict: dict = {},
@@ -1279,14 +1313,14 @@ def extract_grid_data_tyndp(
     return links
 
 
-def safe_pyear(
+def safe_planning_horizon(
     year: int | str,
     available_years: list[int] = [2030, 2040, 2050],
     source: str = "TYNDP",
     verbose: bool = True,
 ) -> int:
     """
-    Checks and adjusts whether a given pyear is in the available years of a given data source. If not, it
+    Checks and adjusts whether a given planning_horizon is in the available years of a given data source. If not, it
     falls back to the previous available year.
 
     Parameters
@@ -1303,7 +1337,7 @@ def safe_pyear(
     Returns
     -------
     year_new : int
-        Safe pyear adjusted for available years.
+        Safe planning_horizon adjusted for available years.
     """
 
     if not available_years:
@@ -1363,28 +1397,16 @@ def map_tyndp_carrier_names(
     # Map the carriers
     df = df.merge(carrier_mapping, on=on_columns, how="left")
 
-    # If the carrier is DSR or Other Non-RES, the different price bands are too diverse for a robust external
-    # mapping. Instead, we will combine the carrier and type information.
+    # DSR price bands are too diverse for a robust external mapping. Instead, we
+    # will combine the carrier and type information.
     if "pemmdb_carrier" in on_columns:
+        dsr = df["pemmdb_carrier"] == "DSR"
 
-        def normalize_carrier(s):
-            return s.lower().replace(" ", "-").replace("other-non-res", "chp")
-
-        # Other Non-RES are assumed to represent CHP plants (according to TYNDP 2024 Methodology report p.37)
-        df = df.assign(
-            open_tyndp_carrier=lambda x: np.where(
-                x["pemmdb_carrier"].isin(["DSR", "Other Non-RES"]),
-                x["pemmdb_carrier"].apply(normalize_carrier),
-                x["open_tyndp_carrier"],
-            ),
-            open_tyndp_index=lambda x: np.where(
-                x["pemmdb_carrier"].isin(["DSR", "Other Non-RES"]),
-                x["open_tyndp_carrier"]
-                + "-"
-                + x["pemmdb_type"].apply(normalize_carrier),
-                x["open_tyndp_index"],
-            ),
-        )
+        if dsr.any():
+            df.loc[dsr, "open_tyndp_carrier"] = "dsr"
+            df.loc[dsr, "open_tyndp_index"] = "dsr-" + df.loc[
+                dsr, "pemmdb_type"
+            ].str.lower().str.replace(" ", "-")
 
     if not drop_on_columns:
         return df
@@ -1605,21 +1627,21 @@ def convert_units(
     return df
 
 
-def check_cyear(cyear: int, scenario: str) -> int:
+def check_wscenario(wscenario: int, scenario: str) -> int:
     """
-    Check if the climatic year is valid for the given scenario.
+    Check if the weather scenario is valid for the given scenario.
 
     Parameters
     ----------
-    cyear : int
-        Climatic year to validate.
+    wscenario : int
+        Weather scenario to validate.
     scenario : str
         TYNDP scenario name.
 
     Returns
     -------
     int
-        Valid climatic year, falling back to 2009 if the input is not available.
+        Valid weather scenario, falling back to 2009 if the input is not available.
     """
 
     valid_years = {
@@ -1628,55 +1650,13 @@ def check_cyear(cyear: int, scenario: str) -> int:
         "GA": [1995, 2008, 2009],
     }
 
-    if cyear not in valid_years[scenario]:
+    if wscenario not in valid_years[scenario]:
         logger.warning(
-            f"Snapshot year {cyear} doesn't match available TYNDP data. Falling back to 2009."
+            f"Snapshot year {wscenario} doesn't match available TYNDP data. Falling back to 2009."
         )
-        cyear = 2009
+        wscenario = 2009
 
-    return cyear
-
-
-def check_weather_year(weather_year: int, valid_weather_years: list[int]) -> int:
-    """
-    Check if the weather year is one of the known-valid ones, falling back if not.
-
-    TYNDP 2026 demand profiles provide 30 climate year columns per planning
-    horizon (labelled ``WSxxx``), but depending on the demand type, either all
-    of them contain data or only a handful of them do (the rest being empty
-    placeholders). Which weather years are valid therefore has to be
-    determined per file (see e.g. ``get_valid_weather_years`` in
-    `scripts/sb/build_tyndp_demand.py`) rather than assumed globally.
-
-    Parameters
-    ----------
-    weather_year : int
-        Weather year (climate year column index, e.g. 3 for ``WS003``) to validate.
-    valid_weather_years : list[int]
-        Weather years known to contain data, for the file being processed.
-
-    Returns
-    -------
-    int
-        Valid weather year, falling back to the first entry of
-        `valid_weather_years` if the input is not among them.
-    """
-
-    if not valid_weather_years:
-        raise ValueError(
-            "No `valid_weather_years` provided. Expected a non-empty list of weather years."
-        )
-
-    if weather_year not in valid_weather_years:
-        fallback = valid_weather_years[0]
-        logger.warning(
-            f"Weather year WS{weather_year:03d} doesn't contain data for this file "
-            f"(available: {[f'WS{y:03d}' for y in valid_weather_years]}). "
-            f"Falling back to WS{fallback:03d}."
-        )
-        weather_year = fallback
-
-    return weather_year
+    return wscenario
 
 
 def get_tyndp_conventional_thermals(
@@ -1727,14 +1707,14 @@ def get_tyndp_conventional_thermals(
     if include_h2_fuel_cell:
         conventional_thermals.append("h2-fuel-cell")
     if include_h2_turbine:
-        conventional_thermals.append("h2-ccgt")
+        conventional_thermals.extend(["h2-ccgt", "h2-ocgt"])
 
     return conventional_dict, conventional_thermals
 
 
 def interpolate_demand(
     available_years: list[int],
-    pyear: int,
+    planning_horizon: int,
     load_single_year_func: Callable,
     **load_kwargs,
 ) -> pd.DataFrame | pd.Series:
@@ -1745,12 +1725,12 @@ def interpolate_demand(
     ----------
     available_years : list[int]
         Sorted list of years for which data is available.
-    pyear : int
+    planning_horizon : int
         Planning year to interpolate demand for.
     load_single_year_func : Callable
         Function to load data for a single planning year.
     **load_kwargs
-        Keyword arguments to pass to load_single_year_func. Must include 'pyear'
+        Keyword arguments to pass to load_single_year_func. Must include 'planning_horizon'
         as a parameter key, which will be overridden with interpolation boundary years.
 
     Returns
@@ -1759,18 +1739,18 @@ def interpolate_demand(
         Interpolated demand data.
     """
     # Currently, only interpolation is implemented, not extrapolation
-    idx = bisect_right(available_years, pyear)
+    idx = bisect_right(available_years, planning_horizon)
     if idx == 0:
         # Planning horizon is before all available years
         logger.warning(
-            f"Year {pyear} is before the first available year {available_years[0]}. "
+            f"Year {planning_horizon} is before the first available year {available_years[0]}. "
             f"Falling back to first available year."
         )
         year_lower = year_upper = available_years[0]
     elif idx == len(available_years):
         # Planning horizon is after all available years
         logger.warning(
-            f"Year {pyear} is after the latest available year {available_years[-1]}. "
+            f"Year {planning_horizon} is after the latest available year {available_years[-1]}. "
             f"Falling back to latest available year."
         )
         year_lower = year_upper = available_years[-1]
@@ -1778,10 +1758,10 @@ def interpolate_demand(
         year_lower = available_years[idx - 1]
         year_upper = available_years[idx]
 
-    logger.debug(f"Interpolating {pyear} from {year_lower} and {year_upper}")
+    logger.debug(f"Interpolating {planning_horizon} from {year_lower} and {year_upper}")
 
-    kwargs_lower = {**load_kwargs, "pyear": year_lower}
-    kwargs_upper = {**load_kwargs, "pyear": year_upper}
+    kwargs_lower = {**load_kwargs, "planning_horizon": year_lower}
+    kwargs_upper = {**load_kwargs, "planning_horizon": year_upper}
 
     df_lower = load_single_year_func(**kwargs_lower)
     df_upper = load_single_year_func(**kwargs_upper)
@@ -1826,7 +1806,7 @@ def interpolate_demand(
         )
 
     # Perform linear interpolation
-    weight = (pyear - year_lower) / (year_upper - year_lower)
+    weight = (planning_horizon - year_lower) / (year_upper - year_lower)
     result = df_lower_aligned * (1 - weight) + df_upper_aligned * weight
 
     return result
@@ -2072,3 +2052,46 @@ def normalize_direction(
         df = df.value
 
     return df
+
+
+def parse_wscenario(s: pd.Series) -> pd.Series:
+    """
+    Convert weather scenario labels (eg. WS065) into their integer index.
+    """
+    return pd.to_numeric(s.astype(str).str.removeprefix("WS"), errors="coerce")
+
+
+def get_wscenario(wscenarios, planning_horizon):
+    """
+    Select the weather scenario to use for a given planning horizon.
+
+    Parameters
+    ----------
+    wscenarios : dict
+        Mapping of planning year to a list of requested weather scenarios,
+        e.g. ``{planning_horizon: [wscenario, ...]}``.
+    planning_horizon : int
+        Planning horizon for which to select the weather scenario.
+
+    Returns
+    -------
+    int
+        Selected weather scenario. Falls back to the first entry in
+        ``AVAILABLE_WSCENARIOS[planning_horizon]`` if unavailable.
+
+    Notes
+    -----
+    Currently always picks the first requested weather scenario; should be
+    adapted once the full weather year implementation is available in SB.
+    """
+    wscenario = wscenarios[planning_horizon][0]
+
+    if wscenario not in AVAILABLE_WSCENARIOS[planning_horizon]:
+        fallback_scenario = AVAILABLE_WSCENARIOS[planning_horizon][0]
+        logger.warning(
+            f"Weather scenario WS{wscenario:03d} not available for "
+            f"planning horizon {planning_horizon}, falling back to WS{fallback_scenario:03d}"
+        )
+        wscenario = fallback_scenario
+
+    return wscenario

@@ -6,17 +6,17 @@
 
 run:
   prefix: "test-tyndp"
-  name: "test-NT-cyears"
+  name: "test-NT-wscenarios"
   disable_progressbar: true
   scenarios:
     enable: true
-    file: config/test/scenarios.cyears.yaml
+    file: config/test/scenarios.wscenarios.yaml
 
 # TODO set foresight
 foresight: myopic
 
 tyndp_scenario: NT
-weather_scenarios_tyndp:
+wscenarios_tyndp:
   2030:
   - 3
   - 21
@@ -101,7 +101,7 @@ electricity:
   pecd_renewable_profiles:
     enable: true
     pre_built:
-      cyears:
+      wscenarios:
       - 3
       - 21
       - 29
@@ -146,6 +146,7 @@ electricity:
     nprocesses: 4
     available_years:
     - 2030
+    - 2035
     - 2040
     - 2050
     technologies:
@@ -302,7 +303,6 @@ sector:
     biomass_to_methanol: false
   ammonia: false
   h2_topology_tyndp: true
-  h2_demand_patch_with_mm: true
   gas_network: false
   gas_demand_exogenously: true
   biomass_spatial: false

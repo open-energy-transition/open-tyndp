@@ -3,6 +3,13 @@
 #
 # SPDX-License-Identifier: CC0-1.0
 
+# example for syncing individual files from remote using `sync_file` rule
+#remote:
+#  sync_file:
+#    results:
+#    - cba/results/2030/indicators_2030.csv
+#    - cba/results/2040/indicators_2040.csv
+
 # Specify the name of the scenario(s) you want to run from config/scenarios.tyndp.yaml
 run:
   name:

@@ -2746,7 +2746,7 @@
             "pre_built": {
               "description": "Configuration for `electricity.pecd_renewable_profiles.pre_built` settings.",
               "properties": {
-                "cyears": {
+                "wscenarios": {
                   "description": "List of weather scenarios to filter for when creating the PECD pre-built. The scenario numbering ranges between 1-120.",
                   "items": {
                     "type": "integer"
@@ -3583,6 +3583,16 @@
           "default": "",
           "description": "Optionally specify the file path within the remote cluster to be synchronized.",
           "type": "string"
+        },
+        "sync_file": {
+          "additionalProperties": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "description": "Files to pull from the remote cluster with the `sync_file` rule, keyed by top-level directory (`results`, `resources`, or `logs`). Each value is a list of paths behind `<dir>/<rdir>/<run-name>/`, e.g. `cba/indicators_2030.csv`. Every listed file is fetched for every configured run name.",
+          "type": "object"
         }
       }
     },
@@ -5570,11 +5580,6 @@
         "h2_topology_tyndp": {
           "default": false,
           "description": "Use TYNDP H2 topology for hydrogen network.",
-          "type": "boolean"
-        },
-        "h2_demand_patch_with_mm": {
-          "default": false,
-          "description": "Add option to patch the TYNDP H2 demand with the Market Model output data.",
           "type": "boolean"
         },
         "gas_network": {
@@ -8251,7 +8256,7 @@
     "_PecdPreBuiltConfig": {
       "description": "Configuration for `electricity.pecd_renewable_profiles.pre_built` settings.",
       "properties": {
-        "cyears": {
+        "wscenarios": {
           "description": "List of weather scenarios to filter for when creating the PECD pre-built. The scenario numbering ranges between 1-120.",
           "items": {
             "type": "integer"
@@ -8271,7 +8276,7 @@
         "pre_built": {
           "description": "Configuration for `electricity.pecd_renewable_profiles.pre_built` settings.",
           "properties": {
-            "cyears": {
+            "wscenarios": {
               "description": "List of weather scenarios to filter for when creating the PECD pre-built. The scenario numbering ranges between 1-120.",
               "items": {
                 "type": "integer"
@@ -9298,6 +9303,16 @@
           "default": "",
           "description": "Optionally specify the file path within the remote cluster to be synchronized.",
           "type": "string"
+        },
+        "sync_file": {
+          "additionalProperties": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "description": "Files to pull from the remote cluster with the `sync_file` rule, keyed by top-level directory (`results`, `resources`, or `logs`). Each value is a list of paths behind `<dir>/<rdir>/<run-name>/`, e.g. `cba/indicators_2030.csv`. Every listed file is fetched for every configured run name.",
+          "type": "object"
         }
       }
     },
@@ -9420,14 +9435,14 @@
         false
       ]
     },
-    "weather_scenarios_tyndp": {
+    "wscenarios_tyndp": {
       "additionalProperties": {
         "items": {
           "type": "integer"
         },
         "type": "array"
       },
-      "description": "Mapping of planning horizons to the weather scenarios (climate year column indices, e.g. 3 for `WS003`) to model in the TYNDP 2026 data. Only the first entry per horizon is currently used, falling back to the first entry of `AVAILABLE_WEATHER_SCENARIOS` in `scripts/sb/build_tyndp_demand.py` if unavailable (see `get_weather_scenario`); to be revisited once Scenario Building supports modelling multiple weather years at once.",
+      "description": "Mapping of planning horizons to the weather scenarios (climate year column indices, e.g. 3 for `WS003`) to model in the TYNDP 2026 data. Only the first entry per horizon is currently used, falling back to the first entry of `AVAILABLE_WSCENARIOS` in `scripts/_helpers.py` if unavailable (see `get_wscenario`); to be revisited once Scenario Building supports modelling multiple weather years at once.",
       "type": "object"
     },
     "launch_explorer": {
@@ -9883,7 +9898,7 @@
             "pre_built": {
               "description": "Configuration for `electricity.pecd_renewable_profiles.pre_built` settings.",
               "properties": {
-                "cyears": {
+                "wscenarios": {
                   "description": "List of weather scenarios to filter for when creating the PECD pre-built. The scenario numbering ranges between 1-120.",
                   "items": {
                     "type": "integer"
@@ -12721,11 +12736,6 @@
         "h2_topology_tyndp": {
           "default": false,
           "description": "Use TYNDP H2 topology for hydrogen network.",
-          "type": "boolean"
-        },
-        "h2_demand_patch_with_mm": {
-          "default": false,
-          "description": "Add option to patch the TYNDP H2 demand with the Market Model output data.",
           "type": "boolean"
         },
         "gas_network": {

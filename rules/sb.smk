@@ -3,8 +3,8 @@
 # SPDX-License-Identifier: MIT
 
 
-from scripts._helpers import safe_pyear, find_free_port
 from scripts.sb.build_tyndp_demand import DEMAND_TYPE_MAP
+from scripts._helpers import safe_planning_horizon, find_free_port
 from shutil import unpack_archive, copy2
 
 # Retrieve
@@ -153,10 +153,13 @@ if not "pre-built" in PECD_DATASET["version"]:
         resources:
             mem_mb=1000,
         params:
-            cyears=config_provider(
-                "electricity", "pecd_renewable_profiles", "pre_built", "cyears"
+            wscenarios=config_provider(
+                "electricity",
+                "pecd_renewable_profiles",
+                "pre_built",
+                "wscenarios",
             ),
-            available_pyears=config_provider(
+            available_years=config_provider(
                 "electricity", "pecd_renewable_profiles", "available_years"
             ),
         script:
@@ -167,16 +170,16 @@ if not "pre-built" in PECD_DATASET["version"]:
 ###################
 
 
-def get_weather_scenario_tyndp(w):
+def get_wscenario_tyndp(w):
     """Get the preferred TYNDP 2026 weather scenario (climate year column index) for a given planning horizon."""
-    weather_scenarios = config_provider("weather_scenarios_tyndp")(w)
-    pyear = safe_pyear(
+    wscenarios = config_provider("wscenarios_tyndp")(w)
+    planning_horizon = safe_planning_horizon(
         w.planning_horizons,
-        available_years=sorted(weather_scenarios),
+        available_years=sorted(wscenarios),
         source="TYNDP demand weather scenario",
         verbose=False,
     )
-    return weather_scenarios[pyear][0]
+    return wscenarios[planning_horizon][0]
 
 
 rule build_tyndp_demand:
@@ -197,7 +200,7 @@ rule build_tyndp_demand:
     params:
         snapshots=config_provider("snapshots"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
-        weather_scenarios=config_provider("weather_scenarios_tyndp"),
+        wscenarios=config_provider("wscenarios_tyndp"),
     script:
         scripts("sb/build_tyndp_demand.py")
 
@@ -212,8 +215,7 @@ def get_pecd_prebuilt(w):
 rule clean_tyndp_pecd_data:
     input:
         pecd_prebuilt=get_pecd_prebuilt,
-        nodes=rules.retrieve_tyndp_2026.output.nodes,
-        busmap=resources("busmap_base_s_all.csv"),
+        buses_tyndp=rules.build_tyndp_network.output.substations,
     output:
         pecd_data_clean=resources("pecd_data_{technology}_{planning_horizons}.csv"),
     log:
@@ -234,7 +236,7 @@ rule clean_tyndp_pecd_data:
         available_years=config_provider(
             "electricity", "pecd_renewable_profiles", "available_years"
         ),
-        weather_scenario=get_weather_scenario_tyndp,
+        wscenario=get_wscenario_tyndp,
     script:
         scripts("sb/clean_tyndp_pecd_data.py")
 
@@ -244,13 +246,15 @@ def input_data_pecd(w):
         "electricity", "pecd_renewable_profiles", "available_years"
     )(w)
     planning_horizons = config_provider("scenario", "planning_horizons")(w)
-    safe_pyears = set(
-        safe_pyear(year, available_years, "PECD", verbose=False)
+    safe_planning_horizons = set(
+        safe_planning_horizon(year, available_years, "PECD", verbose=False)
         for year in planning_horizons
     )
     return {
-        f"pecd_data_{pyear}": resources("pecd_data_{technology}_" + str(pyear) + ".csv")
-        for pyear in safe_pyears
+        f"pecd_data_{planning_horizon}": resources(
+            "pecd_data_{technology}_" + str(planning_horizon) + ".csv"
+        )
+        for planning_horizon in safe_planning_horizons
     }
 
 
@@ -283,23 +287,24 @@ pemmdb_techs = branch(
 )
 
 
-rule build_pemmdb_data:
+rule build_tyndp_pemmdb_data:
     input:
-        pemmdb_dir=rules.retrieve_tyndp.output.pemmdb,
+        pemmdb_dir=rules.retrieve_tyndp_2026.output.pemmdb,
         carrier_mapping="data/tyndp_technology_map.csv",
-        busmap=resources("busmap_base_s_all.csv"),
+        buses_tyndp=rules.build_tyndp_network.output.substations,
     output:
         pemmdb_capacities=resources("pemmdb_capacities_{planning_horizons}.csv"),
         pemmdb_profiles=resources("pemmdb_profiles_{planning_horizons}.nc"),
     log:
-        logs("build_pemmdb_data_{planning_horizons}.log"),
+        logs("build_tyndp_pemmdb_data_{planning_horizons}.log"),
     benchmark:
-        benchmarks("performances/build_pemmdb_data_{planning_horizons}")
+        benchmarks("performances/build_tyndp_pemmdb_data_{planning_horizons}")
     threads: config_provider("electricity", "pemmdb_capacities", "nprocesses")
     resources:
         mem_mb=16000,
     params:
         pemmdb_techs=pemmdb_techs,
+        wscenarios=config_provider("wscenarios_tyndp"),
         snapshots=config_provider("snapshots"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
         available_years=config_provider(
@@ -307,7 +312,7 @@ rule build_pemmdb_data:
         ),
         tyndp_scenario=config_provider("tyndp_scenario"),
     script:
-        scripts("sb/build_pemmdb_data.py")
+        scripts("sb/build_tyndp_pemmdb_data.py")
 
 
 rule build_tyndp_trajectories:
@@ -356,8 +361,8 @@ def input_data_hydro_tyndp(w):
         "electricity", "pemmdb_hydro_profiles", "available_years"
     )(w)
     planning_horizons = config_provider("scenario", "planning_horizons")(w)
-    safe_pyears = set(
-        safe_pyear(
+    safe_planning_horizons = set(
+        safe_planning_horizon(
             year,
             available_years,
             "PEMMDB hydro",
@@ -369,10 +374,10 @@ def input_data_hydro_tyndp(w):
         "electricity", "pemmdb_hydro_profiles", "technologies"
     )(w)
     return {
-        f"hydro_inflow_tyndp_{tech}_{pyear}": resources(
-            f"hydro_inflows_tyndp_{tech}_{str(pyear)}.csv"
+        f"hydro_inflow_tyndp_{tech}_{planning_horizon}": resources(
+            f"hydro_inflows_tyndp_{tech}_{str(planning_horizon)}.csv"
         )
-        for pyear in safe_pyears
+        for planning_horizon in safe_planning_horizons
         for tech in technologies
     }
 
@@ -952,7 +957,7 @@ def input_pemmdb_datas(w):
     )(w)
     return list(
         {
-            safe_pyear(year, available_years, verbose=False)
+            safe_planning_horizon(year, available_years, verbose=False)
             for year in config_provider("scenario", "planning_horizons")(w)
         }
     )
@@ -961,7 +966,7 @@ def input_pemmdb_datas(w):
 rule build_pemmdb_and_trajectories:
     input:
         expand(
-            rules.build_pemmdb_data.output.pemmdb_capacities,
+            rules.build_tyndp_pemmdb_data.output.pemmdb_capacities,
             planning_horizons=input_pemmdb_datas,
             run=config["run"]["name"],
         ),

@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: Open Energy Transition gGmbH
 #
 # SPDX-License-Identifier: MIT
-from scripts._helpers import safe_pyear
+from scripts._helpers import safe_planning_horizon
 
 
 rule build_population_layouts:
@@ -1607,7 +1607,9 @@ def input_pemmdb_data(w):
     available_years = config_provider(
         "electricity", "pemmdb_capacities", "available_years"
     )(w)
-    pemmdb_year = safe_pyear(w.planning_horizons, available_years, verbose=False)
+    pemmdb_year = safe_planning_horizon(
+        w.planning_horizons, available_years, verbose=False
+    )
 
     grouped = ""
     if config_provider("electricity", "group_tyndp_conventionals")(w):
@@ -1870,7 +1872,7 @@ rule prepare_sector_network:
             and config_provider("conventional", "tyndp_availability_profiles"),
             lambda w: (
                 rules.retrieve_tyndp_nuclear_profiles.output[
-                    f"nuclear_p_max_pu_{safe_pyear(w.planning_horizons, available_years=[2030,2040], verbose= False)}"
+                    f"nuclear_p_max_pu_{safe_planning_horizon(w.planning_horizons, available_years=[2030,2040], verbose= False)}"
                 ]
             ),
         ),
@@ -1885,7 +1887,9 @@ rule prepare_sector_network:
             [],
         ),
         tyndp_electricity_ntc=branch(
-            lambda w: config_provider("electricity", "base_network")(w) == "tyndp",
+            lambda w: config_provider("electricity", "base_network")(w) == "tyndp"
+            and config_provider("electricity", "tyndp_reference_year")(w)
+            != int(w.planning_horizons),
             resources("tyndp_electricity_ntc_{planning_horizons}.csv"),
             [],
         ),
