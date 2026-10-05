@@ -26,7 +26,7 @@ from scripts._helpers import configure_logging, get_version, set_scenario_config
 logger = logging.getLogger(__name__)
 
 SOURCES_MAP = {
-    "market_out": "TYNDP 2026 Market Model Outputs",
+    "dashboard_out": "TYNDP 2026 Dashboard Outputs",
     "report": "TYNDP 2024 Scenarios Report",
     "vp": "TYNDP 2024 Vis Pltfm",
 }
@@ -36,7 +36,7 @@ def load_data(
     benchmarks_fn: str,
     results_fn: str,
     scenario: str,
-    mm_data_fn: str = "",
+    dashboard_data_fn: str = "",
 ) -> pd.DataFrame:
     """
     Load Open-TYNDP and TYNDP 2024 results.
@@ -49,8 +49,8 @@ def load_data(
         Path to the Open-TYNDP results data file.
     scenario : str
         Name of scenario to compare.
-    mm_data_fn : str, optional
-        Path to the Market Model Output data file.
+    dashboard_data_fn : str, optional
+        Path to the TYNDP 2026 dashboard data file.
 
     Returns
     -------
@@ -73,18 +73,18 @@ def load_data(
     # Filter to keep only years available in the TYNDP 2024 Scenarios data
     available_years = set(benchmarks_tyndp.year).intersection(benchmarks_n.year)  # noqa: F841
 
-    # Add Market Model Outputs (optional)
-    if mm_data_fn:
-        mm_data = []
-        for fn in mm_data_fn:
-            mm_data.append(pd.read_csv(fn))
-        mm_data = pd.concat(mm_data)
-        if not mm_data.empty:
-            available_years = set(mm_data.year).intersection(available_years)
-            benchmarks_raw = pd.concat([benchmarks_raw, mm_data])
+    # Add TYNDP 2026 dashboard outputs (optional)
+    if dashboard_data_fn:
+        dashboard_data = []
+        for fn in dashboard_data_fn:
+            dashboard_data.append(pd.read_csv(fn))
+        dashboard_data = pd.concat(dashboard_data)
+        if not dashboard_data.empty:
+            available_years = set(dashboard_data.year).intersection(available_years)
+            benchmarks_raw = pd.concat([benchmarks_raw, dashboard_data])
         else:
             logger.info(
-                "Skipping comparison with Market Model Output data, as only available in TYNDP 2024 for NT 2030 and NT 2040."
+                "Skipping comparison with TYNDP 2026 dashboard outputs, as only available for NT."
             )
 
     benchmarks_raw = benchmarks_raw.query("year in @available_years")
@@ -379,9 +379,9 @@ def compute_all_indicators(
             df.groupby(by=idx).sum(), table, model_col, rfc_col, eps
         )
 
-    # Exclude zero-valued rows when using Market Model outputs,
+    # Exclude zero-valued rows when using dashboard outputs,
     # as zeros may denote absent data rather than true zero values
-    if rfc_col == SOURCES_MAP["market_out"]:
+    if rfc_col == SOURCES_MAP["dashboard_out"]:
         df_na = df_na[(df_na[rfc_col] != 0) & (df_na[model_col] != 0)]
     missing_name = missing_name if "spatial" in cols_na else "Missing carriers"
     indicators[missing_name] = _compute_missing(df_na, cols=cols_na)
@@ -694,8 +694,8 @@ def compute_overall_accuracy(
             columns="source",
         )
         .query(
-            f"`{SOURCES_MAP['market_out']}` != 0"
-        )  # Exclude zero-valued rows when using Market Model outputs, as zeros may denote absent data rather than true zero values
+            f"`{SOURCES_MAP['dashboard_out']}` != 0"
+        )  # Exclude zero-valued rows when using dashboard outputs, as zeros may denote absent data rather than true zero values
         .reset_index(level=3)
         .assign(
             reference=lambda df: df.apply(lambda r: r[sources_map[r.table]], axis=1)
@@ -793,7 +793,7 @@ if __name__ == "__main__":
     scenario = "TYNDP " + snakemake.params["scenario"]
     snapshots = snakemake.params.snapshots
     benchmarks_fn = snakemake.input.benchmarks
-    mm_data_fn = snakemake.input.mm_data
+    dashboard_data_fn = snakemake.input.dashboard_data
     results_fn = snakemake.input.results
     output_dir = snakemake.output.benchmarks
     clusters = snakemake.wildcards.clusters
@@ -806,7 +806,7 @@ if __name__ == "__main__":
         benchmarks_fn=benchmarks_fn,
         results_fn=results_fn,
         scenario=scenario,
-        mm_data_fn=mm_data_fn,
+        dashboard_data_fn=dashboard_data_fn,
     )
 
     # Get version

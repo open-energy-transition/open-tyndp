@@ -146,9 +146,9 @@ the electricity demand for base regions from the TYNDP electricity demand prepar
 
 ## Benchmark
 
-### Rule `clean_tyndp_output_benchmark`
+### Rule `clean_tyndp_dashboard_benchmark`
 
-::: clean_tyndp_output_benchmark
+::: clean_tyndp_dashboard_benchmark
 
 ### Rule `clean_tyndp_report_benchmark`
 

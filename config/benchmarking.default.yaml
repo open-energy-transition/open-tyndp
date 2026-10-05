@@ -15,7 +15,7 @@ benchmarking:
       table_type: scenario_comparison
       mapping_col: benchmarking_capacity
       rfc_sources:
-      - market_out
+      - dashboard_out
       - report
       - vp
       unit: GW
@@ -36,7 +36,7 @@ benchmarking:
       table_type: scenario_comparison
       mapping_col: benchmarking_generation
       rfc_sources:
-      - market_out
+      - dashboard_out
       - report
       unit: TWh
       report:
@@ -73,7 +73,7 @@ benchmarking:
       table_type: scenario_comparison
       mapping_col: benchmarking_elec_demand
       rfc_sources:
-      - market_out
+      - dashboard_out
       - report
       - vp
       unit: TWh
@@ -110,7 +110,7 @@ benchmarking:
       table_type: scenario_comparison
       mapping_col: benchmarking_h2_demand
       rfc_sources:
-      - market_out
+      - dashboard_out
       - report
       unit: TWh
       report:
@@ -148,7 +148,7 @@ benchmarking:
       table_type: scenario_comparison
       mapping_col: benchmarking_h2_supply
       rfc_sources:
-      - market_out
+      - dashboard_out
       - report
       unit: TWh
       report:
@@ -232,14 +232,14 @@ benchmarking:
       table_type: prices
       mapping_col: benchmarking_prices
       rfc_sources:
-      - market_out
+      - dashboard_out
       unit: EUR/MWh_e
 
     electricity_price_excl_shed:
       table_type: prices
       mapping_col: benchmarking_prices
       rfc_sources:
-      - market_out
+      - dashboard_out
       unit: EUR/MWh_e
       exclude_coupling_effects: true  # If true, derive threshold from VOLL EUR/MWh_H2 × electrolysis efficiency
 
@@ -247,39 +247,39 @@ benchmarking:
       table_type: prices
       mapping_col: benchmarking_prices
       rfc_sources:
-      - market_out
+      - dashboard_out
       unit: EUR/MWh_H2
 
     hydrogen_price_excl_shed:
       table_type: prices
       mapping_col: benchmarking_prices
       rfc_sources:
-      - market_out
+      - dashboard_out
       unit: EUR/MWh_H2
       exclude_coupling_effects: true  # If true, derive threshold from VOLL EUR/MWh_e × H2-CCGT efficiency
 
     crossborder_electricity:
       table_type: flows
       rfc_sources:
-      - market_out
+      - dashboard_out
       unit: MWh
 
     crossborder_hydrogen:
       table_type: flows
       rfc_sources:
-      - market_out
+      - dashboard_out
       unit: MWh
 
     electricity_demand_shedding_hours:
       table_type: hours
       mapping_col: benchmarking_shed_hours
       rfc_sources:
-      - market_out
+      - dashboard_out
       unit: hours
 
     hydrogen_demand_shedding_hours:
       table_type: hours
       mapping_col: benchmarking_shed_hours
       rfc_sources:
-      - market_out
+      - dashboard_out
       unit: hours

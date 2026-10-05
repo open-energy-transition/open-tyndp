@@ -731,7 +731,7 @@ if __name__ == "__main__":
     scenario = snakemake.params["scenario"]
     snapshots = snakemake.params.snapshots
     benchmarks_fn = snakemake.input.benchmarks
-    mm_data_fn = snakemake.input.mm_data
+    dashboard_data_fn = snakemake.input.dashboard_data
     results_fn = snakemake.input.results
     output_dir = Path(snakemake.output.dir)
     threads = snakemake.threads
@@ -741,7 +741,7 @@ if __name__ == "__main__":
         benchmarks_fn=benchmarks_fn,
         results_fn=results_fn,
         scenario="TYNDP " + scenario,
-        mm_data_fn=mm_data_fn,
+        dashboard_data_fn=dashboard_data_fn,
     )
 
     # Produce benchmark figures

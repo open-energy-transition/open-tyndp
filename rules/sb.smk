@@ -657,24 +657,24 @@ if config["foresight"] != "perfect":
 
 if config["benchmarking"]["enable"]:
 
-    rule clean_tyndp_output_benchmark:
+    rule clean_tyndp_dashboard_benchmark:
         input:
-            tyndp_output_file=rules.retrieve_tyndp_2026.output.market_outputs,
+            dashboard_dir=rules.retrieve_tyndp_2026.output.market_outputs,
             carrier_mapping="data/tyndp_technology_map.csv",
         output:
             benchmarks=RESULTS
-            + "benchmarks/tyndp-2026/resources/benchmarks_tyndp_output_{scenario}{planning_horizons}.csv",
+            + "benchmarks/tyndp-2026/resources/benchmarks_tyndp_dashboard_{scenario}{planning_horizons}.csv",
             crossborder=RESULTS
-            + "benchmarks/tyndp-2026/resources/benchmarks_tyndp_output_crossborder_{scenario}{planning_horizons}.csv",
+            + "benchmarks/tyndp-2026/resources/benchmarks_tyndp_dashboard_crossborder_{scenario}{planning_horizons}.csv",
             h2_demand=RESULTS
-            + "benchmarks/tyndp-2026/resources/benchmarks_tyndp_output_h2_demand_{scenario}{planning_horizons}.csv",
+            + "benchmarks/tyndp-2026/resources/benchmarks_tyndp_dashboard_h2_demand_{scenario}{planning_horizons}.csv",
             elec_demand=RESULTS
-            + "benchmarks/tyndp-2026/resources/benchmarks_tyndp_output_elec_demand_{scenario}{planning_horizons}.csv",
+            + "benchmarks/tyndp-2026/resources/benchmarks_tyndp_dashboard_elec_demand_{scenario}{planning_horizons}.csv",
         log:
-            logs("clean_tyndp_output_benchmark_{scenario}{planning_horizons}.log"),
+            logs("clean_tyndp_dashboard_benchmark_{scenario}{planning_horizons}.log"),
         benchmark:
             benchmarks(
-                "performances/clean_tyndp_output_benchmark_{scenario}{planning_horizons}"
+                "performances/clean_tyndp_dashboard_benchmark_{scenario}{planning_horizons}"
             )
         threads: 4
         resources:
@@ -687,7 +687,7 @@ if config["benchmarking"]["enable"]:
             countries=config_provider("countries"),
             wscenarios_tyndp=config_provider("wscenarios_tyndp"),
         script:
-            scripts("sb/clean_tyndp_output_benchmark.py")
+            scripts("sb/clean_tyndp_dashboard_benchmark.py")
 
     rule clean_tyndp_report_benchmark:
         input:
@@ -753,16 +753,16 @@ if config["benchmarking"]["enable"]:
                 allow_missing=True,
             ),
             benchmarks=RESULTS + "benchmarks/tyndp-2026/resources/benchmarks_tyndp.csv",
-            mm_data=lambda w: (
+            dashboard_data=lambda w: (
                 expand(
                     RESULTS
-                    + "benchmarks/tyndp-2026/resources/benchmarks_tyndp_output_{scenario}{planning_horizons}.csv",
+                    + "benchmarks/tyndp-2026/resources/benchmarks_tyndp_dashboard_{scenario}{planning_horizons}.csv",
                     scenario=config_provider("tyndp_scenario"),
                     planning_horizons=config_provider("scenario", "planning_horizons"),
                     allow_missing=True,
                 )
                 if config_provider("tyndp_scenario")(w)
-                == "NT"  # Only NT has MM output files for now
+                == "NT"  # Only NT has dashboard files for now
                 else []
             ),
         output:
@@ -798,16 +798,16 @@ if config["benchmarking"]["enable"]:
                 planning_horizons=config_provider("scenario", "planning_horizons"),
                 allow_missing=True,
             ),
-            mm_data=lambda w: (
+            dashboard_data=lambda w: (
                 expand(
                     RESULTS
-                    + "benchmarks/tyndp-2026/resources/benchmarks_tyndp_output_{scenario}{planning_horizons}.csv",
+                    + "benchmarks/tyndp-2026/resources/benchmarks_tyndp_dashboard_{scenario}{planning_horizons}.csv",
                     scenario=config_provider("tyndp_scenario"),
                     planning_horizons=config_provider("scenario", "planning_horizons"),
                     allow_missing=True,
                 )
                 if config_provider("tyndp_scenario")(w)
-                == "NT"  # Only NT has MM output files for now
+                == "NT"  # Only NT has dashboard files for now
                 else []
             ),
             benchmarks=RESULTS + "benchmarks/tyndp-2026/resources/benchmarks_tyndp.csv",

@@ -82,8 +82,8 @@ The SB benchmarking workflow is controlled by `config/benchmarking.default.yaml`
 1. `retrieve_tyndp`: Retrieve the TYNDP 2024 Scenarios Report Data Figures package.
 2. `clean_tyndp_report_benchmark`: Read and process the raw Scenarios Report data into
    a long-format table.
-3. `clean_tyndp_output_benchmark`: Read and process the Market Model Outputs, including
-   cross-border flows, prices, and country and EU27 level values.
+3. `clean_tyndp_dashboard_benchmark`: Read and process the market model outputs from the Time Series
+   Dashboards, including cross-border flows, prices, and country and EU27 level values.
 4. `build_statistics`: Compute benchmarking statistics from the optimised network for
    every planning horizon.
 5. `make_benchmark`: Compute accuracy indicators comparing model outcomes against the
@@ -190,7 +190,7 @@ To align naming conventions across data sources, Open-TYNDP uses a mapping table
 * **pemmdb_hydro_inflows**: Carrier names as listed in the PEMMDB v2.4 hydro inflows dataset.
 * **pecd_carrier**: Carrier names as listed in the PECD v3.1 dataset.
 * **investment_dataset_carrier**: Carrier names as listed in the TYNDP 2024 investment dataset.
-* **tyndp_output_carrier**: Carrier names as listed in the TYNDP 2024 Market Model output files.
+* **tyndp_dashboard_carrier**: Carrier names as listed in the TYNDP 2026 Time Series Dashboards.
 * **tyndp_report_carrier**: Carrier names as listed in the TYNDP 2024 Scenarios Report.
 * **tyndp_vp_carrier**: Carrier names as listed on the TYNDP 2024 Visualization Platform.
 * **open_tyndp_carrier**: Open-TYNDP carrier naming convention representing either an energy carrier or a technology, depending on the context.

@@ -1855,9 +1855,9 @@ rule prepare_sector_network:
         ),
         elec_demand_mm=lambda w: (
             RESULTS
-            + f"benchmarks/tyndp-2026/resources/benchmarks_tyndp_output_elec_demand_{config_provider('tyndp_scenario')(w)}{{planning_horizons}}.csv"
+            + f"benchmarks/tyndp-2026/resources/benchmarks_tyndp_dashboard_elec_demand_{config_provider('tyndp_scenario')(w)}{{planning_horizons}}.csv"
             if config_provider("tyndp_scenario")(w)
-            == "NT"  # Only scenario with MM output data
+            == "NT"  # Only scenario with dashboard data
             and config_provider("load", "patch_demand_with_mm")(w)
             else []
         ),

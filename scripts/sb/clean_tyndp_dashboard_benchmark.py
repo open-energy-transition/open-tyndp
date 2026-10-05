@@ -4,7 +4,7 @@
 """
 This script cleans the TYNDP market model output data for benchmarking.
 
-Reads TYNDP market model (MM) TimeSeries Dashboard xlsx files, one per country,
+Reads TYNDP market model outputs from the TimeSeries Dashboard xlsx files, one per country,
 per planning horizon and weather scenario
 - "Installed Capacity" sheet for installed capacities per market zone
 - Nodal sheets for aggregates of hourly generation, load, prices, curtailment and unserved energy
@@ -112,9 +112,9 @@ def _load_mm_carrier_mapping(carrier_mapping_fn: str, tables: dict) -> dict[str,
             )
             continue
         output_map[table] = (
-            tech_map[["tyndp_output_carrier", col]]
-            .dropna(subset=["tyndp_output_carrier", col])
-            .set_index("tyndp_output_carrier")[col]
+            tech_map[["tyndp_dashboard_carrier", col]]
+            .dropna(subset=["tyndp_dashboard_carrier", col])
+            .set_index("tyndp_dashboard_carrier")[col]
             .to_dict()
         )
 
@@ -523,7 +523,7 @@ def clean_crossborder_for_benchmarking(
 def assign_meta_data(df, planning_horizon, scenario):
     df["scenario"] = f"TYNDP {scenario}"
     df["year"] = planning_horizon
-    df["source"] = "TYNDP 2026 Market Model Outputs"
+    df["source"] = "TYNDP 2026 Dashboard Outputs"
 
 
 def get_weather_scenario(ws_dict, pyear):
@@ -535,7 +535,7 @@ if __name__ == "__main__":
         from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake(
-            "clean_tyndp_output_benchmark",
+            "clean_tyndp_dashboard_benchmark",
             planning_horizons="2040",
             scenario="NT",
             configfiles="config/test/config.tyndp.yaml",
@@ -571,7 +571,7 @@ if __name__ == "__main__":
     # TYNDP market model output files
     tyndp_output_files = sorted(
         Path(
-            snakemake.input.tyndp_output_file,
+            snakemake.input.dashboard_dir,
             str(planning_horizon),
             f"Weather scenario {weather_scenario:03d}",
         ).glob("*_TimeSeriesDashboard_*.xlsx")
