@@ -325,7 +325,7 @@ def _plot_flows(
     df.index = df.index.get_level_values("spatial")
 
     # remove flows between identical locations
-    df = df[df.index.str.split("->").map(lambda x: x[0] != x[1])]
+    df = df[df.index.str.split("-").map(lambda x: x[0] != x[1])]
 
     df[[model_col, rfc_source]].sort_index(ascending=False).plot.barh(
         title=f"{table_title} - Scenario {scenario} - WS {wscenario} - Year {year}",

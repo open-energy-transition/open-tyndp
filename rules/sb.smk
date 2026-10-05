@@ -685,6 +685,7 @@ if config["benchmarking"]["enable"]:
             snapshots=config_provider("snapshots"),
             drop_leap_day=config_provider("enable", "drop_leap_day"),
             countries=config_provider("countries"),
+            wscenarios_tyndp=config_provider("wscenarios_tyndp"),
         script:
             scripts("sb/clean_tyndp_output_benchmark.py")
 

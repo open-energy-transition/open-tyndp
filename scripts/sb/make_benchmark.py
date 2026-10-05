@@ -26,7 +26,7 @@ from scripts._helpers import configure_logging, get_version, set_scenario_config
 logger = logging.getLogger(__name__)
 
 SOURCES_MAP = {
-    "market_out": "TYNDP 2024 Market Model Outputs",
+    "market_out": "TYNDP 2026 Market Model Outputs",
     "report": "TYNDP 2024 Scenarios Report",
     "vp": "TYNDP 2024 Vis Pltfm",
 }
