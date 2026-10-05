@@ -427,11 +427,12 @@ plotting:
     - oil
     - co2_stored
 
+hurdle_costs: 0.01 # Transmission link marginal cost
+
 benchmarking:
   enable: true
 
 cba:
-  hurdle_costs: 0.01 # Transmission line marginal cost
   co2_societal_cost: # euros/t; 2024 CBA Implementation Guidelines, p. 68
     2030:
       low: 126
