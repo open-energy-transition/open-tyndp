@@ -3146,6 +3146,36 @@ def add_ammonia(
     )
 
 
+def add_hurdle_costs_tyndp(n: pypsa.Network, hurdle_costs: float) -> None:
+    """
+    Apply the TYNDP hurdle cost to the electricity and hydrogen grids.
+
+    TYNDP charges a small uniform wheeling charge on the e-market, hydrogen
+    and offshore grids to discourage loop flows. The TYNDP transmission links
+    are unidirectional, so the charge is applied as a marginal cost on each
+    link.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object to be modified
+    hurdle_costs : float
+        Hurdle cost in EUR/MWh.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place
+    """
+    links = n.links.index[n.links.carrier.isin(["DC", "H2 pipeline"])]
+    n.links.loc[links, "marginal_cost"] = hurdle_costs
+
+    logger.info(
+        f"Applied hurdle costs of {hurdle_costs} EUR/MWh to {len(links)} "
+        "electricity and hydrogen transmission links"
+    )
+
+
 def insert_electricity_distribution_grid(
     n: pypsa.Network,
     costs: pd.DataFrame,
@@ -3153,6 +3183,7 @@ def insert_electricity_distribution_grid(
     pop_layout: pd.DataFrame,
     solar_rooftop_potentials_fn: str,
     ext_stores: list[str],
+    tyndp_scenario: str | bool = False,
     wheeling_charges_fn: str = "",
     prosumer_demand_fn: str = "",
     prosumer_btm_demand_fn: str = "",
@@ -3176,25 +3207,28 @@ def insert_electricity_distribution_grid(
         Configuration options containing at least:
         - transmission_efficiency: dict with distribution grid parameters
         - marginal_cost_storage: float for storage operation costs
-        - electricity_distribution_grid_tyndp: bool to switch to TYNDP low voltage
-          bus naming and wheeling charges
     pop_layout : pd.DataFrame
         Population data per node with at least:
         - 'total' column containing population in thousands
         Index should match network nodes
     ext_stores : list[str]
         List of extendable Stores
+    tyndp_scenario : str | bool, default False
+        TYNDP scenario to follow the conventions of. If set, low voltage buses
+        are suffixed 'RETE' and the distribution grid is modelled as two
+        non-extendable unidirectional links priced with the TYNDP wheeling
+        charges instead of one extendable bidirectional link.
     wheeling_charges_fn : str, optional
         Path to a CSV of per-node TYNDP wheeling charges (columns
         'e_market_to_prosumer'/'prosumer_to_e_market', €/MWh), only required
-        when `options["electricity_distribution_grid_tyndp"]` is True. Nodes
-        in `pop_layout` without a wheeling charge entry are skipped entirely
-        (no low voltage bus/link, loads and other components stay on the
-        main AC bus).
+        when `tyndp_scenario` is set. It covers the nodes given in TYNDP as
+        prosumer nodes input; nodes in `pop_layout` outside of it are skipped
+        entirely (no low voltage bus/link, loads and other components stay
+        on the main AC bus).
     prosumer_demand_fn : str, optional
         Path to a CSV of per-node TYNDP prosumer electricity demand (Native
-        Demand). Only added when `options["electricity_distribution_grid_tyndp"]`
-        is True and a non-empty path is given; attached as its own `Load` on
+        Demand). Only added when `tyndp_scenario` is set
+        and a non-empty path is given; attached as its own `Load` on
         the low-voltage/`RETE` bus, on top of (not replacing) the market Load
         left on the main bus.
     prosumer_btm_demand_fn : str, optional
@@ -3214,8 +3248,7 @@ def insert_electricity_distribution_grid(
     -----
     Components added to the network:
     - Low voltage buses for each node (all of `pop_layout` normally, or only
-      nodes with TYNDP wheeling charge data when
-      `options["electricity_distribution_grid_tyndp"]` is True)
+      the TYNDP prosumer nodes when `tyndp_scenario` is set)
     - Distribution grid links connecting high to low voltage
     - Rooftop solar potential based on population density
     - Home battery storage systems with separate charger/discharger links if `home battery` is included
@@ -3230,18 +3263,15 @@ def insert_electricity_distribution_grid(
     """
 
     nodes = pop_layout.index
-    lv_suffix = (
-        "RETE" if options["electricity_distribution_grid_tyndp"] else " low voltage"
-    )
+    lv_suffix = "RETE" if tyndp_scenario else " low voltage"
 
-    if options["electricity_distribution_grid_tyndp"]:
+    if tyndp_scenario:
         wheeling_charges = pd.read_csv(wheeling_charges_fn, index_col=0)
         missing = nodes.difference(wheeling_charges.index)
         if not missing.empty:
             logger.warning(
-                "No TYNDP wheeling charge data for "
-                f"{len(missing)} node(s), skipping electricity distribution grid "
-                f"for: {', '.join(missing)}"
+                f"TYNDP models no prosumer node for {len(missing)} node(s), "
+                f"skipping electricity distribution grid for: {', '.join(missing)}"
             )
         nodes = nodes.intersection(wheeling_charges.index)
 
@@ -3253,30 +3283,26 @@ def insert_electricity_distribution_grid(
         unit="MWh_el",
     )
 
-    if options["electricity_distribution_grid_tyndp"]:
+    if tyndp_scenario:
         n.add(
             "Link",
             nodes + " electricity distribution grid",
             bus0=nodes,
             bus1=nodes + lv_suffix,
-            p_nom_extendable=False,
             p_nom=np.inf,
             carrier="electricity distribution grid",
             efficiency=1,
             marginal_cost=wheeling_charges.loc[nodes, "e_market_to_prosumer"].values,
-            lifetime=costs.at["electricity distribution grid", "lifetime"],
         )
         n.add(
             "Link",
             nodes + " electricity distribution grid reverse",
             bus0=nodes + lv_suffix,
             bus1=nodes,
-            p_nom_extendable=False,
             p_nom=np.inf,
             carrier="electricity distribution grid",
             efficiency=1,
             marginal_cost=wheeling_charges.loc[nodes, "prosumer_to_e_market"].values,
-            lifetime=costs.at["electricity distribution grid", "lifetime"],
         )
 
         if prosumer_demand_fn:
@@ -9692,12 +9718,16 @@ if __name__ == "__main__":
             pop_layout=pop_layout,
             solar_rooftop_potentials_fn=snakemake.input.solar_rooftop_potentials,
             ext_stores=extendable_stores,
+            tyndp_scenario=tyndp_scenario,
             wheeling_charges_fn=snakemake.input.get("wheeling_charges", ""),
             prosumer_demand_fn=snakemake.input.get("elec_demand_prosumer_tyndp", ""),
             prosumer_btm_demand_fn=snakemake.input.get(
                 "elec_demand_prosumer_btm_tyndp", ""
             ),
         )
+
+    if tyndp_scenario and snakemake.params.hurdle_costs:
+        add_hurdle_costs_tyndp(n, snakemake.params.hurdle_costs)
 
     if options["enhanced_geothermal"].get("enable", False):
         logger.info("Adding Enhanced Geothermal Systems (EGS).")

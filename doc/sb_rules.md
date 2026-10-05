@@ -104,6 +104,10 @@ the electricity demand for base regions from the TYNDP electricity market demand
 
 ::: build_tyndp_h2_demand
 
+### Rule `build_tyndp_wheeling_charges`
+
+::: build_tyndp_wheeling_charges
+
 ### Rule `build_tyndp_h2_network`
 
 ::: build_tyndp_h2_network

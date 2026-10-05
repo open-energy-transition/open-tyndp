@@ -196,7 +196,7 @@ def compute_benchmark(
             )
             .loc[pd.IndexSlice[:, ["electricity"]]]
             .reset_index()
-            .assign(bus=lambda df: df.bus.str.removesuffix(" low voltage"))
+            .assign(bus=lambda df: df.bus.map(n.buses.location))
             .set_index(["bus", "carrier"])
         )
     elif table == "methane_demand":
@@ -347,7 +347,7 @@ def compute_benchmark(
                     ~df.index.get_level_values("carrier").isin(curtailment_exclusions)
                 )
             ]
-            .rename(index=lambda x: x.removesuffix(" low voltage"), level="bus")
+            .rename(index=n.buses.location.to_dict(), level="bus")
             .rename(index=lambda _: "dumped energy", level="carrier")
             .groupby(["bus"] + grouper)
             .sum()

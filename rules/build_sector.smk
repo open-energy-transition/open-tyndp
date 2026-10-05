@@ -1854,7 +1854,8 @@ rule prepare_sector_network:
             resources("demand_tyndp_h2_z2_{planning_horizons}.csv"),
         ),
         wheeling_charges=branch(
-            config_provider("sector", "electricity_distribution_grid_tyndp"),
+            lambda w: config_provider("tyndp_scenario")(w)
+            and config_provider("sector", "electricity_distribution_grid")(w),
             resources("wheeling_charges_tyndp.csv"),
         ),
         elec_demand_prosumer_tyndp=branch(
@@ -1947,6 +1948,7 @@ rule prepare_sector_network:
         load_source=config_provider("load", "source"),
         scaling_factor=config_provider("load", "scaling_factor"),
         tyndp_scenario=config_provider("tyndp_scenario"),
+        hurdle_costs=config_provider("hurdle_costs"),
     message:
         "Preparing integrated sector-coupled energy network for {wildcards.clusters} clusters, {wildcards.planning_horizons} planning horizon, {wildcards.opts} electric options and {wildcards.sector_opts} sector options"
     script:

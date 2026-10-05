@@ -119,6 +119,10 @@ class ConfigSchema(BaseModel):
         False,
         description="Scenario configuration of the TYNDP data, which is one of NT, DE or GA. False disables the TYNDP-specific rules.",
     )
+    hurdle_costs: float = Field(
+        0.01,
+        description="Hurdle cost applied as marginal cost to transmission links (EUR/MWh), used to discourage loop flows. Applied to the electricity and hydrogen grids in Scenario Building and to the DC links in the Cost-Benefit Analysis.",
+    )
     wscenarios_tyndp: dict[int, list[int]] = Field(
         default_factory=dict,
         description="Mapping of planning horizons to the weather scenarios (climate year column indices, e.g. 3 for `WS003`) to model in the TYNDP 2026 data. Only the first entry per horizon is currently used, falling back to the first entry of `AVAILABLE_WSCENARIOS` in `scripts/_helpers.py` if unavailable (see `get_wscenario`); to be revisited once Scenario Building supports modelling multiple weather years at once.",
@@ -251,3 +255,28 @@ class ConfigSchema(BaseModel):
                 "CORINE_API_TOKEN). You can set these in a .env file in the project root."
             )
         return data
+
+    @model_validator(mode="after")
+    def check_tyndp_distribution_grid_without_transmission_efficiency(self):
+        if (
+            self.tyndp_scenario
+            and "electricity distribution grid"
+            in self.sector.transmission_efficiency.enable
+        ):
+            raise ValueError(
+                "'sector:transmission_efficiency:enable' must not contain 'electricity distribution grid' "
+                "for a TYNDP scenario. The TYNDP distribution grid is already modelled as two unidirectional "
+                "links carrying the wheeling charges; splitting them again adds a reverse link per direction "
+                "that bypasses the charge."
+            )
+        return self
+
+    # TODO: Remove when adding MM output compatibility with DE/GA
+    @model_validator(mode="after")
+    def check_patch_demand_requires_nt_scenario(self):
+        if self.load.patch_demand_with_mm and self.tyndp_scenario != "NT":
+            raise ValueError(
+                "'load:patch_demand_with_mm' can only be enabled for 'tyndp_scenario' National Trends (NT). "
+                f"Current 'tyndp_scenario' is '{self.tyndp_scenario}'."
+            )
+        return self
