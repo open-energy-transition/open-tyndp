@@ -1859,8 +1859,6 @@ rule prepare_sector_network:
             if config_provider("tyndp_scenario")(w)
             == "NT"  # Only scenario with MM output data
             and config_provider("load", "patch_demand_with_mm")(w)
-            and int(w.planning_horizons)
-            in [2030, 2040]  # Only years with MM output data
             else []
         ),
         tyndp_nuclear_profiles=branch(
