@@ -67,7 +67,13 @@ LOOKUP_TABLES: dict[str, dict] = {
     },
     "hydrogen_demand": {
         "sheet": H2_SHEETS,
-        "category": ["Native Demand"],
+        "category": [
+            "Native Demand",
+            "H2 to H2 power plants",
+            "H2 to eLiquids",
+            "H2 to sng",
+            "H2 Boiler (load)",
+        ],
         "stats": "sum",
     },
     "hydrogen_supply": {"sheet": H2_SHEETS, "stats": "sum"},
@@ -106,9 +112,10 @@ LOOKUP_TABLES: dict[str, dict] = {
 
 # look up dictionary for crossborder exchanges
 CROSS_BORDER_DICT: dict[str, str] = {
-    "electricity": "E-Market Exchanges",
-    "H2": "H2 Zone 2 Exchanges",
-    "H2_imports": "H2 Imports to H2 Zone 2",
+    "E-Market Exchanges": "electricity",
+    "H2 Zone 2 Exchanges": "H2",
+    "H2 Zone 2 to H2 Zone 1": "H2",
+    "H2 Imports to H2 Zone 2": "H2_imports",
 }
 
 
@@ -304,12 +311,10 @@ def load_crossborder(
     pd.DataFrame
         DataFrame with normalized cross-border flow data.
     """
-    carrier = {v: k for k, v in CROSS_BORDER_DICT.items()}
-
     df = (
         df.query("sheet == @EXCHANGES_SHEET and stats in @stats")
         .assign(
-            carrier=lambda x: x.carrier.map(carrier),
+            carrier=lambda x: x.carrier.map(CROSS_BORDER_DICT),
             border=lambda x: format_bz_names(x.element),
         )
         .dropna(subset=["carrier"])

@@ -167,6 +167,10 @@ Battery,Battery Utility Scale Store,,,Batteries Utility,Li-Ion Battery Volume,,,
 ,,,,,,H2 H2 Demand for P2L,,methanolisation,,Methanolisation,,,,,,,e-fuels,,,,,,,,,Hydrogen demand benchmark
 ,,,,,,H2 H2 for Ammonia production,,,,,,,,,,,e-fuels,,,,,,,,,Hydrogen demand benchmark
 ,,,,,,H2 International maritime bunkers,,H2 exogenous demand,,H2 Exogenous Demand,,,,,,,exogenous demand,,,,,,,,,Hydrogen demand benchmark
+,,,,,H2 to H2 power plants,,,,,,,,,,,,power generation,,,,,,,,,Hydrogen demand benchmark
+,,,,,H2 to eLiquids,,,,,,,,,,,,e-fuels,,,,,,,,,Hydrogen demand benchmark
+,,,,,H2 to sng,,,,,,,,,,,,e-fuels,,,,,,,,,Hydrogen demand benchmark
+,,,,,H2 Boiler (load),,,,,,,,,,,,heat production,,,,,,,,,Hydrogen demand benchmark
 ,,,,,,CH4 Final Energy Demand  from ETM (excl. DH; HHPs),,exogenous gas demand,,Gas Exogenous Demand,,,,,,exogenous demand,,,,,,,,,,Methane demand benchmark
 ,,,,,,CH4 Transport,,exogenous gas demand,,Gas Exogenous Demand,,,,,,exogenous demand,,,,,,,,,,Methane demand benchmark
 ,,,,,,CH4 Industry,,exogenous gas demand,,Gas Exogenous Demand,,,,,,exogenous demand,,,,,,,,,,Methane demand benchmark
