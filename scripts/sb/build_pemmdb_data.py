@@ -485,9 +485,10 @@ def _process_battery_capacities(
     """
     # Fill missing data for FR15
     if node == "FR15":
-        cols = node_tech_data.columns[[5, 7, 8]]
+        idx = [5, 7, 8]
+        cols = node_tech_data.columns[idx]
         node_tech_data[cols] = node_tech_data[cols].astype(object)
-        node_tech_data.iloc[-1, [5, 7, 8]] = 0
+        node_tech_data.iloc[-1, idx] = 0
 
     # Extract data
     df_raw = (
