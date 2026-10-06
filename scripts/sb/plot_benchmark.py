@@ -582,6 +582,9 @@ def orchestrate_benchmark(
 
     table_bus_col_df_args = []
     for table in options["tables"]:
+        if table not in benchmarks_raw.table.values:
+            logger.info(f"Skipping plots for table '{table}', no data to compare.")
+            continue
         opt = options["tables"][table]
         bus_col_name_t = get_bus_col_name(bus_col_name, table)
         for bus_col in (
