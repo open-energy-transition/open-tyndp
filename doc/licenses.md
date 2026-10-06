@@ -9,10 +9,10 @@ It is an open-source soft-fork of [PyPSA-Eur](https://github.com/pypsa/pypsa-eur
 
 The licensing of the Open-TYNDP project follows a similar approach to PyPSA-Eur and is released under multiple licenses:
 
-* Modified source code is licensed as free software under [MIT](LICENSES/MIT.txt) with attribution to OET and its authors.
-* Modifications to the original documentation are licensed under [CC-BY-4.0](LICENSES/CC-BY-4.0.txt) with attribution to OET and its authors.
-* Modifications to the original configuration files are licensed under [CC0-1.0](LICENSES/CC0-1.0.txt) with attribution to OET and its authors.
-* Additional data sources are the TYNDP 2024 Scenarios that are licensed under [CC-BY-4.0](LICENSES/CC-BY-4.0.txt) by ENTSO-E and ENTSOG (see [tyndp_2024](tyndp_2024.md)).
+* Modified source code is licensed as free software under [MIT](https://github.com/open-energy-transition/open-tyndp/blob/master/LICENSES/MIT.txt) with attribution to OET and its authors.
+* Modifications to the original documentation are licensed under [CC-BY-4.0](https://github.com/open-energy-transition/open-tyndp/blob/master/LICENSES/CC-BY-4.0.txt) with attribution to OET and its authors.
+* Modifications to the original configuration files are licensed under [CC0-1.0](https://github.com/open-energy-transition/open-tyndp/blob/master/LICENSES/CC0-1.0.txt) with attribution to OET and its authors.
+* Additional data sources are the TYNDP 2024 Scenarios that are licensed under [CC-BY-4.0](https://github.com/open-energy-transition/open-tyndp/blob/master/LICENSES/CC-BY-4.0.txt) by ENTSO-E and ENTSOG (see [tyndp_2024](tyndp_2024.md)).
 
 The original PyPSA-Eur model is released under multiple licenses:
 
