@@ -250,7 +250,13 @@ def compute_benchmark(
         ).loc[lambda df: ~df.index.get_level_values("carrier").isin(exclusions)]
     elif table == "power_capacity":
         grouper = ["carrier"]
-        exclusions = ["electricity distribution grid", "DC", "load"]
+        exclusions = [
+            "electricity distribution grid",
+            "DC",
+            "load",
+            "AC_SRES",
+            "EV charge",
+        ]
         df = (
             n.statistics.optimal_capacity(
                 bus_carrier=elec_bus_carrier,
@@ -295,6 +301,7 @@ def compute_benchmark(
             "hydro-phs-pure-turbine",
             "hydro-phs-pure-pump",
             "H2 Electrolysis",
+            "AC_SRES",
         ]
         df = n.statistics.supply(
             comps=supply_comps + ["StorageUnit"],
@@ -493,6 +500,7 @@ def compute_benchmark(
                         "home battery charger",
                         "methanolisation",
                         "electricity",
+                        "AC_SRES",
                     ],
                     errors="ignore",
                 )
@@ -530,11 +538,15 @@ def compute_benchmark(
         voll = load_shedding.get(carrier, np.inf)
         if opt.get("exclude_coupling_effects", False):
             other_carrier = "AC" if "electricity" not in table else "H2"
-            coupling_carrier = "h2-ccgt" if carrier == "H2" else "H2 Electrolysis"
+            coupling_carriers = (
+                ["h2-ccgt", "h2-ocgt"] if carrier == "H2" else ["H2 Electrolysis"]
+            )
             voll = min(
                 voll,
                 load_shedding.get(other_carrier, np.inf)
-                * n.links.loc[n.links.carrier == coupling_carrier].efficiency.mean(),
+                * n.links.loc[
+                    n.links.carrier.isin(coupling_carriers)
+                ].efficiency.mean(),
             )
 
         df = (
