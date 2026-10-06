@@ -2242,7 +2242,9 @@ def _add_h2_dres_capacities(
     None
         Modifies the network object in-place by adding the DRES electrolyzer capacities.
     """
-    logger.info("Moving DRES generators to the DRES buses and adding PEMMDB capacities to DRES electrolyzers.")
+    logger.info(
+        "Moving DRES generators to the DRES buses and adding PEMMDB capacities to DRES electrolyzers."
+    )
 
     dres = n.buses.query("carrier == 'AC_DRES'")
     country_to_dres = pd.Series(dres.index, index=dres.country)
@@ -2304,7 +2306,9 @@ def _add_h2_sres_capacities(
     None
         Modifies the network object in-place by adding the SRES electrolyser capacities.
     """
-    logger.info("Moving SRES generators to SRES bus and adding PEMMDB capacities to SRES electrolysers.")
+    logger.info(
+        "Moving SRES generators to SRES bus and adding PEMMDB capacities to SRES electrolysers."
+    )
 
     # Drop empty SRES generator assets and move to SRES bus
     remove_zero_capacity_non_extendable(
@@ -3897,7 +3901,9 @@ def add_h2_sres_tyndp(
     None
         The function modifies the network object in-place by adding components.
     """
-    logger.info("Adding SRES electricity buses, electrolyzers and grid connection to the e-market.")
+    logger.info(
+        "Adding SRES electricity buses, electrolyzers and grid connection to the e-market."
+    )
 
     # TODO: improve mapping from e-market buses to h2z2 for countries with multiple `h2z2` nodes
     zone_country_z2 = spatial.h2_tyndp.df.country.reindex(spatial.buses_h2_z2)
