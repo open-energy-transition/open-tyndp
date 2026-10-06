@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 TIME_SERIES_FLAG = "TIME-SERIES-DATA"
 
 
-def load_import_potentials(fn: str, pyear: int) -> pd.DataFrame:
+def load_import_potentials(fn: str, planning_horizon: int) -> pd.DataFrame:
     """
     Load and clean the TYNDP 2026 H2 import corridor properties for one planning horizon.
 
@@ -46,7 +46,7 @@ def load_import_potentials(fn: str, pyear: int) -> pd.DataFrame:
     fn : str
         Path to the TYNDP 2026 H2 import generator properties Excel file
         ("H2 IMPORTS GENERATORS PROPERTIES.xlsx").
-    pyear : int
+    planning_horizon : int
         Planning horizon to filter for.
 
     Returns
@@ -66,7 +66,7 @@ def load_import_potentials(fn: str, pyear: int) -> pd.DataFrame:
 
     imports = (
         pd.read_excel(fn, engine="calamine")
-        .query("YEAR == @pyear")
+        .query("YEAR == @planning_horizon")
         .rename(columns=column_dict)
         .replace({"Type": {"Lh2": "LH2"}})
         .set_index("Corridor")
@@ -85,7 +85,7 @@ def load_import_potentials(fn: str, pyear: int) -> pd.DataFrame:
 
 
 def load_import_profiles(
-    fn: str, pyear: int, corridors: pd.Index, year: int
+    fn: str, planning_horizon: int, corridors: pd.Index, year: int
 ) -> pd.DataFrame:
     """
     Load hourly TYNDP 2026 H2 import profiles for a set of corridors.
@@ -95,8 +95,8 @@ def load_import_profiles(
     fn : str
         Path to the TYNDP 2026 H2 import profiles Excel file
         ("H2 IMPORT PROFILES.xlsx").
-    pyear : int
-        Planning horizon; profile columns are named ``"{Corridor}-{pyear}"``.
+    planning_horizon : int
+        Planning horizon; profile columns are named ``"{Corridor}-{planning_horizon}"``.
     corridors : pd.Index
         Corridors to load profiles for.
     year : int
@@ -109,11 +109,11 @@ def load_import_profiles(
     """
     profiles = pd.read_excel(fn, engine="calamine", index_col="Hour")
 
-    columns = {f"{corridor}-{pyear}": corridor for corridor in corridors}
+    columns = {f"{corridor}-{planning_horizon}": corridor for corridor in corridors}
     missing = set(columns) - set(profiles.columns)
     if missing:
         raise ValueError(
-            f"H2 import profiles missing expected columns for {pyear}: {sorted(missing)}"
+            f"H2 import profiles missing expected columns for {planning_horizon}: {sorted(missing)}"
         )
 
     profiles = profiles[list(columns)].rename(columns=columns)
@@ -139,7 +139,7 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     # Parameters
-    pyear = int(snakemake.wildcards.planning_horizons)
+    planning_horizon = int(snakemake.wildcards.planning_horizons)
     snapshots = get_snapshots(
         snakemake.params.snapshots, snakemake.params.drop_leap_day
     )
@@ -148,13 +148,16 @@ if __name__ == "__main__":
 
     # Load corridor properties
     import_potentials = load_import_potentials(
-        snakemake.input.import_potentials_raw, pyear
+        snakemake.input.import_potentials_raw, planning_horizon
     )
 
     profile_corridors = import_potentials.index[import_potentials.has_profile]
     if not profile_corridors.empty:
         import_profiles = load_import_profiles(
-            snakemake.input.import_profiles_raw, pyear, profile_corridors, year
+            snakemake.input.import_profiles_raw,
+            planning_horizon,
+            profile_corridors,
+            year,
         )
         maxima = import_profiles.max()
         import_potentials.loc[profile_corridors, "p_nom"] = maxima
