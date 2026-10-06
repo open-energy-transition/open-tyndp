@@ -3797,17 +3797,6 @@ def add_h2_dres_tyndp(
         buses_h2_z2 + " DRES",
         location=buses_h2_z2,
         country=spatial.h2_tyndp.df.loc[buses_h2_z2].country.values,
-        v_nom=380.0,
-        carrier="AC_DRES",
-        unit="MWh_el",
-        substation_off=True,
-        substation_lv=True,
-    )
-    n.add(
-        "Bus",
-        buses_h2_z2 + " DRES",
-        location=buses_h2_z2,
-        country=spatial.h2_tyndp.df.loc[buses_h2_z2].country.values,
         carrier="AC_DRES",
         unit="MWh_el",
     )
