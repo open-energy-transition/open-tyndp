@@ -2181,7 +2181,7 @@ def _add_electrolyzer_capacities(
     # Z1/Z2 (and SRES/DRES) "h2-electrolysis" capacities per bus; match each
     # electrolyser link to its own zone's capacity (SRES/DRES are handled
     # separately, see `add_h2_dres_tyndp and add_h2_sres_tyndp`).
-    # TODO: Add split between zones for DE/GA
+    # TODO: Add split between zones
     base = pemmdb_capacities.query(
         "carrier == 'H2 Electrolysis' and open_tyndp_type == 'h2-electrolysis'"
     )
@@ -2242,7 +2242,7 @@ def _add_h2_dres_capacities(
     None
         Modifies the network object in-place by adding the DRES electrolyzer capacities.
     """
-    logger.info("Adding PEMMDB capacities to DRES electrolyzers.")
+    logger.info("Moving DRES generators to the DRES buses and adding PEMMDB capacities to DRES electrolyzers.")
 
     dres = n.buses.query("carrier == 'AC_DRES'")
     country_to_dres = pd.Series(dres.index, index=dres.country)
@@ -2303,7 +2303,7 @@ def _add_h2_sres_capacities(
     None
         Modifies the network object in-place by adding the SRES electrolyser capacities.
     """
-    logger.info("Adding PEMMDB capacities to SRES electrolysers.")
+    logger.info("Moving SRES generators to SRES bus and adding PEMMDB capacities to SRES electrolysers.")
 
     remove_zero_capacity_non_extendable(
         n, carriers=sres_carriers, component_types={"Generator"}
@@ -3802,6 +3802,13 @@ def add_h2_dres_tyndp(
         unit="MWh_el",
         substation_off=True,
         substation_lv=True,
+    n.add(
+        "Bus",
+        buses_h2_z2 + " DRES",
+        location=buses_h2_z2,
+        country=spatial.h2_tyndp.df.loc[buses_h2_z2].country.values,
+        carrier="AC_DRES",
+        unit="MWh_el",
     )
     n.add(
         "Link",
@@ -3823,7 +3830,7 @@ def add_h2_sres_tyndp(
     costs: pd.DataFrame,
 ) -> None:
     """
-    Adds TYNDP SRES buses, with electrolyzers to H2 Z2 and a copperplated connection to the e-market node.
+    Adds TYNDP SRES buses, with electrolyzers to H2 Z2 and a copperplated unidirectional connection to the e-market node.
 
     Parameters
     ----------
@@ -3841,8 +3848,9 @@ def add_h2_sres_tyndp(
     None
         The function modifies the network object in-place by adding components.
     """
-    logger.info("Adding SRES electricity buses, electrolyzers and grid connections.")
+    logger.info("Adding SRES electricity buses, electrolyzers and grid connection to the e-market.")
 
+    # TODO: improve mapping from e-market buses to h2z2 for countries with multiple `h2z2` nodes
     zone_country_z2 = spatial.h2_tyndp.df.country.reindex(spatial.buses_h2_z2)
     country_to_bus_z2 = pd.Series(zone_country_z2.index, index=zone_country_z2.values)
     country_to_bus_z2 = country_to_bus_z2[~country_to_bus_z2.index.duplicated()]
@@ -3852,8 +3860,6 @@ def add_h2_sres_tyndp(
         nodes.index + " SRES",
         location=nodes.index,
         country=nodes.country.values,
-        x=nodes.x.values,
-        y=nodes.y.values,
         carrier="AC_SRES",
         unit="MWh_el",
     )
