@@ -1477,6 +1477,19 @@ if (TYNDP_2026_DATASET := dataset_version("tyndp_2026"))["source"] in ARCHIVE_SO
             run:
                 _unpack_tyndp_2026(input, output)
 
+    rule retrieve_tyndp_2026_scenario_report:
+        input:
+            report=storage(
+                TYNDP_2026_DATASET["url"]
+                + "/additional/TYNDP_2026_Scenario_Report_Data_Figures.xlsx"
+            ),
+        output:
+            report=f"{TYNDP_2026_DATASET['folder']}/TYNDP_2026_Scenario_Report_Data_Figures.xlsx",
+        log:
+            "logs/retrieve_tyndp_2026_scenario_report.log",
+        run:
+            copy2(input["report"], output["report"])
+
 
 def get_osm_archive_files(version):
     return [

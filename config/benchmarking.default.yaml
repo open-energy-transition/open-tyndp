@@ -19,17 +19,15 @@ benchmarking:
       - report
       unit: GW
       report:
-        sheet_name: 25-
-        index_col: [2, 3]
-        header: 4
-        nrows: 10
-        ncolumns: 17
+        sheet_name: "57"
+        index_col: 3
+        header: 3
+        scenario: NT+
         names:
           index:
-          - scenario
-          - year
-          column:
           - carrier
+          column:
+          - year
 
     power_generation:
       table_type: scenario_comparison
@@ -39,17 +37,15 @@ benchmarking:
       - report
       unit: TWh
       report:
-        sheet_name: 26-
-        index_col: [2, 3]
-        header: 4
-        nrows: 10
-        ncolumns: 16
+        sheet_name: "58"
+        index_col: 2
+        header: 2
+        scenario: NT+
         names:
           index:
-          - scenario
-          - year
-          column:
           - carrier
+          column:
+          - year
 
     final_energy_demand:
       table_type: scenario_comparison
@@ -58,15 +54,15 @@ benchmarking:
       - report
       unit: TWh
       report:
-        sheet_name: 5-
+        sheet_name: "4"
         index_col: 2
-        header: [4, 5]
+        header: 5
+        scenario: NT+
         names:
           index:
-          - carrier
-          column:
-          - scenario
           - year
+          column:
+          - carrier
 
     electricity_demand:
       table_type: scenario_comparison
@@ -76,15 +72,15 @@ benchmarking:
       - report
       unit: TWh
       report:
-        sheet_name: 23-
-        index_col: [2, 3]
+        sheet_name: "35"
+        index_col: 3
         header: 4
+        scenario: NT+
         names:
           index:
-          - scenario
-          - year
-          column:
           - carrier
+          column:
+          - year
 
     electricity_prosumer_demand:
       table_type: scenario_comparison
@@ -100,15 +96,14 @@ benchmarking:
       - report
       unit: TWh
       report:
-        sheet_name: 8-
-        index_col: 2
-        header: [4, 5]
-        nrows: 15
+        sheet_name: "46"
+        index_col: 3
+        header: 4
+        scenario: NT+
         names:
           index:
           - carrier
           column:
-          - scenario
           - year
 
     hydrogen_demand:
@@ -119,15 +114,14 @@ benchmarking:
       - report
       unit: TWh
       report:
-        sheet_name: 10-
-        index_col: 2
-        header: [4, 5]
-        nrows: 15
+        sheet_name: "41"
+        index_col: 3
+        header: 4
+        scenario: NT+
         names:
           index:
           - carrier
           column:
-          - scenario
           - year
 
     methane_supply:
@@ -137,16 +131,16 @@ benchmarking:
       - report
       unit: TWh
       report:
-        sheet_name: 32-
-        index_col: 2
-        header: [6, 7]
-        nrows: 13
-        ncolumns: 9
+        sheet_name: "70"
+        index_col: [3, 4]
+        header: 4
+        nrows: 10
+        scenario: NT+
         names:
           index:
+          - origin
           - carrier
           column:
-          - scenario
           - year
 
     hydrogen_supply:
@@ -157,16 +151,14 @@ benchmarking:
       - report
       unit: TWh
       report:
-        sheet_name: 33-
-        index_col: 2
-        header: [4, 5]
-        nrows: 13
-        ncolumns: 9
+        sheet_name: "74"
+        index_col: 3
+        header: 5
+        scenario: NT+
         names:
           index:
           - carrier
           column:
-          - scenario
           - year
 
     biomass_supply:
@@ -176,14 +168,14 @@ benchmarking:
       - report
       unit: TWh
       report:
-        sheet_name: 22-
+        sheet_name: "81"
         index_col: 2
-        header: [3, 4]
+        header: 4
+        scenario: NT+
         names:
           index:
           - carrier
           column:
-          - scenario
           - year
       biomass_to_methane_efficiency:
         # Values from TYNDP 2024 Supply Tool
@@ -205,33 +197,16 @@ benchmarking:
       - report
       unit: TWh
       report:
-        sheet_name: 60-
+        sheet_name: "83"
         index_col: 2
-        header: [3, 4]
+        header: 3
+        ncolumns: 7
+        scenario: NT+
         names:
           index:
           - carrier
           column:
-          - scenario
           - year
-
-    generation_profiles:
-      table_type: time_series
-      mapping_col: benchmarking_generation_profiles
-      rfc_sources:
-      - report
-      unit: GW
-      report:
-        sheet_name:
-          DE: 30a
-          GA: 30b
-        index_col: 1
-        header: 4
-        names:
-          index:
-          - snapshot
-          column:
-          - carrier
 
     electricity_price:
       table_type: prices

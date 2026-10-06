@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MIT
 """
 This script computes accuracy indicators for comparing workflow results against reference data
-from the TYNDP 2024 Scenarios Report and the TYNDP 2026 dashboard outputs.
+from the TYNDP 2026 Scenarios Report and the TYNDP 2026 dashboard outputs.
 
 Benchmarks are computed per table only for planning years available in both the workflow results
 and the reference data.
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 SOURCES_MAP = {
     "dashboard_out": "TYNDP 2026 Dashboard Outputs",
-    "report": "TYNDP 2024 Scenarios Report",
+    "report": "TYNDP 2026 Scenarios Report",
 }
 
 
@@ -47,7 +47,7 @@ def load_data(
     Parameters
     ----------
     benchmarks_fn : str
-        Path to the TYNDP 2024 Scenarios Report benchmark data file.
+        Path to the TYNDP 2026 Scenarios Report benchmark data file.
     results_fn : str
         Path to the Open-TYNDP results data file.
     scenario : str
@@ -131,7 +131,7 @@ def match_temporal_resolution(
     df: pd.DataFrame,
     snapshots: dict[str, str],
     model_col: str = "Open-TYNDP",
-    rfc_col: str = "TYNDP 2024 Scenarios Report",
+    rfc_col: str = "TYNDP 2026 Scenarios Report",
 ) -> pd.DataFrame:
     """
     Match temporal resolution against reference data. Hourly time series from the rfc_col will be
@@ -145,7 +145,7 @@ def match_temporal_resolution(
         Dictionary defining the temporal range with 'start' and 'end' keys.
     model_col : str, default "Open-TYNDP"
         Column name for model values with potentially lower temporal resolution.
-    rfc_col : str, default "TYNDP 2024 Scenarios Report"
+    rfc_col : str, default "TYNDP 2026 Scenarios Report"
         Column name for reference values with hourly temporal resolution.
 
     Returns
@@ -329,7 +329,7 @@ def compute_all_indicators(
     df: pd.DataFrame,
     table: str,
     model_col: str = "Open-TYNDP",
-    rfc_col: str = "TYNDP 2024 Scenarios Report",
+    rfc_col: str = "TYNDP 2026 Scenarios Report",
     eps: float = 1e-6,
     carrier: str = None,
     df_na: pd.DataFrame = pd.DataFrame(),
@@ -347,7 +347,7 @@ def compute_all_indicators(
         Benchmark metric to compute.
     model_col : str, default "Open-TYNDP"
         Column name for model/projected values (ŷᵢ).
-    rfc_col : str, default "TYNDP 2024 Scenarios Report"
+    rfc_col : str, default "TYNDP 2026 Scenarios Report"
         Column name for reference/actual values (yᵢ).
     eps : float, default 1e-6
         Small value used when the denominator is zero.
@@ -413,7 +413,7 @@ def compute_indicators(
     table: str,
     snapshots: dict[str, str],
     options,
-    rfc_col: str = "TYNDP 2024 Scenarios Report",
+    rfc_col: str = "TYNDP 2026 Scenarios Report",
     carrier_col: str = "carrier",
     precision: int = 2,
     bus_col_name: str = "bus",
@@ -447,7 +447,7 @@ def compute_indicators(
         Dictionary defining the temporal range with 'start' and 'end' keys.
     options : dict
         Full benchmarking configuration.
-    rfc_col : str, default "TYNDP 2024 Scenarios Report"
+    rfc_col : str, default "TYNDP 2026 Scenarios Report"
         Name of the reference data source.
     carrier_col : str, default "carrier"
         Column name for carrier/technology grouping.
