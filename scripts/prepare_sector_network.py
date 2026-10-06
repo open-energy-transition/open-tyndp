@@ -3876,7 +3876,7 @@ def add_h2_sres_tyndp(
         lifetime=costs.at["electrolysis", "lifetime"],
     )
 
-    # Copperplated link between the e-market node and the SRES node
+    # Copperplated link from SRES node to the e-market node
     n.add(
         "Link",
         nodes.index + " SRES grid connection",
@@ -3884,6 +3884,7 @@ def add_h2_sres_tyndp(
         bus1=nodes.index,
         carrier="SRES grid connection",
         p_nom=np.inf,
+        p_min_pu=0,
     )
 
 
