@@ -16,7 +16,6 @@ linopy = "0d"
 pypsa = "0d"
 atlite = "0d"
 pypsa-explorer = "0d"
-snakemake-executor-plugin-slurm = "0d"  # drop once the pandas 3 build is older than 7d
 
 [target.win-64.activation.env]
 
@@ -97,6 +96,7 @@ proj = ">=9.6.2"
 pydeck = ">0.6"  # pypsa fails to import with pydeck <0.6, lower bound was only added from pypsa 1.0.6
 pypsa = ">=0.35.2"
 pyscipopt = ">=5.6.0"
+scip = "<10.1"  # drop once pyscipopt rebuilt for scip >= 10.1
 pytables = ">=3.10.2"
 python = ">=3.12,<3.14"  # remove upper bound once issue has been fixed https://github.com/PyPSA/pypsa-eur/issues/2245
 pytz = ">=2025.2"

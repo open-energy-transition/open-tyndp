@@ -168,7 +168,7 @@ rule build_offshore_shapes:
     log:
         logs("build_offshore_shapes.log"),
     benchmark:
-        benchmarks("build_offshore_shapes")
+        benchmarks("performances/build_offshore_shapes")
     threads: 1
     resources:
         mem_mb=1500,
@@ -202,7 +202,7 @@ rule build_nuts3_shapes:
     log:
         logs("build_nuts3_shapes.log"),
     benchmark:
-        benchmarks("build_nuts3_shapes")
+        benchmarks("performances/build_nuts3_shapes")
     threads: 1
     resources:
         mem_mb=1500,

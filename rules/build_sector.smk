@@ -829,14 +829,16 @@ rule build_swiss_energy_balances:
 
 rule build_co2_totals:
     input:
-        co2=rules.retrieve_ghg_emissions.output["csv"],
+        co2=branch(
+            config_provider("co2_budget"), rules.retrieve_ghg_emissions.output["csv"]
+        ),
         eurostat=resources("eurostat_energy_balances.csv"),
     output:
         co2_totals=resources("co2_totals.csv"),
     log:
         logs("build_co2_totals.log"),
     benchmark:
-        benchmarks("build_co2_totals")
+        benchmarks("performances/build_co2_totals")
     threads: 1
     resources:
         mem_mb=1000,
@@ -855,7 +857,7 @@ rule build_transformation_output_coke:
     log:
         logs("build_transformation_output_coke.log"),
     benchmark:
-        benchmarks("build_transformation_output_coke")
+        benchmarks("performances/build_transformation_output_coke")
     threads: 1
     resources:
         mem_mb=1000,
