@@ -250,7 +250,7 @@ rule simplify_sb_network:
         tyndp_conventional_carriers=config_provider(
             "electricity", "tyndp_conventional_carriers"
         ),
-        hurdle_costs=config_provider("cba", "hurdle_costs"),
+        hurdle_costs=config_provider("hurdle_costs"),
     script:
         scripts("cba/simplify_sb_network.py")
 
@@ -378,7 +378,7 @@ rule prepare_project:
     benchmark:
         benchmarks("performances/cba/prepare_project_{cba_project}_{planning_horizons}")
     params:
-        hurdle_costs=config_provider("cba", "hurdle_costs"),
+        hurdle_costs=config_provider("hurdle_costs"),
         cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
         soc_boundary_carriers=config_provider("cba", "storage", "soc_boundary_carriers"),
         storage_discount_rate=config_provider("cba", "storage", "discount_rate"),

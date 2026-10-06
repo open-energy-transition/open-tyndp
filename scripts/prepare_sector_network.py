@@ -2655,9 +2655,10 @@ def _add_other_res_profiles(
     component_df: pd.DataFrame,
     component_t: dict[str, pd.DataFrame],
     profiles: pd.DataFrame,
+    attr: str = "p_set",
 ) -> None:
     """
-    Add p_set profiles to existing network for a given Other RES carrier and component.
+    Add Other RES profiles to existing network for a given carrier and component.
 
     Parameters
     ----------
@@ -2671,6 +2672,9 @@ def _add_other_res_profiles(
         Component dictionary containing time-dependent attributes for the given component.
     profiles : pd.DataFrame
         Dataframe containing the profiles to add to the network.
+    attr : str
+        Time-dependent attribute to write the profile to. ``p_set`` fixes the
+        dispatch to the profile, ``p_max_pu`` only caps it.
 
     Returns
     -------
@@ -2686,15 +2690,18 @@ def _add_other_res_profiles(
             p_set=lambda df: df.p_set.div(component_df.loc[asset_i].efficiency.iloc[0])
         )
 
-    p_set = (
+    profile = (
         profiles.pivot_table(values="p_set", index="time", columns="bus")
         .rename(columns=lambda x: f"{x} {carrier}")
         .reindex(asset_i, axis=1, fill_value=0.0)
     )
-    p_set = p_set.loc[:, (p_set != 0.0).any()]
+    if attr == "p_max_pu":
+        profile = profile.div(component_df.loc[asset_i, "p_nom"], axis=1)
+    else:
+        profile = profile.loc[:, (profile != 0.0).any()]
 
     _add_new_profiles_to_existing(
-        component_t=component_t, attr="p_set", new_profiles=p_set
+        component_t=component_t, attr=attr, new_profiles=profile
     )
 
 
@@ -2747,12 +2754,17 @@ def _add_other_res_capacities(
 
     # Add fixed per-unit generation profiles
     # Other RES Biomass
+    # TODO The profile only caps the dispatch instead of fixing it, because the
+    # PEMMDB 2024 must-run biomass demand is inconsistent with the TYNDP 2026
+    # Supply Tool biomass potentials and renders the network infeasible. Revisit
+    # once PEMMDB 2026 data is added to the network.
     _add_other_res_profiles(
         carrier="other-res-biomass",
         asset_i=n.links.query("carrier == 'other-res-biomass' and p_nom > 0").index,
         component_df=n.links,
         component_t=n.links_t,
         profiles=pemmdb_profiles,
+        attr="p_max_pu",
     )
     # Other RES Mix
     _add_other_res_profiles(
@@ -3134,6 +3146,39 @@ def add_ammonia(
     )
 
 
+def add_hurdle_costs_tyndp(n: pypsa.Network, hurdle_costs: float) -> None:
+    """
+    Apply the TYNDP hurdle cost to the electricity and hydrogen grids.
+
+    TYNDP charges a small uniform wheeling charge on the e-market, hydrogen
+    and offshore grids to discourage loop flows. The TYNDP transmission links
+    are unidirectional, so the charge is applied as a marginal cost on each
+    link.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object to be modified
+    hurdle_costs : float
+        Hurdle cost in EUR/MWh.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place
+    """
+    links = n.links.index[n.links.carrier.isin(["DC", "H2 pipeline"])]
+    assert (n.links.loc[links, "p_min_pu"] >= 0).all(), (
+        "Hurdle costs require unidirectional transmission links (p_min_pu >= 0)."
+    )
+    n.links.loc[links, "marginal_cost"] = hurdle_costs
+
+    logger.info(
+        f"Applied hurdle costs of {hurdle_costs} EUR/MWh to {len(links)} "
+        "electricity and hydrogen transmission links"
+    )
+
+
 def insert_electricity_distribution_grid(
     n: pypsa.Network,
     costs: pd.DataFrame,
@@ -3141,6 +3186,8 @@ def insert_electricity_distribution_grid(
     pop_layout: pd.DataFrame,
     solar_rooftop_potentials_fn: str,
     ext_stores: list[str],
+    tyndp_scenario: str | bool = False,
+    wheeling_charges_fn: str = "",
 ) -> None:
     """
     Insert electricity distribution grid components into the network.
@@ -3167,6 +3214,18 @@ def insert_electricity_distribution_grid(
         Index should match network nodes
     ext_stores : list[str]
         List of extendable Stores
+    tyndp_scenario : str | bool, default False
+        TYNDP scenario to follow the conventions of. If set, low voltage buses
+        are suffixed 'RETE' and the distribution grid is modelled as two
+        non-extendable unidirectional links priced with the TYNDP wheeling
+        charges instead of one extendable bidirectional link.
+    wheeling_charges_fn : str, optional
+        Path to a CSV of per-node TYNDP wheeling charges (columns
+        'e_market_to_prosumer'/'prosumer_to_e_market', €/MWh), only required
+        when `tyndp_scenario` is set. It covers the nodes given in TYNDP as
+        prosumer nodes input; nodes in `pop_layout` outside of it are skipped
+        entirely (no low voltage bus/link, loads and other components stay
+        on the main AC bus).
 
     Returns
     -------
@@ -3176,7 +3235,8 @@ def insert_electricity_distribution_grid(
     Notes
     -----
     Components added to the network:
-    - Low voltage buses for each node
+    - Low voltage buses for each node (all of `pop_layout` normally, or only
+      the TYNDP prosumer nodes when `tyndp_scenario` is set)
     - Distribution grid links connecting high to low voltage
     - Rooftop solar potential based on population density
     - Home battery storage systems with separate charger/discharger links if `home battery` is included
@@ -3190,28 +3250,61 @@ def insert_electricity_distribution_grid(
     - Micro-CHP units
     """
 
-    nodes = n.buses.query("carrier == 'AC'").index
+    nodes = pop_layout.index
+    lv_suffix = "RETE" if tyndp_scenario else " low voltage"
+
+    if tyndp_scenario:
+        wheeling_charges = pd.read_csv(wheeling_charges_fn, index_col=0)
+        missing = nodes.difference(wheeling_charges.index)
+        if not missing.empty:
+            logger.warning(
+                f"TYNDP models no prosumer node for {len(missing)} node(s), "
+                f"skipping electricity distribution grid for: {', '.join(missing)}"
+            )
+        nodes = nodes.intersection(wheeling_charges.index)
 
     n.add(
         "Bus",
-        nodes + " low voltage",
+        nodes + lv_suffix,
         location=nodes,
         carrier="low voltage",
         unit="MWh_el",
     )
 
-    n.add(
-        "Link",
-        nodes + " electricity distribution grid",
-        bus0=nodes,
-        bus1=nodes + " low voltage",
-        p_nom_extendable=True,
-        p_min_pu=-1,
-        carrier="electricity distribution grid",
-        efficiency=1,
-        lifetime=costs.at["electricity distribution grid", "lifetime"],
-        capital_cost=costs.at["electricity distribution grid", "capital_cost"],
-    )
+    if tyndp_scenario:
+        n.add(
+            "Link",
+            nodes + " electricity distribution grid",
+            bus0=nodes,
+            bus1=nodes + lv_suffix,
+            p_nom=np.inf,
+            carrier="electricity distribution grid",
+            efficiency=1,
+            marginal_cost=wheeling_charges.loc[nodes, "e_market_to_prosumer"].values,
+        )
+        n.add(
+            "Link",
+            nodes + " electricity distribution grid reverse",
+            bus0=nodes + lv_suffix,
+            bus1=nodes,
+            p_nom=np.inf,
+            carrier="electricity distribution grid",
+            efficiency=1,
+            marginal_cost=wheeling_charges.loc[nodes, "prosumer_to_e_market"].values,
+        )
+    else:
+        n.add(
+            "Link",
+            nodes + " electricity distribution grid",
+            bus0=nodes,
+            bus1=nodes + lv_suffix,
+            p_nom_extendable=True,
+            p_min_pu=-1,
+            carrier="electricity distribution grid",
+            efficiency=1,
+            lifetime=costs.at["electricity distribution grid", "lifetime"],
+            capital_cost=costs.at["electricity distribution grid", "capital_cost"],
+        )
 
     # deduct distribution losses from electricity demand as these are included in total load
     # https://nbviewer.org/github/Open-Power-System-Data/datapackage_timeseries/blob/2020-10-06/main.ipynb
@@ -3229,33 +3322,47 @@ def insert_electricity_distribution_grid(
 
     # this catches regular electricity load and "industry electricity" and
     # "agriculture machinery electric" and "agriculture electricity"
-    loads = n.loads.index[n.loads.carrier.str.contains("electric")]
-    n.loads.loc[loads, "bus"] += " low voltage"
+    loads = n.loads.index[
+        n.loads.carrier.str.contains("electric") & n.loads.bus.isin(nodes)
+    ]
+    n.loads.loc[loads, "bus"] += lv_suffix
 
-    bevs = n.links.index[n.links.carrier == "BEV charger"]
-    n.links.loc[bevs, "bus0"] += " low voltage"
+    bevs = n.links.index[(n.links.carrier == "BEV charger") & n.links.bus0.isin(nodes)]
+    n.links.loc[bevs, "bus0"] += lv_suffix
 
-    v2gs = n.links.index[n.links.carrier == "V2G"]
-    n.links.loc[v2gs, "bus1"] += " low voltage"
+    v2gs = n.links.index[(n.links.carrier == "V2G") & n.links.bus1.isin(nodes)]
+    n.links.loc[v2gs, "bus1"] += lv_suffix
 
-    hps = n.links.index[n.links.carrier.str.contains("heat pump")]
-    n.links.loc[hps, "bus1"] += " low voltage"
+    hps = n.links.index[
+        n.links.carrier.str.contains("heat pump") & n.links.bus1.isin(nodes)
+    ]
+    n.links.loc[hps, "bus1"] += lv_suffix
 
-    rh = n.links.index[n.links.carrier.str.contains("resistive heater")]
-    n.links.loc[rh, "bus0"] += " low voltage"
+    rh = n.links.index[
+        n.links.carrier.str.contains("resistive heater") & n.links.bus0.isin(nodes)
+    ]
+    n.links.loc[rh, "bus0"] += lv_suffix
 
-    mchp = n.links.index[n.links.carrier.str.contains("micro gas")]
-    n.links.loc[mchp, "bus1"] += " low voltage"
+    mchp = n.links.index[
+        n.links.carrier.str.contains("micro gas") & n.links.bus1.isin(nodes)
+    ]
+    n.links.loc[mchp, "bus1"] += lv_suffix
 
     # attach TYNDP rooftop solar to low voltage bus
-    rtsolar = n.generators.index[n.generators.carrier == "solar-pv-rooftop"]
-    n.generators.loc[rtsolar, "bus"] += " low voltage"
+    rtsolar = n.generators.index[
+        (n.generators.carrier == "solar-pv-rooftop") & n.generators.bus.isin(nodes)
+    ]
+    n.generators.loc[rtsolar, "bus"] += lv_suffix
 
-    dsr = n.generators.index[n.generators.carrier == "dsr"]
-    n.generators.loc[dsr, "bus"] += " low voltage"
+    dsr = n.generators.index[
+        (n.generators.carrier == "dsr") & n.generators.bus.isin(nodes)
+    ]
+    n.generators.loc[dsr, "bus"] += lv_suffix
 
     # set existing solar to cost of utility cost rather the 50-50 rooftop-utility
-    solar = n.generators.index[n.generators.carrier == "solar"]
+    solar = n.generators.index[
+        (n.generators.carrier == "solar") & n.generators.bus.isin(nodes)
+    ]
     n.generators.loc[solar, "capital_cost"] = costs.at["solar-utility", "capital_cost"]
 
     fn = solar_rooftop_potentials_fn
@@ -3267,7 +3374,7 @@ def insert_electricity_distribution_grid(
             "Generator",
             solar,
             suffix=" rooftop",
-            bus=n.generators.loc[solar, "bus"] + " low voltage",
+            bus=n.generators.loc[solar, "bus"] + lv_suffix,
             carrier="solar rooftop",
             p_nom_extendable=True,
             p_nom_max=potential.loc[solar],
@@ -3304,7 +3411,7 @@ def insert_electricity_distribution_grid(
         n.add(
             "Link",
             nodes + " home battery charger",
-            bus0=nodes + " low voltage",
+            bus0=nodes + lv_suffix,
             bus1=nodes + " home battery",
             carrier="home battery charger",
             efficiency=costs.at["battery inverter", "efficiency"] ** 0.5,
@@ -3317,7 +3424,7 @@ def insert_electricity_distribution_grid(
             "Link",
             nodes + " home battery discharger",
             bus0=nodes + " home battery",
-            bus1=nodes + " low voltage",
+            bus1=nodes + lv_suffix,
             carrier="home battery discharger",
             efficiency=costs.at["battery inverter", "efficiency"] ** 0.5,
             marginal_cost=costs.at["home battery storage", "marginal_cost"],
@@ -6507,7 +6614,7 @@ def add_biomass(
     )
 
     e_sum_min_biogas = (
-        biogas_potentials_spatial * nyears if options["force_biogas_potential"] else 0
+        biogas_potentials_spatial if options["force_biogas_potential"] else 0
     )
     if options["force_biogas_potential"]:
         logger.info("Force biogas potential to be used.")
@@ -6524,9 +6631,7 @@ def add_biomass(
     )
 
     e_sum_min_biomass = (
-        solid_biomass_potentials_spatial * nyears
-        if options["force_biomass_potential"]
-        else 0
+        solid_biomass_potentials_spatial if options["force_biomass_potential"] else 0
     )
     if options["force_biomass_potential"]:
         logger.info("Force biomass potential to be used.")
@@ -9586,7 +9691,12 @@ if __name__ == "__main__":
             pop_layout=pop_layout,
             solar_rooftop_potentials_fn=snakemake.input.solar_rooftop_potentials,
             ext_stores=extendable_stores,
+            tyndp_scenario=tyndp_scenario,
+            wheeling_charges_fn=snakemake.input.get("wheeling_charges", ""),
         )
+
+    if tyndp_scenario and snakemake.params.hurdle_costs:
+        add_hurdle_costs_tyndp(n, snakemake.params.hurdle_costs)
 
     if options["enhanced_geothermal"].get("enable", False):
         logger.info("Adding Enhanced Geothermal Systems (EGS).")

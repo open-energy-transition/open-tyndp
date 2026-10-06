@@ -459,11 +459,6 @@
     "CbaConfig": {
       "description": "Configuration for top level `cba` (cost-benefit analysis) settings.",
       "properties": {
-        "hurdle_costs": {
-          "default": 0.01,
-          "description": "Marginal cost for transmission lines in cost-benefit analysis networks (EUR/MWh).",
-          "type": "number"
-        },
         "co2_societal_cost": {
           "additionalProperties": {
             "additionalProperties": {
@@ -9457,6 +9452,11 @@
         false
       ]
     },
+    "hurdle_costs": {
+      "default": 0.01,
+      "description": "Hurdle cost applied as marginal cost to transmission links (EUR/MWh), used to discourage loop flows. Applied to the electricity and hydrogen grids in Scenario Building and to the DC links in the Cost-Benefit Analysis.",
+      "type": "number"
+    },
     "wscenarios_tyndp": {
       "additionalProperties": {
         "items": {
@@ -15537,11 +15537,6 @@
     "cba": {
       "description": "Configuration for top level `cba` (cost-benefit analysis) settings.",
       "properties": {
-        "hurdle_costs": {
-          "default": 0.01,
-          "description": "Marginal cost for transmission lines in cost-benefit analysis networks (EUR/MWh).",
-          "type": "number"
-        },
         "co2_societal_cost": {
           "additionalProperties": {
             "additionalProperties": {

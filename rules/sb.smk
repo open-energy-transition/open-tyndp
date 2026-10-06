@@ -511,6 +511,25 @@ rule build_tyndp_h2_demand:
         scripts("sb/build_tyndp_h2_demand.py")
 
 
+rule build_tyndp_wheeling_charges:
+    input:
+        wheeling_charges=rules.retrieve_tyndp_2026.output.wheeling_charges,
+        demand=rules.retrieve_tyndp_2026.output.demand_profiles,
+    output:
+        wheeling_charges=resources("wheeling_charges_tyndp.csv"),
+    log:
+        logs("build_tyndp_wheeling_charges.log"),
+    benchmark:
+        benchmarks("performances/build_tyndp_wheeling_charges")
+    conda:
+        "../envs/environment.yaml"
+    threads: 1
+    resources:
+        mem_mb=1000,
+    script:
+        scripts("sb/build_tyndp_wheeling_charges.py")
+
+
 if config["sector"]["h2_topology_tyndp"]:
 
     rule build_tyndp_h2_network:
