@@ -685,10 +685,6 @@ if config["benchmarking"]["enable"]:
             + "benchmarks/tyndp-2026/resources/benchmarks_tyndp_dashboard_{scenario}{planning_horizons}.csv",
             crossborder=RESULTS
             + "benchmarks/tyndp-2026/resources/benchmarks_tyndp_dashboard_crossborder_{scenario}{planning_horizons}.csv",
-            h2_demand=RESULTS
-            + "benchmarks/tyndp-2026/resources/benchmarks_tyndp_dashboard_h2_demand_{scenario}{planning_horizons}.csv",
-            elec_demand=RESULTS
-            + "benchmarks/tyndp-2026/resources/benchmarks_tyndp_dashboard_elec_demand_{scenario}{planning_horizons}.csv",
         log:
             logs("clean_tyndp_dashboard_benchmark_{scenario}{planning_horizons}.log"),
         benchmark:
@@ -701,8 +697,6 @@ if config["benchmarking"]["enable"]:
         params:
             benchmarking=config_provider("benchmarking"),
             scenario=config_provider("tyndp_scenario"),
-            snapshots=config_provider("snapshots"),
-            drop_leap_day=config_provider("enable", "drop_leap_day"),
             countries=config_provider("countries"),
             wscenarios=config_provider("wscenarios_tyndp"),
         script:

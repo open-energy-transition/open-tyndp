@@ -1858,14 +1858,6 @@ rule prepare_sector_network:
             and config_provider("sector", "electricity_distribution_grid")(w),
             resources("wheeling_charges_tyndp.csv"),
         ),
-        elec_demand_mm=lambda w: (
-            RESULTS
-            + f"benchmarks/tyndp-2026/resources/benchmarks_tyndp_dashboard_elec_demand_{config_provider('tyndp_scenario')(w)}{{planning_horizons}}.csv"
-            if config_provider("tyndp_scenario")(w)
-            == "NT"  # Only scenario with dashboard data
-            and config_provider("load", "patch_demand_with_mm")(w)
-            else []
-        ),
         tyndp_nuclear_profiles=branch(
             config_provider("tyndp_scenario")
             and config_provider("conventional", "tyndp_availability_profiles"),
@@ -1945,7 +1937,6 @@ rule prepare_sector_network:
         ),
         load_source=config_provider("load", "source"),
         scaling_factor=config_provider("load", "scaling_factor"),
-        patch_load_mm=config_provider("load", "patch_demand_with_mm"),
         tyndp_scenario=config_provider("tyndp_scenario"),
         hurdle_costs=config_provider("hurdle_costs"),
     message:

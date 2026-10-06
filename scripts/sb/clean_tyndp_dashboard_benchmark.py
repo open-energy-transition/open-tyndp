@@ -34,11 +34,9 @@ import numpy as np
 import pandas as pd
 
 from scripts._helpers import (
-    align_demand_to_snapshots,
     configure_logging,
     convert_units,
     format_bz_names,
-    get_snapshots,
     get_wscenario,
     normalize_direction,
     set_scenario_config,
@@ -246,43 +244,9 @@ def parse_installed_capacity(df: pd.DataFrame) -> pd.DataFrame:
     )
 
 
-def parse_demand_ts(
-    sheets: dict[str, pd.DataFrame], sheet_names: list[str]
-) -> pd.DataFrame:
-    """
-    Parse hourly "Native Demand" time series from TYNDP TimeSeries Dashboard sheets.
-
-    Parameters
-    ----------
-    sheets : dict[str, pd.DataFrame]
-        Raw sheets read without header, by sheet name.
-    sheet_names : list[str]
-        Names of the sheets to parse.
-
-    Returns
-    -------
-    pd.DataFrame
-        Hourly demand with buses as columns, indexed by the dashboard date and hour.
-    """
-    row_zone, row_category, row_data, col_time = 5, 6, 10, 1
-
-    dfs = []
-    for sheet_name in [s for s in sheet_names if s in sheets]:
-        df = sheets[sheet_name]
-        carrier, _ = split_unit_from_category(df.loc[row_category])
-        cols = carrier.index[carrier == "Native Demand"]
-
-        demand = df.loc[row_data:, cols].apply(pd.to_numeric, errors="coerce")
-        demand.columns = rename_prosumer_nodes(df.loc[row_zone, cols].astype(str))
-        demand.index = df.loc[row_data:, col_time]
-        dfs.append(demand)
-
-    return pd.concat(dfs, axis=1) if dfs else pd.DataFrame()
-
-
 def read_dashboard(
     filepath: str | Path,
-) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Read all required sheets of a TYNDP TimeSeries Dashboard output file at once.
 
@@ -293,11 +257,11 @@ def read_dashboard(
 
     Returns
     -------
-    tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]
-        Yearly aggregates of all timeseries sheets, installed capacities, and hourly
-        electricity and hydrogen demand.
+    tuple[pd.DataFrame, pd.DataFrame]
+        Yearly aggregates of all timeseries sheets and installed capacities.
     """
-    sheet_names = ELECTRICITY_SHEETS + H2_SHEETS + [EXCHANGES_SHEET, CAPACITY_SHEET]
+    sheet_names = ELECTRICITY_SHEETS + H2_SHEETS + [EXCHANGES_SHEET]
+    nrows_header = 9
 
     # Some nodes are missing sheets
     with pd.ExcelFile(filepath, engine="calamine") as file:
@@ -305,23 +269,13 @@ def read_dashboard(
             file,
             sheet_name=[s for s in sheet_names if s in file.sheet_names],
             header=None,
+            nrows=nrows_header,
         )
+        capacity = pd.read_excel(file, sheet_name=CAPACITY_SHEET, header=None)
 
-    stats = pd.concat(
-        [
-            parse_dashboard_sheet(df, s)
-            for s, df in sheets.items()
-            if s != CAPACITY_SHEET
-        ]
-    )
-    capacity = parse_installed_capacity(sheets[CAPACITY_SHEET])
+    stats = pd.concat([parse_dashboard_sheet(df, s) for s, df in sheets.items()])
 
-    return (
-        stats,
-        capacity,
-        parse_demand_ts(sheets, ELECTRICITY_SHEETS),
-        parse_demand_ts(sheets, H2_SHEETS),
-    )
+    return stats, parse_installed_capacity(capacity)
 
 
 def load_crossborder(
@@ -606,9 +560,7 @@ if __name__ == "__main__":
 
     logger.info(f"Reading {len(dashboard_files)} TimeSeries Dashboard files")
     with ProcessPoolExecutor(max_workers=snakemake.threads) as executor:
-        stats, capacity, elec_demand_ts, h2_demand_ts = zip(
-            *executor.map(read_dashboard, dashboard_files)
-        )
+        stats, capacity = zip(*executor.map(read_dashboard, dashboard_files))
     stats = pd.concat(stats, ignore_index=True)
     capacity = pd.concat(capacity, ignore_index=True)
 
@@ -644,28 +596,10 @@ if __name__ == "__main__":
         ignore_index=True,
     )
 
-    # load demand time series
-    # Prosumer demand is aggregated onto the base bus (TBD with infrastructure PR)
-    logger.info("Processing hourly demand tables")
-    snapshots = get_snapshots(
-        snakemake.params.snapshots, snakemake.params.drop_leap_day
-    )
-    h2_demand_ts, elec_demand_ts = (
-        align_demand_to_snapshots(
-            pd.concat(dfs, axis=1).T.groupby(level=0).sum().T,
-            snapshots,
-            format="%d. %b. %H:%M",
-        )
-        for dfs in [h2_demand_ts, elec_demand_ts]
-    )
-
     # assign meta data
     assign_meta_data(dashboard_data, planning_horizon, scenario)
     assign_meta_data(crossborder, planning_horizon, scenario)
-    assign_meta_data(h2_demand_ts, planning_horizon, scenario)
 
     # Save data
     dashboard_data.to_csv(snakemake.output.benchmarks, index=False, float_format="%.2f")
     crossborder.to_csv(snakemake.output.crossborder)
-    h2_demand_ts.to_csv(snakemake.output.h2_demand)
-    elec_demand_ts.to_csv(snakemake.output.elec_demand)

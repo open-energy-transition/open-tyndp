@@ -3445,21 +3445,6 @@
               "type": "number"
             }
           }
-        },
-        "patch_demand_with_mm": {
-          "anyOf": [
-            {
-              "type": "boolean"
-            },
-            {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            }
-          ],
-          "default": false,
-          "description": "Whether to patch the electricity demand with Market Model output data. Set to `true` to apply to all nodes, or provide a list of node names to apply selectively."
         }
       }
     },
@@ -11704,21 +11689,6 @@
               "type": "number"
             }
           }
-        },
-        "patch_demand_with_mm": {
-          "anyOf": [
-            {
-              "type": "boolean"
-            },
-            {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            }
-          ],
-          "default": false,
-          "description": "Whether to patch the electricity demand with Market Model output data. Set to `true` to apply to all nodes, or provide a list of node names to apply selectively."
         }
       }
     },
