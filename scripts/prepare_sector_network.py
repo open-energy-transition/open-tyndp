@@ -8893,8 +8893,15 @@ def add_import_options(
             )
 
             if not import_profiles_h2.empty:
+                p_max_pu = import_profiles_h2.reindex(n.snapshots)
+                missing = p_max_pu.columns[p_max_pu.isna().any()]
+                if not missing.empty:
+                    raise ValueError(
+                        "TYNDP H2 import profiles do not cover all snapshots. "
+                        f"Missing values for: {missing.tolist()}"
+                    )
                 n.generators_t.p_max_pu[import_profiles_h2.columns + " H2 import"] = (
-                    import_profiles_h2.reindex(n.snapshots).values
+                    p_max_pu.values
                 )
 
             n.add(
