@@ -289,7 +289,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/ruamel.yaml.clib-0.2.15-py313hd42f317_5.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/s2n-1.7.5-h7e3ee7f_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/scikit-learn-1.9.0-np2py313h16d504d_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/scip-10.1.0-ha99405a_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/scip-10.0.3-h311443d_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/scipy-1.18.0-py313h4b8bb8b_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/shapely-2.1.2-py313h14b1fe9_3.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/simplejson-4.1.2-py313h995f894_1.conda
@@ -1158,7 +1158,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-64/ruamel.yaml.clib-0.2.15-py313h4b81b55_5.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/s2n-1.7.5-he8c8f02_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/scikit-learn-1.9.0-np2py313h4d167ef_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/osx-64/scip-10.1.0-hb02cced_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-64/scip-10.0.3-h75235b4_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/scipy-1.18.0-py313h9cbb6b6_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/shapely-2.1.2-py313h66af4a9_3.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/simplejson-4.1.2-py313h71da6e4_1.conda
@@ -1714,7 +1714,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/ruamel.yaml.clib-0.2.15-py313h2f871a8_5.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/s2n-1.7.5-h1b28cb6_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/scikit-learn-1.9.0-np2py313h3b23316_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/scip-10.1.0-ha868e0a_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/scip-10.0.3-h5461d79_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/scipy-1.18.0-py313h52f5312_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/shapely-2.1.2-py313h2c9f329_3.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/simplejson-4.1.2-py313hf5449f0_1.conda
@@ -2253,7 +2253,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/win-64/rpds-py-2026.6.3-py313hfbe8231_2.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/ruamel.yaml.clib-0.2.15-py313h5fd188c_5.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/scikit-learn-1.9.0-np2py313h4ce4a18_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/win-64/scip-10.1.0-h210ce82_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/win-64/scip-10.0.3-h54f6bf4_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/scipy-1.18.0-py313he51e9a2_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/shapely-2.1.2-py313h64ccc5a_3.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/simplejson-4.1.2-py313h5ea7bf4_1.conda
@@ -2576,7 +2576,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/ruff-0.16.9-hbcb56a7_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/s2n-1.7.5-h7e3ee7f_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/scikit-learn-1.9.0-np2py313h16d504d_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/scip-10.1.0-ha99405a_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/scip-10.0.3-h311443d_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/scipy-1.18.0-py313h4b8bb8b_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/shapely-2.1.2-py313h14b1fe9_3.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/simplejson-4.1.2-py313h995f894_1.conda
@@ -3486,7 +3486,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-64/ruff-0.16.9-haa00350_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/s2n-1.7.5-he8c8f02_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/scikit-learn-1.9.0-np2py313h4d167ef_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/osx-64/scip-10.1.0-hb02cced_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-64/scip-10.0.3-h75235b4_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/scipy-1.18.0-py313h9cbb6b6_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/shapely-2.1.2-py313h66af4a9_3.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/simplejson-4.1.2-py313h71da6e4_1.conda
@@ -4064,7 +4064,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/ruff-0.16.9-ha7a9cbd_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/s2n-1.7.5-h1b28cb6_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/scikit-learn-1.9.0-np2py313h3b23316_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/scip-10.1.0-ha868e0a_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/scip-10.0.3-h5461d79_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/scipy-1.18.0-py313h52f5312_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/shapely-2.1.2-py313h2c9f329_3.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/simplejson-4.1.2-py313hf5449f0_1.conda
@@ -4625,7 +4625,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/win-64/ruamel.yaml.clib-0.2.15-py313h5fd188c_5.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/ruff-0.16.9-hcc30601_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/scikit-learn-1.9.0-np2py313h4ce4a18_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/win-64/scip-10.1.0-h210ce82_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/win-64/scip-10.0.3-h54f6bf4_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/scipy-1.18.0-py313he51e9a2_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/shapely-2.1.2-py313h64ccc5a_3.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/simplejson-4.1.2-py313h5ea7bf4_1.conda
@@ -6885,7 +6885,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/ruamel.yaml.clib-0.2.15-py313hd42f317_5.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/s2n-1.7.5-h7e3ee7f_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/scikit-learn-1.9.0-np2py313h16d504d_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/scip-10.1.0-ha99405a_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/scip-10.0.3-h311443d_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/scipy-1.18.0-py313h4b8bb8b_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/shapely-2.1.2-py313h14b1fe9_3.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/simplejson-4.1.2-py313h995f894_1.conda
@@ -7773,7 +7773,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-64/ruamel.yaml.clib-0.2.15-py313h4b81b55_5.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/s2n-1.7.5-he8c8f02_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/scikit-learn-1.9.0-np2py313h4d167ef_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/osx-64/scip-10.1.0-hb02cced_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-64/scip-10.0.3-h75235b4_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/scipy-1.18.0-py313h9cbb6b6_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/shapely-2.1.2-py313h66af4a9_3.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/simplejson-4.1.2-py313h71da6e4_1.conda
@@ -8339,7 +8339,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/ruamel.yaml.clib-0.2.15-py313h2f871a8_5.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/s2n-1.7.5-h1b28cb6_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/scikit-learn-1.9.0-np2py313h3b23316_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/scip-10.1.0-ha868e0a_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/scip-10.0.3-h5461d79_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/scipy-1.18.0-py313h52f5312_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/shapely-2.1.2-py313h2c9f329_3.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/simplejson-4.1.2-py313hf5449f0_1.conda
@@ -8889,7 +8889,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/win-64/rpds-py-2026.6.3-py313hfbe8231_2.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/ruamel.yaml.clib-0.2.15-py313h5fd188c_5.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/scikit-learn-1.9.0-np2py313h4ce4a18_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/win-64/scip-10.1.0-h210ce82_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/win-64/scip-10.0.3-h54f6bf4_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/scipy-1.18.0-py313he51e9a2_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/shapely-2.1.2-py313h64ccc5a_3.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/simplejson-4.1.2-py313h5ea7bf4_1.conda
@@ -9212,7 +9212,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/ruff-0.16.9-hbcb56a7_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/s2n-1.7.5-h7e3ee7f_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/scikit-learn-1.9.0-np2py313h16d504d_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/scip-10.1.0-ha99405a_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/scip-10.0.3-h311443d_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/scipy-1.18.0-py313h4b8bb8b_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/shapely-2.1.2-py313h14b1fe9_3.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/simplejson-4.1.2-py313h995f894_1.conda
@@ -10121,7 +10121,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-64/ruff-0.16.9-haa00350_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/s2n-1.7.5-he8c8f02_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/scikit-learn-1.9.1-np2py312h2f0d670_1.conda
-      - conda: https://conda.anaconda.org/conda-forge/osx-64/scip-10.1.0-hb02cced_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-64/scip-10.0.3-h75235b4_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/scipy-1.18.1-py312h81fa79e_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/shapely-2.1.2-py312hd8c89b0_3.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/simplejson-4.1.2-py312h6ea13a3_1.conda
@@ -10700,7 +10700,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/ruff-0.16.9-ha7a9cbd_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/s2n-1.7.5-h1b28cb6_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/scikit-learn-1.9.0-np2py313h3b23316_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/scip-10.1.0-ha868e0a_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/scip-10.0.3-h5461d79_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/scipy-1.18.0-py313h52f5312_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/shapely-2.1.2-py313h2c9f329_3.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/simplejson-4.1.2-py313hf5449f0_1.conda
@@ -11261,7 +11261,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/win-64/ruamel.yaml.clib-0.2.15-py313h5fd188c_5.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/ruff-0.16.9-hcc30601_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/scikit-learn-1.9.0-np2py313h4ce4a18_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/win-64/scip-10.1.0-h210ce82_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/win-64/scip-10.0.3-h54f6bf4_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/scipy-1.18.0-py313he51e9a2_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/shapely-2.1.2-py313h64ccc5a_3.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/simplejson-4.1.2-py313h5ea7bf4_1.conda
@@ -17128,28 +17128,28 @@ packages:
   run_exports: {}
   size: 10311253
   timestamp: 1780401051520
-- conda: https://conda.anaconda.org/conda-forge/linux-64/scip-10.1.0-ha99405a_0.conda
-  sha256: 1e8c52831853b844622f709c62c35e26c537500db7f5af5b27a55231f7ebe218
-  md5: 975a3f4897b6e7e9cd930cd9e2d3094c
+- conda: https://conda.anaconda.org/conda-forge/linux-64/scip-10.0.3-h311443d_0.conda
+  sha256: 4d93e0677e8c13304d8d624223b1644dd42b3e985f140e29962da6eea39f8961
+  md5: 68c4c91fe400ea677c07d7f6b3194274
   depends:
-  - libgfortran5 >=15.3.0
-  - libgfortran
-  - libgcc >=15
-  - libstdcxx >=15
   - __glibc >=2.17,<3.0.a0
-  - mpfr >=4.2.2,<5.0a0
-  - libblas >=3.9.0,<4.0a0
-  - tbb >=2023.1.0
-  - libboost >=1.90.0,<1.91.0a0
+  - libgcc >=14
+  - libstdcxx >=14
+  - libgfortran5 >=14.3.0
+  - libgfortran
   - libzlib >=1.3.2,<2.0a0
-  - ipopt >=3.14.19,<3.14.20.0a0
+  - tbb >=2023.0.0
   - gmp >=6.3.0,<7.0a0
+  - libblas >=3.9.0,<4.0a0
+  - ipopt >=3.14.19,<3.14.20.0a0
+  - libboost >=1.90.0,<1.91.0a0
+  - mpfr >=4.2.2,<5.0a0
   license: Apache-2.0 AND LGPL-3.0-or-later AND EPL-1.0 and MIT and Zlib and BSL-1.0 and HPND
   run_exports:
     weak:
-    - scip >=10.1.0,<11.0a0
-  size: 16256197
-  timestamp: 1789800508391
+    - scip >=10.0.3,<11.0a0
+  size: 16232388
+  timestamp: 1783407647721
 - conda: https://conda.anaconda.org/conda-forge/linux-64/scipy-1.18.0-py313h4b8bb8b_0.conda
   sha256: 3ffdca726208a7394b2aa9989e5b1718e28a6285329bbc10bea4e92066e14f49
   md5: a32f88181ff9a3451c71be1f17a7c799
@@ -28485,28 +28485,27 @@ packages:
   run_exports: {}
   size: 9521540
   timestamp: 1790073162487
-- conda: https://conda.anaconda.org/conda-forge/osx-64/scip-10.1.0-hb02cced_0.conda
-  sha256: 024a2300239ddc8fe0691a18f70a9dfda64295b39e3397958e264316e92dc433
-  md5: c40bf9a271d910c2fbc71c29717e06d1
+- conda: https://conda.anaconda.org/conda-forge/osx-64/scip-10.0.3-h75235b4_0.conda
+  sha256: 04bbe365a1c2885548d365268414613a0c67dfc5057f379dd89741ed0a90d7df
+  md5: 9b18c6e02a4418f2180eb58ea528618c
   depends:
+  - libcxx >=19
   - __osx >=11.0
-  - libcxx >=21
-  - libgfortran5 >=15.3.0
   - libgfortran
-  - libgcc >=15
-  - tbb >=2023.0.0
-  - libboost >=1.90.0,<1.91.0a0
-  - gmp >=6.3.0,<7.0a0
+  - libgfortran5 >=14.3.0
   - libzlib >=1.3.2,<2.0a0
-  - mpfr >=4.2.2,<5.0a0
-  - ipopt >=3.14.19,<3.14.20.0a0
   - libblas >=3.9.0,<4.0a0
+  - mpfr >=4.2.2,<5.0a0
+  - libboost >=1.90.0,<1.91.0a0
+  - ipopt >=3.14.19,<3.14.20.0a0
+  - tbb >=2023.0.0
+  - gmp >=6.3.0,<7.0a0
   license: Apache-2.0 AND LGPL-3.0-or-later AND EPL-1.0 and MIT and Zlib and BSL-1.0 and HPND
   run_exports:
     weak:
-    - scip >=10.1.0,<11.0a0
-  size: 15761085
-  timestamp: 1789800564909
+    - scip >=10.0.3,<11.0a0
+  size: 15861597
+  timestamp: 1783407700864
 - conda: https://conda.anaconda.org/conda-forge/osx-64/scipy-1.18.0-py313h9cbb6b6_0.conda
   sha256: 0338d5d5ba0820f86983aeeaad996471bd8f52f3f6ef6ca0a1cbb0cd47215837
   md5: 36f6aac8710abd70e13c02e24509506e
@@ -33748,28 +33747,27 @@ packages:
   run_exports: {}
   size: 9667030
   timestamp: 1780401292916
-- conda: https://conda.anaconda.org/conda-forge/osx-arm64/scip-10.1.0-ha868e0a_0.conda
-  sha256: 1bb74ed84e135052893b93ada04966039f9703c041fbfa9d5f53b2e9b6027a14
-  md5: bcbe7a2dd33ce981e1e647dabb76f272
+- conda: https://conda.anaconda.org/conda-forge/osx-arm64/scip-10.0.3-h5461d79_0.conda
+  sha256: add653821e8392824860656d4c2791209ef2ffebbe8ef925c4a447b8b6333cb7
+  md5: 775d23515f2783f8038649d476f93885
   depends:
-  - libcxx >=21
-  - libgfortran5 >=15.3.0
+  - libcxx >=19
   - libgfortran
-  - libgcc >=15
+  - libgfortran5 >=14.3.0
   - __osx >=11.0
-  - ipopt >=3.14.19,<3.14.20.0a0
-  - libboost >=1.90.0,<1.91.0a0
   - libzlib >=1.3.2,<2.0a0
+  - libboost >=1.90.0,<1.91.0a0
+  - ipopt >=3.14.19,<3.14.20.0a0
   - libblas >=3.9.0,<4.0a0
-  - tbb >=2023.1.0
-  - gmp >=6.3.0,<7.0a0
   - mpfr >=4.2.2,<5.0a0
+  - gmp >=6.3.0,<7.0a0
+  - tbb >=2023.0.0
   license: Apache-2.0 AND LGPL-3.0-or-later AND EPL-1.0 and MIT and Zlib and BSL-1.0 and HPND
   run_exports:
     weak:
-    - scip >=10.1.0,<11.0a0
-  size: 13670291
-  timestamp: 1789800618487
+    - scip >=10.0.3,<11.0a0
+  size: 13593070
+  timestamp: 1783407742038
 - conda: https://conda.anaconda.org/conda-forge/osx-arm64/scipy-1.18.0-py313h52f5312_0.conda
   sha256: d1bf4f384b822df098eddf66ac71e407c63148b1fb3b5cf4d536f6ae40269cca
   md5: 110ff05ffef908af95192bb17c4006a0
@@ -38960,26 +38958,26 @@ packages:
   run_exports: {}
   size: 9411356
   timestamp: 1780401101875
-- conda: https://conda.anaconda.org/conda-forge/win-64/scip-10.1.0-h210ce82_0.conda
-  sha256: 350ddfbd44cff50de18e9e8d30a1ae666bfac2865cbd7050ba0f56a0302c5c92
-  md5: 65f95ea120df4753be84d6d2ce1a2c47
+- conda: https://conda.anaconda.org/conda-forge/win-64/scip-10.0.3-h54f6bf4_0.conda
+  sha256: 72e8e58a53409901dfebf2ebe4551947e3544f40a578df638a67f156c8d3668d
+  md5: 06293257e0bae562319d6fac37d44d6e
   depends:
   - vc >=14.3,<15
   - vc14_runtime >=14.44.35208
   - ucrt >=10.0.20348.0
-  - tbb >=2023.1.0
-  - libboost >=1.90.0,<1.91.0a0
-  - mpfr >=4.2.2,<5.0a0
+  - tbb >=2023.0.0
   - gmp >=6.3.0,<7.0a0
-  - pcre2 >=10.47,<10.48.0a0
+  - mpfr >=4.2.2,<5.0a0
   - ipopt >=3.14.19,<3.14.20.0a0
+  - libboost >=1.90.0,<1.91.0a0
+  - pcre2 >=10.47,<10.48.0a0
   - libzlib >=1.3.2,<2.0a0
   license: Apache-2.0 AND LGPL-3.0-or-later AND EPL-1.0 and MIT and Zlib and BSL-1.0 and HPND
   run_exports:
     weak:
-    - scip >=10.1.0,<11.0a0
-  size: 12208295
-  timestamp: 1789800504826
+    - scip >=10.0.3,<11.0a0
+  size: 12269411
+  timestamp: 1783407679775
 - conda: https://conda.anaconda.org/conda-forge/win-64/scipy-1.18.0-py313he51e9a2_0.conda
   sha256: 8533a4b49bca970a5eaad9d0534bcc4ecb05e606735ffdb1032d95c47fc0673a
   md5: ddf3fb8bab2ad4ffefad64803ffdbdfb
