@@ -581,18 +581,16 @@ onsuccess:
         from snakemake.io import IOFile
 
         cache = Path(LOCAL_CACHE["directory"])
-        collected = sorted(
-            path.relative_to(cache).as_posix()
-            for path in cache.rglob("*")
-            if path.is_file() and path != LOCAL_CACHE_MANIFEST
-        )
+        collected = []
+        for path in cache.rglob("*"):
+            # Clean metadata of cached files and directories for correct provenance
+            workflow.persistence.cleanup_metadata(IOFile(path.as_posix()))
+            if path.is_file() and path != LOCAL_CACHE_MANIFEST:
+                collected.append(path.relative_to(cache).as_posix())
+        collected.sort()
         LOCAL_CACHE_MANIFEST.write_text(
             "\n".join(collected) + "\n", encoding="utf-8"
         )
-
-        # Clean metadata of cached files and directories for correct provenance
-        for path in cache.rglob("*"):
-            workflow.persistence.cleanup_metadata(IOFile(path.as_posix()))
 
         logger.info(
             f"Recorded {len(collected)} cache entries in {LOCAL_CACHE_MANIFEST}"
