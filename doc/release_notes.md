@@ -32,6 +32,8 @@
 
 * Allow the Windows installer workflow to build releases tagged on `release/*` branches, in addition to `master`, so that patch releases also get a signed installer ([#1009](https://github.com/open-energy-transition/open-tyndp/pull/1009)).
 
+* Update the security scan workflow to generate the SBOM and run vulnerability scans against the lockfile-backed `open-tyndp` Pixi environment instead of `default` ([#983](https://github.com/open-energy-transition/open-tyndp/pull/983)).
+
 
 ## Upcoming PyPSA-Eur Release
 
