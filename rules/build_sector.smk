@@ -1814,12 +1814,10 @@ rule prepare_sector_network:
         h2_grid_tyndp=branch(
             config_provider("sector", "h2_topology_tyndp"),
             resources("h2_reference_grid_tyndp_{planning_horizons}.csv"),
-            [],
         ),
         buses_h2=branch(
             config_provider("sector", "h2_topology_tyndp"),
             resources("tyndp/build/geojson/buses_h2.geojson"),
-            [],
         ),
         load=lambda w: (
             resources("electricity_demand_base_s_{planning_horizons}.nc")
@@ -1829,12 +1827,10 @@ rule prepare_sector_network:
         h2_imports_tyndp=branch(
             config_provider("sector", "h2_topology_tyndp"),
             resources("h2_import_potentials_{planning_horizons}.csv"),
-            [],
         ),
         profile_pemmdb_hydro=branch(
             config_provider("electricity", "pemmdb_hydro_profiles", "enable"),
             resources("profile_pemmdb_hydro.nc"),
-            [],
         ),
         tyndp_trajectories=branch(
             include_tyndp_trajectories,
@@ -1862,16 +1858,14 @@ rule prepare_sector_network:
             lambda w: config_provider("tyndp_scenario")(w)
             and config_provider("sector", "electricity_distribution_grid")(w),
             resources("demand_tyndp_electricity_prosumer_{planning_horizons}.csv"),
-            [],
         ),
         elec_demand_prosumer_btm_tyndp=branch(
             lambda w: config_provider("tyndp_scenario")(w)
             and config_provider("sector", "electricity_distribution_grid")(w),
             resources("demand_tyndp_electricity_prosumer_btm_{planning_horizons}.csv"),
-            [],
         ),
         tyndp_nuclear_profiles=branch(
-            config_provider("tyndp_scenario")
+            lambda w: config_provider("tyndp_scenario")(w)
             and config_provider("conventional", "tyndp_availability_profiles"),
             lambda w: (
                 rules.retrieve_tyndp_nuclear_profiles.output[
@@ -1882,19 +1876,16 @@ rule prepare_sector_network:
         tyndp_smr=branch(
             config_provider("sector", "h2_topology_tyndp"),
             resources("smr_data_prepped_{planning_horizons}.csv"),
-            [],
         ),
         tyndp_h2_storages=branch(
             config_provider("sector", "h2_topology_tyndp"),
             resources("h2_storages_prepped_{planning_horizons}.csv"),
-            [],
         ),
         tyndp_electricity_ntc=branch(
             lambda w: config_provider("electricity", "base_network")(w) == "tyndp"
             and config_provider("electricity", "tyndp_reference_year")(w)
             != int(w.planning_horizons),
             resources("tyndp_electricity_ntc_{planning_horizons}.csv"),
-            [],
         ),
     output:
         resources(
