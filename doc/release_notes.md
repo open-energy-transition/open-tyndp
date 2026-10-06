@@ -9,6 +9,8 @@
 
 **Features**
 
+* Allow the `sync_file` and `sync_file_dry` rules to retrieve files by pattern. The `sync` and `sync_dry` rules now skip the `results`, `resources` and `logs` subdirectories of runs that are not configured in `run.name`, and still retrieve shared files ([#996](https://github.com/open-energy-transition/open-tyndp/pull/996)). With `config/config.hpc.yaml`, they retrieve all the scenario data including the reference networks and skip only the project networks. The `remote.sync_exclude` configuration no longer applies to `sync_file` and `sync_file_dry`.
+
 
 **Changes**
 
