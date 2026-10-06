@@ -1333,7 +1333,6 @@ if (TYNDP_DATASET := dataset_version("tyndp"))["source"] in [
                 h2_storages=f"{TYNDP_DATASET['folder']}/Hydrogen/H2 STORAGES.xlsx",
                 smr=f"{TYNDP_DATASET['folder']}/Hydrogen/SMR Figures.xlsx",
                 investment_datasets_zip=f"{TYNDP_DATASET['folder']}/Investment-Datasets.zip",
-                trajectories=f"{TYNDP_DATASET['folder']}/Investment Datasets/TRAJECTORY.xlsx",
                 invest_grid=f"{TYNDP_DATASET['folder']}/Investment Datasets/GRID.xlsx",
                 offshore_hubs_zip=f"{TYNDP_DATASET['folder']}/Offshore-hubs.zip",
                 offshore_nodes=f"{TYNDP_DATASET['folder']}/Offshore hubs/NODE.xlsx",

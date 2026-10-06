@@ -33,6 +33,8 @@
 
 **Bugfixes and Compatibility**
 
+* fix: remove the TYNDP 2024 trajectories for TYNDP 2026 ([#1050](https://github.com/open-energy-transition/open-tyndp/issues/1050)). The `build_tyndp_trajectories` rule is removed and `build_pemmdb_and_trajectories` is renamed to `build_tyndp_pemmdb_datas`. Generation capacities now follow PEMMDB in all planning horizons. The trajectory interface in `prepare_sector_network` is kept for potential use in future cycles.
+
 * fix: remove hardcoded changes to the emissions factors of AT Other Non-RES gas CCGTs in 2040/2050 ([#1012](https://github.com/open-energy-transition/open-tyndp/pull/1012)). The reported PEMMDB value of 0 is used for 2040/2050 instead.
 
 **Documentation**

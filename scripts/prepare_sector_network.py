@@ -2065,26 +2065,27 @@ def _add_conventional_thermal_capacities(
         )
 
         # Add nuclear-specific trajectories
-        if tech == "nuclear":
+        if tech == "nuclear" and not nuclear_trajectories.empty:
+            nuclear_buses = n.links.loc[tech_i, "bus1"]
+            missing_buses = set(nuclear_buses) - set(nuclear_trajectories.index)
+            if missing_buses:
+                raise ValueError(
+                    f"Nuclear buses missing from TYNDP trajectories: {sorted(missing_buses)}"
+                )
+
             # Set p_nom_min and p_nom_max
-            n.links.loc[tech_i, "p_nom_min"] = (
-                n.links.loc[tech_i, "bus1"]
-                .map(nuclear_trajectories["p_nom_min"])
-                .fillna(0.0)
-                .div(n.links.loc[tech_i, "efficiency"])
-            )
-            n.links.loc[tech_i, "p_nom_max"] = (
-                n.links.loc[tech_i, "bus1"]
-                .map(nuclear_trajectories["p_nom_max"])
-                .fillna(0.0)
-                .div(n.links.loc[tech_i, "efficiency"])
-            )
+            n.links.loc[tech_i, "p_nom_min"] = nuclear_buses.map(
+                nuclear_trajectories["p_nom_min"]
+            ).div(n.links.loc[tech_i, "efficiency"])
+            n.links.loc[tech_i, "p_nom_max"] = nuclear_buses.map(
+                nuclear_trajectories["p_nom_max"]
+            ).div(n.links.loc[tech_i, "efficiency"])
 
             # Set p_nom to p_nom_min if p_nom != p_nom_min as pathway supersedes given PEMMDB capacity
             exist_mismatch_i = n.links.loc[tech_i].query("p_nom != p_nom_min").index
             if not exist_mismatch_i.empty:
                 logger.warning(
-                    f"Existing PEMMDB capacities don't match with TYNDP 2024 trajectories for {list(exist_mismatch_i)}, "
+                    f"Existing PEMMDB capacities don't match with TYNDP trajectories for {list(exist_mismatch_i)}, "
                     f"adjusting capacity as pathway supersedes given PEMMDB capacities."
                 )
                 n.links.loc[exist_mismatch_i, "p_nom"] = n.links.loc[
@@ -9540,12 +9541,24 @@ if __name__ == "__main__":
     # Initialize variables that are conditionally assigned later
     pemmdb_capacities = None
     pemmdb_profiles = None
-    tyndp_trajectories = None
     tyndp_nuclear_profiles = None
     smr_capacities = None
     h2_storage_capacities = None
 
-    # Read in PEMMDB data, trajectories and availability profiles
+    # Define placeholder for TYNDP trajectories
+    # TODO: Update if ever expansion with trajectories is modelled again
+    tyndp_trajectories = pd.DataFrame(
+        columns=[
+            "carrier",
+            "index_carrier",
+            "bus",
+            "planning_horizon",
+            "p_nom_min",
+            "p_nom_max",
+        ]
+    )
+
+    # Read in PEMMDB data and availability profiles
     enable_pemmdb_caps = snakemake.params.electricity["pemmdb_capacities"]["enable"]
     if enable_pemmdb_caps:
         pemmdb_capacities = pd.read_csv(snakemake.input.pemmdb_capacities).set_index(
@@ -9554,8 +9567,6 @@ if __name__ == "__main__":
         pemmdb_profiles = xr.open_dataset(
             snakemake.input.pemmdb_profiles
         ).to_dataframe()
-    if tyndp_trajectories_fn := snakemake.input.tyndp_trajectories:
-        tyndp_trajectories = pd.read_csv(tyndp_trajectories_fn)
     if tyndp_nuclear_profiles_fn := snakemake.input.tyndp_nuclear_profiles:
         tyndp_nuclear_profiles = pd.read_csv(
             tyndp_nuclear_profiles_fn, index_col=0, parse_dates=True
