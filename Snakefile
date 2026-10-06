@@ -45,7 +45,7 @@ if Path("config/config.yaml").exists():
     configfile: "config/config.yaml"
 
 
-validate_config(config)
+validated_config = validate_config(config)
 
 run = config["run"]
 scenarios = get_scenarios(run)
