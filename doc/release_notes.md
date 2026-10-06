@@ -57,7 +57,7 @@
 
 **Changes**
 
-* Align processing of outputs files for benchmarking for the TYNDP 2026 cycle ([#960](https://github.com/open-energy-transition/open-tyndp/pull/960)).These include installed capacities, prices, loads, exchanges and generation timeseries. Remove Visualisation Platform benchmarking.
+* Align the Scenario Building benchmarking to the TYNDP 2026 cycle ([#960](https://github.com/open-energy-transition/open-tyndp/pull/960)). Market model outputs are read from the TYNDP 2026 Time Series Dashboards (installed capacities, prices, loads, exchanges and generation) and the Scenarios Report benchmark uses the TYNDP 2026 Scenario Report data figures (new rule `retrieve_tyndp_2026_scenario_report`). The rule `clean_tyndp_output_benchmark` is renamed to `clean_tyndp_dashboard_benchmark` and the benchmarking source `market_out` to `dashboard_out`. A new `electricity_prosumer_demand` table compares prosumer and behind-the-meter demand, and electricity demand is benchmarked as net demand. Hydrogen demand is benchmarked by use (incl. e-fuels, power generation and heat production), and methane and hydrogen for heat production are separate categories. The option `load:patch_demand_with_mm` is removed. The Visualisation Platform benchmarking and the `generation_profiles` table are removed.
 
 **Bugfixes and Compatibility**
 
