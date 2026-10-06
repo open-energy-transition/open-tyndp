@@ -3236,11 +3236,11 @@ def insert_electricity_distribution_grid(
         left on the main bus.
     prosumer_btm_demand_fn : str, optional
         Path to a CSV of per-node TYNDP prosumer behind-the-meter Fixed
-        Demand. Only available for a handful of nodes; added the same way as
-        `prosumer_demand_fn`, as a second, separate `Load` on the same
-        `RETE` bus (not summed with the Native Demand Load), matching how
-        the TYNDP output dashboard itself keeps them as two distinct line
-        items.
+        Demand. Only added when `tyndp_scenario` is set and available for a 
+        handful of nodes; added the same way as `prosumer_demand_fn`, 
+        as a second, separate `Load` on the same `RETE` bus (not summed 
+        with the Native Demand Load), matching how the TYNDP output 
+        dashboard itself keeps them as two distinct line items.
 
     Returns
     -------
