@@ -3894,7 +3894,7 @@ def add_h2_sres_tyndp(
         nodes.index + " SRES grid connection",
         bus0=nodes.index + " SRES",
         bus1=nodes.index,
-        carrier="AC_SRES",
+        carrier="SRES grid connection",
         p_nom=np.inf,
     )
 
