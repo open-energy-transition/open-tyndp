@@ -185,17 +185,21 @@ def compute_benchmark(
         df_eu.loc["solid biomass"] -= biogas_not_upgraded
 
         df = pd.concat([df_countries, df_eu])
-    elif table == "electricity_demand":
+    elif table in ["electricity_demand", "electricity_prosumer_demand"]:
         grouper = ["carrier"]
+        carriers = ["electricity prosumer", "electricity prosumer btm"]
+        if table == "electricity_demand":
+            carriers = ["electricity"] + carriers
         df = (
-            n.statistics.withdrawal(
-                comps=demand_comps,
+            n.statistics.energy_balance(
+                comps="Load",
                 bus_carrier=elec_bus_carrier,
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
             )
-            .loc[pd.IndexSlice[:, ["electricity"]]]
+            .mul(-1)
             .reset_index()
+            .loc[lambda df: df.carrier.isin(carriers)]
             .assign(bus=lambda df: df.bus.map(n.buses.location))
             .set_index(["bus", "carrier"])
         )

@@ -60,6 +60,11 @@ LOOKUP_TABLES: dict[str, dict] = {
         "category": ["Native Demand", "Fixed Demand"],
         "stats": "sum",
     },
+    "electricity_prosumer_demand": {
+        "sheet": ["Prosumer"],
+        "category": ["Native Demand", "Fixed Demand"],
+        "stats": "sum",
+    },
     "hydrogen_demand": {
         "sheet": H2_SHEETS,
         "category": ["Native Demand"],
