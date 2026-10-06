@@ -79,9 +79,7 @@ def load_import_potentials(fn: str, planning_horizon: int) -> pd.DataFrame:
         imports["p_nom"].where(~imports["has_profile"]), errors="coerce"
     )
 
-    return imports[
-        ["bus0", "bus1", "Type", "Fuel", "p_nom", "marginal_cost", "has_profile"]
-    ]
+    return imports[["bus0", "Type", "p_nom", "marginal_cost", "has_profile"]]
 
 
 def load_import_profiles(

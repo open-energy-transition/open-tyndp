@@ -8789,7 +8789,7 @@ def add_import_options(
     gas_input_nodes : pd.DataFrame
         Locations of gas input nodes split by LNG and pipeline.
     h2_imports_tyndp_fn : str
-        Path to file containing H2 import corridor properties (bus0, bus1,
+        Path to file containing H2 import corridor properties (bus0, Type,
         p_nom, marginal_cost) from TYNDP 2026 input data.
     h2_import_profiles_tyndp_fn : str
         Path to file containing hourly ``p_max_pu`` for the subset of H2
@@ -8886,11 +8886,26 @@ def add_import_options(
                 import_potentials_h2.index,
                 suffix=" H2 import",
                 bus=import_potentials_h2.bus0.values,
-                carrier="import H2",
+                carrier="H2 import " + import_potentials_h2.Type.values,
                 p_nom_extendable=False,
                 p_nom=import_potentials_h2.p_nom.values,
                 marginal_cost=import_potentials_h2.marginal_cost.values,
             )
+
+            import_capacity = import_potentials_h2.groupby("bus0").p_nom.sum().round()
+            pipeline_capacity = (
+                n.links.query("carrier == 'H2 pipeline'")
+                .groupby("bus0")
+                .p_nom.sum()
+                .reindex(import_capacity.index, fill_value=0.0)
+                .round()
+            )
+            insufficient = import_capacity.index[import_capacity > pipeline_capacity]
+            if not insufficient.empty:
+                logger.warning(
+                    "H2 import capacity exceeds outgoing H2 pipeline capacity at "
+                    f"import buses: {insufficient.tolist()}"
+                )
 
             if not import_profiles_h2.empty:
                 p_max_pu = import_profiles_h2.reindex(n.snapshots)
@@ -8903,16 +8918,6 @@ def add_import_options(
                 n.generators_t.p_max_pu[import_profiles_h2.columns + " H2 import"] = (
                     p_max_pu.values
                 )
-
-            n.add(
-                "Link",
-                import_potentials_h2.index,
-                bus0=import_potentials_h2.bus0.values,
-                bus1=import_potentials_h2.bus1.values,
-                p_nom_extendable=False,
-                p_nom=import_potentials_h2.p_nom.values,
-                carrier="H2 import " + import_potentials_h2.Type.values,
-            )
 
         else:
             p_nom = gas_input_nodes["pipeline"].dropna()
