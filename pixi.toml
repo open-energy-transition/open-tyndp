@@ -16,7 +16,6 @@ linopy = "0d"
 pypsa = "0d"
 atlite = "0d"
 pypsa-explorer = "0d"
-snakemake-executor-plugin-slurm = "0d"  # drop once the pandas 3 build is older than 7d
 
 [target.win-64.activation.env]
 
