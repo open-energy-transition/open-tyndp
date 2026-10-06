@@ -431,8 +431,10 @@ plotting:
     offwind-sres-h2z1-r: "#23477a"
     offwind-sres-h2z2-r: "#23477a"
     offwind-oh: "#5fc9e8"
-    offwind-dres: "#3aa8cc"
-    offwind-sres: "#2287a8"
+    offwind-dres-r: "#3aa8cc"
+    offwind-dres-oh: "#3aa8cc"
+    offwind-sres-r: "#23477a"
+    offwind-sres-oh: "#2287a8"
     offwind-sres-h2z1-oh: "#2287a8"
     offwind-sres-h2z2-oh: "#2287a8"
     # water
@@ -630,6 +632,7 @@ plotting:
     lines: '#6c9459'
     transmission lines: '#6c9459'
     electricity distribution grid: '#97ad8c'
+    SRES grid connection: '#97ad8c'
     low voltage: '#97ad8c'
     # electricity demand
     Electric load: '#110d63'

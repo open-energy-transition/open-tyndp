@@ -218,8 +218,15 @@ def prepare_costs(
     costs.loc["solar-pv-utility-sres"] = costs.loc["solar-utility"]
     costs.loc["onwind-dres"] = costs.loc["onwind"]
     costs.loc["onwind-sres"] = costs.loc["onwind"]
-    costs.loc["offwind-dres"] = costs.loc["offwind"]
-    costs.loc["offwind-sres"] = costs.loc["offwind"]
+    for car in [
+        "offwind-r",
+        "offwind-oh",
+        "offwind-dres-r",
+        "offwind-dres-oh",
+        "offwind-sres-r",
+        "offwind-sres-oh",
+    ]:
+        costs.loc[car] = costs.loc["offwind"]
 
     costs = costs.rename(columns={"standing losses": "standing_losses"})
 

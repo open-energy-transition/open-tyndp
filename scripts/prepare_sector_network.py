@@ -3142,18 +3142,12 @@ def add_existing_tyndp_capacities(
             _add_h2_dres_capacities(
                 n=n,
                 pemmdb_capacities=pemmdb_capacities,
-                trajectories=trajectories_electrolyser,
-                dres_carriers=[
-                    c for c in tyndp_renewable_carriers if c.endswith("-dres")
-                ],
+                dres_carriers=[c for c in tyndp_renewable_carriers if "-dres" in c],
             )
             _add_h2_sres_capacities(
                 n=n,
                 pemmdb_capacities=pemmdb_capacities,
-                trajectories=trajectories_electrolyser,
-                sres_carriers=[
-                    c for c in tyndp_renewable_carriers if c.endswith("-sres")
-                ],
+                sres_carriers=[c for c in tyndp_renewable_carriers if "-sres" in c],
             )
             _add_electrolyzer_capacities(
                 n=n,
