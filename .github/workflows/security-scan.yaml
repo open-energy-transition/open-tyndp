@@ -26,12 +26,13 @@ jobs:
     - uses: prefix-dev/setup-pixi@v0.10.2
       with:
         pixi-version: v0.68.1
+        environments: open-tyndp
 
     - name: Generate SBOM # (master only)
       if: github.ref == 'refs/heads/master'
       uses: anchore/sbom-action@v0.24.3
       with:
-        path: ".pixi/envs/default"
+        path: ".pixi/envs/open-tyndp"
         output-file: sbom.spdx.json
         dependency-snapshot: true
 
@@ -39,7 +40,7 @@ jobs:
       id: scan
       uses: anchore/scan-action@v7.4.2
       with:
-        path: ".pixi/envs/default"
+        path: ".pixi/envs/open-tyndp"
         fail-build: false
         severity-cutoff: high
         add-cpes-if-none: true
