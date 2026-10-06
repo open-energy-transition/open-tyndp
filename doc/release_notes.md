@@ -11,6 +11,8 @@
 
 **Features**
 
+* feat: switch TYNDP electricity demand to TYNDP 2026 data for three demand types: market, prosumer and prosumer behind-the-meter (BTM) ([#944](https://github.com/open-energy-transition/open-tyndp/pull/944)).
+
 * feat: add rule to retrieve TYNDP 2026 data ([#815](https://github.com/open-energy-transition/open-tyndp/pull/815)).
 
 * feat: update the TYNDP 2026 data bundle to ENTSO-E's corrected reference dataset of 2026-08-21 ([#893](https://github.com/open-energy-transition/open-tyndp/pull/893)). The bundle is now a separate `tyndp_2026` dataset, configured via `data: tyndp_2026:`. Extraction in the retrieve rule is adjusted to account for double nested zips and drops the `_corrected` file suffix, so downstream paths stay unchanged.
