@@ -29,7 +29,7 @@ jobs:
 
     - name: Generate SBOM # (master only)
       if: github.ref == 'refs/heads/master'
-      uses: anchore/sbom-action@v0.24.2
+      uses: anchore/sbom-action@v0.24.3
       with:
         path: ".pixi/envs/default"
         output-file: sbom.spdx.json
@@ -76,7 +76,7 @@ jobs:
     # diff against the master baseline artifact here instead
     - name: Download master baseline (fork PRs only)
       if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository
-      uses: dawidd6/action-download-artifact@v26
+      uses: dawidd6/action-download-artifact@v27
       with:
         workflow: security-scan.yaml
         name: master-sarif
