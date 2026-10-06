@@ -308,7 +308,7 @@ https://conda.anaconda.org/conda-forge/osx-64/libscotch-7.0.11-int32_he697d12_3.
 https://conda.anaconda.org/conda-forge/osx-64/mumps-seq-5.8.2-gfortran_h2dae625_3.conda#e5b9d509eabb322ead64b73d12a4017c
 https://conda.anaconda.org/conda-forge/osx-64/ampl-asl-1.0.0-h240833e_2.conda#6b685000856e0cfdb468b8d87b51f6f0
 https://conda.anaconda.org/conda-forge/osx-64/ipopt-3.14.19-h97b3f9f_2.conda#89cad9af206d489b89a08b16648882b8
-https://conda.anaconda.org/conda-forge/osx-64/scip-10.1.0-hb02cced_0.conda#c40bf9a271d910c2fbc71c29717e06d1
+https://conda.anaconda.org/conda-forge/osx-64/scip-10.0.3-h75235b4_0.conda#9b18c6e02a4418f2180eb58ea528618c
 https://conda.anaconda.org/conda-forge/osx-64/pyscipopt-6.2.1-np2py313he20213c_1.conda#3744158a3f9765dd33768094d22038e4
 https://conda.anaconda.org/conda-forge/noarch/validators-0.35.0-pyhd8ed1ab_0.conda#3449ef730c7d483adde81993994092b9
 https://conda.anaconda.org/conda-forge/noarch/patsy-1.0.3-pyhcf101f3_0.conda#13e1355debaf21a0b8c2726697ebb01b

@@ -312,7 +312,7 @@ https://conda.anaconda.org/conda-forge/linux-64/mumps-seq-5.8.2-gfortran_hfb83c0
 https://conda.anaconda.org/conda-forge/linux-64/libspral-2025.09.18-h74cae3c_2.conda#5ee48d510cb22553d446210b76d1f645
 https://conda.anaconda.org/conda-forge/linux-64/ampl-asl-1.0.0-h5888daf_2.conda#ef757816a8f0fee2650b6c7e19980b6b
 https://conda.anaconda.org/conda-forge/linux-64/ipopt-3.14.19-he45328a_2.conda#48cf0477d19146171abccfd935f6fc87
-https://conda.anaconda.org/conda-forge/linux-64/scip-10.1.0-ha99405a_0.conda#975a3f4897b6e7e9cd930cd9e2d3094c
+https://conda.anaconda.org/conda-forge/linux-64/scip-10.0.3-h311443d_0.conda#68c4c91fe400ea677c07d7f6b3194274
 https://conda.anaconda.org/conda-forge/linux-64/pyscipopt-6.2.1-np2py313h38606b7_1.conda#f3774fcd6749729917b1f354215b4092
 https://conda.anaconda.org/conda-forge/noarch/validators-0.35.0-pyhd8ed1ab_0.conda#3449ef730c7d483adde81993994092b9
 https://conda.anaconda.org/conda-forge/noarch/patsy-1.0.3-pyhcf101f3_0.conda#13e1355debaf21a0b8c2726697ebb01b

@@ -300,7 +300,7 @@ https://conda.anaconda.org/conda-forge/win-64/libboost-1.90.0-h9dfe17d_3.conda#1
 https://conda.anaconda.org/conda-forge/win-64/mumps-seq-5.8.2-flang_h3fd9f6e_3.conda#64d70186adc48cfdb38706a01e841725
 https://conda.anaconda.org/conda-forge/win-64/ampl-asl-1.0.0-he0c23c2_2.conda#6cd7240c925d0ba5b9aee6ea1b566d87
 https://conda.anaconda.org/conda-forge/win-64/ipopt-3.14.19-he5a0f77_2.conda#5133f79da4d0ec982733acfcb3c03e97
-https://conda.anaconda.org/conda-forge/win-64/scip-10.1.0-h210ce82_0.conda#65f95ea120df4753be84d6d2ce1a2c47
+https://conda.anaconda.org/conda-forge/win-64/scip-10.0.3-h54f6bf4_0.conda#06293257e0bae562319d6fac37d44d6e
 https://conda.anaconda.org/conda-forge/win-64/pyscipopt-6.2.1-np2py313h776c0ec_1.conda#155ef896807aec6808d34d26402641af
 https://conda.anaconda.org/conda-forge/noarch/validators-0.35.0-pyhd8ed1ab_0.conda#3449ef730c7d483adde81993994092b9
 https://conda.anaconda.org/conda-forge/noarch/patsy-1.0.3-pyhcf101f3_0.conda#13e1355debaf21a0b8c2726697ebb01b
