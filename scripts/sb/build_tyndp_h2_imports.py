@@ -85,7 +85,10 @@ def load_import_potentials(fn: str, planning_horizon: int) -> pd.DataFrame:
 
 
 def load_import_profiles(
-    fn: str, planning_horizon: int, corridors: pd.Index, year: int
+    fn: str,
+    planning_horizon: int,
+    corridors: pd.Index,
+    snapshot_index: pd.DatetimeIndex,
 ) -> pd.DataFrame:
     """
     Load hourly TYNDP 2026 H2 import profiles for a set of corridors.
@@ -99,8 +102,8 @@ def load_import_profiles(
         Planning horizon; profile columns are named ``"{Corridor}-{planning_horizon}"``.
     corridors : pd.Index
         Corridors to load profiles for.
-    year : int
-        Year to assign to the resulting DatetimeIndex.
+    snapshot_index : pd.DatetimeIndex
+        Hourly index of the snapshot year without 29 February.
 
     Returns
     -------
@@ -117,10 +120,7 @@ def load_import_profiles(
         )
 
     profiles = profiles[list(columns)].rename(columns=columns)
-    profiles.index = pd.date_range(
-        start=f"{year}-01-01", periods=len(profiles), freq="h"
-    )
-    profiles.index.name = "datetime"
+    profiles.index = snapshot_index.rename("datetime")
 
     return profiles
 
@@ -140,11 +140,12 @@ if __name__ == "__main__":
 
     # Parameters
     planning_horizon = int(snakemake.wildcards.planning_horizons)
-    snapshots = get_snapshots(
-        snakemake.params.snapshots, snakemake.params.drop_leap_day
+    year = get_snapshots(snakemake.params.snapshots)[0].year
+    check_snapshot_year(year, snakemake.params.drop_leap_day, data_type="H2 import")
+    snapshot_index = get_snapshots(
+        {"start": f"{year}-01-01", "end": f"{year + 1}-01-01", "inclusive": "left"},
+        drop_leap_day=True,
     )
-    year = snapshots[0].year
-    check_snapshot_year(year, snakemake.params.drop_leap_day)
 
     # Load corridor properties
     import_potentials = load_import_potentials(
@@ -154,10 +155,10 @@ if __name__ == "__main__":
     profile_corridors = import_potentials.index[import_potentials.has_profile]
     if not profile_corridors.empty:
         import_profiles = load_import_profiles(
-            snakemake.input.import_profiles_raw,
-            planning_horizon,
-            profile_corridors,
-            year,
+            fn=snakemake.input.import_profiles_raw,
+            planning_horizon=planning_horizon,
+            corridors=profile_corridors,
+            snapshot_index=snapshot_index,
         )
         maxima = import_profiles.max()
         import_potentials.loc[profile_corridors, "p_nom"] = maxima
