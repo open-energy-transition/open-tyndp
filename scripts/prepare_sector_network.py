@@ -2248,6 +2248,7 @@ def _add_h2_dres_capacities(
     country_to_dres = pd.Series(dres.index, index=dres.country)
     country_to_dres = country_to_dres[~country_to_dres.index.duplicated()]
 
+    # Drop empty DRES generator assets and move to DRES bus
     remove_zero_capacity_non_extendable(
         n, carriers=dres_carriers, component_types={"Generator"}
     )
@@ -2305,6 +2306,7 @@ def _add_h2_sres_capacities(
     """
     logger.info("Moving SRES generators to SRES bus and adding PEMMDB capacities to SRES electrolysers.")
 
+    # Drop empty SRES generator assets and move to SRES bus
     remove_zero_capacity_non_extendable(
         n, carriers=sres_carriers, component_types={"Generator"}
     )
@@ -3067,9 +3069,6 @@ def add_existing_tyndp_capacities(
 
         if tyndp_solar_wind:
             ppl = pemmdb_capacities.query("carrier.isin(@tyndp_solar_wind)")
-            trajectories_solar_wind = trajectories.query(
-                "planning_horizon == @investment_year and carrier.isin(@tyndp_solar_wind)"
-            )
 
             attach_wind_and_solar(
                 n=n,
@@ -3078,7 +3077,6 @@ def add_existing_tyndp_capacities(
                 profile_filenames=profiles_pecd,
                 carriers=tyndp_solar_wind,
                 extendable_carriers=extendable_carriers,
-                trajectories=trajectories_solar_wind,
                 planning_horizon=investment_year,
             )
 
