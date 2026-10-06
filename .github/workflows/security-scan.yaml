@@ -46,7 +46,7 @@ jobs:
         pixi-version: v0.68.1
 
     - name: Generate SBOM
-      uses: anchore/sbom-action@v0.24.2
+      uses: anchore/sbom-action@v0.24.3
       with:
         path: ".pixi/envs/default"
         output-file: sbom.spdx.json
@@ -95,7 +95,7 @@ jobs:
     # All PRs gate on new CVEs vs the master baseline
     - name: Download master baseline
       if: github.event_name == 'pull_request'
-      uses: dawidd6/action-download-artifact@v25
+      uses: dawidd6/action-download-artifact@v27
       with:
         workflow: security-scan.yaml
         name: master-sbom

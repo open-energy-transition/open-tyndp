@@ -9,6 +9,8 @@
 
 **Features**
 
+* Allow the `sync_file` and `sync_file_dry` rules to retrieve files by pattern. The `sync` and `sync_dry` rules now skip the `results`, `resources` and `logs` subdirectories of runs that are not configured in `run.name`, and still retrieve shared files ([#996](https://github.com/open-energy-transition/open-tyndp/pull/996)). With `config/config.hpc.yaml`, they retrieve all the scenario data including the reference networks and skip only the project networks. The `remote.sync_exclude` configuration no longer applies to `sync_file` and `sync_file_dry`.
+
 
 **Changes**
 
@@ -18,6 +20,8 @@
 * Remove `__init__` override from `heat_system.py` for compatibility with python>=3.14 ([#990](https://github.com/open-energy-transition/open-tyndp/pull/990)).
 
 **Documentation**
+
+* Fix the broken links in the documentation ([#997](https://github.com/open-energy-transition/open-tyndp/pull/997)).
 
 
 **Developers Note**
@@ -3904,7 +3908,7 @@ Other:
 
 * Added [FSFE REUSE](https://reuse.software) compliant license information. Documentation now licensed under CC-BY-4.0 [[#160](https://github.com/PyPSA/pypsa-eur/pull/160)].
 
-* Added a 30 minute [video introduction](https://pypsa-eur.readthedocs.io/en/latest/introduction.html) and a 20 minute [video tutorial](https://pypsa-eur.readthedocs.io/en/latest/tutorial.html)
+* Added a 30 minute [video introduction](https://pypsa-eur.readthedocs.io/en/latest/introduction/) and a 20 minute [video tutorial](https://pypsa-eur.readthedocs.io/en/latest/tutorial/)
 
 * Networks now store a color and a nicely formatted name for each carrier, accessible via `n.carrier['color']` and `n.carrier['nice_name'] `(networks after `elec.nc`).
 
