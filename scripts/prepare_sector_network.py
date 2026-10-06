@@ -3802,6 +3802,7 @@ def add_h2_dres_tyndp(
         unit="MWh_el",
         substation_off=True,
         substation_lv=True,
+    )
     n.add(
         "Bus",
         buses_h2_z2 + " DRES",
