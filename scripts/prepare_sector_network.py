@@ -4458,7 +4458,7 @@ def add_h2_storage(n, nodes, options, cavern_types, h2_cavern_file, costs):
     )
 
 
-def add_gas_network(n, gas_pipes, options, costs, gas_input_nodes):
+def add_gas_network(n, spatial, gas_pipes, options, costs, gas_input_nodes):
     """
     Adds natural gas infrastructure, incl. LNG terminals, production, storage and entry-points.
 
@@ -4466,6 +4466,8 @@ def add_gas_network(n, gas_pipes, options, costs, gas_input_nodes):
     ----------
     n : pypsa.Network
         The PyPSA network container object.
+    spatial : SimpleNamespace
+        Object containing spatial information about nodes and their locations.
     gas_pipes : pd.DataFrame
         Dataframe containing gas network data.
     options : dict, optional
@@ -4815,6 +4817,7 @@ def add_h2_gas_infrastructure(
         if options["gas_network"]:
             add_gas_network(
                 n=n,
+                spatial=spatial,
                 gas_pipes=gas_pipes,
                 options=options,
                 costs=costs,
