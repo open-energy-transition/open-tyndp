@@ -2793,9 +2793,10 @@ def _add_other_res_profiles(
     component_df: pd.DataFrame,
     component_t: dict[str, pd.DataFrame],
     profiles: pd.DataFrame,
+    attr: str = "p_set",
 ) -> None:
     """
-    Add p_set profiles to existing network for a given Other RES carrier and component.
+    Add Other RES profiles to existing network for a given carrier and component.
 
     Parameters
     ----------
@@ -2809,6 +2810,9 @@ def _add_other_res_profiles(
         Component dictionary containing time-dependent attributes for the given component.
     profiles : pd.DataFrame
         Dataframe containing the profiles to add to the network.
+    attr : str
+        Time-dependent attribute to write the profile to. ``p_set`` fixes the
+        dispatch to the profile, ``p_max_pu`` only caps it.
 
     Returns
     -------
@@ -2824,15 +2828,18 @@ def _add_other_res_profiles(
             p_set=lambda df: df.p_set.div(component_df.loc[asset_i].efficiency.iloc[0])
         )
 
-    p_set = (
+    profile = (
         profiles.pivot_table(values="p_set", index="time", columns="bus")
         .rename(columns=lambda x: f"{x} {carrier}")
         .reindex(asset_i, axis=1, fill_value=0.0)
     )
-    p_set = p_set.loc[:, (p_set != 0.0).any()]
+    if attr == "p_max_pu":
+        profile = profile.div(component_df.loc[asset_i, "p_nom"], axis=1)
+    else:
+        profile = profile.loc[:, (profile != 0.0).any()]
 
     _add_new_profiles_to_existing(
-        component_t=component_t, attr="p_set", new_profiles=p_set
+        component_t=component_t, attr=attr, new_profiles=profile
     )
 
 
@@ -2885,12 +2892,17 @@ def _add_other_res_capacities(
 
     # Add fixed per-unit generation profiles
     # Other RES Biomass
+    # TODO The profile only caps the dispatch instead of fixing it, because the
+    # PEMMDB 2024 must-run biomass demand is inconsistent with the TYNDP 2026
+    # Supply Tool biomass potentials and renders the network infeasible. Revisit
+    # once PEMMDB 2026 data is added to the network.
     _add_other_res_profiles(
         carrier="other-res-biomass",
         asset_i=n.links.query("carrier == 'other-res-biomass' and p_nom > 0").index,
         component_df=n.links,
         component_t=n.links_t,
         profiles=pemmdb_profiles,
+        attr="p_max_pu",
     )
     # Other RES Mix
     _add_other_res_profiles(
@@ -3316,6 +3328,8 @@ def insert_electricity_distribution_grid(
     ext_stores: list[str],
     tyndp_scenario: str | bool = False,
     wheeling_charges_fn: str = "",
+    prosumer_demand_fn: str = "",
+    prosumer_btm_demand_fn: str = "",
 ) -> None:
     """
     Insert electricity distribution grid components into the network.
@@ -3354,6 +3368,19 @@ def insert_electricity_distribution_grid(
         prosumer nodes input; nodes in `pop_layout` outside of it are skipped
         entirely (no low voltage bus/link, loads and other components stay
         on the main AC bus).
+    prosumer_demand_fn : str, optional
+        Path to a CSV of per-node TYNDP prosumer electricity demand (Native
+        Demand). Only added when `tyndp_scenario` is set
+        and a non-empty path is given; attached as its own `Load` on
+        the low-voltage/`RETE` bus, on top of (not replacing) the market Load
+        left on the main bus.
+    prosumer_btm_demand_fn : str, optional
+        Path to a CSV of per-node TYNDP prosumer behind-the-meter Fixed
+        Demand. Only added when `tyndp_scenario` is set and available for a
+        handful of nodes; added the same way as `prosumer_demand_fn`,
+        as a second, separate `Load` on the same `RETE` bus (not summed
+        with the Native Demand Load), matching how the TYNDP output
+        dashboard itself keeps them as two distinct line items.
 
     Returns
     -------
@@ -3420,6 +3447,40 @@ def insert_electricity_distribution_grid(
             efficiency=1,
             marginal_cost=wheeling_charges.loc[nodes, "prosumer_to_e_market"].values,
         )
+
+        if prosumer_demand_fn:
+            prosumer_demand = pd.read_csv(
+                prosumer_demand_fn, index_col=0, parse_dates=True
+            ).reindex(n.snapshots)
+            prosumer_nodes = nodes.intersection(prosumer_demand.columns)
+            n.add(
+                "Load",
+                prosumer_nodes,
+                suffix=lv_suffix + " prosumer",
+                bus=prosumer_nodes + lv_suffix,
+                carrier="electricity prosumer",
+                p_set=prosumer_demand[prosumer_nodes],
+            )
+        if prosumer_btm_demand_fn:
+            prosumer_btm_demand = pd.read_csv(
+                prosumer_btm_demand_fn, index_col=0, parse_dates=True
+            ).reindex(n.snapshots)
+            btm_nodes = nodes.intersection(prosumer_btm_demand.columns)
+            n.add(
+                "Load",
+                btm_nodes,
+                suffix=lv_suffix + " prosumer btm",
+                bus=btm_nodes + lv_suffix,
+                carrier="electricity prosumer btm",
+                p_set=prosumer_btm_demand[btm_nodes],
+            )
+
+        loads = n.loads.index[
+            n.loads.carrier.str.contains("electric")
+            & n.loads.bus.isin(nodes)
+            & (n.loads.carrier != "electricity")
+        ]
+        n.loads.loc[loads, "bus"] += lv_suffix
     else:
         n.add(
             "Link",
@@ -3434,26 +3495,26 @@ def insert_electricity_distribution_grid(
             capital_cost=costs.at["electricity distribution grid", "capital_cost"],
         )
 
-    # deduct distribution losses from electricity demand as these are included in total load
-    # https://nbviewer.org/github/Open-Power-System-Data/datapackage_timeseries/blob/2020-10-06/main.ipynb
-    if (
-        efficiency := options["transmission_efficiency"]
-        .get("electricity distribution grid", {})
-        .get("efficiency_static")
-    ) and "electricity distribution grid" in options["transmission_efficiency"][
-        "enable"
-    ]:
-        logger.info(
-            f"Deducting distribution losses from electricity demand: {np.around(100 * (1 - efficiency), decimals=2)}%"
-        )
-        n.loads_t.p_set.loc[:, n.loads.carrier == "electricity"] *= efficiency
+        # deduct distribution losses from electricity demand as these are included in total load
+        # https://nbviewer.org/github/Open-Power-System-Data/datapackage_timeseries/blob/2020-10-06/main.ipynb
+        if (
+            efficiency := options["transmission_efficiency"]
+            .get("electricity distribution grid", {})
+            .get("efficiency_static")
+        ) and "electricity distribution grid" in options["transmission_efficiency"][
+            "enable"
+        ]:
+            logger.info(
+                f"Deducting distribution losses from electricity demand: {np.around(100 * (1 - efficiency), decimals=2)}%"
+            )
+            n.loads_t.p_set.loc[:, n.loads.carrier == "electricity"] *= efficiency
 
-    # this catches regular electricity load and "industry electricity" and
-    # "agriculture machinery electric" and "agriculture electricity"
-    loads = n.loads.index[
-        n.loads.carrier.str.contains("electric") & n.loads.bus.isin(nodes)
-    ]
-    n.loads.loc[loads, "bus"] += lv_suffix
+        # this catches regular electricity load and "industry electricity" and
+        # "agriculture machinery electric" and "agriculture electricity"
+        loads = n.loads.index[
+            n.loads.carrier.str.contains("electric") & n.loads.bus.isin(nodes)
+        ]
+        n.loads.loc[loads, "bus"] += lv_suffix
 
     bevs = n.links.index[(n.links.carrier == "BEV charger") & n.links.bus0.isin(nodes)]
     n.links.loc[bevs, "bus0"] += lv_suffix
@@ -6792,7 +6853,7 @@ def add_biomass(
     )
 
     e_sum_min_biogas = (
-        biogas_potentials_spatial * nyears if options["force_biogas_potential"] else 0
+        biogas_potentials_spatial if options["force_biogas_potential"] else 0
     )
     if options["force_biogas_potential"]:
         logger.info("Force biogas potential to be used.")
@@ -6809,9 +6870,7 @@ def add_biomass(
     )
 
     e_sum_min_biomass = (
-        solid_biomass_potentials_spatial * nyears
-        if options["force_biomass_potential"]
-        else 0
+        solid_biomass_potentials_spatial if options["force_biomass_potential"] else 0
     )
     if options["force_biomass_potential"]:
         logger.info("Force biomass potential to be used.")
@@ -9422,8 +9481,6 @@ if __name__ == "__main__":
             busmap_fn=snakemake.input.busmap,
             scaling=snakemake.params.scaling_factor,
             overwrite=True,
-            patch_load=snakemake.params.patch_load_mm,
-            patch_demand_fn=snakemake.input.elec_demand_mm,
         )
 
     pop_layout = pd.read_csv(snakemake.input.clustered_pop_layout, index_col=0)
@@ -9885,6 +9942,10 @@ if __name__ == "__main__":
             ext_stores=extendable_stores,
             tyndp_scenario=tyndp_scenario,
             wheeling_charges_fn=snakemake.input.get("wheeling_charges", ""),
+            prosumer_demand_fn=snakemake.input.get("elec_demand_prosumer_tyndp", ""),
+            prosumer_btm_demand_fn=snakemake.input.get(
+                "elec_demand_prosumer_btm_tyndp", ""
+            ),
         )
 
     if tyndp_scenario and snakemake.params.hurdle_costs:

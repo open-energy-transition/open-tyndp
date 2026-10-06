@@ -64,10 +64,11 @@ Optional extendable transmission and storage assets for the 2035 and 2040 planni
 Hydrogen storage parameters, steam methane reforming (SMR and SMR+CCS) capacities, and
 import pipeline assumptions.
 
-**[Supply Tool](https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-outputs/20240518-Supply-Tool.xlsm.zip)**
+**[Supply Tool](https://2026-data.entsos-tyndp-scenarios.eu/output/Supply-Tool.zip)**
 
 Methane demand and biomass potentials for energy carriers modelled in Open-TYNDP. This is
-a scenario output file from the TYNDP 2024 process used as a fixed input.
+a scenario output file from the TYNDP 2026 process used as a fixed input. It contains one
+workbook per scenario (NT+, HEV and LEV); Open-TYNDP uses the NT+ variant.
 
 !!! note
     In the underlying PyPSA-Eur framework, RES profiles, hydro inflows, and demand time series
