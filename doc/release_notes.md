@@ -25,6 +25,8 @@
 
 * feat: align the electricity and hydrogen topology with the TYNDP 2026 ([#920](https://github.com/open-energy-transition/open-tyndp/pull/920)). The electricity and hydrogen reference grids are now read directly per planning horizon, bus names and a new `category` tag (`onshore`/`offshore` for electricity, `Z1`/`Z2`/`offshore`/`import`/`bottleneck` for hydrogen) are taken from the 2026 node list instead of being synthesised, and the new `build_tyndp_electricity_ntc` rule extracts the per-horizon NTC that are applied in `prepare_sector_network`. `MD`, `TR` and `UA` are added as modelled countries. The TYNDP 2024 offshore-hub feature (`build_tyndp_offshore_hubs`, `plot_offshore_network`, the `AC_OH`/`H2_OH`/`DC_OH` carriers) and the investment-candidate corrections (`build_tyndp_transmission_projects`, `tyndp_investment_candidates`, `offshore_hubs_tyndp`) are removed, since 2026 offshore nodes are real substations with real reference-grid topology.
 
+* feat: align H2 imports with TYNDP 2026 ([#939](https://github.com/open-energy-transition/open-tyndp/pull/939)). `clean_tyndp_h2_imports` is merged into `build_tyndp_h2_imports`, which reads the TYNDP 2026 import corridor capacities, offer prices and hourly profiles. The corridors are added as low/high price band generators at the external import nodes of the H2 reference grid, which connect them to the H2 zones. The separate import links are removed, and a warning flags import nodes whose outgoing pipeline capacity is smaller than their import capacity. The unused `retrieve_countries_centroids` rule is removed.
+
 **Changes**
 
 **Bugfixes and Compatibility**
