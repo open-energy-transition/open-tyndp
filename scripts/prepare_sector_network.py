@@ -2223,7 +2223,6 @@ def _add_electrolyzer_capacities(
 def _add_h2_dres_capacities(
     n: pypsa.Network,
     pemmdb_capacities: pd.DataFrame,
-    trajectories: pd.DataFrame,
     dres_carriers: list[str],
 ) -> None:
     """
@@ -2235,8 +2234,6 @@ def _add_h2_dres_capacities(
         The PyPSA network container object.
     pemmdb_capacities : pd.DataFrame
         All PEMMDB capacities.
-    trajectories: pd.DataFrame
-        TYNDP trajectories for onshore electrolyzers.
     dres_carriers : list[str]
         TYNDP DRES generator carriers.
 
@@ -2275,22 +2272,18 @@ def _add_h2_dres_capacities(
         n.links.loc[electrolyser_i, "bus0"].map(caps).fillna(0.0)
     )
 
-    # For NT, no trajectories will be added to the model and electrolyser capacities will be fixed
-    if trajectories.empty:
-        n.links.loc[electrolyser_i, "p_nom_extendable"] = False
-        remove_zero_capacity_non_extendable(
-            n,
-            carriers=[
-                "H2 Electrolysis",
-            ],
-            component_types={"Link"},
-        )
+    # Fix capacities and remove empty assets
+    n.links.loc[electrolyser_i, "p_nom_extendable"] = False
+    remove_zero_capacity_non_extendable(
+        n,
+        carriers=["H2 Electrolysis"],
+        component_types={"Link"},
+    )
 
 
 def _add_h2_sres_capacities(
     n: pypsa.Network,
     pemmdb_capacities: pd.DataFrame,
-    trajectories: pd.DataFrame,
     sres_carriers: list[str],
 ) -> None:
     """
@@ -2302,8 +2295,6 @@ def _add_h2_sres_capacities(
         The PyPSA network container object.
     pemmdb_capacities : pd.DataFrame
         All PEMMDB capacities.
-    trajectories: pd.DataFrame
-        TYNDP trajectories for onshore electrolysers.
     sres_carriers : list[str]
         TYNDP SRES generator carriers.
 
@@ -2335,16 +2326,13 @@ def _add_h2_sres_capacities(
         n.links.loc[electrolyser_i, "bus0"].map(n.buses.location).map(caps).fillna(0.0)
     )
 
-    # For NT, no trajectories will be added to the model and electrolyser capacities will be fixed
-    if trajectories.empty:
-        n.links.loc[electrolyser_i, "p_nom_extendable"] = False
-        remove_zero_capacity_non_extendable(
-            n,
-            carriers=[
-                "H2 Electrolysis",
-            ],
-            component_types={"Link"},
-        )
+    # Fix capacities and remove empty assets
+    n.links.loc[electrolyser_i, "p_nom_extendable"] = False
+    remove_zero_capacity_non_extendable(
+        n,
+        carriers=["H2 Electrolysis"],
+        component_types={"Link"},
+    )
 
 
 def _extract_inflows(
@@ -3142,18 +3130,12 @@ def add_existing_tyndp_capacities(
             _add_h2_dres_capacities(
                 n=n,
                 pemmdb_capacities=pemmdb_capacities,
-                trajectories=trajectories_electrolyser,
-                dres_carriers=[
-                    c for c in tyndp_renewable_carriers if c.endswith("-dres")
-                ],
+                dres_carriers=[c for c in tyndp_renewable_carriers if "-dres" in c],
             )
             _add_h2_sres_capacities(
                 n=n,
                 pemmdb_capacities=pemmdb_capacities,
-                trajectories=trajectories_electrolyser,
-                sres_carriers=[
-                    c for c in tyndp_renewable_carriers if c.endswith("-sres")
-                ],
+                sres_carriers=[c for c in tyndp_renewable_carriers if "-sres" in c],
             )
             _add_electrolyzer_capacities(
                 n=n,
@@ -3894,7 +3876,7 @@ def add_h2_sres_tyndp(
         nodes.index + " SRES grid connection",
         bus0=nodes.index + " SRES",
         bus1=nodes.index,
-        carrier="AC_SRES",
+        carrier="SRES grid connection",
         p_nom=np.inf,
     )
 

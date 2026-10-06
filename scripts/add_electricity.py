@@ -586,6 +586,15 @@ def attach_wind_and_solar(
         landfall_length = landfall_lengths.get(car, 0.0)
 
         with xr.open_dataset(profile_filenames["profile_" + car]) as ds:
+            missing = ds.indexes["bus"].difference(n.buses.index)
+            if not missing.empty:
+                dropped = ppl.query("carrier == @car and bus in @missing").p_nom.sum()
+                logger.warning(
+                    f"Skipping {car} on {len(missing)} buses not in the network "
+                    f"({', '.join(missing)}), dropping {dropped:.0f} MW."
+                )
+                ds = ds.drop_sel(bus=missing)
+
             if ds.indexes["bus"].empty:
                 continue
 
@@ -598,7 +607,7 @@ def attach_wind_and_solar(
             ds = ds.stack(bus_bin=["bus", "bin"])
 
             supcar = car.split("-", 2)[0]
-            if supcar == "offwind" and "average_distance" in ds:
+            if car in ["offwind-ac", "offwind-dc", "offwind-float"]:
                 distance = ds["average_distance"].to_pandas()
                 distance.index = distance.index.map(flatten)
                 submarine_cost = costs.at[car + "-connection-submarine", "capital_cost"]
