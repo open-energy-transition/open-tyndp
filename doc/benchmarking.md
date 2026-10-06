@@ -135,7 +135,7 @@ hourly resolution:
 
 ![](img/tyndp/benchmarking_fed_NT_2030.png)
 
-Example of figure including Visualisation Platform data created for the power capacity for
+Example of figure created for the power capacity for
 the NT scenario in 2030 with hourly resolution:
 
 ![](img/tyndp/benchmarking_power_capacity_NT_2030.png)

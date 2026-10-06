@@ -11,10 +11,6 @@ The Scenario Building (SB) workflow is implemented in `rules/sb.smk`. Rules are 
 
 Downloads the PECD dataset.
 
-### Rule `retrieve_tyndp_vp_data`
-
-Downloads the TYNDP Visualisation Platform data used by the benchmarking framework.
-
 ### Rule `retrieve_tyndp_nuclear_profiles`
 
 Downloads per-country nuclear availability profiles.

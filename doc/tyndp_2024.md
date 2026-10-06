@@ -3,7 +3,7 @@
 
 # TYNDP 2024 data
 
-The TYNDP 2024 data is downloaded and extracted using the `retrieve_tyndp`, `retrieve_tyndp_pecd`, `retrieve_tyndp_vp_data` and `retrieve_tyndp_cba_projects` rules. Originally published by ENTSO-E and ENTSOG under
+The TYNDP 2024 data is downloaded and extracted using the `retrieve_tyndp`, `retrieve_tyndp_pecd` and `retrieve_tyndp_cba_projects` rules. Originally published by ENTSO-E and ENTSOG under
 Creative Commons Attribution 4.0 International License (CC-BY 4.0).
 The original data files can be found under <https://2024.entsos-tyndp-scenarios.eu/download/>.
 
@@ -107,12 +107,6 @@ The original data files can be found under <https://2024.entsos-tyndp-scenarios.
 - **Source:** TYNDP 2024 Scenarios, <https://2024.entsos-tyndp-scenarios.eu/download/>
 - **Link:** <https://2024-data.entsos-tyndp-scenarios.eu/files/reports/TYNDP-2024-Scenarios-Package-20250128.zip>
 - **Description:** Contains the TYNDP Scenarios Report Data Figures data and calculations used to produce the figures in the Scenarios Report.
-
-## `TYNDP-2024-Visualisation-Platform`
-
-- **Source:** TYNDP 2024 Visualisation Platform, <https://2024.entsos-tyndp-scenarios.eu/visualisation-platform/>
-- **Link:** <https://storage.googleapis.com/open-tyndp-data-store/2024/250117-TYNDP-2024-Visualisation-Platform.zip>
-- **Description:** Contains the TYNDP 2024 Visualisation Platform data for both electricity (supply mix, flexibility options, and electricity demand) and hydrogen (supply mix and hydrogen demand).
 
 ## `TYNDP Nuclear profiles`
 
