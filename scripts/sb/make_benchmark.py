@@ -753,7 +753,7 @@ def orchestrate_benchmark(
             benchmark_i.to_csv(
                 Path(
                     output_dir_bus_col,
-                    f"{table}_ws{snapshots['start'][:4]}_s_{clusters}_{opts}_{sector_opts}_all_years.csv",
+                    f"{table}_s_{clusters}_{opts}_{sector_opts}_all_years.csv",
                 )
             )
 
