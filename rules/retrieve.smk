@@ -1368,6 +1368,10 @@ if (TYNDP_2026_DATASET := dataset_version("tyndp_2026"))["source"] in ARCHIVE_SO
 
     def _unpack_tyndp_2026(input, output):
         for key in input.keys():
+            if Path(input[key]).suffix != ".zip":
+                copy2(input[key], output[key])
+                continue
+
             # Keep zip file
             zip_file = Path(output[f"{key}_zip"])
             copy2(input[key], zip_file)
@@ -1440,6 +1444,10 @@ if (TYNDP_2026_DATASET := dataset_version("tyndp_2026"))["source"] in ARCHIVE_SO
                 market_outputs=storage(
                     TYNDP_2026_DATASET["url"] + "/outputs/NT+_TimeSeriesDashboard.zip"
                 ),
+                benchmark=storage(
+                    TYNDP_2026_DATASET["url"]
+                    + "/additional/TYNDP_2026_Scenario_Report_Data_Figures.xlsx"
+                ),
             output:
                 line_data_zip=f"{TYNDP_2026_DATASET['folder']}/Line-data.zip",
                 nodes_zip=f"{TYNDP_2026_DATASET['folder']}/Nodes.zip",
@@ -1470,25 +1478,13 @@ if (TYNDP_2026_DATASET := dataset_version("tyndp_2026"))["source"] in ARCHIVE_SO
                 market_outputs=directory(
                     f"{TYNDP_2026_DATASET['folder']}/NT+_TimeSeriesDashboard"
                 ),
+                benchmark=f"{TYNDP_2026_DATASET['folder']}/TYNDP_2026_Scenario_Report_Data_Figures.xlsx",
             log:
                 "logs/retrieve_tyndp_2026.log",
             message:
                 "Retrieving TYNDP 2026 data package"
             run:
                 _unpack_tyndp_2026(input, output)
-
-    rule retrieve_tyndp_2026_scenario_report:
-        input:
-            report=storage(
-                TYNDP_2026_DATASET["url"]
-                + "/additional/TYNDP_2026_Scenario_Report_Data_Figures.xlsx"
-            ),
-        output:
-            report=f"{TYNDP_2026_DATASET['folder']}/TYNDP_2026_Scenario_Report_Data_Figures.xlsx",
-        log:
-            "logs/retrieve_tyndp_2026_scenario_report.log",
-        run:
-            copy2(input["report"], output["report"])
 
 
 def get_osm_archive_files(version):

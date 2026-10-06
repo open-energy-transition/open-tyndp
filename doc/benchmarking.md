@@ -81,8 +81,8 @@ resolved benchmarking at bus and country level is available via the
 
 The SB benchmarking workflow is controlled by `config/benchmarking.default.yaml`.
 
-1. `retrieve_tyndp_2026_scenario_report` and `retrieve_tyndp_2026`: Retrieve the TYNDP 2026
-   Scenarios Report Data Figures and the TYNDP 2026 Time Series Dashboards.
+1. `retrieve_tyndp_2026`: Retrieve the TYNDP 2026 Scenarios Report Data Figures and the TYNDP 2026
+   Time Series Dashboards.
 2. `clean_tyndp_report_benchmark`: Read and process the raw Scenarios Report data into
    a long-format table.
 3. `clean_tyndp_dashboard_benchmark`: Read and process the market model outputs from the Time Series
