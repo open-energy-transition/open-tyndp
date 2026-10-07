@@ -459,11 +459,6 @@
     "CbaConfig": {
       "description": "Configuration for top level `cba` (cost-benefit analysis) settings.",
       "properties": {
-        "hurdle_costs": {
-          "default": 0.01,
-          "description": "Marginal cost for transmission lines in cost-benefit analysis networks (EUR/MWh).",
-          "type": "number"
-        },
         "co2_societal_cost": {
           "additionalProperties": {
             "additionalProperties": {
@@ -3417,13 +3412,6 @@
             }
           }
         },
-        "available_years_tyndp": {
-          "description": "List of years for which TYNDP demand data is available.",
-          "items": {
-            "type": "integer"
-          },
-          "type": "array"
-        },
         "manual_adjustments": {
           "default": true,
           "description": "Whether to adjust the load data manually according to the function in `manual_adjustment`.",
@@ -3471,21 +3459,6 @@
               "type": "number"
             }
           }
-        },
-        "patch_demand_with_mm": {
-          "anyOf": [
-            {
-              "type": "boolean"
-            },
-            {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            }
-          ],
-          "default": false,
-          "description": "Whether to patch the electricity demand with Market Model output data. Set to `true` to apply to all nodes, or provide a list of node names to apply selectively."
         }
       }
     },
@@ -9452,6 +9425,11 @@
         false
       ]
     },
+    "hurdle_costs": {
+      "default": 0.01,
+      "description": "Hurdle cost applied as marginal cost to transmission links (EUR/MWh), used to discourage loop flows. Applied to the electricity and hydrogen grids in Scenario Building and to the DC links in the Cost-Benefit Analysis.",
+      "type": "number"
+    },
     "wscenarios_tyndp": {
       "additionalProperties": {
         "items": {
@@ -11671,13 +11649,6 @@
             }
           }
         },
-        "available_years_tyndp": {
-          "description": "List of years for which TYNDP demand data is available.",
-          "items": {
-            "type": "integer"
-          },
-          "type": "array"
-        },
         "manual_adjustments": {
           "default": true,
           "description": "Whether to adjust the load data manually according to the function in `manual_adjustment`.",
@@ -11725,21 +11696,6 @@
               "type": "number"
             }
           }
-        },
-        "patch_demand_with_mm": {
-          "anyOf": [
-            {
-              "type": "boolean"
-            },
-            {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            }
-          ],
-          "default": false,
-          "description": "Whether to patch the electricity demand with Market Model output data. Set to `true` to apply to all nodes, or provide a list of node names to apply selectively."
         }
       }
     },
@@ -15527,11 +15483,6 @@
     "cba": {
       "description": "Configuration for top level `cba` (cost-benefit analysis) settings.",
       "properties": {
-        "hurdle_costs": {
-          "default": 0.01,
-          "description": "Marginal cost for transmission lines in cost-benefit analysis networks (EUR/MWh).",
-          "type": "number"
-        },
         "co2_societal_cost": {
           "additionalProperties": {
             "additionalProperties": {

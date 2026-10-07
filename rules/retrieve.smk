@@ -1405,6 +1405,7 @@ if (TYNDP_2026_DATASET := dataset_version("tyndp_2026"))["source"] in ARCHIVE_SO
                 nodes_zip=f"{TYNDP_2026_DATASET['folder']}/Nodes.zip",
                 elec_reference_grid=f"{TYNDP_2026_DATASET['folder']}/Line-data/ReferenceGrid_Electricity.xlsx",
                 h2_reference_grid_entsos=f"{TYNDP_2026_DATASET['folder']}/Line-data/ReferenceGrid_Hydrogen.xlsx",
+                wheeling_charges=f"{TYNDP_2026_DATASET['folder']}/Line-data/WHEELING_CHARGES.xlsx",
                 nodes=f"{TYNDP_2026_DATASET['folder']}/Nodes/LIST OF NODES.xlsx",
             log:
                 "logs/retrieve_tyndp_2026.log",
@@ -1444,6 +1445,7 @@ if (TYNDP_2026_DATASET := dataset_version("tyndp_2026"))["source"] in ARCHIVE_SO
                 nodes_zip=f"{TYNDP_2026_DATASET['folder']}/Nodes.zip",
                 elec_reference_grid=f"{TYNDP_2026_DATASET['folder']}/Line-data/ReferenceGrid_Electricity.xlsx",
                 h2_reference_grid_entsos=f"{TYNDP_2026_DATASET['folder']}/Line-data/ReferenceGrid_Hydrogen.xlsx",
+                wheeling_charges=f"{TYNDP_2026_DATASET['folder']}/Line-data/WHEELING_CHARGES.xlsx",
                 nodes=f"{TYNDP_2026_DATASET['folder']}/Nodes/LIST OF NODES.xlsx",
                 hydro_inflows_zip=f"{TYNDP_2026_DATASET['folder']}/Hydro-Inflow.zip",
                 hydro_inflows=directory(f"{TYNDP_2026_DATASET['folder']}/Hydro-Inflow"),
