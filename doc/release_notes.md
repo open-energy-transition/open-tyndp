@@ -31,17 +31,17 @@
 
 **Changes**
 
-* feat: align CO2 prices with TYNDP 2026 NT+ (97.47 / 197.51 / 297.54 / 502.74 €/t for 2030 / 2035 / 2040 / 2050) ([#1036](https://github.com/open-energy-transition/open-tyndp/issues/1036)). The interpolated 2045 value is dropped.
+* feat: align CO2 prices with TYNDP 2026 NT+ (97.47 / 197.51 / 297.54 / 502.74 €/t for 2030 / 2035 / 2040 / 2050) ([#1038](https://github.com/open-energy-transition/open-tyndp/pull/1038)). The interpolated 2045 value is dropped.
 
-* feat: align configuration values with the TYNDP 2026 Supply Tool (NT+): `co2_sequestration_potential`, `shipping_oil_share`, `biomass_final_demand`, the biogas and solid biomass `adjustments` factors, and the `biomass_supply` benchmarking references ([#941](https://github.com/open-energy-transition/open-tyndp/pull/941)). Values are now also provided for 2050, and the outdated TYNDP 2024 `co2_sequestration_potential` overrides of the DE and GA scenarios are removed.
+* feat: align configuration values with the TYNDP 2026 Supply Tool (NT+): `co2_sequestration_potential`, `shipping_oil_share`, `biomass_final_demand`, the biogas and solid biomass `adjustments` factors, and the `biomass_supply` benchmarking references ([#941](https://github.com/open-energy-transition/open-tyndp/pull/941), re-merged in [#1041](https://github.com/open-energy-transition/open-tyndp/pull/1041)). Values are now also provided for 2050, and the outdated TYNDP 2024 `co2_sequestration_potential` overrides of the DE and GA scenarios are removed.
 
 **Bugfixes and Compatibility**
 
 * fix: remove hardcoded changes to the emissions factors of AT Other Non-RES gas CCGTs in 2040/2050 ([#1012](https://github.com/open-energy-transition/open-tyndp/pull/1012)). The reported PEMMDB value of 0 is used for 2040/2050 instead.
 
-* fix: do not scale `e_sum_min` of the biogas and solid biomass generators twice with `nyears` ([#941](https://github.com/open-energy-transition/open-tyndp/pull/941)). The biomass potentials are already scaled when they are read, so `force_biogas_potential` and `force_biomass_potential` forced a slightly lower dispatch than `e_sum_max` allowed, and would have made any run with `nyears > 1` infeasible.
+* fix: do not scale `e_sum_min` of the biogas and solid biomass generators twice with `nyears` ([#941](https://github.com/open-energy-transition/open-tyndp/pull/941), re-merged in [#1041](https://github.com/open-energy-transition/open-tyndp/pull/1041)). The biomass potentials are already scaled when they are read, so `force_biogas_potential` and `force_biomass_potential` forced a slightly lower dispatch than `e_sum_max` allowed, and would have made any run with `nyears > 1` infeasible.
 
-* fix: cap the Other RES biomass dispatch with `p_max_pu` instead of fixing it with `p_set` ([#941](https://github.com/open-energy-transition/open-tyndp/pull/941)). The must-run biomass demand derived from PEMMDB 2024 exceeded the solid biomass potentials of the TYNDP 2026 Supply Tool and made the 2030 network infeasible. To be revisited once PEMMDB 2026 data is added to the network.
+* fix: cap the Other RES biomass dispatch with `p_max_pu` instead of fixing it with `p_set` ([#941](https://github.com/open-energy-transition/open-tyndp/pull/941), re-merged in [#1041](https://github.com/open-energy-transition/open-tyndp/pull/1041)). The must-run biomass demand derived from PEMMDB 2024 exceeded the solid biomass potentials of the TYNDP 2026 Supply Tool and made the 2030 network infeasible. To be revisited once PEMMDB 2026 data is added to the network.
 
 * fix: add missing plotting colors for electricity demand and btm ([#1053](https://github.com/open-energy-transition/open-tyndp/pull/1053)).
 
@@ -49,7 +49,7 @@
 
 **Developers Note**
 
-* Rename `pyear` to `planning_horizon` and `cyear` to `wscenario` ([#878](https://github.com/open-energy-transition/open-tyndp/pull/878)). The CBA scenarios {NT,DE,GA}-ws{1995,2008,2009} still align with the TYNDP 2024 climate years; only the prefix has been changed. They are not TYNDP 2026 weather scenarios, which are indices (WS003, WS021, ...) configured through the `wscenarios_tyndp` config option (renamed from `weather_scenarios_tyndp`). The `ws` prefix is now shared by both numbering schemes in 2024 and 2026, but `ws1995` should not be read as a 2026 weather scenario . Additionally, some functions were renamed as well (e.g., `safe_pyear` to `safe_planning_horizon`). 
+* Rename `pyear` to `planning_horizon` and `cyear` to `wscenario` ([#878](https://github.com/open-energy-transition/open-tyndp/pull/878)). The CBA scenarios {NT,DE,GA}-ws{1995,2008,2009} still align with the TYNDP 2024 climate years; only the prefix has been changed. They are not TYNDP 2026 weather scenarios, which are indices (WS003, WS021, ...) configured through the `wscenarios_tyndp` config option (renamed from `weather_scenarios_tyndp`). The `ws` prefix is now shared by both numbering schemes in 2024 and 2026, but `ws1995` should not be read as a 2026 weather scenario. Additionally, some functions were renamed as well (e.g., `safe_pyear` to `safe_planning_horizon`).
 
 * ci: run the TYNDP Scenario Building and CBA test workflows past `prepare_sector_network` again, covering the solve and benchmark steps ([#1044](https://github.com/open-energy-transition/open-tyndp/pull/1044)). These steps were skipped in CI since [#865](https://github.com/open-energy-transition/open-tyndp/pull/865) and run through again since [#920](https://github.com/open-energy-transition/open-tyndp/pull/920).
 
