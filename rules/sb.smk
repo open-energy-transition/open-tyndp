@@ -169,42 +169,6 @@ if not "pre-built" in PECD_DATASET["version"]:
 # Build electricity
 ###################
 
-if config["load"]["source"] == "tyndp":
-
-    rule clean_tyndp_electricity_demand:
-        input:
-            electricity_demand=rules.retrieve_tyndp.output.demand_profiles,
-        output:
-            electricity_demand_prepped=resources("electricity_demand_raw_tyndp.csv"),
-        log:
-            logs("clean_tyndp_electricity_demand.log"),
-        benchmark:
-            benchmarks("performances/clean_tyndp_electricity_demand")
-        conda:
-            "../envs/environment.yaml"
-        threads: 4
-        resources:
-            mem_mb=4000,
-        params:
-            planning_horizons=config_provider("scenario", "planning_horizons"),
-            snapshots=config_provider("snapshots"),
-            scenario=config_provider("tyndp_scenario"),
-            available_years=config_provider("load", "available_years_tyndp"),
-        script:
-            scripts("sb/clean_tyndp_electricity_demand.py")
-
-
-use rule build_electricity_demand as build_electricity_demand_tyndp with:
-    input:
-        unpack(input_elec_demand),
-        tyndp=rules.clean_tyndp_electricity_demand.output.electricity_demand_prepped,
-    output:
-        resources("electricity_demand_{planning_horizons}.csv"),
-    log:
-        logs("build_electricity_demand_{planning_horizons}.log"),
-    benchmark:
-        benchmarks("performances/build_electricity_demand_{planning_horizons}")
-
 
 def get_wscenario_tyndp(w):
     """Get the preferred TYNDP 2026 weather scenario (climate year column index) for a given planning horizon."""
@@ -218,12 +182,6 @@ def get_wscenario_tyndp(w):
     return wscenarios[planning_horizon][0]
 
 
-# Generic rule: parameterized by the `demand_type` wildcard, so any demand
-# type/file present under `data/tyndp_2026_bundle/Demand` can be requested
-# directly by target filename. The concrete demand types below (electricity
-# market, EV charging, hydrogen zones, ...) are defined as named aliases of
-# this rule via `use rule ... as ...`, fixing `demand_type` and giving each a
-# stable, readable output name instead of relying on the wildcard.
 rule build_tyndp_demand:
     input:
         demand=rules.retrieve_tyndp_2026.output.demand_profiles,
@@ -457,7 +415,7 @@ use rule build_electricity_demand_base as build_electricity_demand_base_tyndp wi
         gb_excel=[],
         gb_geojson=[],
         nuts3=[],
-        load=resources("electricity_demand_{planning_horizons}.csv"),
+        load=resources("demand_tyndp_electricity_market_{planning_horizons}.csv"),
     output:
         resources("electricity_demand_base_s_{planning_horizons}.nc"),
     log:
@@ -509,6 +467,25 @@ rule build_tyndp_h2_demand:
         scenario=config_provider("tyndp_scenario"),
     script:
         scripts("sb/build_tyndp_h2_demand.py")
+
+
+rule build_tyndp_wheeling_charges:
+    input:
+        wheeling_charges=rules.retrieve_tyndp_2026.output.wheeling_charges,
+        demand=rules.retrieve_tyndp_2026.output.demand_profiles,
+    output:
+        wheeling_charges=resources("wheeling_charges_tyndp.csv"),
+    log:
+        logs("build_tyndp_wheeling_charges.log"),
+    benchmark:
+        benchmarks("performances/build_tyndp_wheeling_charges")
+    conda:
+        "../envs/environment.yaml"
+    threads: 1
+    resources:
+        mem_mb=1000,
+    script:
+        scripts("sb/build_tyndp_wheeling_charges.py")
 
 
 if config["sector"]["h2_topology_tyndp"]:

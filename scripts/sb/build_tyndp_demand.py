@@ -50,6 +50,7 @@ from pathlib import Path
 import pandas as pd
 
 from scripts._helpers import (
+    align_demand_to_snapshots,
     configure_logging,
     get_snapshots,
     get_wscenario,
@@ -411,6 +412,7 @@ if __name__ == "__main__":
 
     wscenario = get_wscenario(wscenarios, planning_horizon)
     demand = load_demand(fn, planning_horizon, demand_type, wscenario, year)
+    demand = align_demand_to_snapshots(demand, snapshots)
 
     # Export to CSV
     demand.to_csv(snakemake.output.demand, index=True)

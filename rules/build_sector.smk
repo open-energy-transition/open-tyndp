@@ -1814,12 +1814,10 @@ rule prepare_sector_network:
         h2_grid_tyndp=branch(
             config_provider("sector", "h2_topology_tyndp"),
             resources("h2_reference_grid_tyndp_{planning_horizons}.csv"),
-            [],
         ),
         buses_h2=branch(
             config_provider("sector", "h2_topology_tyndp"),
             resources("tyndp/build/geojson/buses_h2.geojson"),
-            [],
         ),
         load=lambda w: (
             resources("electricity_demand_base_s_{planning_horizons}.nc")
@@ -1829,12 +1827,10 @@ rule prepare_sector_network:
         h2_imports_tyndp=branch(
             config_provider("sector", "h2_topology_tyndp"),
             resources("h2_import_potentials_{planning_horizons}.csv"),
-            [],
         ),
         profile_pemmdb_hydro=branch(
             config_provider("electricity", "pemmdb_hydro_profiles", "enable"),
             resources("profile_pemmdb_hydro.nc"),
-            [],
         ),
         tyndp_trajectories=branch(
             include_tyndp_trajectories,
@@ -1853,19 +1849,24 @@ rule prepare_sector_network:
             config_provider("tyndp_scenario"),
             resources("demand_tyndp_h2_z2_{planning_horizons}.csv"),
         ),
-        elec_demand_mm=lambda w: (
-            RESULTS
-            + f"benchmarks/tyndp-2024/resources/benchmarks_tyndp_output_elec_demand_{config_provider('tyndp_scenario')(w)}{{planning_horizons}}.csv"
-            if config_provider("tyndp_scenario")(w)
-            == "NT"  # Only scenario with MM output data
-            and config_provider("load", "patch_demand_with_mm")(w)
-            and int(w.planning_horizons)
-            in [2030, 2040]  # Only years with MM output data
-            else []
+        wheeling_charges=branch(
+            lambda w: config_provider("tyndp_scenario")(w)
+            and config_provider("sector", "electricity_distribution_grid")(w),
+            resources("wheeling_charges_tyndp.csv"),
+        ),
+        elec_demand_prosumer_tyndp=branch(
+            lambda w: config_provider("tyndp_scenario")(w)
+            and config_provider("sector", "electricity_distribution_grid")(w),
+            resources("demand_tyndp_electricity_prosumer_{planning_horizons}.csv"),
+        ),
+        elec_demand_prosumer_btm_tyndp=branch(
+            lambda w: config_provider("tyndp_scenario")(w)
+            and config_provider("sector", "electricity_distribution_grid")(w),
+            resources("demand_tyndp_electricity_prosumer_btm_{planning_horizons}.csv"),
         ),
         tyndp_nuclear_profiles=branch(
-            config_provider("tyndp_scenario")
-            and config_provider("conventional", "tyndp_availability_profiles"),
+            lambda w: config_provider("tyndp_scenario")(w)
+            and config_provider("conventional", "tyndp_availability_profiles")(w),
             lambda w: (
                 rules.retrieve_tyndp_nuclear_profiles.output[
                     f"nuclear_p_max_pu_{safe_planning_horizon(w.planning_horizons, available_years=[2030,2040], verbose= False)}"
@@ -1875,19 +1876,16 @@ rule prepare_sector_network:
         tyndp_smr=branch(
             config_provider("sector", "h2_topology_tyndp"),
             resources("smr_data_prepped_{planning_horizons}.csv"),
-            [],
         ),
         tyndp_h2_storages=branch(
             config_provider("sector", "h2_topology_tyndp"),
             resources("h2_storages_prepped_{planning_horizons}.csv"),
-            [],
         ),
         tyndp_electricity_ntc=branch(
             lambda w: config_provider("electricity", "base_network")(w) == "tyndp"
             and config_provider("electricity", "tyndp_reference_year")(w)
             != int(w.planning_horizons),
             resources("tyndp_electricity_ntc_{planning_horizons}.csv"),
-            [],
         ),
     output:
         resources(
@@ -1942,8 +1940,8 @@ rule prepare_sector_network:
         ),
         load_source=config_provider("load", "source"),
         scaling_factor=config_provider("load", "scaling_factor"),
-        patch_load_mm=config_provider("load", "patch_demand_with_mm"),
         tyndp_scenario=config_provider("tyndp_scenario"),
+        hurdle_costs=config_provider("hurdle_costs"),
     message:
         "Preparing integrated sector-coupled energy network for {wildcards.clusters} clusters, {wildcards.planning_horizons} planning horizon, {wildcards.opts} electric options and {wildcards.sector_opts} sector options"
     script:
