@@ -3023,7 +3023,7 @@ def add_existing_tyndp_capacities(
         )
 
         # Add existing battery capacities from PEMMDB to already attached storage components
-        if "battery" in tyndp_stores:
+        if {"battery", "home battery"} & set(tyndp_stores):
             _add_battery_capacities(
                 n=n,
                 pemmdb_capacities=pemmdb_capacities,
@@ -3438,11 +3438,15 @@ def insert_electricity_distribution_grid(
     ]
     n.generators.loc[solar, "capital_cost"] = costs.at["solar-utility", "capital_cost"]
 
-    homeb_chargers = n.links.index[n.links.carrier == "home battery charger"]
-    n.links.loc[homeb_chargers, "bus0"] += " low voltage"
+    homeb_chargers = n.links.index[
+        (n.links.carrier == "home battery charger") & n.links.bus0.isin(nodes)
+    ]
+    n.links.loc[homeb_chargers, "bus0"] += lv_suffix
 
-    homeb_dischargers = n.links.index[n.links.carrier == "home battery discharger"]
-    n.links.loc[homeb_dischargers, "bus1"] += " low voltage"
+    homeb_dischargers = n.links.index[
+        (n.links.carrier == "home battery discharger") & n.links.bus1.isin(nodes)
+    ]
+    n.links.loc[homeb_dischargers, "bus1"] += lv_suffix
 
     fn = solar_rooftop_potentials_fn
     if len(fn) > 0:
