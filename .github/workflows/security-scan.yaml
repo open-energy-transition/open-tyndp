@@ -107,7 +107,7 @@ jobs:
     - name: Scan master baseline
       id: baseline
       if: github.event_name == 'pull_request'
-      uses: anchore/scan-action@v7.4.0
+      uses: anchore/scan-action@v7.4.2
       env:
         SBOM: master-baseline/sbom.spdx.json
       with: *scan_settings
