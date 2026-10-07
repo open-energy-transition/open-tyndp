@@ -2616,14 +2616,7 @@ def _add_h2_storage_capacities(
         ]
     )
 
-    # Set store initial SoC by constraining last time step with e_cyclic=True
-    # TODO: simplify once PyPSA allows for both `e_initial` and `e_cyclic=True`
     n.stores.loc[h2_stores_i, ["e_nom", "e_nom_min"]] = store_data.e_nom.fillna(0.0)
-    e_final_pu = store_data.e_initial.div(store_data.e_nom).fillna(0.0)
-    for attr in ["e_min_pu", "e_max_pu"]:
-        e_pu = n.get_switchable_as_dense("Store", attr, inds=h2_stores_i)
-        e_pu.iloc[-1] = e_final_pu
-        n.stores_t[attr][h2_stores_i] = e_pu
 
     # Set link capacities
     link_caps = link_caps.reindex(h2_chargers_i, fill_value=0.0)
