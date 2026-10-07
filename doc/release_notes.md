@@ -29,6 +29,8 @@
 
 * feat: align the prosumer modelling with the TYNDP 2026 ([#935](https://github.com/open-energy-transition/open-tyndp/pull/935)). Under a TYNDP scenario, the low voltage buses are now suffixed `RETE` instead of ` low voltage` and the electricity distribution grid is modelled as two non-extendable unidirectional links with infinite capacity, priced with the TYNDP wheeling charges built by the new `build_tyndp_wheeling_charges` rule, instead of one extendable bidirectional link with an investment cost. Low voltage buses are only built for the nodes TYNDP models as prosumer nodes, taken from the prosumer demand data; nodes without a wheeling charge entry (`CH00`) are given a zero charge, matching the TYNDP market model. Under a TYNDP scenario, the hurdle costs are also applied as marginal cost to the `DC` and `H2 pipeline` links in Scenario Building; for this, `cba.hurdle_costs` is moved to the top-level `hurdle_costs` config option, shared by Scenario Building and CBA.
 
+* feat: align and add generation capacities to the network for renewables, SRES/DRES, and new technologies such as hydrogen OCGT ([#999](https://github.com/open-energy-transition/open-tyndp/pull/999)). For the TYNDP 2026 cycle, offshore wind is modelled differently, and new SRES/DRES generation is included. Therefore, buses and links from/to the e-market and hydrogen zones were created for SRES/DRES.
+
 **Changes**
 
 * feat: align CO2 prices with TYNDP 2026 NT+ (97.47 / 197.51 / 297.54 / 502.74 €/t for 2030 / 2035 / 2040 / 2050) ([#1036](https://github.com/open-energy-transition/open-tyndp/issues/1036)). The interpolated 2045 value is dropped.
