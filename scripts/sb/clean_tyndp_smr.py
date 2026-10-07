@@ -75,7 +75,9 @@ def load_smr_data(fn: str, planning_horizon: int, scenario: str) -> pd.DataFrame
 
     smr = smr.assign(
         bus=lambda df: format_bz_names(df.bus),
-        carrier=lambda df: np.where(df.ccs, "SMR CCS", "SMR"),
+        carrier=lambda df: np.where(df.ccs, "SMR CC", "SMR"),
+        # match the TYNDP market-output asset naming convention
+        name_suffix=lambda df: np.where(df.ccs, "SMR CCS", "SMR"),
         p_min_pu=0,
         ramp_limit_up=lambda df: (
             df.ramp_limit_up * 60 / df.p_nom
@@ -88,7 +90,8 @@ def load_smr_data(fn: str, planning_horizon: int, scenario: str) -> pd.DataFrame
         unit="MW_CH4",
     ).drop(columns=["heat_rate", "ccs", "country", "object", "name", "fuels"])
 
-    smr.index = smr.bus + " " + smr.carrier
+    smr.index = smr.bus + " " + smr.name_suffix
+    smr = smr.drop(columns="name_suffix")
 
     return smr
 

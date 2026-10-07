@@ -2563,7 +2563,7 @@ def _add_smr_capacities(
 
     remove_zero_capacity_non_extendable(
         n,
-        carriers=["SMR", "SMR CCS"],
+        carriers=["SMR", "SMR CC"],
         component_types={"Link"},
     )
 
@@ -3631,13 +3631,13 @@ def add_h2_production_tyndp(
         # TODO: this does currently only work for no gas spatial
         n.add(
             "Link",
-            buses_h2_smr + " SMR CCS",
+            buses_h2_smr + " SMR CCS",  # matches TYNDP market-output asset naming
             bus0=spatial.gas.nodes,
             bus1=buses_h2_smr,
             bus2="co2 atmosphere",
             bus3=spatial.co2.nodes,
             p_nom_extendable=False,
-            carrier="SMR CCS",
+            carrier="SMR CC",
             efficiency=costs.at["SMR CC", "efficiency"],
             efficiency2=costs.at["gas", "CO2 intensity"]
             * (1 - costs.at["SMR CC", "capture_rate"]),

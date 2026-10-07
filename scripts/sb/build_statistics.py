@@ -452,7 +452,7 @@ def compute_benchmark(
                     "H2 cavern-storage discharger",
                     "H2 tank-storage discharger",
                     "SMR",
-                    "SMR CCS",
+                    "SMR CC",
                 ],
                 errors="ignore",
             )
