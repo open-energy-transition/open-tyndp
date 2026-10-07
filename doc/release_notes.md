@@ -13,13 +13,13 @@
 
 * feat: switch TYNDP electricity demand to TYNDP 2026 data for three demand types: market, prosumer and prosumer behind-the-meter (BTM) ([#944](https://github.com/open-energy-transition/open-tyndp/pull/944)).
 
-* feat: add rule to retrieve TYNDP 2026 data ([#815](https://github.com/open-energy-transition/open-tyndp/pull/815)).
+* feat: add rule to retrieve TYNDP 2026 data ([#816](https://github.com/open-energy-transition/open-tyndp/pull/816)).
 
 * feat: update the TYNDP 2026 data bundle to ENTSO-E's corrected reference dataset of 2026-08-21 ([#893](https://github.com/open-energy-transition/open-tyndp/pull/893)). The bundle is now a separate `tyndp_2026` dataset, configured via `data: tyndp_2026:`. Extraction in the retrieve rule is adjusted to account for double nested zips and drops the `_corrected` file suffix, so downstream paths stay unchanged.
 
 * feat: add `build_tyndp_demand` rule to process TYNDP 2026 demand profiles (electricity, EV, hydrogen, thermal energy, synthetic fuels) ([#808](https://github.com/open-energy-transition/open-tyndp/pull/808)).
 
-* feat: add complete processing and preparation of PECD v4.2 renewable profiles for all renewable technologies: Solar PV rooftop, Solar PV utility, Onshore Wind, Offshore Wind, and Solar CSP  ([#843](https://github.com/open-energy-transition/open-tyndp/pull/843)).  The data processing infrastructure for renewable profile creation is complete, but full integration into the model workflow will follow in a subsequent PRs.
+* feat: add complete processing and preparation of PECD v4.2 renewable profiles for all renewable technologies: Solar PV rooftop, Solar PV utility, Onshore Wind, Offshore Wind, and Solar CSP ([#843](https://github.com/open-energy-transition/open-tyndp/pull/843), re-merged in [#887](https://github.com/open-energy-transition/open-tyndp/pull/887)).  The data processing infrastructure for renewable profile creation is complete, but full integration into the model workflow will follow in subsequent PRs.
 
 * feat: update processing and preparation of PEMMDB 2.X technologies, capacities and profiles for TYNDP 2026: Thermals, Other Non-RES, Solar, Wind, Battery, Electrolyser, Hydro, and DSR ([#865](https://github.com/open-energy-transition/open-tyndp/pull/865)). Full integration of 2026 technologies with their capacities and profiles will follow in subsequent PRs.
 
@@ -29,19 +29,23 @@
 
 * feat: align the prosumer modelling with the TYNDP 2026 ([#935](https://github.com/open-energy-transition/open-tyndp/pull/935)). Under a TYNDP scenario, the low voltage buses are now suffixed `RETE` instead of ` low voltage` and the electricity distribution grid is modelled as two non-extendable unidirectional links with infinite capacity, priced with the TYNDP wheeling charges built by the new `build_tyndp_wheeling_charges` rule, instead of one extendable bidirectional link with an investment cost. Low voltage buses are only built for the nodes TYNDP models as prosumer nodes, taken from the prosumer demand data; nodes without a wheeling charge entry (`CH00`) are given a zero charge, matching the TYNDP market model. Under a TYNDP scenario, the hurdle costs are also applied as marginal cost to the `DC` and `H2 pipeline` links in Scenario Building; for this, `cba.hurdle_costs` is moved to the top-level `hurdle_costs` config option, shared by Scenario Building and CBA.
 
+* feat: align and add generation capacities to the network for renewables, SRES/DRES, and new technologies such as hydrogen OCGT ([#999](https://github.com/open-energy-transition/open-tyndp/pull/999)). For the TYNDP 2026 cycle, offshore wind is modelled differently, and new SRES/DRES generation is included. Therefore, buses and links from/to the e-market and hydrogen zones were created for SRES/DRES.
+
 **Changes**
 
-* feat: align CO2 prices with TYNDP 2026 NT+ (97.47 / 197.51 / 297.54 / 502.74 €/t for 2030 / 2035 / 2040 / 2050) ([#1036](https://github.com/open-energy-transition/open-tyndp/issues/1036)). The interpolated 2045 value is dropped.
+* feat: align CO2 prices with TYNDP 2026 NT+ (97.47 / 197.51 / 297.54 / 502.74 €/t for 2030 / 2035 / 2040 / 2050) ([#1038](https://github.com/open-energy-transition/open-tyndp/pull/1038)). The interpolated 2045 value is dropped.
 
-* feat: align configuration values with the TYNDP 2026 Supply Tool (NT+): `co2_sequestration_potential`, `shipping_oil_share`, `biomass_final_demand`, the biogas and solid biomass `adjustments` factors, and the `biomass_supply` benchmarking references ([#941](https://github.com/open-energy-transition/open-tyndp/pull/941)). Values are now also provided for 2050, and the outdated TYNDP 2024 `co2_sequestration_potential` overrides of the DE and GA scenarios are removed.
+* feat: align configuration values with the TYNDP 2026 Supply Tool (NT+): `co2_sequestration_potential`, `shipping_oil_share`, `biomass_final_demand`, the biogas and solid biomass `adjustments` factors, and the `biomass_supply` benchmarking references ([#941](https://github.com/open-energy-transition/open-tyndp/pull/941), re-merged in [#1041](https://github.com/open-energy-transition/open-tyndp/pull/1041)). Values are now also provided for 2050, and the outdated TYNDP 2024 `co2_sequestration_potential` overrides of the DE and GA scenarios are removed.
 
 **Bugfixes and Compatibility**
 
 * fix: remove hardcoded changes to the emissions factors of AT Other Non-RES gas CCGTs in 2040/2050 ([#1012](https://github.com/open-energy-transition/open-tyndp/pull/1012)). The reported PEMMDB value of 0 is used for 2040/2050 instead.
 
-* fix: do not scale `e_sum_min` of the biogas and solid biomass generators twice with `nyears` ([#941](https://github.com/open-energy-transition/open-tyndp/pull/941)). The biomass potentials are already scaled when they are read, so `force_biogas_potential` and `force_biomass_potential` forced a slightly lower dispatch than `e_sum_max` allowed, and would have made any run with `nyears > 1` infeasible.
+* fix: do not scale `e_sum_min` of the biogas and solid biomass generators twice with `nyears` ([#941](https://github.com/open-energy-transition/open-tyndp/pull/941), re-merged in [#1041](https://github.com/open-energy-transition/open-tyndp/pull/1041)). The biomass potentials are already scaled when they are read, so `force_biogas_potential` and `force_biomass_potential` forced a slightly lower dispatch than `e_sum_max` allowed, and would have made any run with `nyears > 1` infeasible.
 
-* fix: cap the Other RES biomass dispatch with `p_max_pu` instead of fixing it with `p_set` ([#941](https://github.com/open-energy-transition/open-tyndp/pull/941)). The must-run biomass demand derived from PEMMDB 2024 exceeded the solid biomass potentials of the TYNDP 2026 Supply Tool and made the 2030 network infeasible. To be revisited once PEMMDB 2026 data is added to the network.
+* fix: cap the Other RES biomass dispatch with `p_max_pu` instead of fixing it with `p_set` ([#941](https://github.com/open-energy-transition/open-tyndp/pull/941), re-merged in [#1041](https://github.com/open-energy-transition/open-tyndp/pull/1041)). The must-run biomass demand derived from PEMMDB 2024 exceeded the solid biomass potentials of the TYNDP 2026 Supply Tool and made the 2030 network infeasible. To be revisited once PEMMDB 2026 data is added to the network.
+
+* fix: add missing plotting colors for electricity demand and btm ([#1053](https://github.com/open-energy-transition/open-tyndp/pull/1053)).
 
 * fix: remove the TYNDP 2024 trajectories for TYNDP 2026 ([#1051](https://github.com/open-energy-transition/open-tyndp/pull/1051)). The `build_tyndp_trajectories` rule is removed and `build_pemmdb_and_trajectories` is renamed to `build_tyndp_pemmdb_datas`. Generation capacities now follow PEMMDB in all planning horizons. The trajectory interface in `prepare_sector_network` is kept for potential use in future cycles.
 
