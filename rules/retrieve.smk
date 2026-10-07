@@ -1441,7 +1441,12 @@ if (TYNDP_2026_DATASET := dataset_version("tyndp_2026"))["source"] in ARCHIVE_SO
                 ),
                 hydrogen=storage(TYNDP_2026_DATASET["url"] + "/inputs/Hydrogen.zip"),
                 p2g_emarket=storage(
-                    TYNDP_2026_DATASET["url"] + "/cba_corrections/Hydrogen.zip"
+                    TYNDP_2026_DATASET["url"]
+                    + (
+                        "/inputs/Hydrogen.zip"
+                        if TYNDP_2026_DATASET["version"] == "2026-08-21"
+                        else "/cba_corrections/Hydrogen.zip"
+                    )
                 ),
                 market_outputs=storage(
                     TYNDP_2026_DATASET["url"] + "/outputs/NT+_TimeSeriesDashboard.zip"

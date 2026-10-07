@@ -67,8 +67,8 @@ tyndp_2026,2026-08-21,primary,not-supported,2026-08-21,"Corrected Demand, Hydro 
 tyndp_2026,2026-08-21,archive,supported,2026-08-21,TYNDP 2026 preliminary data package for project promoters. Includes CBA fixes not intended for SB,https://storage.googleapis.com/open-tyndp-data-store/2026/2026-08-21
 tyndp_2026,2026-08-21,tyndp-archive,supported,2026-08-21,TYNDP 2026 preliminary data package for project promoters. Includes CBA fixes not intended for SB,https://storage.googleapis.com/open-tyndp-data-store/2026/2026-08-21
 tyndp_2026,2026,primary,not-supported,2026-07-30,,https://2026-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs
-tyndp_2026,2026,archive,supported,2026-07-30,TYNDP 2026 preliminary data package,https://storage.googleapis.com/open-tyndp-data-store/2026
-tyndp_2026,2026,tyndp-archive,supported,2026-07-30,TYNDP 2026 preliminary data package,https://storage.googleapis.com/open-tyndp-data-store/2026
+tyndp_2026,2026,archive,not-supported,2026-07-30,TYNDP 2026 preliminary data package,https://storage.googleapis.com/open-tyndp-data-store/2026
+tyndp_2026,2026,tyndp-archive,not-supported,2026-07-30,TYNDP 2026 preliminary data package,https://storage.googleapis.com/open-tyndp-data-store/2026
 tyndp_cba_projects,unknown,primary,not-supported,2026-01-27,,https://tyndp2024.entsoe.eu/projects-map
 tyndp_cba_projects,unknown,archive,latest supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/2024/CBA_projects.zip
 tyndp_cba_projects,unknown,tyndp-archive,latest supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/2024/CBA_projects.zip
