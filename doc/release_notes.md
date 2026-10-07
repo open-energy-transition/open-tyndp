@@ -29,6 +29,8 @@
 
 * feat: align the prosumer modelling with the TYNDP 2026 ([#935](https://github.com/open-energy-transition/open-tyndp/pull/935)). Under a TYNDP scenario, the low voltage buses are now suffixed `RETE` instead of ` low voltage` and the electricity distribution grid is modelled as two non-extendable unidirectional links with infinite capacity, priced with the TYNDP wheeling charges built by the new `build_tyndp_wheeling_charges` rule, instead of one extendable bidirectional link with an investment cost. Low voltage buses are only built for the nodes TYNDP models as prosumer nodes, taken from the prosumer demand data; nodes without a wheeling charge entry (`CH00`) are given a zero charge, matching the TYNDP market model. Under a TYNDP scenario, the hurdle costs are also applied as marginal cost to the `DC` and `H2 pipeline` links in Scenario Building; for this, `cba.hurdle_costs` is moved to the top-level `hurdle_costs` config option, shared by Scenario Building and CBA.
 
+* feat: update the TYNDP 2026 data bundle to version 2026-10-07, which follows the reference datasets from ENTSO-E's official downloads page ([#1055](https://github.com/open-energy-transition/open-tyndp/pull/1055)). The previous bundle of 2026-08-21 was intended for project promoters and contained CBA corrections not intended for Scenario Building. The only file still taken from these corrections is `P2G_emarket_template_corrected_requirecheck.xlsx` from `cba_corrections/Hydrogen.zip`, because the reference datasets do not include it.
+
 **Changes**
 
 * feat: align CO2 prices with TYNDP 2026 NT+ (97.47 / 197.51 / 297.54 / 502.74 €/t for 2030 / 2035 / 2040 / 2050) ([#1038](https://github.com/open-energy-transition/open-tyndp/pull/1038)). The interpolated 2045 value is dropped.
@@ -96,6 +98,7 @@
 * Update the maintainer issue templates to ensure compliance with ISO certification ([#924](https://github.com/open-energy-transition/open-tyndp/pull/924)). The risk-level scale gains a `Very High` option and drops `N/A`.
 
 * Run CodeQL on `tyndp-*` branches, so the CodeQL status check required by the branch ruleset is reported and no longer blocks PRs targeting these branches ([#922](https://github.com/open-energy-transition/open-tyndp/pull/922)).
+
 
 ## Upcoming PyPSA-Eur Release
 
