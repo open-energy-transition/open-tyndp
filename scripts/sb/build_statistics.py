@@ -478,39 +478,6 @@ def compute_benchmark(
         ).loc[lambda s: ~s.index.isin(df_countries.index)]
 
         df = pd.concat([df_countries, df_eu])
-    elif table == "generation_profiles":
-        if n.snapshots.year[0] == 2009:
-            grouper = ["carrier"]
-            df = (
-                n.statistics.supply(
-                    bus_carrier=elec_bus_carrier,
-                    groupby=["bus"] + grouper,
-                    aggregate_across_components=True,
-                    groupby_time=False,
-                )
-                .reindex(eu27_idx, level="bus")
-                .groupby(by=grouper)
-                .sum()
-                .drop(
-                    index=[
-                        "DC",
-                        "electricity distribution grid",
-                        "H2 Electrolysis",
-                        "battery charger",
-                        "home battery charger",
-                        "methanolisation",
-                        "electricity",
-                        "AC_SRES",
-                    ],
-                    errors="ignore",
-                )
-                .melt(ignore_index=False)
-                .reset_index()
-                .set_index(["snapshot", "carrier"])["value"]
-            )
-        else:
-            logger.warning(f"Unknown climate year for table: {table}")
-            df = pd.DataFrame(columns=["carrier"])
     elif table in ["electricity_price", "hydrogen_price"]:
         carrier = "AC" if "electricity" in table else "H2"
 

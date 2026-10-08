@@ -196,7 +196,6 @@ To align naming conventions across data sources, Open-TYNDP uses a mapping table
 * **open_tyndp_nice_names**: Open-TYNDP nice names for better readability and aggregation of technologies for reporting purposes.
 * **benchmarking_capacity**: Naming convention for the benchmarking framework's `power_capacity` table.
 * **benchmarking_generation**: Naming convention for the benchmarking framework's `power_generation` table.
-* **benchmarking_generation_profiles**: Naming convention for the benchmarking framework's `generation_profiles` table.
 * **benchmarking_fed**: Naming convention for the benchmarking framework's `final_energy_demand` table.
 * **benchmarking_elec_demand**: Naming convention for the benchmarking framework's `electricity_demand` table.
 * **benchmarking_ch4_demand**: Naming convention for the benchmarking framework's `methane_demand` table.
