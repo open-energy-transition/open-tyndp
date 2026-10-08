@@ -310,27 +310,6 @@ def compute_benchmark(
             aggregate_across_components=True,
         ).loc[lambda df: ~df.index.get_level_values("carrier").isin(exclusions)]
 
-        # TYNDP 2024 report available generation for renewables (pre-curtailment)
-        # and add H2 offwind capacities in MWh_e
-        # TODO Review once solar thermals are integrated
-        res_carriers = n.carriers.filter(regex="offwind.*|solar.*|onwind", axis=0).index
-        res_idx = n.generators[n.generators.carrier.isin(res_carriers)].index
-        if "efficiency_dc_to_b0" in n.generators.columns:
-            eff_dc_to_b0 = n.generators.loc[res_idx, "efficiency_dc_to_b0"].fillna(1)
-        else:
-            eff_dc_to_b0 = pd.Series(1.0, index=res_idx)
-
-        res_gen = (
-            (
-                n.snapshot_weightings.generators
-                @ (n.generators_t.p_max_pu[res_idx] * n.generators.p_nom_opt[res_idx])
-            )
-            .div(eff_dc_to_b0)
-            .groupby([n.generators.bus, n.generators.carrier])
-            .sum()
-        )
-        df = res_gen.combine_first(df)
-
         df = (
             df.rename(index=n.buses.location.to_dict(), level=0)
             .groupby(["bus"] + grouper)

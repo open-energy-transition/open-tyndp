@@ -55,8 +55,6 @@ def _plot_scenario_comparison(
     bench_colors: dict,
 ):
     table_title = table.replace("_", " ").title()
-    if table == "power_generation":
-        table_title += " (pre-curtailment)"
     idx = [model_col, rfc_source] + [
         c for c in rfc_cols if c in df.columns and c != rfc_source
     ]
@@ -100,11 +98,7 @@ def _plot_scenario_comparison(
         ax.set_ylim(top=ax.get_ylim()[1] * 1.05)
 
     # notes
-    if table == "power_generation":
-        note = [
-            'Note: Curtailed energy is included in both "dumped energy" and renewables generation values.'
-        ]
-    elif table == "power_capacity":
+    if table == "power_capacity":
         note = [
             'Note: DSR values from the Scenarios Report include both "implicit" and "explicit" DSR; other source show "explicit" DSR only. \n'
             "The Scenarios Report includes some solar and onshore wind capacities not connected to the grid."

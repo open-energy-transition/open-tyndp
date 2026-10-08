@@ -127,7 +127,8 @@ Battery,Battery Utility Scale Store,,,Batteries Utility,Li-Ion Battery Volume,,,
 ,,,,,,,,dsr,,DSR,dsr,dsr,,,,,,,,,,,,,
 ,,,,,Energy Not Served,,,load,,Demand Shedding,demand shedding,demand shedding,,,,,,demand shedding,,,,loss of load expectation,,,"Load/Demand shedding, Demand shedding hours benchmark"
 ,,,,,Hydrogen Not Served,,,,,,,,,,,,,demand shedding,,,,,,,Hydrogen demand shedding
-,,,,,Dump energy [GWh],,,,,,dumped energy,dumped energy,,,,,,,,,,,,,Curtailment/dump energy
+,,,,,RES curtailment,,,,,,dumped energy,dumped energy,,,,,,,,,,,,,Curtailment/dump energy
+,,,,,Dumped Hydrogen,,,,,,,,,,,,,dumped hydrogen,,,,,,,Curtailment/dump energy
 ,,,,,Native Demand,,,H2 exogenous demand,,H2 Exogenous Demand,,,,,,exogenous demand,,,,,,,,,Hydrogen demand benchmark
 ,,,,,Marginal Cost,,,,,,,,,,,,,,,,AC,,,,Prices benchmark
 ,,,,,Marginal Cost Yearly Average (excl. 3 000 €/MWh) [€],,,,,,,,,,,,,,,,AC,,,,Prices benchmark
