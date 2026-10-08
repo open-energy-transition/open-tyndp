@@ -111,6 +111,52 @@ def remove_last_day(sws: pd.Series, nhours: int = 24) -> pd.Series:
     return sws
 
 
+def get_h2_imports(n: pypsa.Network) -> pd.Series:
+    """
+    Net H2 imports from import buses, attributed to the receiving bus.
+
+    Imports are the net flows on links connecting a bus with category "import"
+    to a non-import bus. Flows from ammonia import terminals are labelled
+    "H2 import LH2", all others "H2 import Pipeline".
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        Optimised network.
+
+    Returns
+    -------
+    pd.Series
+        Net imported energy indexed by receiving bus and import carrier.
+    """
+    import_buses = n.buses.index[n.buses.category.eq("import")]
+    from_import = n.links.bus0.isin(import_buses)
+    links = n.links[from_import != n.links.bus1.isin(import_buses)]
+    origin = links.bus0.where(from_import[links.index], links.bus1)
+
+    balance = n.statistics.energy_balance(
+        comps="Link",
+        bus_carrier="H2",
+        groupby=["name", "bus"],
+        aggregate_across_components=True,
+    )
+    name = balance.index.get_level_values("name")
+    bus = balance.index.get_level_values("bus")
+    balance = balance[name.isin(links.index) & ~bus.isin(import_buses)]
+
+    balance_origin = balance.index.get_level_values("name").map(origin)
+    carrier = pd.Index(
+        np.where(
+            balance_origin.str.startswith("Ammonia"),
+            "H2 import LH2",
+            "H2 import Pipeline",
+        ),
+        name="carrier",
+    )
+
+    return balance.groupby([balance.index.get_level_values("bus"), carrier]).sum()
+
+
 def compute_benchmark(
     n: pypsa.Network,
     table: str,
@@ -388,12 +434,20 @@ def compute_benchmark(
             "H2 cavern-storage discharger",
             "H2 tank-storage discharger",
         ]
+        import_buses = n.buses.index[n.buses.category.eq("import")]
         df = n.statistics.supply(
             comps=supply_comps,
             bus_carrier="H2",
             groupby=["bus"] + grouper,
             aggregate_across_components=True,
-        ).loc[lambda df: ~df.index.get_level_values("carrier").isin(exclusions)]
+        )
+        carriers = df.index.get_level_values("carrier")
+        df = df[
+            ~carriers.isin(exclusions)
+            & ~carriers.str.startswith("H2 import")
+            & ~df.index.get_level_values("bus").isin(import_buses)
+        ]
+        df = pd.concat([df, get_h2_imports(n)])
     elif table == "biomass_supply":
         grouper = ["carrier"]
         df_fed_btl = n.statistics.withdrawal(
@@ -427,27 +481,7 @@ def compute_benchmark(
         # TODO No biomass import is assumed
         grouper = ["carrier"]
         df_countries = (
-            n.statistics.supply(
-                comps="Link",
-                bus_carrier=["H2"],
-                groupby=["bus"] + grouper,
-                aggregate_across_components=True,
-            )
-            .reindex(eu27_idx, level="bus")
-            .groupby(by=grouper)
-            .sum()
-            .drop(
-                index=[
-                    "H2 Electrolysis",
-                    "H2 pipeline",
-                    "H2 pipeline OH",
-                    "H2 cavern-storage discharger",
-                    "H2 tank-storage discharger",
-                    "SMR",
-                    "SMR CC",
-                ],
-                errors="ignore",
-            )
+            get_h2_imports(n).reindex(eu27_idx, level="bus").groupby(by=grouper).sum()
         )
 
         # Add EU level demands
@@ -513,8 +547,6 @@ def compute_benchmark(
     elif table in ["crossborder_electricity", "crossborder_hydrogen"]:
         carrier = "AC" if "elec" in table else "H2"
         bus_carrier = [carrier, f"{carrier}_OH"]  # noqa F814
-        if carrier == "H2":
-            bus_carrier.extend(["import H2"])
         connector = " -> " if carrier == "H2" else "-"
 
         # Intra-carrier transmission (bus0 and bus1 share carrier)
@@ -545,12 +577,6 @@ def compute_benchmark(
         df = pd.concat([df, df_x])
         df.index = df.index.droplevel("bus0")
 
-        is_import = df.index.isin(
-            n.links.index[n.links.carrier.str.startswith("H2 import")]
-        )
-        imports = df[is_import]
-        df = df[~is_import]
-
         if carrier == "H2":
             df = df.rename(
                 lambda x: re.sub(r"\b([A-Z]+)00\b", r"\1", x).replace("UK", "GB")
@@ -561,17 +587,6 @@ def compute_benchmark(
         df = normalize_direction(
             df, buses_from_index=True, connector=connector, format_index=True
         )
-
-        import_bus0 = n.links.bus0.reindex(imports.index)
-        import_origin = import_bus0.where(
-            import_bus0.map(n.buses.carrier) != "import H2",
-            import_bus0.str.split("-").str[0],
-        )
-        imports.index = pd.Index(
-            "X" + import_origin + "-" + n.links.bus1.reindex(imports.index),
-            name="border",
-        )
-        df = pd.concat([df, imports])
 
         df = (
             df.reset_index()

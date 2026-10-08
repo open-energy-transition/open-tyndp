@@ -22,6 +22,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from scripts._helpers import configure_logging, get_version, set_scenario_config
+from scripts.build_tyndp_network import extract_country
 
 logger = logging.getLogger(__name__)
 
@@ -106,15 +107,16 @@ def load_data(
         "BEIOH01": "DK",
         "BEIOH01 H2": "DK",
         "EU27": "EU27",
-        "XAmmonia": "XAmmonia",
         "Pan-EU": "Pan-EU",
     }
 
     def _bus_to_country(bus: str) -> str:
         code = bus.split(" ")[0]
-        return country_map.get(
-            bus, code.split("_")[0] if code.startswith("X") else code[:2]
-        )
+        if bus in country_map:
+            return country_map[bus]
+        if code.startswith("Ammonia"):
+            return "Ammonia"
+        return extract_country(code)
 
     benchmarks_raw.loc[:, "country"] = benchmarks_raw["bus"].map(
         lambda x: _bus_to_country(x) if pd.notna(x) else x
