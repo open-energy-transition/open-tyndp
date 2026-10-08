@@ -255,13 +255,15 @@ def compute_benchmark(
             "AC_SRES",
             "EV charge",
         ]
+        pumps = ["hydro-phs-pump", "hydro-phs-pure-pump"]
         df = (
             n.statistics.optimal_capacity(
                 bus_carrier=elec_bus_carrier,
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
             )
-            .loc[lambda x: x > 0]
+            .loc[lambda x: (x > 0) | x.index.get_level_values("carrier").isin(pumps)]
+            .abs()
             .reset_index()
             .loc[lambda df: ~df.carrier.isin(exclusions)]
             .assign(bus=lambda df: df.bus.map(n.buses.location))
@@ -294,9 +296,7 @@ def compute_benchmark(
             "home battery discharger",
             "home battery charger",
             "PHS",
-            "hydro-phs-turbine",
             "hydro-phs-pump",
-            "hydro-phs-pure-turbine",
             "hydro-phs-pure-pump",
             "H2 Electrolysis",
             "AC_SRES",
