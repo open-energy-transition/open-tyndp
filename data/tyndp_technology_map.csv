@@ -184,7 +184,8 @@ Battery,Battery Utility Scale Store,,,Batteries Utility,Li-Ion Battery Volume,,,
 ,,,,,,For bioliquids,,biomass to liquid,,Biomass to Liquid,,,,,,,,,for biofuels,,,,,,Biomass supply benchmark
 ,,,,,,For bioliquids,,biomass to liquid CC,,Biomass to Liquid (CCS),,,,,,,,,for biofuels,,,,,,Biomass supply benchmark
 ,,,,,,Methane,,gas,,Gas Primary,,,,,,,,,,methane,,,,,Energy imports benchmark
-,,,,,,Ammonia,,H2 import LH2,,H2 Import LH2,,,,,,,,,,hydrogen,,,,,Energy imports benchmark
+,,,,,,,,H2 import LH2,,H2 Import LH2,,,,,,,,,,hydrogen,,,,,Energy imports benchmark
+,,,,,,Ammonia,,,,,,,,,,,,,,ammonia,,,,,Energy imports benchmark
 ,,,,,,Hydrogen,,H2 import Pipeline,,H2 Import Pipeline,,,,,,,,,,hydrogen,,,,,Energy imports benchmark
 ,,,,,,Liquids,,oil primary,,Oil Primary,,,,,,,,,,liquids,,,,,Energy imports benchmark
 ,,,,,,Solids,,coal,,Coal Primary,,,,,,,,,,solids,,,,,Energy imports benchmark
