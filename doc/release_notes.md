@@ -31,6 +31,8 @@
 
 * feat: align and add generation capacities to the network for renewables, SRES/DRES, and new technologies such as hydrogen OCGT ([#999](https://github.com/open-energy-transition/open-tyndp/pull/999)). For the TYNDP 2026 cycle, offshore wind is modelled differently, and new SRES/DRES generation is included. Therefore, buses and links from/to the e-market and hydrogen zones were created for SRES/DRES.
 
+* feat: update the TYNDP 2026 data bundle to version 2026-10-07, which follows the reference datasets from ENTSO-E's official downloads page ([#1055](https://github.com/open-energy-transition/open-tyndp/pull/1055)). The previous bundle of 2026-08-21 was intended for project promoters and contained CBA corrections not intended for Scenario Building. The only file still taken from these corrections is `P2G_emarket_template_corrected_requirecheck.xlsx` from `cba_corrections/Hydrogen.zip`, because the reference datasets do not include it. The bundle version date is also the date the data was retrieved from the downloads page. ENTSO-E does not version these datasets, so the bundle may include upstream changes made since 2026-08-21.
+
 **Changes**
 
 * feat: align CO2 prices with TYNDP 2026 NT+ (97.47 / 197.51 / 297.54 / 502.74 €/t for 2030 / 2035 / 2040 / 2050) ([#1038](https://github.com/open-energy-transition/open-tyndp/pull/1038)). The interpolated 2045 value is dropped.
@@ -98,6 +100,7 @@
 * Update the maintainer issue templates to ensure compliance with ISO certification ([#924](https://github.com/open-energy-transition/open-tyndp/pull/924)). The risk-level scale gains a `Very High` option and drops `N/A`.
 
 * Run CodeQL on `tyndp-*` branches, so the CodeQL status check required by the branch ruleset is reported and no longer blocks PRs targeting these branches ([#922](https://github.com/open-energy-transition/open-tyndp/pull/922)).
+
 
 ## Upcoming PyPSA-Eur Release
 
