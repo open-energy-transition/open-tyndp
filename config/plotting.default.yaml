@@ -637,6 +637,8 @@ plotting:
     Electric load: '#110d63'
     electric demand: '#110d63'
     electricity: '#110d63'
+    electricity prosumer: '#3b3785'
+    electricity prosumer btm: '#625fa3'
     industry electricity: '#2d2a66'
     industry new electricity: '#2d2a66'
     agriculture electricity: '#494778'
