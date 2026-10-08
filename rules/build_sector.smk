@@ -1887,6 +1887,14 @@ rule prepare_sector_network:
             != int(w.planning_horizons),
             resources("tyndp_electricity_ntc_{planning_horizons}.csv"),
         ),
+        synfuel_demand_tyndp=branch(
+            config_provider("sector", "h2_topology_tyndp"),
+            resources("demand_tyndp_synthetic_fuels_{planning_horizons}.csv"),
+        ),
+        synfuel_links_tyndp=branch(
+            config_provider("sector", "h2_topology_tyndp"),
+            resources("synfuel_links_tyndp_{planning_horizons}.csv"),
+        ),
     output:
         resources(
             "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}_h.nc"

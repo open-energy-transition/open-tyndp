@@ -128,6 +128,10 @@ the electricity demand for base regions from the TYNDP electricity market demand
 
 ::: clean_tyndp_h2_storages
 
+### Rule `build_tyndp_synfuels`
+
+::: build_tyndp_synfuels
+
 ### Rule `group_tyndp_conventionals`
 
 ::: group_tyndp_conventionals

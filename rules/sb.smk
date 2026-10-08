@@ -584,6 +584,23 @@ if config["sector"]["h2_topology_tyndp"]:
         script:
             scripts("sb/clean_tyndp_h2_storages.py")
 
+    rule build_tyndp_synfuels:
+        input:
+            synfuel_lines=rules.retrieve_tyndp_2026.output.synfuel_lines,
+        output:
+            synfuel_links=resources("synfuel_links_tyndp_{planning_horizons}.csv"),
+        log:
+            logs("build_tyndp_synfuels_{planning_horizons}.log"),
+        benchmark:
+            benchmarks("performances/build_tyndp_synfuels_{planning_horizons}")
+        conda:
+            "../envs/environment.yaml"
+        threads: 1
+        resources:
+            mem_mb=4000,
+        script:
+            scripts("sb/build_tyndp_synfuels.py")
+
 
 rule group_tyndp_conventionals:
     input:

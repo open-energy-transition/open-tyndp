@@ -2566,6 +2566,46 @@ def _add_smr_capacities(
     )
 
 
+def _add_synfuel_capacities(
+    n: pypsa.Network,
+    synfuel_capacities: pd.DataFrame,
+) -> None:
+    """
+    Add existing H2 to synthetic fuel capacities.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object.
+    synfuel_capacities : pd.DataFrame
+        Existing H2 to synthetic fuel link capacities, indexed by link name.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding the synthetic fuel link capacities.
+    """
+    logger.info("Adding H2 to synthetic fuel capacities.")
+
+    carriers = ["H2 to eLiquids", "H2 to sng"]
+    synfuel_i = n.links.query("carrier in @carriers").index
+
+    if not (missing := synfuel_capacities.index.difference(synfuel_i)).empty:
+        logger.warning(
+            f"The following synthetic fuel links are not in the network and their capacities are dropped {missing}"
+        )
+
+    n.links.loc[synfuel_i, "p_nom"] = synfuel_capacities.p_nom.reindex(
+        synfuel_i
+    ).fillna(0.0)
+
+    remove_zero_capacity_non_extendable(
+        n,
+        carriers=carriers,
+        component_types={"Link"},
+    )
+
+
 def _add_h2_storage_capacities(
     n: pypsa.Network,
     h2_storage_capacities: pd.DataFrame,
@@ -2876,6 +2916,7 @@ def add_existing_tyndp_capacities(
     pemmdb_profiles: pd.DataFrame,
     smr_capacities: pd.DataFrame,
     h2_storage_capacities: pd.DataFrame,
+    synfuel_capacities: pd.DataFrame,
     trajectories: pd.DataFrame,
     tyndp_renewable_carriers: list[str],
     tyndp_conventional_thermals: list[str],
@@ -2904,6 +2945,7 @@ def add_existing_tyndp_capacities(
       - other RES and other Non-RES
       - battery storages
       - SMR and SMR CC
+      - H2 to synthetic fuel links
 
     Parameters
     ----------
@@ -2917,6 +2959,8 @@ def add_existing_tyndp_capacities(
         DataFrame containing existing SMR capacities.
     h2_storage_capacities : pd.DataFrame
         DataFrame containing existing H2 storage capacities.
+    synfuel_capacities : pd.DataFrame
+        DataFrame containing existing H2 to synthetic fuel capacities.
     trajectories : pd.DataFrame
         DataFrame containing the trajectories for the current planning_horizon to attach (p_nom_min and p_nom_max).
     tyndp_renewable_carriers : list[str]
@@ -3038,9 +3082,9 @@ def add_existing_tyndp_capacities(
                 pemmdb_profiles=pemmdb_profiles,
             )
 
-    # Add existing SMR and H2 storage capacities from SB inputs to already attached components
+    # Add existing SMR, H2 storage and synthetic fuel capacities from SB inputs to already attached components
     if h2_topology_tyndp:
-        logger.info("Adding SMR, SMR CC and H2 storage capacities.")
+        logger.info("Adding SMR, SMR CC, H2 storage and synthetic fuel capacities.")
         _add_smr_capacities(
             n=n,
             smr_capacities=smr_capacities,
@@ -3048,6 +3092,10 @@ def add_existing_tyndp_capacities(
         _add_h2_storage_capacities(
             n=n,
             h2_storage_capacities=h2_storage_capacities,
+        )
+        _add_synfuel_capacities(
+            n=n,
+            synfuel_capacities=synfuel_capacities,
         )
 
 
@@ -4208,6 +4256,65 @@ def add_h2_demand_tyndp(
         carrier="H2 exogenous demand",
         p_set=demand,
     )
+
+
+def add_synfuels_tyndp(
+    n: pypsa.Network,
+    costs: pd.DataFrame,
+    demand_path: str,
+    spatial: SimpleNamespace,
+) -> None:
+    """
+    Add TYNDP synthetic fuel demand and domestic production.
+
+    Each synthetic fuel (``e-liquids``, ``sng``) has one EU27 bus with a flat
+    exogenous demand, in H2 equivalent. Domestic production links from every
+    H2 Z2 bus and withdraw CO2 from the stored CO2 bus. Imports are added
+    in `add_import_options`.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object.
+    costs : pd.DataFrame
+        Technology cost assumptions, including ``H2 to eLiquids`` / ``H2 to sng``
+        CO2 inputs.
+    demand_path : str
+        Path to CSV file containing the synthetic fuel demand time series (MW_H2).
+    spatial : SimpleNamespace
+        Spatial resolution information, including the H2 Z2 buses and the CO2
+        storage nodes.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding the synthetic fuel components.
+    """
+    logger.info("Add TYNDP synthetic fuel demand and domestic production")
+
+    demand = pd.read_csv(demand_path, index_col=0, parse_dates=True).reindex(
+        n.snapshots
+    )
+    fuels = demand.columns
+    link_carriers = {"e-liquids": "H2 to eLiquids", "sng": "H2 to sng"}
+
+    n.add("Bus", fuels, carrier=fuels, location="EU", unit="MWh_LHV")
+    n.add("Load", fuels, bus=fuels, carrier=fuels, p_set=demand)
+
+    for fuel in fuels:
+        carrier = link_carriers[fuel]
+        n.add(
+            "Link",
+            spatial.buses_h2_z2,
+            suffix=f"-{fuel}",
+            bus0=spatial.buses_h2_z2,
+            bus1=fuel,
+            bus2=spatial.co2.nodes,
+            carrier=carrier,
+            efficiency=1.0,
+            efficiency2=-costs.at[carrier, "carbondioxide-input"],
+            p_nom_extendable=False,
+        )
 
 
 def add_h2_production(n, nodes, options, spatial, costs):
@@ -9095,6 +9202,27 @@ def add_import_options(
                 marginal_cost=import_options["H2"],
             )
 
+    synfuels = pd.Index(["e-liquids", "sng"]).intersection(import_config["carriers"])
+    if not synfuels.empty:
+        if options["h2_topology_tyndp"]:
+            logger.info("Adding TYNDP synthetic fuel import.")
+
+            # unlimited imports, capped at the flat synthetic fuel demand
+            n.add(
+                "Generator",
+                synfuels,
+                suffix=" import",
+                bus=synfuels,
+                carrier=synfuels + " import",
+                marginal_cost=costs.loc[synfuels + " import", "marginal_cost"].values,
+                p_nom=np.inf,
+            )
+
+        else:
+            logger.warning(
+                "Skipping specified synthetic fuel imports because TYNDP H2 topology is not present."
+            )
+
 
 def _add_phs(n, carrier, nodes, costs, inflows=False):
     """
@@ -9248,9 +9376,10 @@ if __name__ == "__main__":
         snakemake = mock_snakemake(
             "prepare_sector_network",
             opts="",
-            clusters="10",
+            clusters="all",
             sector_opts="",
-            planning_horizons="2050",
+            planning_horizons="2040",
+            run="NT",
         )
 
     configure_logging(snakemake)  # pylint: disable=E0606
@@ -9403,6 +9532,7 @@ if __name__ == "__main__":
     tyndp_nuclear_profiles = None
     smr_capacities = None
     h2_storage_capacities = None
+    synfuel_capacities = None
 
     # Read in PEMMDB data, trajectories and availability profiles
     enable_pemmdb_caps = snakemake.params.electricity["pemmdb_capacities"]["enable"]
@@ -9477,6 +9607,14 @@ if __name__ == "__main__":
         h2_demand_z2_file=snakemake.input.h2_demand_z2,
     )
 
+    if options["h2_topology_tyndp"]:
+        add_synfuels_tyndp(
+            n=n,
+            costs=costs,
+            demand_path=snakemake.input.synfuel_demand_tyndp,
+            spatial=spatial,
+        )
+
     # Hydrogen already implemented in add_h2_gas_infrastructure
     extendable_storageunits = list(set(ext_carriers.get("StorageUnit", [])) - {"H2"})
     extendable_stores = list(set(ext_carriers.get("Store", [])) - {"H2"})
@@ -9502,6 +9640,9 @@ if __name__ == "__main__":
     if options["h2_topology_tyndp"]:
         smr_capacities = pd.read_csv(snakemake.input.tyndp_smr, index_col=0)
         h2_storage_capacities = pd.read_csv(snakemake.input.tyndp_h2_storages)
+        synfuel_capacities = pd.read_csv(
+            snakemake.input.synfuel_links_tyndp, index_col=0
+        )
 
     if enable_pemmdb_caps or options["h2_topology_tyndp"]:
         add_existing_tyndp_capacities(
@@ -9510,6 +9651,7 @@ if __name__ == "__main__":
             pemmdb_profiles=pemmdb_profiles,
             smr_capacities=smr_capacities,
             h2_storage_capacities=h2_storage_capacities,
+            synfuel_capacities=synfuel_capacities,
             trajectories=tyndp_trajectories,
             tyndp_renewable_carriers=tyndp_renewable_carriers,
             tyndp_conventional_thermals=tyndp_conventional_thermals,

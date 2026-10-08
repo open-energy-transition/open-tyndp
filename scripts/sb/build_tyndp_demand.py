@@ -326,8 +326,9 @@ def read_demand_excel(
         demand = deduplicate_corrected_columns(demand)
         if demand_type in GJ_DEMAND_TYPES:
             demand = demand * GJ_TO_MWH
-        # Rename UK in GB
+        # Rename UK in GB and synthetic fuel sheets to their bus names
         demand.columns = demand.columns.str.replace("UK", "GB")
+        demand = demand.rename(columns={"e_liquids": "e-liquids"})
         demand.columns.name = "Bus"
         demand.index.name = DEMAND_TYPE_UNITS[demand_type]
         demand = drop_zero_demand_columns(demand)
