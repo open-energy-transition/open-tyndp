@@ -34,7 +34,6 @@ Hydro,Pondage - Reservoir,Pondage,,,,,,hydro-pondage,hydro-pondage-reservoir,Hyd
 Hydro,Pondage - Turbine,Pondage,,,Pondage,Hydro and pumped storage,,hydro-pondage,hydro-pondage,Hydro Pondage,hydro and pumped storage,hydro (exc. pump storage),,,,,,,,,,,hydro-pondage-turbine,,
 Hydro,Reservoir - Reservoir,Reservoir,,,,,,hydro-reservoir,hydro-reservoir-reservoir,Reservoir & Dam (Reservoir),,,,,,,,,,,,,hydro-reservoir-reservoir,,
 Hydro,Reservoir - Turbine,Reservoir,,,Reservoir,Hydro and pumped storage,,hydro-reservoir,hydro-reservoir,Reservoir & Dam,hydro and pumped storage,hydro (exc. pump storage),,,,,,,,,,,hydro-reservoir-turbine,,
-,,,,,,Hydro (exc. Pump storage),,,,,,hydro (exc. pump storage),,,,,,,,,,,,,
 Hydro,Pump Storage - Reservoir,PS_Open,,,,,HydroPumpedStorage,hydro-phs,hydro-phs-reservoir,Pumped Hydro (Reservoir),,,,,,,,,,,,,hydro-phs-reservoir,,
 Hydro,Pump Storage - Turbine,PS_Open,,,Pump Storage - Open Loop (turbine),Hydro and pumped storage,,hydro-phs,hydro-phs-turbine,Pumped Hydro,hydro and pumped storage,,,,,,,,,,,,hydro-phs-turbine,,
 ,,,,,,,,hydro-phs,,Pumped Hydro Open,hydro and pumped storage,,,,,,,,,,,,,,
@@ -62,16 +61,16 @@ Nuclear,Nuclear,,,Nuclear,Nuclear,Nuclear,,uranium,nuclear,Nuclear,nuclear,nucle
 Hard coal,old 1,,,,Hard coal old 1,Coal,,coal,coal-old1,Coal,coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),,,,,,,,,,,coal,coal,
 Hard coal,old 2,,,,Hard coal old 2,Coal,,coal,coal-old2,Coal,coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),,,,,,,,,,,coal,coal,
 Hard coal,new,,,,Hard coal new,Coal,,coal,coal-new,Coal,coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),,,,,,,,,,,coal,coal,
-Hard coal,CCS,,,,Hard coal CCS,Coal,,coal,coal-ccs,Coal (CCS),coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),,,,,,,,,,,coal-ccs,,
+Hard coal,CCS,,,,,Coal,,coal,coal-ccs,Coal (CCS),coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),,,,,,,,,,,coal-ccs,,
 Lignite,old 1,,,,Lignite old 1,Coal,,lignite,lignite-old1,Lignite,coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),,,,,,,,,,,lignite,lignite,
 Lignite,old 2,,,,Lignite old 2,Coal,,lignite,lignite-old2,Lignite,coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),,,,,,,,,,,lignite,lignite,
 Lignite,new,,,,Lignite new,Coal,,lignite,lignite-new,Lignite,coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),,,,,,,,,,,lignite,lignite,
-Lignite,CCS,,,,Lignite CCS,Coal,,lignite,lignite-ccs,Lignite (CCS),coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),,,,,,,,,,,lignite-ccs,,
+Lignite,CCS,,,,,Coal,,lignite,lignite-ccs,Lignite (CCS),coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),,,,,,,,,,,lignite-ccs,,
 Light oil,Light oil,,,,Light oil,Oil,,oil-light,oil-light,Oil (Light),oil (incl. biofuels),oil (incl. biofuels),,,,,,,,,,,oil-light,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
 Heavy oil,old 1,,,,Heavy oil old 1,Oil,,oil-heavy,oil-heavy-old1,Oil (Heavy),oil (incl. biofuels),oil (incl. biofuels),,,,,,,,,,,oil-heavy,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
 Heavy oil,old 2,,,,Heavy oil old 2,Oil,,oil-heavy,oil-heavy-old2,Oil (Heavy),oil (incl. biofuels),oil (incl. biofuels),,,,,,,,,,,oil-heavy,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
-Oil shale,old,,,,Oil shale old,Oil,,oil-shale,oil-shale-old,Oil (Shale),oil (incl. biofuels),oil (incl. biofuels),,,,,,,,,,,oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
-Oil shale,new,,,,Oil shale new,Oil,,oil-shale,oil-shale-new,Oil (Shale),oil (incl. biofuels),oil (incl. biofuels),,,,,,,,,,,oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
+Oil shale,old,,,,,Oil,,oil-shale,oil-shale-old,Oil (Shale),oil (incl. biofuels),oil (incl. biofuels),,,,,,,,,,,oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
+Oil shale,new,,,,,Oil,,oil-shale,oil-shale-new,Oil (Shale),oil (incl. biofuels),oil (incl. biofuels),,,,,,,,,,,oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
 ,,,,,,Crude Oil,,,,,,oil (incl. biofuels),,,,,,,,,,,,,The TYNDP 2026 Scenarios Report maps Oil capacities as 'Oil' and Oil generation as 'Crude Oil'
 Other Non-RES Gas,conventional old 1,,,,Others non-renewable,Other non RES,,gas,other-non-res-gas-conv-old1,Other Non-Renewables,other non-res,other non-res,,,power generation,,,,,,,,other-non-res-gas-conv,OCGT,Methane demand benchmark
 Other Non-RES Gas,conventional old 2,,,,Others non-renewable,Other non RES,,gas,other-non-res-gas-conv-old2,Other Non-Renewables,other non-res,other non-res,,,power generation,,,,,,,,other-non-res-gas-conv,OCGT,Methane demand benchmark
@@ -96,13 +95,12 @@ Other Non-RES Heavy oil,old 1,,,,Others non-renewable,Other non RES,,oil-heavy,o
 Other Non-RES Heavy oil,old 2,,,,Others non-renewable,Other non RES,,oil-heavy,other-non-res-oil-heavy-old2,Other Non-Renewables,other non-res,other non-res,,,,,,,,,,,other-non-res-oil-heavy,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
 Other Non-RES Shale oil,old,,,,Others non-renewable,Other non RES,,oil-shale,other-non-res-oil-shale-old,Other Non-Renewables,other non-res,other non-res,,,,,,,,,,,other-non-res-oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
 Other Non-RES Shale oil,new,,,,Others non-renewable,Other non RES,,oil-shale,other-non-res-oil-shale-new,Other Non-Renewables,other non-res,other non-res,,,,,,,,,,,other-non-res-oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
-,,,,,,Other non-res,,,,,,other non-res,,,,,,,,,,,,,The TYNDP 2024 Scenarios Report maps Other Non-RES capacities as 'CHP and Small Thermal' and Other Non-RES generation as 'Other non-res'
 Other Non-RES Hydrogen,ccgt,,,,Others non-renewable,Other non RES,,h2-ccgt,other-non-res-h2-ccgt,Other Non-Renewables,other non-res,other non-res,,,,power generation,,,,,,,other-non-res-h2-ccgt,,
 Other Non-RES Hydrogen,ocgt,,,,Others non-renewable,Other non RES,,h2-ocgt,other-non-res-h2-ocgt,Other Non-Renewables,other non-res,other non-res,,,,power generation,,,,,,,other-non-res-h2-ocgt,,
 Hydrogen,Fuel Cell,,,,Hydrogen Fuel Cell,Hydrogen,,h2-fuel-cell,h2-fuel-cell,H2 Fuel Cell,hydrogen,hydrogen,,,,power generation,,,,,,,h2-fuel-cell,,Hydrogen demand benchmark
 Hydrogen,CCGT,,,,Hydrogen CCGT,Hydrogen,,h2-ccgt,h2-ccgt,H2 CCGT,hydrogen,hydrogen,,,,power generation,,,,,,,h2-ccgt,,Hydrogen demand benchmark
 Hydrogen,OCGT,,,,Hydrogen OCGT,Hydrogen,,h2-ocgt,h2-ocgt,H2 OCGT,hydrogen,hydrogen,,,,power generation,,,,,,,h2-ocgt,,Hydrogen demand benchmark
-,,,,Electrolyzers,Electrolyser (gen.),P2G,,H2 Electrolysis,H2 Electrolysis,H2 Electrolysis,,,,,,,,p2g,,,,,electrolyser-onshore-grid,,"Hydrogen supply benchmark; 2024 topology, outdated, to be deprecated"
+,,,,Electrolyzers,,P2G,,H2 Electrolysis,H2 Electrolysis,H2 Electrolysis,,,,,,,,p2g,,,,,electrolyser-onshore-grid,,"Hydrogen supply benchmark; 2024 topology, outdated, to be deprecated"
 Electrolyser,Electrolyser e-market Z1,,,Electrolyzers,Electrolyzers P2G,P2G,,H2 Electrolysis,H2 Electrolysis Z1,H2 Electrolysis,,,,,,,,p2g,,,,,h2-electrolysis,,
 Electrolyser,Electrolyser e-market Z2,,,Electrolyzers,Electrolyzers P2G,P2G,,H2 Electrolysis,H2 Electrolysis Z2,H2 Electrolysis,,,,,,,,p2g,,,,,h2-electrolysis,,
 Electrolyser,Electrolyser Shared RES Z1,,,Electrolyzers,SRES,P2G,,H2 Electrolysis,H2 Electrolysis SRES Z1,H2 Electrolysis SRES,,,,,,,,p2g,,,,,h2-electrolysis-sres,,
@@ -124,10 +122,8 @@ Battery,Battery Utility Scale Store,,,Batteries Utility,Li-Ion Battery Volume,,,
 ,,,,,Lignite biofuel,Biofuel,,,,,coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),,,,,,,,,,,,,
 ,,,,,Hard Coal biofuel,Biofuel,,,,,coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),,,,,,,,,,,,,
 ,,,,,Gas biofuel,,,,,,methane (incl. biofuels),methane (incl. biofuels),,,,,,,,,,,,,
-,,,,,Light oil biofuel,,,,,,oil (incl. biofuels),oil (incl. biofuels),,,,,,,,,,,,,
-,,,,,Heavy oil biofuel,,,,,,oil (incl. biofuels),oil (incl. biofuels),,,,,,,,,,,,,
 ,,,,,Oil shale biofuel,,,,,,oil (incl. biofuels),oil (incl. biofuels),,,,,,,,,,,,,
-,,,,,Demand Side Response,Demand Side Response,,dsr,,DSR,dsr,dsr,,,,,,dsr,,,,,,,
+,,,,,Demand Side Response,,,dsr,,DSR,dsr,dsr,,,,,,dsr,,,,,,,
 ,,,,,,,,dsr,,DSR,dsr,dsr,,,,,,,,,,,,,
 ,,,,,Unserved energy [GWh],,,load,,Demand Shedding,demand shedding,demand shedding,,,,,,demand shedding,,,,loss of load expectation,,,"Load/Demand shedding, Demand shedding hours benchmark"
 ,,,,,Dump energy [GWh],,,,,,dumped energy,dumped energy,,,,,,,,,,,,,Curtailment/dump energy
@@ -136,8 +132,6 @@ Battery,Battery Utility Scale Store,,,Batteries Utility,Li-Ion Battery Volume,,,
 ,,,,,Marginal Cost Yearly Average (excl. 3 000 €/MWh) [€],,,,,,,,,,,,,,,,AC,,,,Prices benchmark
 ,,,,,Marginal Cost Yearly Average [€/MWhH2],,,,,,,,,,,,,,,,H2,,,,Prices benchmark
 ,,,,,Marginal Cost Yearly Average (excl. 3 000 €/MWhH2) [€/MWhH2],,,,,,,,,,,,,,,,H2,,,,Prices benchmark
-,,,,,Loss of load expectation [hour]  ,,,,,,,,,,,,,,,,,loss of load expectation,,,Electricity demand shedding hours benchmark
-,,,,,Loss of H2 load expectation [hour]  ,,,,,,,,,,,,,,,,,loss of load expectation,,,Hydrogen demand shedding hours benchmark
 ,,,,,,Electricity,,AC,,Electricity,,,electricity,,,,,,,,,,,,Final energy demand benchmark
 ,,,,,,Electricity,,AC_OH,,Electricity Offshore Hub,,,electricity,,,,,,,,,,,,Final energy demand benchmark
 ,,,,,,Electricity,,low voltage,,Electricity Low Voltage,,,electricity,,,,,,,,,,,,Final energy demand benchmark
@@ -155,39 +149,25 @@ Battery,Battery Utility Scale Store,,,Batteries Utility,Li-Ion Battery Volume,,,
 ,,,,,,,,electricity prosumer,,Electricity Prosumer Demand,,,,native demand,,,,,,,,,,,Electricity demand benchmark
 ,,,,,,,,electricity prosumer btm,,Electricity Prosumer BTM Demand,,,,fixed demand,,,,,,,,,,,Electricity demand benchmark
 ,,,,,,H2 Final Energy Demand from ETM (excl. DH; HHPs),,H2 exogenous demand,,H2 Exogenous Demand,,,,,,exogenous demand,,,,,,,,,Hydrogen demand benchmark
-,,,,,,H2 Transport,,H2 exogenous demand,,H2 Exogenous Demand,,,,,,exogenous demand,,,,,,,,,Hydrogen demand benchmark
-,,,,,,H2 Industry,,H2 exogenous demand,,H2 Exogenous Demand,,,,,,exogenous demand,,,,,,,,,Hydrogen demand benchmark
-,,,,,,H2 Agriculture,,H2 exogenous demand,,H2 Exogenous Demand,,,,,,exogenous demand,,,,,,,,,Hydrogen demand benchmark
 ,,,,,,H2 For Electricity generation,,,,,,,,,,power generation,,,,,,,,,Hydrogen demand benchmark
 ,,,,,,H2 For heat production (from DH incl. CHPs and HHPs),,,,,,,,,,heat production,,,,,,,,,Hydrogen demand benchmark
-,,,,,,H2 Non-energy use,,H2 exogenous demand,,H2 Exogenous Demand,,,,,,exogenous demand,,,,,,,,,Hydrogen demand benchmark
-,,,,,,H2 Others,,H2 exogenous demand,,H2 Exogenous Demand,,,,,,exogenous demand,,,,,,,,,Hydrogen demand benchmark
 ,,,,,,H2 H2 Demand for P2L,,Fischer-Tropsch,,Fischer-Tropsch,,,,,,e-fuels,,,,,,,,,Hydrogen demand benchmark
 ,,,,,,H2 H2 Demand for P2M,,Sabatier,,Sabatier,,,,,,e-fuels,,,,,,,,,Hydrogen demand benchmark
 ,,,,,,H2 H2 Demand for P2L,,methanolisation,,Methanolisation,,,,,,e-fuels,,,,,,,,,Hydrogen demand benchmark
 ,,,,,,H2 H2 for Ammonia production,,,,,,,,,,e-fuels,,,,,,,,,Hydrogen demand benchmark
-,,,,,,H2 International maritime bunkers,,H2 exogenous demand,,H2 Exogenous Demand,,,,,,exogenous demand,,,,,,,,,Hydrogen demand benchmark
 ,,,,,H2 to H2 power plants,,,,,,,,,,,power generation,,,,,,,,,Hydrogen demand benchmark
 ,,,,,H2 to eLiquids,,,,,,,,,,,e-fuels,,,,,,,,,Hydrogen demand benchmark
 ,,,,,H2 to sng,,,,,,,,,,,e-fuels,,,,,,,,,Hydrogen demand benchmark
 ,,,,,H2 Boiler (load),,,,,,,,,,,heat production,,,,,,,,,Hydrogen demand benchmark
 ,,,,,,CH4 Final Energy Demand  from ETM (excl. DH; HHPs),,exogenous gas demand,,Gas Exogenous Demand,,,,,exogenous demand,,,,,,,,,,Methane demand benchmark
-,,,,,,CH4 Transport,,exogenous gas demand,,Gas Exogenous Demand,,,,,exogenous demand,,,,,,,,,,Methane demand benchmark
-,,,,,,CH4 Industry,,exogenous gas demand,,Gas Exogenous Demand,,,,,exogenous demand,,,,,,,,,,Methane demand benchmark
-,,,,,,CH4 Agriculture,,exogenous gas demand,,Gas Exogenous Demand,,,,,exogenous demand,,,,,,,,,,Methane demand benchmark
 ,,,,,,CH4 For Electricity generation,,,,,,,,,power generation,,,,,,,,,,Methane demand benchmark
-,,,,,,CH4 Non-energy use,,exogenous gas demand,,Gas Exogenous Demand,,,,,exogenous demand,,,,,,,,,,Methane demand benchmark
-,,,,,,CH4 Others,,exogenous gas demand,,Gas Exogenous Demand,,,,,exogenous demand,,,,,,,,,,Methane demand benchmark
-,,,,,,CH4 International maritime bunkers,,exogenous gas demand,,Gas Exogenous Demand,,,,,exogenous demand,,,,,,,,,,Methane demand benchmark
 ,,,,,,CH4 For heat production (from DH incl. CHPs and HHPs),,,,,,,,,heat production,,,,,,,,,,Methane demand benchmark
 ,,,,,,CH4 For SMR blue and pytolysis,,,,,,,,,smr (grey) and smr with ccs (blue),,,,,,,,,,Methane demand benchmark
 ,,,,,,CH4 For SMR grey,,,,,,,,,smr (grey) and smr with ccs (blue),,,,,,,,,,Methane demand benchmark
 ,,,,,Steam methane reformer,SMR,,SMR,,SMR (Grey Hydrogen),,,,,smr (grey) and smr with ccs (blue),,,smr (grey) and smr with ccs (blue),,,,,,,"Hydrogen supply benchmark, Methane demand benchmark, TYNDP market model doesn't distinguish between grey and blue SMR in the output files"
 ,,,,,Steam methane reformer,SMR+CCS,,SMR CC,,SMR (CCS) (Blue Hydrogen),,,,,smr (grey) and smr with ccs (blue),,,smr (grey) and smr with ccs (blue),,,,,,,"Hydrogen supply benchmark, Methane demand benchmark, TYNDP market model doesn't distinguish between grey and blue SMR in the output files"
 ,,,,,,Pyrolysis,,,,,,,,,,,,smr (grey) and smr with ccs (blue),,,,,,,Hydrogen supply benchmark
-,,,,,,Undefined for generation,,,,,,,,,,,,undefined for generation,,,,,,,Hydrogen supply benchmark
 ,,,,,,Extra EU H2 imports (Pipelines),,H2 import Pipeline,,H2 Import Pipeline,,,,,,,,imports (renewable & low carbon),,,,,,,Hydrogen supply benchmark
-,,,,,,Renewable imports,,H2 import Pipeline,,H2 Import Pipeline,,,,,,,,imports (renewable & low carbon),,,,,,,Hydrogen supply benchmark
 ,,,,,,Extra EU H2 imports (Ammonia via ship),,H2 import LH2,,H2 Import LH2,,,,,,,,ammonia imports,,,,,,,Hydrogen supply benchmark
 ,,,,,,Biomethane and Biogas (Domestic gas production),,biogas to gas,,Biogas to Gas,,,,,,,biomethane (domestic),,,,,,,,Methane supply benchmark
 ,,,,,,Biomethane (Imports),,,,,,,,,,,biomethane (import),,,,,,,,Methane supply benchmark
@@ -207,7 +187,6 @@ Battery,Battery Utility Scale Store,,,Batteries Utility,Li-Ion Battery Volume,,,
 ,,,,,,Liquids,,oil primary,,Oil Primary,,,,,,,,,,liquids,,,,,Energy imports benchmark
 ,,,,,,Solids,,coal,,Coal Primary,,,,,,,,,,solids,,,,,Energy imports benchmark
 ,,,,,,Solids,,lignite,,Lignite Primary,,,,,,,,,,solids,,,,,Energy imports benchmark
-,,,,,,Biomass,,,,,,,,,,,,,,biomass,,,,,Energy imports benchmark
 ,,,,,,,,electricity distribution grid,,Electricity Distribution Grid,,,,,,,,,,,,,,,
 ,,,,,,,,DC,,Electricity Transmission,,,,,,,,,,,,,,,
 ,,,,,,,,DC_OH,,Offshore Hub Transmission,,,,,,,,,,,,,,,
