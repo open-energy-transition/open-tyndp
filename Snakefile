@@ -367,6 +367,7 @@ rule create_scenarios:
         "config/create_scenarios.py"
 
 
+# fmt: off[next]
 rule purge:
     run:
         import builtins
@@ -423,7 +424,7 @@ rule rulegraph:
         r"""
         # Generate DOT file using nested snakemake with the dumped final config
         echo "[Rule rulegraph] Using final config file: {input.config_file}"
-        snakemake --rulegraph --configfile {input.config_file} --quiet | sed -n "/digraph/,\$p" > {output.dot}
+        snakemake --rulegraph --configfile {input.config_file} --quiet | sed -n "/digraph/,\$p" >{output.dot}
 
         # Generate visualizations from the DOT file
         if [ -s {output.dot} ]; then
@@ -462,7 +463,7 @@ rule filegraph:
         r"""
         # Generate DOT file using nested snakemake with the dumped final config
         echo "[Rule filegraph] Using final config file: {input.config_file}"
-        snakemake --filegraph all --configfile {input.config_file} --quiet | sed -n "/digraph/,\$p" > {output.dot}
+        snakemake --filegraph all --configfile {input.config_file} --quiet | sed -n "/digraph/,\$p" >{output.dot}
 
         # Generate visualizations from the DOT file
         if [ -s {output.dot} ]; then
@@ -492,16 +493,34 @@ rule doc:
         "pixi run build-docs {output} html"
 
 
+def remote_run_dirs():
+    names = run["name"] if isinstance(run["name"], list) else [run["name"]]
+    return [get_rdir(run).replace("{run}", n) for n in names]
+
+
+def remote_run_filters():
+    # Keep the configured runs and loose (shared) files, skip all other directories
+    dirs = ["results", "resources", "logs", "logs/slurm"]
+    runs = dict.fromkeys(Path(d, r) for d in dirs for r in remote_run_dirs())
+    parents = dict.fromkeys(p for r in runs for p in r.parents if p.name)
+    return (
+        [f"--include='/{r}/***'" for r in runs]
+        + [f"--include='/{p}/'" for p in parents if p.parent.name]
+        + [f"--exclude='/{p}/*/'" for p in parents]
+    )
+
+
 rule sync:
     params:
         cluster=f"{config['remote']['ssh']}:{config['remote']['path']}",
         exclude=[f"--exclude='{p}'" for p in config["remote"]["sync_exclude"]],
+        runs=remote_run_filters(),
     shell:
         """
         rsync -uvarh --ignore-missing-args --files-from=.sync-send . {params.cluster}
-        rsync -uvarh --no-g {params.exclude} {params.cluster}/resources . || echo "No resources directory, skipping rsync"
-        rsync -uvarh --no-g {params.exclude} {params.cluster}/results . || echo "No results directory, skipping rsync"
-        rsync -uvarh --no-g {params.cluster}/logs . || echo "No logs directory, skipping rsync"
+        rsync -uvarh --no-g {params.exclude} {params.runs} {params.cluster}/resources . || echo "No resources directory, skipping rsync"
+        rsync -uvarh --no-g {params.exclude} {params.runs} {params.cluster}/results . || echo "No results directory, skipping rsync"
+        rsync -uvarh --no-g {params.runs} {params.cluster}/logs . || echo "No logs directory, skipping rsync"
         rsync -uvarh --no-g {params.cluster}/.snakemake/log .snakemake || echo "No snakemake logs directory, skipping rsync"
         """
 
@@ -510,46 +529,49 @@ rule sync_dry:
     params:
         cluster=f"{config['remote']['ssh']}:{config['remote']['path']}",
         exclude=[f"--exclude='{p}'" for p in config["remote"]["sync_exclude"]],
+        runs=remote_run_filters(),
     shell:
         """
         rsync -uvarh --ignore-missing-args --files-from=.sync-send . {params.cluster} -n
-        rsync -uvarh --no-g {params.exclude} {params.cluster}/resources . -n || echo "No resources directory, skipping rsync"
-        rsync -uvarh --no-g {params.exclude} {params.cluster}/results . -n || echo "No results directory, skipping rsync"
-        rsync -uvarh --no-g {params.cluster}/logs . -n || echo "No logs directory, skipping rsync"
+        rsync -uvarh --no-g {params.exclude} {params.runs} {params.cluster}/resources . -n || echo "No resources directory, skipping rsync"
+        rsync -uvarh --no-g {params.exclude} {params.runs} {params.cluster}/results . -n || echo "No results directory, skipping rsync"
+        rsync -uvarh --no-g {params.runs} {params.cluster}/logs . -n || echo "No logs directory, skipping rsync"
         rsync -uvarh --no-g {params.cluster}/.snakemake/log .snakemake -n || echo "No snakemake logs directory, skipping rsync"
         """
 
 
 def remote_sync_files():
-    names = run["name"] if isinstance(run["name"], list) else [run["name"]]
-    rdir = get_rdir(run)
     return [
-        f"{d}/{rdir.replace('{run}', n)}{f}"
+        f"--include='/{d}/{r}{f}'"
         for d, files in config["remote"]["sync_file"].items()
-        for n in names
+        for r in remote_run_dirs()
         for f in files
     ]
 
 
 rule sync_file:
     params:
-        cluster=f"{config['remote']['ssh']}:{config['remote']['path']}",
-        files=remote_sync_files(),
-        exclude=[f"--exclude='{p}'" for p in config["remote"]["sync_exclude"]],
+        sources=f"{config['remote']['ssh']}:"
+        + " :".join(
+            f"{config['remote']['path']}/{d}" for d in ["results", "resources", "logs"]
+        ),
+        include=remote_sync_files(),
     shell:
         """
-        printf '%s\\n' {params.files} | rsync -uvarh --no-g --ignore-missing-args {params.exclude} --files-from=- {params.cluster}/ .
+        rsync -uvarh --no-g -m --ignore-missing-args --include='*/' {params.include} --exclude='*' {params.sources} .
         """
 
 
 rule sync_file_dry:
     params:
-        cluster=f"{config['remote']['ssh']}:{config['remote']['path']}",
-        files=remote_sync_files(),
-        exclude=[f"--exclude='{p}'" for p in config["remote"]["sync_exclude"]],
+        sources=f"{config['remote']['ssh']}:"
+        + " :".join(
+            f"{config['remote']['path']}/{d}" for d in ["results", "resources", "logs"]
+        ),
+        include=remote_sync_files(),
     shell:
         """
-        printf '%s\\n' {params.files} | rsync -uvarh --no-g --ignore-missing-args {params.exclude} --files-from=- {params.cluster}/ . -n
+        rsync -uvarh --no-g -m --ignore-missing-args --include='*/' {params.include} --exclude='*' {params.sources} . -n
         """
 
 
@@ -591,7 +613,6 @@ onsuccess:
         LOCAL_CACHE_MANIFEST.write_text(
             "\n".join(collected) + "\n", encoding="utf-8"
         )
-
         logger.info(
             f"Recorded {len(collected)} cache entries in {LOCAL_CACHE_MANIFEST}"
         )

@@ -834,7 +834,7 @@
           }
         },
         "temporal": {
-          "description": "Configuration for `clustering.temporal` settings.",
+          "description": "Configuration for `clustering.temporal` settings.  Follows the convention of {n}{unit}, e.g. 3H to aggregate over 3 hours time periods. `SEG` can be used to create n segments of varying time periods based on network similarities during those time periods.",
           "properties": {
             "resolution_elec": {
               "anyOf": [
@@ -1536,6 +1536,27 @@
           }
         },
         "swiss_energy_balances": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "tyndp-archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "tabula_calculator": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {
@@ -3629,11 +3650,11 @@
             },
             "type": "array"
           },
-          "description": "Files to pull from the remote cluster with the `sync_file` rule, keyed by top-level directory (`results`, `resources`, or `logs`). Each value is a list of paths behind `<dir>/<rdir>/<run-name>/`, e.g. `cba/indicators_2030.csv`. Every listed file is fetched for every configured run name.",
+          "description": "Files to pull from the remote cluster with the `sync_file` and `sync_file_dry` rules, keyed by top-level directory (`results`, `resources` or `logs`). Each value is a list of rsync include patterns relative to `<dir>/<prefix>/<run-name>/`. Each pattern applies to every configured run name. `*` matches within one path level (e.g. `cba/networks/project_t335_*.nc`), `**` matches across levels, and `***` matches the directory and everything below it (e.g. `cba/***`). Patterns without a match are skipped silently. `sync_exclude` does not apply to these rules.",
           "type": "object"
         },
         "sync_exclude": {
-          "description": "Patterns to skip when pulling files and directories from the remote connection with the `sync_file` and `sync_file_dry` rules, and when pulling the `results` and `resources` directories with the `sync` and `sync_dry` rules. Passed to `rsync --exclude`. Use unanchored patterns (e.g. `cba/networks`), which match at any depth, or use a leading `/` to anchor the pattern relative to the transfer root (e.g. `/results/tyndp/NT/cba/networks`, assuming the run name is `NT`).",
+          "description": "Patterns to skip when pulling the `results` and `resources` directories with the `sync` and `sync_dry` rules. Passed to `rsync --exclude`. Use unanchored patterns (e.g. `cba/networks`), which match at any depth, or use a leading `/` to anchor the pattern relative to the transfer root (e.g. `/results/tyndp/NT/cba/networks`, assuming the prefix is `tyndp` and the run name is `NT`).",
           "items": {
             "type": "string"
           },
@@ -5388,8 +5409,8 @@
         },
         "regional_co2_sequestration_potential": {
           "additionalProperties": true,
-          "description": "Add option for regionally-resolved geological carbon dioxide sequestration potentials based on `CO2StoP <https://setis.ec.europa.eu/european-co2-storage-database_en>`_.",
-          "markdownDescription": "Add option for regionally-resolved geological carbon dioxide sequestration potentials based on [CO2StoP ](https://setis.ec.europa.eu/european-co2-storage-database_en).",
+          "description": "Add option for regionally-resolved geological carbon dioxide sequestration potentials based on `CO2StoP <https://setis.ec.europa.eu/european-co2-storage-database_en>`_.Note that 'conservative estimate Mt' is not a summary of gas/oil fields and aquifers but contains storage potential for geological reservoirs suitable for CO2 storage excluding those. The more conservative assumption is to only include the three attributes mentioned above.",
+          "markdownDescription": "Add option for regionally-resolved geological carbon dioxide sequestration potentials based on [CO2StoP ](https://setis.ec.europa.eu/european-co2-storage-database_en).Note that 'conservative estimate Mt' is not a summary of gas/oil fields and aquifers but contains storage potential for geological reservoirs suitable for CO2 storage excluding those. The more conservative assumption is to only include the three attributes mentioned above.",
           "type": "object"
         },
         "co2_sequestration_potential": {
@@ -5424,10 +5445,22 @@
           "description": "The cost factor for the capital cost of the carbon dioxide transmission network.",
           "type": "number"
         },
+        "co2_network_liquefaction": {
+          "default": false,
+          "description": "Add option for including compressor stations with investment costs and electricity demand for liquefaction step for carbon dioxide before transport.",
+          "type": "boolean"
+        },
         "cc_fraction": {
           "default": 0.9,
           "description": "The default fraction of CO2 captured with post-combustion capture.",
           "type": "number"
+        },
+        "cc_capital_cost_factor": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "description": "Size of the carbon capture unit depending on the amount of carbon dioxide in the flue gas. The more CO2, the smaller the capture unit and thus the lower the capital cost factor. Factors are given relative to cement capture. The default values are based on the DEA technology-data report on carbon capture, transport and storage Table 8 / Figure 12 (https://ens.dk/en/analyses-and-statistics/technology-data-carbon-capture-transport-and-storage).",
+          "type": "object"
         },
         "hydrogen_underground_storage": {
           "default": true,
@@ -9274,7 +9307,7 @@
       }
     },
     "_TemporalConfig": {
-      "description": "Configuration for `clustering.temporal` settings.",
+      "description": "Configuration for `clustering.temporal` settings.  Follows the convention of {n}{unit}, e.g. 3H to aggregate over 3 hours time periods. `SEG` can be used to create n segments of varying time periods based on network similarities during those time periods.",
       "properties": {
         "resolution_elec": {
           "anyOf": [
@@ -9475,11 +9508,11 @@
             },
             "type": "array"
           },
-          "description": "Files to pull from the remote cluster with the `sync_file` rule, keyed by top-level directory (`results`, `resources`, or `logs`). Each value is a list of paths behind `<dir>/<rdir>/<run-name>/`, e.g. `cba/indicators_2030.csv`. Every listed file is fetched for every configured run name.",
+          "description": "Files to pull from the remote cluster with the `sync_file` and `sync_file_dry` rules, keyed by top-level directory (`results`, `resources` or `logs`). Each value is a list of rsync include patterns relative to `<dir>/<prefix>/<run-name>/`. Each pattern applies to every configured run name. `*` matches within one path level (e.g. `cba/networks/project_t335_*.nc`), `**` matches across levels, and `***` matches the directory and everything below it (e.g. `cba/***`). Patterns without a match are skipped silently. `sync_exclude` does not apply to these rules.",
           "type": "object"
         },
         "sync_exclude": {
-          "description": "Patterns to skip when pulling files and directories from the remote connection with the `sync_file` and `sync_file_dry` rules, and when pulling the `results` and `resources` directories with the `sync` and `sync_dry` rules. Passed to `rsync --exclude`. Use unanchored patterns (e.g. `cba/networks`), which match at any depth, or use a leading `/` to anchor the pattern relative to the transfer root (e.g. `/results/tyndp/NT/cba/networks`, assuming the run name is `NT`).",
+          "description": "Patterns to skip when pulling the `results` and `resources` directories with the `sync` and `sync_dry` rules. Passed to `rsync --exclude`. Use unanchored patterns (e.g. `cba/networks`), which match at any depth, or use a leading `/` to anchor the pattern relative to the transfer root (e.g. `/results/tyndp/NT/cba/networks`, assuming the prefix is `tyndp` and the run name is `NT`).",
           "items": {
             "type": "string"
           },
@@ -12708,8 +12741,8 @@
         },
         "regional_co2_sequestration_potential": {
           "additionalProperties": true,
-          "description": "Add option for regionally-resolved geological carbon dioxide sequestration potentials based on `CO2StoP <https://setis.ec.europa.eu/european-co2-storage-database_en>`_.",
-          "markdownDescription": "Add option for regionally-resolved geological carbon dioxide sequestration potentials based on [CO2StoP ](https://setis.ec.europa.eu/european-co2-storage-database_en).",
+          "description": "Add option for regionally-resolved geological carbon dioxide sequestration potentials based on `CO2StoP <https://setis.ec.europa.eu/european-co2-storage-database_en>`_.Note that 'conservative estimate Mt' is not a summary of gas/oil fields and aquifers but contains storage potential for geological reservoirs suitable for CO2 storage excluding those. The more conservative assumption is to only include the three attributes mentioned above.",
+          "markdownDescription": "Add option for regionally-resolved geological carbon dioxide sequestration potentials based on [CO2StoP ](https://setis.ec.europa.eu/european-co2-storage-database_en).Note that 'conservative estimate Mt' is not a summary of gas/oil fields and aquifers but contains storage potential for geological reservoirs suitable for CO2 storage excluding those. The more conservative assumption is to only include the three attributes mentioned above.",
           "type": "object"
         },
         "co2_sequestration_potential": {
@@ -12744,10 +12777,22 @@
           "description": "The cost factor for the capital cost of the carbon dioxide transmission network.",
           "type": "number"
         },
+        "co2_network_liquefaction": {
+          "default": false,
+          "description": "Add option for including compressor stations with investment costs and electricity demand for liquefaction step for carbon dioxide before transport.",
+          "type": "boolean"
+        },
         "cc_fraction": {
           "default": 0.9,
           "description": "The default fraction of CO2 captured with post-combustion capture.",
           "type": "number"
+        },
+        "cc_capital_cost_factor": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "description": "Size of the carbon capture unit depending on the amount of carbon dioxide in the flue gas. The more CO2, the smaller the capture unit and thus the lower the capital cost factor. Factors are given relative to cement capture. The default values are based on the DEA technology-data report on carbon capture, transport and storage Table 8 / Figure 12 (https://ens.dk/en/analyses-and-statistics/technology-data-carbon-capture-transport-and-storage).",
+          "type": "object"
         },
         "hydrogen_underground_storage": {
           "default": true,
@@ -13736,7 +13781,7 @@
           }
         },
         "temporal": {
-          "description": "Configuration for `clustering.temporal` settings.",
+          "description": "Configuration for `clustering.temporal` settings.  Follows the convention of {n}{unit}, e.g. 3H to aggregate over 3 hours time periods. `SEG` can be used to create n segments of varying time periods based on network similarities during those time periods.",
           "properties": {
             "resolution_elec": {
               "anyOf": [
@@ -14773,6 +14818,27 @@
           }
         },
         "swiss_energy_balances": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "tyndp-archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "tabula_calculator": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {
