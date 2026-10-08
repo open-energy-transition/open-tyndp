@@ -513,6 +513,7 @@ def extract_custom_transmission_projects(
 
     return custom_transmission_projects
 
+
 def extract_custom_buses(
     custom_buses_path: str,
     existing_buses: pd.Index,
@@ -543,16 +544,18 @@ def extract_custom_buses(
 
     # Remove projects without bus name, coordinates, associated project, and p_link
     mask_null = (
-        custom_buses.bus_name.notnull() & custom_buses.lat.notnull() & custom_buses.lon.notnull() & custom_buses.project_id.notnull() & custom_buses.p_link.notnull()
+        custom_buses.bus_name.notnull()
+        & custom_buses.lat.notnull()
+        & custom_buses.lon.notnull()
+        & custom_buses.project_id.notnull()
+        & custom_buses.p_link.notnull()
     )
     custom_buses = custom_buses[mask_null]
 
     # TODO: Add validation for co-ordinates, check if they are within the bounds of the country, and if they are not duplicates of existing buses
 
     # Add validation for bus names, check if they are unique and not duplicates of existing buses
-    mask_duplicate = (
-        custom_buses.bus_name.isin(existing_buses)
-    )
+    mask_duplicate = custom_buses.bus_name.isin(existing_buses)
     custom_buses = custom_buses[~mask_duplicate]
 
     # Drop duplicate bus names, keeping the first occurrence
@@ -1186,10 +1189,7 @@ if __name__ == "__main__":
     )
 
     # Custom buses
-    custom_buses = extract_custom_buses(
-        custom_buses_path,
-        existing_buses
-    )
+    custom_buses = extract_custom_buses(custom_buses_path, existing_buses)
 
     # Custom generators
     # TODO Ensure custom buses have already been extracted and grouped under existing_buses
