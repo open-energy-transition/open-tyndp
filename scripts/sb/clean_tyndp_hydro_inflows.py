@@ -28,6 +28,7 @@ from tqdm import tqdm
 from scripts._helpers import (
     configure_logging,
     get_snapshots,
+    get_wscenario,
     safe_planning_horizon,
     set_scenario_config,
 )
@@ -46,7 +47,7 @@ HYDRO_TECH_CODES = {
 def read_hydro_inflows_file(
     node: str,
     hydro_inflows_dir: str,
-    wscenario: str,
+    wscenario: int,
     planning_horizon: int,
     hydro_tech: str,
     sns: pd.DatetimeIndex,
@@ -78,8 +79,8 @@ def read_hydro_inflows_file(
                 node: lambda df: np.where(  # calculate hourly inflow in MWh/h
                     # input value was either in GWh/week or in GWh/day
                     df.Variable.str.contains("week"),
-                    df[int(wscenario)] / (24 * 7 * 1e-3),
-                    df[int(wscenario)] / (24 * 1e-3),
+                    df[f"WS{wscenario:03d}"] / (24 * 7 * 1e-3),
+                    df[f"WS{wscenario:03d}"] / (24 * 1e-3),
                 )
             }
         )[node]
@@ -103,26 +104,20 @@ if __name__ == "__main__":
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    # Climate year from snapshots
     sns = get_snapshots(snakemake.params.snapshots, snakemake.params.drop_leap_day)
-    wscenario = sns[0].year
+    year = sns[0].year
     date_index = {
         "w": pd.date_range(
-            start=f"{wscenario}-01-01",
+            start=f"{year}-01-01",
             periods=53,  # 53 weeks
             freq="7D",
         ),
         "d": pd.date_range(
-            start=f"{wscenario}-01-01",
+            start=f"{year}-01-01",
             periods=366,  # 366 days (incl. first day of next year)
             freq="D",
         ),
     }
-    if int(wscenario) < 1982 or int(wscenario) > 2019:
-        logger.warning(
-            f"Snapshot year {wscenario} doesn't match available TYNDP data. Falling back to 2009."
-        )
-        wscenario = 2009
 
     # Planning year
     planning_horizon = safe_planning_horizon(
@@ -130,6 +125,9 @@ if __name__ == "__main__":
         available_years=snakemake.params.available_years,
         source="Hydro inflows",
     )
+
+    # Weather scenario
+    wscenario = get_wscenario(snakemake.params.wscenarios, planning_horizon)
 
     # Parameters
     onshore_buses = pd.read_csv(snakemake.input.busmap, index_col=0)
