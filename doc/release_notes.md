@@ -31,6 +31,8 @@
 
 * feat: update the TYNDP 2026 data bundle to version 2026-10-07, which follows the reference datasets from ENTSO-E's official downloads page ([#1055](https://github.com/open-energy-transition/open-tyndp/pull/1055)). The previous bundle of 2026-08-21 was intended for project promoters and contained CBA corrections not intended for Scenario Building. The only file still taken from these corrections is `P2G_emarket_template_corrected_requirecheck.xlsx` from `cba_corrections/Hydrogen.zip`, because the reference datasets do not include it. The bundle version date is also the date the data was retrieved from the downloads page. ENTSO-E does not version these datasets, so the bundle may include upstream changes made since 2026-08-21.
 
+* Add TYNDP 2026 synthetic fuels ([#1061](https://github.com/open-energy-transition/open-tyndp/pull/1061)). The flat EU27 `e-liquids` and `sng` demands (expressed in H2-equivalent) are met by H2 Zone 2 links that draw CO2 from `co2 stored`, built by the new `build_tyndp_synfuels` rule, and by imports enabled via `sector: imports: carriers`.
+
 **Changes**
 
 * feat: align CO2 prices with TYNDP 2026 NT+ (97.47 / 197.51 / 297.54 / 502.74 €/t for 2030 / 2035 / 2040 / 2050) ([#1038](https://github.com/open-energy-transition/open-tyndp/pull/1038)). The interpolated 2045 value is dropped.
