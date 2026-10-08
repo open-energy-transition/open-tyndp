@@ -2549,7 +2549,7 @@ def _add_smr_capacities(
 
     # Add capacities for SMR and SMR CC
     smr_caps = smr_capacities.p_nom
-    n.links.loc[smr_i, ["p_nom", "p_nom_min"]] = smr_caps.reindex(smr_i).fillna(0.0)
+    n.links.loc[smr_i, ["p_nom", "p_nom_min"]] = smr_caps.reindex(smr_i)
 
     # add ramp limits
     if ramp_limits:
@@ -2559,7 +2559,7 @@ def _add_smr_capacities(
     # Add must-runs if given for any units
     if (smr_capacities.p_min_pu > 0).any():
         smr_p_min_pu = smr_capacities.p_min_pu
-        n.links.loc[smr_i, "p_min_pu"] = smr_p_min_pu.reindex(smr_i).fillna(0.0)
+        n.links.loc[smr_i, "p_min_pu"] = smr_p_min_pu.reindex(smr_i)
 
     remove_zero_capacity_non_extendable(
         n,
@@ -3550,6 +3550,7 @@ def add_h2_production_tyndp(
     buses_h2: pd.Index,
     costs: pd.DataFrame,
     spatial: SimpleNamespace,
+    smr_fn: str,
     options: dict = {},
 ) -> None:
     """
@@ -3567,6 +3568,8 @@ def add_h2_production_tyndp(
         Technology cost assumptions.
     spatial : SimpleNamespace
         Namespace object with spatial nodes for different carriers such as `h2_tyndp`.
+    smr_fn : str
+        Path to CSV file containing prepped TYNDP SMR and SMR CC assets with efficiencies and VOM.
     options : dict, optional
         Dictionary of configuration options. Defaults to empty dict if not provided.
         Key options include:
@@ -3616,47 +3619,47 @@ def add_h2_production_tyndp(
         lifetime=costs.at["electrolysis", "lifetime"],
     )
 
-    buses_h2_smr = spatial.h2_tyndp.nodes[
-        spatial.h2_tyndp.df.category.isin(["Z1", "Z2", "bottleneck"])
-    ]
+    smr_data = pd.read_csv(smr_fn, index_col=0)
+    if not (invalid := smr_data.bus[~smr_data.bus.isin(spatial.h2_tyndp.nodes)]).empty:
+        raise ValueError(f"TYNDP SMR assets at unknown H2 buses: {invalid.tolist()}")
 
     if options["SMR_cc"]:
+        smr_cc = smr_data.query("carrier == 'SMR CC'")
         # TODO: this does currently only work for no gas spatial
         n.add(
             "Link",
-            buses_h2_smr + " SMR CCS",  # matches TYNDP market-output asset naming
+            smr_cc.index,
             bus0=spatial.gas.nodes,
-            bus1=buses_h2_smr,
+            bus1=smr_cc.bus,
             bus2="co2 atmosphere",
             bus3=spatial.co2.nodes,
             p_nom_extendable=False,
             carrier="SMR CC",
-            efficiency=costs.at["SMR CC", "efficiency"],
+            efficiency=smr_cc.efficiency,
             efficiency2=costs.at["gas", "CO2 intensity"]
             * (1 - costs.at["SMR CC", "capture_rate"]),
             efficiency3=costs.at["gas", "CO2 intensity"]
             * costs.at["SMR CC", "capture_rate"],
             capital_cost=costs.at["SMR CC", "capital_cost"],
-            marginal_cost=costs.at["SMR CC", "VOM"]
-            * costs.at["SMR CC", "efficiency"],  # NB: SMR CC VOM is per MWh_H2
+            marginal_cost=smr_cc.marginal_cost,
             lifetime=costs.at["SMR CC", "lifetime"],
         )
 
     if options["SMR"]:
+        smr = smr_data.query("carrier == 'SMR'")
         # TODO: this does currently only work for no gas spatial
         n.add(
             "Link",
-            buses_h2_smr + " SMR",
+            smr.index,
             bus0=spatial.gas.nodes,
-            bus1=buses_h2_smr,
+            bus1=smr.bus,
             bus2="co2 atmosphere",
             p_nom_extendable=False,
             carrier="SMR",
-            efficiency=costs.at["SMR", "efficiency"],
+            efficiency=smr.efficiency,
             efficiency2=costs.at["gas", "CO2 intensity"],
             capital_cost=costs.at["SMR", "capital_cost"],
-            marginal_cost=costs.at["SMR", "VOM"]
-            * costs.at["SMR", "efficiency"],  # NB: SMR VOM is per MWh_H2
+            marginal_cost=smr.marginal_cost,
             lifetime=costs.at["SMR", "lifetime"],
         )
 
@@ -4024,6 +4027,7 @@ def add_h2_topology_tyndp(
     options: dict,
     h2_demand_z1_file: str,
     h2_demand_z2_file: str,
+    smr_fn: str,
     tyndp_stores: list[str],
 ) -> None:
     """
@@ -4056,6 +4060,8 @@ def add_h2_topology_tyndp(
         Path to CSV file containing exogenous Z1 hydrogen demand time series.
     h2_demand_z2_file : str
         Path to CSV file containing exogenous Z2 hydrogen demand time series.
+    smr_fn : str
+        Path to CSV file containing prepped TYNDP SMR and SMR CC assets.
     tyndp_stores : list[str]
         TYNDP storage technologies to add (`h2_tank`, `h2_cavern`).
 
@@ -4121,6 +4127,7 @@ def add_h2_topology_tyndp(
         buses_h2=buses_h2_z1_effective,
         costs=costs,
         spatial=spatial,
+        smr_fn=smr_fn,
         options=options,
     )
 
@@ -4687,6 +4694,7 @@ def add_h2_gas_infrastructure(
     options,
     h2_demand_z1_file,
     h2_demand_z2_file,
+    smr_fn,
     tyndp_stores,
 ):
     """
@@ -4729,6 +4737,8 @@ def add_h2_gas_infrastructure(
         Path to CSV file containing exogenous Z1 hydrogen demand data.
     h2_demand_z2_file : str
         Path to CSV file containing exogenous Z2 hydrogen demand data.
+    smr_fn : str
+        Path to CSV file containing prepped TYNDP SMR and SMR CC assets.
     tyndp_stores : list[str]
         TYNDP storage technologies to add (`h2_tank`, `h2_cavern`).
 
@@ -4759,6 +4769,7 @@ def add_h2_gas_infrastructure(
             options=options,
             h2_demand_z1_file=h2_demand_z1_file,
             h2_demand_z2_file=h2_demand_z2_file,
+            smr_fn=smr_fn,
             tyndp_stores=tyndp_stores,
         )
     else:
@@ -9474,6 +9485,7 @@ if __name__ == "__main__":
         options=options,
         h2_demand_z1_file=snakemake.input.h2_demand_z1,
         h2_demand_z2_file=snakemake.input.h2_demand_z2,
+        smr_fn=snakemake.input.get("tyndp_smr"),
         tyndp_stores=snakemake.params.tyndp_stores,
     )
 

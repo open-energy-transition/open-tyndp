@@ -85,8 +85,13 @@ def load_smr_data(fn: str, planning_horizon: int, scenario: str) -> pd.DataFrame
         ramp_limit_down=lambda df: (
             df.ramp_limit_down * 60 / df.p_nom
         ),  # convert [MW_H2/min] to [p.u./h]
-        efficiency=lambda df: 3.6 / df.heat_rate,  # convert to [MW_CH4/MW_H2]
-        p_nom=lambda df: df.p_nom / df.efficiency,  # convert to [MW_CH4]
+        efficiency=lambda df: (
+            3.6 / df.heat_rate
+        ),  # convert [GJ_CH4/MWh_H2] to [MWh_H2/MWh_CH4]
+        p_nom=lambda df: df.p_nom / df.efficiency,  # convert [MW_H2] to [MW_CH4]
+        marginal_cost=lambda df: (
+            df.marginal_cost * df.efficiency
+        ),  # convert [EUR/MWh_H2] to [EUR/MWh_CH4]
         unit="MW_CH4",
     ).drop(columns=["heat_rate", "ccs", "country", "object", "name", "fuels"])
 
