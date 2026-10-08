@@ -170,11 +170,7 @@ def add_report_carrier_mappings(carrier_mapping_fn: str, tables: dict) -> None:
             .dropna(subset=["tyndp_report_carrier", col])
             .assign(
                 tyndp_report_carrier=lambda x: (
-                    x["tyndp_report_carrier"]
-                    .str.removeprefix("H2 ")
-                    .str.removeprefix("CH4 ")
-                    .str.lower()
-                    .str.rstrip("* ")
+                    x["tyndp_report_carrier"].str.lower().str.rstrip("* ")
                 )
             )
             .set_index("tyndp_report_carrier")[col]

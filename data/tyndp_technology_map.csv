@@ -3,15 +3,15 @@ Solar,Photovoltaic e-market,,Solar PV Utility,Solar PV Utility,Solar (Photovolta
 Solar,Rooftop,,Solar PV Rooftop,Solar PV Rooftop,Solar (Photovoltaic),Solar,,solar-pv-rooftop,solar-pv-rooftop,Solar PV (Rooftop),solar,solar,,,,,,,,,,,solar-pv-rooftop,,
 ,,,,,,,,,,,solar,solar,,,,,,,,,,,,,
 Solar,Photovoltaic dedicated,,Solar PV Utility,,Solar (Photovoltaic),Solar,,solar-pv-utility,solar-pv-utility-dres,Solar PV (Utility-DRES),solar,solar,,,,,,,,,,,solar-pv-utility-dres,,
-Solar,Photovoltaic Shared RES - H2Z1,,Solar PV Utility,,SRES Solar PV,Solar,,solar-pv-utility,solar-pv-utility-sres-h2z1,Solar PV (Utility-SRES),solar,solar,,,,,,,,,,,solar-pv-utility-sres,,
-Solar,Photovoltaic Shared RES - H2Z2,,Solar PV Utility,,SRES Solar PV,Solar,,solar-pv-utility,solar-pv-utility-sres-h2z2,Solar PV (Utility-SRES),solar,solar,,,,,,,,,,,solar-pv-utility-sres,,
+Solar,Photovoltaic Shared RES - H2Z1,,Solar PV Utility,,SRES Solar PV,SRES Electricity,,solar-pv-utility,solar-pv-utility-sres-h2z1,Solar PV (Utility-SRES),sres electricity,sres electricity,,,,,,,,,,,solar-pv-utility-sres,,
+Solar,Photovoltaic Shared RES - H2Z2,,Solar PV Utility,,SRES Solar PV,SRES Electricity,,solar-pv-utility,solar-pv-utility-sres-h2z2,Solar PV (Utility-SRES),sres electricity,sres electricity,,,,,,,,,,,solar-pv-utility-sres,,
 Solar,Thermal Solar,,CSP_noStorage,,Solar (Thermal),,,solar-thermal,solar-thermal,Solar Thermal,solar thermal,solar thermal,,,,,,,,,,,solar-thermal,,
 Solar,Solar Thermal with Storage,,CSP_withStorage,,,,,solar-thermal-w-storage,solar-thermal-w-storage,Solar Thermal,solar thermal,solar thermal,,,,,,,,,,,solar-thermal-w-storage,,
 Solar,Solar Thermal with Storage - Storage,,CSP_withStorage,,,,,solar-thermal-w-storage,solar-thermal-w-storage-storage,Solar Thermal,solar thermal,solar thermal,,,,,,,,,,,solar-thermal-w-storage-storage,,
 Wind,Onshore wind e-market,,Wind_Onshore,Wind Onshore,Wind Onshore,Wind Onshore,,onwind,onwind,Onshore Wind,wind onshore,wind onshore,,,,,,,,,,,onwind,,
 Wind,Onshore wind dedicated,,Wind_Onshore,,Wind Onshore,Wind Onshore,,onwind,onwind-dres,Onshore Wind (DRES),wind onshore,wind onshore,,,,,,,,,,,onwind-dres,,
-Wind,Onshore wind Shared RES - H2Z1,,Wind_Onshore,,SRES Onshore Wind,Wind Onshore,,onwind,onwind-sres-h2z1,Onshore Wind (SRES),wind onshore,wind onshore,,,,,,,,,,,onwind-sres,,
-Wind,Onshore wind Shared RES - H2Z2,,Wind_Onshore,,SRES Onshore Wind,Wind Onshore,,onwind,onwind-sres-h2z2,Onshore Wind (SRES),wind onshore,wind onshore,,,,,,,,,,,onwind-sres,,
+Wind,Onshore wind Shared RES - H2Z1,,Wind_Onshore,,SRES Onshore Wind,SRES Electricity,,onwind,onwind-sres-h2z1,Onshore Wind (SRES),sres electricity,sres electricity,,,,,,,,,,,onwind-sres,,
+Wind,Onshore wind Shared RES - H2Z2,,Wind_Onshore,,SRES Onshore Wind,SRES Electricity,,onwind,onwind-sres-h2z2,Onshore Wind (SRES),sres electricity,sres electricity,,,,,,,,,,,onwind-sres,,
 ,,,Wind_Offshore,,Wind Offshore,Wind Offshore,,offwind,offwind,Offshore Wind,wind offshore,wind offshore,,,,,,,,,,,offwind,,"only used w/o offshore hubs; 2024 topology, outdated, to be deprecated"
 ,,,Wind_Offshore,,Wind Offshore,Wind Offshore,,offwind-ac-fb-r,offwind-ac-fb-r,Offshore Wind (AC),wind offshore,wind offshore,,,,,,,,,,,offwind-ac-fb-r,,"only used with offshore hubs; 2024 topology, outdated, to be deprecated"
 ,,,Wind_Offshore,,Wind Offshore,Wind Offshore,,offwind-ac-fl-r,offwind-ac-fl-r,Offshore Wind (AC Float.),wind offshore,wind offshore,,,,,,,,,,,offwind-ac-fl-r,,"only used with offshore hubs; 2024 topology, outdated, to be deprecated"
@@ -23,12 +23,12 @@ Wind,Onshore wind Shared RES - H2Z2,,Wind_Onshore,,SRES Onshore Wind,Wind Onshor
 ,,,Wind_Offshore,,Wind Offshore,Wind Offshore,,offwind-h2-fl-oh,offwind-h2-fl-oh,Offshore Wind (H2 Float. OH),wind offshore,wind offshore,,,,,,,,,,,offwind-h2-fl-oh,,"only used with offshore hubs; 2024 topology, outdated, to be deprecated"
 Wind,Offshore wind e-market - hub ready,,Wind_Offshore,,Wind Offshore,Wind Offshore,,offwind,offwind-oh,Offshore Wind (Hub Ready),wind offshore,wind offshore,,,,,,,,,,,offwind-oh,,
 Wind,Offshore wind dedicated - hub ready,,Wind_Offshore,,Wind Offshore,Wind Offshore,,offwind,offwind-dres-oh,Offshore Wind (DRES Hub Ready),wind offshore,wind offshore,,,,,,,,,,,offwind-dres-oh,,
-Wind,Offshore wind Shared RES - H2Z1 - hub ready,,Wind_Offshore,,SRES Offshore Wind,Wind Offshore,,offwind,offwind-sres-h2z1-oh,Offshore Wind (SRES Hub Ready),wind offshore,wind offshore,,,,,,,,,,,offwind-sres-oh,,
-Wind,Offshore wind Shared RES - H2Z2 - hub ready,,Wind_Offshore,,SRES Offshore Wind,Wind Offshore,,offwind,offwind-sres-h2z2-oh,Offshore Wind (SRES Hub Ready),wind offshore,wind offshore,,,,,,,,,,,offwind-sres-oh,,
+Wind,Offshore wind Shared RES - H2Z1 - hub ready,,Wind_Offshore,,SRES Offshore Wind,SRES Electricity,,offwind,offwind-sres-h2z1-oh,Offshore Wind (SRES Hub Ready),sres electricity,sres electricity,,,,,,,,,,,offwind-sres-oh,,
+Wind,Offshore wind Shared RES - H2Z2 - hub ready,,Wind_Offshore,,SRES Offshore Wind,SRES Electricity,,offwind,offwind-sres-h2z2-oh,Offshore Wind (SRES Hub Ready),sres electricity,sres electricity,,,,,,,,,,,offwind-sres-oh,,
 Wind,Offshore wind e-market - radial,,Wind_Offshore,,Wind Offshore,Wind Offshore,,offwind,offwind-r,Offshore Wind (Radial),wind offshore,wind offshore,,,,,,,,,,,offwind-r,,
 Wind,Offshore wind dedicated - radial,,Wind_Offshore,,Wind Offshore,Wind Offshore,,offwind,offwind-dres-r,Offshore Wind (DRES Radial),wind offshore,wind offshore,,,,,,,,,,,offwind-dres-r,,
-Wind,Offshore wind Shared RES - H2Z1 - radial,,Wind_Offshore,,SRES Offshore Wind,Wind Offshore,,offwind,offwind-sres-h2z1-r,Offshore Wind (SRES Radial),wind offshore,wind offshore,,,,,,,,,,,offwind-sres-r,,
-Wind,Offshore wind Shared RES - H2Z2 - radial,,Wind_Offshore,,SRES Offshore Wind,Wind Offshore,,offwind,offwind-sres-h2z2-r,Offshore Wind (SRES Radial),wind offshore,wind offshore,,,,,,,,,,,offwind-sres-r,,
+Wind,Offshore wind Shared RES - H2Z1 - radial,,Wind_Offshore,,SRES Offshore Wind,SRES Electricity,,offwind,offwind-sres-h2z1-r,Offshore Wind (SRES Radial),sres electricity,sres electricity,,,,,,,,,,,offwind-sres-r,,
+Wind,Offshore wind Shared RES - H2Z2 - radial,,Wind_Offshore,,SRES Offshore Wind,SRES Electricity,,offwind,offwind-sres-h2z2-r,Offshore Wind (SRES Radial),sres electricity,sres electricity,,,,,,,,,,,offwind-sres-r,,
 Hydro,Run of River - Turbine,Run_of_River,,,Run-of-River,Hydro and pumped storage,,hydro-ror,hydro-ror,Run of River,hydro and pumped storage,hydro (exc. pump storage),,,,,,,,,,,hydro-ror-turbine,,
 Hydro,Pondage - Reservoir,Pondage,,,,,,hydro-pondage,hydro-pondage-reservoir,Hydro Pondage (Reservoir),,,,,,,,,,,,,hydro-pondage-reservoir,,
 Hydro,Pondage - Turbine,Pondage,,,Pondage,Hydro and pumped storage,,hydro-pondage,hydro-pondage,Hydro Pondage,hydro and pumped storage,hydro (exc. pump storage),,,,,,,,,,,hydro-pondage-turbine,,
@@ -137,7 +137,7 @@ Battery,Battery Utility Scale Store,,,Batteries Utility,Li-Ion Battery Volume,,,
 ,,,,,,Electricity,,low voltage,,Electricity Low Voltage,,,electricity,,,,,,,,,,,,Final energy demand benchmark
 ,,,,,,Hydrogen,,H2,,Hydrogen,,,hydrogen,,,,,,,,,,,,Final energy demand benchmark
 ,,,,,,Methane,,exogenous gas demand,,Gas Exogenous Demand,,,methane,,,,,,,,,,,,Final energy demand benchmark
-,,,,,,Biomass,,solid biomass,,Solid Biomass,,,biofuels,,,,,,,,,,,,Final energy demand benchmark
+,,,,,,Biomass,,solid biomass,,Solid Biomass,,,biomass,,,,,,,,,,,,Final energy demand benchmark
 ,,,,,,Solids,,coal,,Coal,,,solids,,,,,,,,,,,,Final energy demand benchmark
 ,,,,,,Liquids,,oil,,Oil,,,liquids,,,,,,,,,,,,Final energy demand benchmark
 ,,,,,,,,oil refining,,Oil Refining,,,,,,,,,,,,,,,
@@ -148,22 +148,22 @@ Battery,Battery Utility Scale Store,,,Batteries Utility,Li-Ion Battery Volume,,,
 ,,,,,Fixed Demand,,,,,,,,,fixed demand,,,,,,,,,,,Electricity demand benchmark
 ,,,,,,,,electricity prosumer,,Electricity Prosumer Demand,,,,native demand,,,,,,,,,,,Electricity demand benchmark
 ,,,,,,,,electricity prosumer btm,,Electricity Prosumer BTM Demand,,,,fixed demand,,,,,,,,,,,Electricity demand benchmark
-,,,,,,H2 Final Energy Demand from ETM (excl. DH; HHPs),,H2 exogenous demand,,H2 Exogenous Demand,,,,,,exogenous demand,,,,,,,,,Hydrogen demand benchmark
-,,,,,,H2 For Electricity generation,,,,,,,,,,power generation,,,,,,,,,Hydrogen demand benchmark
-,,,,,,H2 For heat production (from DH incl. CHPs and HHPs),,,,,,,,,,heat production,,,,,,,,,Hydrogen demand benchmark
-,,,,,,H2 H2 Demand for P2L,,Fischer-Tropsch,,Fischer-Tropsch,,,,,,e-fuels,,,,,,,,,Hydrogen demand benchmark
-,,,,,,H2 H2 Demand for P2M,,Sabatier,,Sabatier,,,,,,e-fuels,,,,,,,,,Hydrogen demand benchmark
-,,,,,,H2 H2 Demand for P2L,,methanolisation,,Methanolisation,,,,,,e-fuels,,,,,,,,,Hydrogen demand benchmark
-,,,,,,H2 H2 for Ammonia production,,,,,,,,,,e-fuels,,,,,,,,,Hydrogen demand benchmark
+,,,,,,Final Energy Demand from ETM (excl. DH; HHPs),,H2 exogenous demand,,H2 Exogenous Demand,,,,,,exogenous demand,,,,,,,,,Hydrogen demand benchmark
+,,,,,,For Electricity generation,,,,,,,,,,power generation,,,,,,,,,Hydrogen demand benchmark
+,,,,,,For heat production (from DH incl. CHPs and HHPs),,,,,,,,,,heat production,,,,,,,,,Hydrogen demand benchmark
+,,,,,,H2 Demand for P2L,,Fischer-Tropsch,,Fischer-Tropsch,,,,,,e-fuels,,,,,,,,,Hydrogen demand benchmark
+,,,,,,H2 Demand for P2M,,Sabatier,,Sabatier,,,,,,e-fuels,,,,,,,,,Hydrogen demand benchmark
+,,,,,,H2 Demand for P2L,,methanolisation,,Methanolisation,,,,,,e-fuels,,,,,,,,,Hydrogen demand benchmark
+,,,,,,H2 for Ammonia production,,,,,,,,,,e-fuels,,,,,,,,,Hydrogen demand benchmark
 ,,,,,H2 to H2 power plants,,,,,,,,,,,power generation,,,,,,,,,Hydrogen demand benchmark
 ,,,,,H2 to eLiquids,,,,,,,,,,,e-fuels,,,,,,,,,Hydrogen demand benchmark
 ,,,,,H2 to sng,,,,,,,,,,,e-fuels,,,,,,,,,Hydrogen demand benchmark
 ,,,,,H2 Boiler (load),,,,,,,,,,,heat production,,,,,,,,,Hydrogen demand benchmark
-,,,,,,CH4 Final Energy Demand  from ETM (excl. DH; HHPs),,exogenous gas demand,,Gas Exogenous Demand,,,,,exogenous demand,,,,,,,,,,Methane demand benchmark
-,,,,,,CH4 For Electricity generation,,,,,,,,,power generation,,,,,,,,,,Methane demand benchmark
-,,,,,,CH4 For heat production (from DH incl. CHPs and HHPs),,,,,,,,,heat production,,,,,,,,,,Methane demand benchmark
-,,,,,,CH4 For SMR blue and pytolysis,,,,,,,,,smr (grey) and smr with ccs (blue),,,,,,,,,,Methane demand benchmark
-,,,,,,CH4 For SMR grey,,,,,,,,,smr (grey) and smr with ccs (blue),,,,,,,,,,Methane demand benchmark
+,,,,,,Final Energy Demand  from ETM (excl. DH; HHPs),,exogenous gas demand,,Gas Exogenous Demand,,,,,exogenous demand,,,,,,,,,,Methane demand benchmark
+,,,,,,For Electricity generation,,,,,,,,,power generation,,,,,,,,,,Methane demand benchmark
+,,,,,,For heat production (from DH incl. CHPs and HHPs),,,,,,,,,heat production,,,,,,,,,,Methane demand benchmark
+,,,,,,For SMR blue and pytolysis,,,,,,,,,smr (grey) and smr with ccs (blue),,,,,,,,,,Methane demand benchmark
+,,,,,,For SMR grey,,,,,,,,,smr (grey) and smr with ccs (blue),,,,,,,,,,Methane demand benchmark
 ,,,,,Steam methane reformer,SMR,,SMR,,SMR (Grey Hydrogen),,,,,smr (grey) and smr with ccs (blue),,,smr (grey) and smr with ccs (blue),,,,,,,"Hydrogen supply benchmark, Methane demand benchmark, TYNDP market model doesn't distinguish between grey and blue SMR in the output files"
 ,,,,,Steam methane reformer,SMR+CCS,,SMR CC,,SMR (CCS) (Blue Hydrogen),,,,,smr (grey) and smr with ccs (blue),,,smr (grey) and smr with ccs (blue),,,,,,,"Hydrogen supply benchmark, Methane demand benchmark, TYNDP market model doesn't distinguish between grey and blue SMR in the output files"
 ,,,,,,Pyrolysis,,,,,,,,,,,,smr (grey) and smr with ccs (blue),,,,,,,Hydrogen supply benchmark
