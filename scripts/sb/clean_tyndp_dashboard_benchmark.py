@@ -237,15 +237,15 @@ def parse_installed_capacity(df: pd.DataFrame) -> pd.DataFrame:
     pd.DataFrame
         Long format with columns [carrier, unit, sheet, bus, value]
     """
-    row_data = 2
+    row_data, col_value = 2, 1
 
     carrier, unit = split_unit_from_category(df.iloc[row_data:, 0])
     columns = pd.MultiIndex.from_arrays(
-        df.iloc[:row_data, 1:].values, names=["sheet", "bus"]
+        df.iloc[:row_data, col_value:].values, names=["sheet", "bus"]
     )
 
     return (
-        df.iloc[row_data:, 1:]
+        df.iloc[row_data:, col_value:]
         .apply(pd.to_numeric, errors="coerce")
         .set_axis(columns, axis=1)
         .set_axis(pd.MultiIndex.from_arrays([carrier, unit], names=["carrier", "unit"]))
