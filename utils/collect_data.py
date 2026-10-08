@@ -138,7 +138,9 @@ def parse_arguments() -> tuple[argparse.Namespace, list[str]]:
     return parser.parse_known_args()
 
 
-def check_cba_coverage(*args: str, verbose: bool = False) -> None:
+def check_cba_coverage(
+    read_args: list[str], fill_args: list[str], verbose: bool = False
+) -> None:
     """
     Confirm the cache holds every dataset the expanded CBA graph asks for.
 
@@ -147,8 +149,11 @@ def check_cba_coverage(*args: str, verbose: bool = False) -> None:
 
     Parameters
     ----------
-    *args : str
-        Command line arguments for Snakemake.
+    read_args : list of str
+        Command line arguments for Snakemake that read from the cache.
+    fill_args : list of str
+        Command line arguments for Snakemake that fill the cache, used in the suggested
+        fetch command.
     verbose : bool, default False
         Show the dry run behind the check.
 
@@ -161,15 +166,15 @@ def check_cba_coverage(*args: str, verbose: bool = False) -> None:
         "Checking that the cache covers the CBA workflow in read mode",
         "cba",
         "-n",
-        *args,
+        *read_args,
         capture=True,
         verbose=verbose,
     )
     if missing := retrieve_rules(listing):
         quote = subprocess.list2cmdline if sys.platform == "win32" else shlex.join
         interpreter = quote([sys.executable])
-        listing_command = f"{interpreter} -m snakemake -n cba {quote(list(args))}"
-        fetch_command = f"{interpreter} -m snakemake -call <paths> {quote(list(args))}"
+        listing_command = f"{interpreter} -m snakemake -n cba {quote(read_args)}"
+        fetch_command = f"{interpreter} -m snakemake -call <paths> {quote(fill_args)}"
         raise SystemExit(
             "The cache does not cover the CBA workflow, these rules would still "
             "retrieve data:\n  " + "\n  ".join(missing) + "\n\n"
@@ -197,7 +202,7 @@ def main() -> None:
     """
     args, forwarded = parse_arguments()
     configfiles = ["--configfile", *args.configfile] if args.configfile else []
-    base = [*configfiles, "--config", FILL_CACHE_CONFIG, *forwarded]
+    fill_base = [*configfiles, "--config", FILL_CACHE_CONFIG, *forwarded]
     read_base = [*configfiles, "--config", READ_CACHE_CONFIG, *forwarded]
     dry_run = bool(DRY_RUN_FLAGS.intersection(forwarded))
 
@@ -215,7 +220,7 @@ def main() -> None:
             "collect_cba_data",
             "-c",
             "all",
-            *base,
+            *fill_base,
             "--forcerun",
             "clean_projects",
             verbose=args.verbose,
@@ -225,7 +230,7 @@ def main() -> None:
         "Listing the datasets this workflow needs",
         "-n",
         "--forceall",
-        *base,
+        *fill_base,
         capture=True,
         verbose=args.verbose,
     )
@@ -239,7 +244,7 @@ def main() -> None:
         f"{len(needed)} dataset(s) needed. Collecting missing ones",
         "-c",
         "all",
-        *base,
+        *fill_base,
         "--until",
         *needed,
         verbose=args.verbose,
@@ -253,7 +258,7 @@ def main() -> None:
             "a dry run and the CBA graph is not expanded yet."
         )
         return
-    check_cba_coverage(*read_base, verbose=args.verbose)
+    check_cba_coverage(read_base, fill_base, verbose=args.verbose)
 
 
 if __name__ == "__main__":
