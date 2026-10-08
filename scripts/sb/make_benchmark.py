@@ -85,6 +85,7 @@ def load_data(
 
     benchmarks_raw = pd.concat(benchmarks_raw).dropna(how="all", axis=1)
 
+    # Filter common years
     is_model = benchmarks_raw.source.eq(model_col)
     has_model = is_model.groupby([benchmarks_raw.table, benchmarks_raw.year]).transform(
         "any"
