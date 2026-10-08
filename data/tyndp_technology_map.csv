@@ -161,12 +161,12 @@ Battery,Battery Utility Scale Store,,,Batteries Utility,Li-Ion Battery Volume,,,
 ,,,,,H2 Boiler (load),,,,,,,,,,,heat production,,,,,,,,,Hydrogen demand benchmark
 ,,,,,,Final Energy Demand  from ETM (excl. DH; HHPs),,exogenous gas demand,,Gas Exogenous Demand,,,,,exogenous demand,,,,,,,,,,Methane demand benchmark
 ,,,,,,For Electricity generation,,,,,,,,,power generation,,,,,,,,,,Methane demand benchmark
-,,,,,,For heat production (from DH incl. CHPs and HHPs),,,,,,,,,heat production,,,,,,,,,,Methane demand benchmark
-,,,,,,For SMR blue and pytolysis,,,,,,,,,smr (grey) and smr with ccs (blue),,,,,,,,,,Methane demand benchmark
-,,,,,,For SMR grey,,,,,,,,,smr (grey) and smr with ccs (blue),,,,,,,,,,Methane demand benchmark
-,,,,,Steam methane reformer,SMR,,SMR,,SMR (Grey Hydrogen),,,,,smr (grey) and smr with ccs (blue),,,smr (grey) and smr with ccs (blue),,,,,,,"Hydrogen supply benchmark, Methane demand benchmark, TYNDP market model doesn't distinguish between grey and blue SMR in the output files"
-,,,,,Steam methane reformer,SMR+CCS,,SMR CC,,SMR (CCS) (Blue Hydrogen),,,,,smr (grey) and smr with ccs (blue),,,smr (grey) and smr with ccs (blue),,,,,,,"Hydrogen supply benchmark, Methane demand benchmark, TYNDP market model doesn't distinguish between grey and blue SMR in the output files"
-,,,,,,Pyrolysis,,,,,,,,,,,,smr (grey) and smr with ccs (blue),,,,,,,Hydrogen supply benchmark
+,,,,,,For heat production (from DH incl. CHPs and HHPs),,exogenous gas demand,,Gas Exogenous Demand,,,,,exogenous demand,,,,,,,,,,Methane demand benchmark
+,,,,,,For SMR blue and pytolysis,,SMR CC,,SMR (CCS) (Blue Hydrogen),,,,,smr (blue) and pyrolysis,,,,,,,,,,Methane demand benchmark
+,,,,,,For SMR grey,,SMR,,SMR (Grey Hydrogen),,,,,smr (grey),,,,,,,,,,Methane demand benchmark
+,,,,,Steam methane reformer,SMR,,SMR,,SMR (Grey Hydrogen),,,,,,,,smr (grey) and smr with ccs (blue),,,,,,,"Hydrogen supply benchmark, TYNDP market model doesn't distinguish between grey and blue SMR in the output files"
+,,,,,Steam methane reformer,SMR+CCS,,SMR CC,,SMR (CCS) (Blue Hydrogen),,,,,,,,smr (grey) and smr with ccs (blue),,,,,,,"Hydrogen supply benchmark, TYNDP market model doesn't distinguish between grey and blue SMR in the output files"
+,,,,,Pyrolysis,Pyrolysis,,,,,,,,,,,,pyrolysis,,,,,,,Hydrogen supply benchmark
 ,,,,,,Extra EU H2 imports (Pipelines),,H2 import Pipeline,,H2 Import Pipeline,,,,,,,,imports (renewable & low carbon),,,,,,,Hydrogen supply benchmark
 ,,,,,,Extra EU H2 imports (Ammonia via ship),,H2 import LH2,,H2 Import LH2,,,,,,,,ammonia imports,,,,,,,Hydrogen supply benchmark
 ,,,,,,Biomethane and Biogas (Domestic gas production),,biogas to gas,,Biogas to Gas,,,,,,,biomethane (domestic),,,,,,,,Methane supply benchmark
