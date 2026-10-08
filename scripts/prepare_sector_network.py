@@ -3200,6 +3200,8 @@ def insert_electricity_distribution_grid(
     ext_stores: list[str],
     tyndp_scenario: str | bool = False,
     wheeling_charges_fn: str = "",
+    prosumer_demand_fn: str = "",
+    prosumer_btm_demand_fn: str = "",
 ) -> None:
     """
     Insert electricity distribution grid components into the network.
@@ -3238,6 +3240,19 @@ def insert_electricity_distribution_grid(
         prosumer nodes input; nodes in `pop_layout` outside of it are skipped
         entirely (no low voltage bus/link, loads and other components stay
         on the main AC bus).
+    prosumer_demand_fn : str, optional
+        Path to a CSV of per-node TYNDP prosumer electricity demand (Native
+        Demand). Only added when `tyndp_scenario` is set
+        and a non-empty path is given; attached as its own `Load` on
+        the low-voltage/`RETE` bus, on top of (not replacing) the market Load
+        left on the main bus.
+    prosumer_btm_demand_fn : str, optional
+        Path to a CSV of per-node TYNDP prosumer behind-the-meter Fixed
+        Demand. Only added when `tyndp_scenario` is set and available for a
+        handful of nodes; added the same way as `prosumer_demand_fn`,
+        as a second, separate `Load` on the same `RETE` bus (not summed
+        with the Native Demand Load), matching how the TYNDP output
+        dashboard itself keeps them as two distinct line items.
 
     Returns
     -------
@@ -3304,6 +3319,40 @@ def insert_electricity_distribution_grid(
             efficiency=1,
             marginal_cost=wheeling_charges.loc[nodes, "prosumer_to_e_market"].values,
         )
+
+        if prosumer_demand_fn:
+            prosumer_demand = pd.read_csv(
+                prosumer_demand_fn, index_col=0, parse_dates=True
+            ).reindex(n.snapshots)
+            prosumer_nodes = nodes.intersection(prosumer_demand.columns)
+            n.add(
+                "Load",
+                prosumer_nodes,
+                suffix=lv_suffix + " prosumer",
+                bus=prosumer_nodes + lv_suffix,
+                carrier="electricity prosumer",
+                p_set=prosumer_demand[prosumer_nodes],
+            )
+        if prosumer_btm_demand_fn:
+            prosumer_btm_demand = pd.read_csv(
+                prosumer_btm_demand_fn, index_col=0, parse_dates=True
+            ).reindex(n.snapshots)
+            btm_nodes = nodes.intersection(prosumer_btm_demand.columns)
+            n.add(
+                "Load",
+                btm_nodes,
+                suffix=lv_suffix + " prosumer btm",
+                bus=btm_nodes + lv_suffix,
+                carrier="electricity prosumer btm",
+                p_set=prosumer_btm_demand[btm_nodes],
+            )
+
+        loads = n.loads.index[
+            n.loads.carrier.str.contains("electric")
+            & n.loads.bus.isin(nodes)
+            & (n.loads.carrier != "electricity")
+        ]
+        n.loads.loc[loads, "bus"] += lv_suffix
     else:
         n.add(
             "Link",
@@ -3318,26 +3367,26 @@ def insert_electricity_distribution_grid(
             capital_cost=costs.at["electricity distribution grid", "capital_cost"],
         )
 
-    # deduct distribution losses from electricity demand as these are included in total load
-    # https://nbviewer.org/github/Open-Power-System-Data/datapackage_timeseries/blob/2020-10-06/main.ipynb
-    if (
-        efficiency := options["transmission_efficiency"]
-        .get("electricity distribution grid", {})
-        .get("efficiency_static")
-    ) and "electricity distribution grid" in options["transmission_efficiency"][
-        "enable"
-    ]:
-        logger.info(
-            f"Deducting distribution losses from electricity demand: {np.around(100 * (1 - efficiency), decimals=2)}%"
-        )
-        n.loads_t.p_set.loc[:, n.loads.carrier == "electricity"] *= efficiency
+        # deduct distribution losses from electricity demand as these are included in total load
+        # https://nbviewer.org/github/Open-Power-System-Data/datapackage_timeseries/blob/2020-10-06/main.ipynb
+        if (
+            efficiency := options["transmission_efficiency"]
+            .get("electricity distribution grid", {})
+            .get("efficiency_static")
+        ) and "electricity distribution grid" in options["transmission_efficiency"][
+            "enable"
+        ]:
+            logger.info(
+                f"Deducting distribution losses from electricity demand: {np.around(100 * (1 - efficiency), decimals=2)}%"
+            )
+            n.loads_t.p_set.loc[:, n.loads.carrier == "electricity"] *= efficiency
 
-    # this catches regular electricity load and "industry electricity" and
-    # "agriculture machinery electric" and "agriculture electricity"
-    loads = n.loads.index[
-        n.loads.carrier.str.contains("electric") & n.loads.bus.isin(nodes)
-    ]
-    n.loads.loc[loads, "bus"] += lv_suffix
+        # this catches regular electricity load and "industry electricity" and
+        # "agriculture machinery electric" and "agriculture electricity"
+        loads = n.loads.index[
+            n.loads.carrier.str.contains("electric") & n.loads.bus.isin(nodes)
+        ]
+        n.loads.loc[loads, "bus"] += lv_suffix
 
     bevs = n.links.index[(n.links.carrier == "BEV charger") & n.links.bus0.isin(nodes)]
     n.links.loc[bevs, "bus0"] += lv_suffix
@@ -9683,6 +9732,10 @@ if __name__ == "__main__":
             ext_stores=extendable_stores,
             tyndp_scenario=tyndp_scenario,
             wheeling_charges_fn=snakemake.input.get("wheeling_charges", ""),
+            prosumer_demand_fn=snakemake.input.get("elec_demand_prosumer_tyndp", ""),
+            prosumer_btm_demand_fn=snakemake.input.get(
+                "elec_demand_prosumer_btm_tyndp", ""
+            ),
         )
 
     if tyndp_scenario and snakemake.params.hurdle_costs:

@@ -57,10 +57,6 @@ class LoadConfig(BaseModel):
         default_factory=_FillGapsConfig,
         description="Gaps filling strategy used.",
     )
-    available_years_tyndp: list[int] = Field(
-        default_factory=lambda: [2030, 2040, 2050],
-        description="List of years for which TYNDP demand data is available.",
-    )
     manual_adjustments: bool = Field(
         True,
         description="Whether to adjust the load data manually according to the function in `manual_adjustment`.",

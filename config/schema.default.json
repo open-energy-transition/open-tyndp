@@ -3391,13 +3391,6 @@
             }
           }
         },
-        "available_years_tyndp": {
-          "description": "List of years for which TYNDP demand data is available.",
-          "items": {
-            "type": "integer"
-          },
-          "type": "array"
-        },
         "manual_adjustments": {
           "default": true,
           "description": "Whether to adjust the load data manually according to the function in `manual_adjustment`.",
@@ -11634,13 +11627,6 @@
               "type": "string"
             }
           }
-        },
-        "available_years_tyndp": {
-          "description": "List of years for which TYNDP demand data is available.",
-          "items": {
-            "type": "integer"
-          },
-          "type": "array"
         },
         "manual_adjustments": {
           "default": true,
