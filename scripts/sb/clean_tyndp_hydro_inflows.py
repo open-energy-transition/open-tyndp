@@ -34,6 +34,14 @@ from scripts._helpers import (
 
 logger = logging.getLogger(__name__)
 
+HYDRO_TECH_CODES = {
+    "Run of River": "HRR",
+    "Pondage": "HPI",
+    "Reservoir": "HRI",
+    "PS Open": "HOL",
+    "PS Closed": "HCL",
+}
+
 
 def read_hydro_inflows_file(
     node: str,
@@ -46,28 +54,18 @@ def read_hydro_inflows_file(
 ) -> pd.Series:
     fn = Path(
         hydro_inflows_dir,
+        "Hydro Inflows",
         str(planning_horizon),
-        f"PEMMDB_{node.replace('GB', 'UK')}_Hydro_Inflows_{planning_horizon}.xlsx",
+        f"{node.replace('GB', 'UK')}_Hydro_Inflows_{HYDRO_TECH_CODES[hydro_tech]}_{planning_horizon}.csv",
     )
 
     if not os.path.isfile(fn):
         return None
 
-    inflow_tech = pd.read_excel(
-        fn,
-        skiprows=1,
-        usecols=lambda name: (
-            name == "Day"
-            or name == "Week"
-            or name == "ShortName"
-            or name == "Variable"
-            or name == int(wscenario)
-        ),
-        sheet_name=f"{hydro_tech} - Year Dependent",
-    )
+    inflow_tech = pd.read_csv(fn, index_col=0)
 
     # infer resolution of data for each technology
-    tech_res = "w" if "Week" in inflow_tech.columns else "d"
+    tech_res = "w" if inflow_tech.index.name == "WEEK" else "d"
 
     inflow_tech = (
         inflow_tech.query("ShortName == 'INFLOW'")
