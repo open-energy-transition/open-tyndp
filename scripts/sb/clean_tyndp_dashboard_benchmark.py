@@ -471,13 +471,17 @@ def clean_crossborder_for_benchmarking(
     """
     Clean crossborder data for benchmarking purposes.
     """
-    tables = {"electricity": "crossborder_electricity", "H2": "crossborder_hydrogen"}
+    tables = {
+        "electricity": "crossborder_electricity",
+        "H2": "crossborder_hydrogen",
+        "H2_imports": "crossborder_hydrogen",
+    }
 
     df = df.reset_index().rename(columns={"sum": "value"})
 
     flows = df[df.carrier.isin(tables)].assign(
         table=lambda x: x.carrier.map(tables),
-        carrier=lambda x: x.carrier.replace({"electricity": "AC"}),
+        carrier=lambda x: x.carrier.replace({"electricity": "AC", "H2_imports": "H2"}),
     )[["border", "carrier", "value", "table"]]
 
     imports = df[df.carrier == "H2_imports"].assign(
