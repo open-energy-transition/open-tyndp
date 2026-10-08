@@ -97,6 +97,8 @@ if __name__ == "__main__":
             clusters="all",
             planning_horizons=2030,
             tech="Run_of_River",
+            run="NT",
+            configfiles="config/config.tyndp.yaml",
         )
     configure_logging(snakemake)
     set_scenario_config(snakemake)
