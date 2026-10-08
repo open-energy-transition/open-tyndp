@@ -189,6 +189,12 @@ benchmarking:
         2035: 105
         2040: 111
         2050: 106
+      biomass_heat_production:
+        # Values from TYNDP 2026 Supply Tool NT+, EU27, 8760h (biomass and biofuels primary energy demand for district heating)
+        2030: 130  # TWh
+        2035: 127
+        2040: 116
+        2050: 126
 
     energy_imports:
       table_type: scenario_comparison

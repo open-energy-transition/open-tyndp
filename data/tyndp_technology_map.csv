@@ -178,7 +178,7 @@ Battery,Battery Utility Scale Store,,,Batteries Utility,Li-Ion Battery Volume,,,
 ,,,,,,P2Methane (Domestic gas production),,Sabatier,,Sabatier,,,,,,,synthetic methane (domestic),,,,,,,,Methane supply benchmark
 ,,,,,,P2Methane (Imports),,,,,,,,,,,synthetic methane (import),,,,,,,,Methane supply benchmark
 ,,,,,,Final Energy Demand,,biomass final energy demand,,Biomass Final Energy Demand,,,,,,,,,final demand,,,,,,Biomass supply benchmark
-,,,,,,For heat production,,,,,,,,,,,,,final demand,,,,,,Biomass supply benchmark
+,,,,,,For heat production,,,,,,,,,,,,,for heat production,,,,,,Biomass supply benchmark
 ,,,,,,For Electricity Generation,,,,,,,,,,,,,for electricity,,,,,,Biomass supply benchmark
 ,,,,,,For biomethane production,,biogas,,Biogas,,,,,,,,,for biomethane,,,,,,Biomass supply benchmark
 ,,,,,,For bioliquids,,biomass to liquid,,Biomass to Liquid,,,,,,,,,for biofuels,,,,,,Biomass supply benchmark

@@ -175,14 +175,12 @@ def compute_benchmark(
             aggregate_across_components=True,
         ).loc[lambda s: ~s.index.isin(df_countries.index)]
 
-        # Biogas not upgraded to biomethane is part of the FED in Open-TYNDP
-        biogas_not_upgraded = (
-            options["tables"]["biomass_supply"]["biogas_not_upgraded"][
-                planning_horizons
-            ]
-            * 1e6
-        )
-        df_eu.loc["solid biomass"] -= biogas_not_upgraded
+        # Biogas not upgraded to biomethane and biomass for heat production are part of the FED in Open-TYNDP
+        biomass_opt = options["tables"]["biomass_supply"]
+        df_eu.loc["solid biomass"] -= (
+            biomass_opt["biogas_not_upgraded"][planning_horizons]
+            + biomass_opt["biomass_heat_production"][planning_horizons]
+        ) * 1e6
 
         df = pd.concat([df_countries, df_eu])
     elif table in ["electricity_demand", "electricity_prosumer_demand"]:
@@ -405,10 +403,14 @@ def compute_benchmark(
             aggregate_across_components=True,
         )
 
-        # Biogas not upgraded to biomethane is part of the FED in Open-TYNDP
+        # Biogas not upgraded to biomethane and biomass for heat production are part of the FED in Open-TYNDP
         biogas_not_upgraded = opt["biogas_not_upgraded"][planning_horizons] * 1e6
-        df_fed_btl.loc["biomass final energy demand"] -= biogas_not_upgraded
+        heat_production = opt["biomass_heat_production"][planning_horizons] * 1e6
+        df_fed_btl.loc["biomass final energy demand"] -= (
+            biogas_not_upgraded + heat_production
+        )
         df_fed_btl.loc["for biomethane"] = biogas_not_upgraded
+        df_fed_btl.loc["for heat production"] = heat_production
 
         eff = float(opt["biomass_to_methane_efficiency"][planning_horizons])
 
