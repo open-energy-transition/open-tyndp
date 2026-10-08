@@ -92,8 +92,8 @@ electricity:
   - offwind-h2-fl-oh
   tyndp_stores:
   - battery
-  - h2_cavern
-  - h2_tank
+  - H2 cavern-storage
+  - H2 tank-storage
   estimate_renewable_capacities:
     enable: false
 

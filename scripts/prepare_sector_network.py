@@ -4007,7 +4007,7 @@ def add_h2_storage_tyndp(
     costs : pd.DataFrame
         Technology cost assumptions.
     tyndp_stores : list[str]
-        TYNDP storage technologies to add. H2 tanks are added for `h2_tank` and caverns for `h2_cavern`.
+        TYNDP storage technologies to add. H2 tanks are added for `H2 tank-storage` and caverns for `H2 cavern-storage`.
 
     Returns
     -------
@@ -4022,7 +4022,7 @@ def add_h2_storage_tyndp(
             f"TYNDP H2 storage assets at unknown H2 buses: {invalid.tolist()}"
         )
 
-    if "h2_tank" in tyndp_stores:
+    if "H2 tank-storage" in tyndp_stores:
         logger.info("Adding TYNDP H2 daily (tank) storage.")
         _add_h2_stores_and_links_tyndp(
             n=n,
@@ -4032,7 +4032,7 @@ def add_h2_storage_tyndp(
             extendable=False,
         )
 
-    if "h2_cavern" in tyndp_stores:
+    if "H2 cavern-storage" in tyndp_stores:
         logger.info("Adding TYNDP H2 monthly (cavern) storage.")
         _add_h2_stores_and_links_tyndp(
             n=n,
@@ -4091,7 +4091,7 @@ def add_h2_topology_tyndp(
     h2_storages_fn : str
         Path to CSV file containing prepped TYNDP H2 storage assets.
     tyndp_stores : list[str]
-        TYNDP storage technologies to add (`h2_tank`, `h2_cavern`).
+        TYNDP storage technologies to add (`H2 tank-storage`, `H2 cavern-storage`).
 
 
     Returns
@@ -4770,7 +4770,7 @@ def add_h2_gas_infrastructure(
     h2_storages_fn : str
         Path to CSV file containing prepped TYNDP H2 storage assets.
     tyndp_stores : list[str]
-        TYNDP storage technologies to add (`h2_tank`, `h2_cavern`).
+        TYNDP storage technologies to add (`H2 tank-storage`, `H2 cavern-storage`).
 
     Returns
     -------

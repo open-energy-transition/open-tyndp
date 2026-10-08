@@ -2723,8 +2723,8 @@
           "items": {
             "enum": [
               "battery",
-              "h2_cavern",
-              "h2_tank"
+              "H2 cavern-storage",
+              "H2 tank-storage"
             ],
             "type": "string"
           },
@@ -9880,8 +9880,8 @@
           "items": {
             "enum": [
               "battery",
-              "h2_cavern",
-              "h2_tank"
+              "H2 cavern-storage",
+              "H2 tank-storage"
             ],
             "type": "string"
           },
