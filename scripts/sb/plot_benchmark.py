@@ -7,6 +7,7 @@ Plot benchmark figures.
 
 import logging
 import multiprocessing as mp
+import re
 import textwrap
 from functools import partial
 from pathlib import Path
@@ -107,7 +108,7 @@ def _plot_scenario_comparison(
 
     output_filename = Path(
         output_dir,
-        f"benchmark_{table}_{bus.replace(' ', '_')}_ws{wscenario}_{year}.pdf",
+        f"benchmark_{table}_{re.sub(r'[ /]', '_', bus)}_ws{wscenario}_{year}.pdf",
     )
     fig.savefig(output_filename, bbox_inches="tight")
 
@@ -197,7 +198,7 @@ def _plot_time_series(
 
     output_filename = Path(
         output_dir,
-        f"benchmark_{table}_{bus.replace(' ', '_')}_ws{wscenario}_{year}.pdf",
+        f"benchmark_{table}_{re.sub(r'[ /]', '_', bus)}_ws{wscenario}_{year}.pdf",
     )
     fig.savefig(output_filename, bbox_inches="tight")
 
