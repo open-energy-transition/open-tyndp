@@ -200,6 +200,7 @@ def compute_benchmark(
     supply_comps = ["Generator", "Link"]
     demand_comps = ["Link", "Load"]
     eu27_idx = n.buses[n.buses.country.isin(eu27)].index
+    year_share = n.snapshot_weightings.generators.sum() / 8760
 
     if table == "final_energy_demand":
         grouper = ["bus_carrier"]
@@ -226,7 +227,7 @@ def compute_benchmark(
         df_eu.loc["solid biomass"] -= (
             biomass_opt["biogas_not_upgraded"][planning_horizons]
             + biomass_opt["biomass_heat_production"][planning_horizons]
-        ) * 1e6
+        ) * (1e6 * year_share)
 
         df = pd.concat([df_countries, df_eu])
     elif table in ["electricity_demand", "electricity_prosumer_demand"]:
@@ -458,8 +459,12 @@ def compute_benchmark(
         )
 
         # Biogas not upgraded to biomethane and biomass for heat production are part of the FED in Open-TYNDP
-        biogas_not_upgraded = opt["biogas_not_upgraded"][planning_horizons] * 1e6
-        heat_production = opt["biomass_heat_production"][planning_horizons] * 1e6
+        biogas_not_upgraded = (
+            opt["biogas_not_upgraded"][planning_horizons] * 1e6 * year_share
+        )
+        heat_production = (
+            opt["biomass_heat_production"][planning_horizons] * 1e6 * year_share
+        )
         df_fed_btl.loc["biomass final energy demand"] -= (
             biogas_not_upgraded + heat_production
         )
