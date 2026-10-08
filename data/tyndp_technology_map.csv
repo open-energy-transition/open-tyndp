@@ -43,7 +43,7 @@ Hydro,Pure Pump Storage - Reservoir,PS_Closed,,,,,,hydro-phs-pure,hydro-phs-pure
 Hydro,Pure Pump Storage - Turbine,PS_Closed,,,Pump Storage - Closed Loop (turbine),Hydro and pumped storage,,hydro-phs-pure,hydro-phs-pure-turbine,Pumped Hydro,hydro and pumped storage,hydro and pumped storage,,,,,,,,,,,hydro-phs-pure-turbine,,
 ,,,,,,,,hydro-phs-pure,,Pumped Hydro Closed,hydro and pumped storage,,,,,,,,,,,,,,
 Hydro,Pure Pump Storage - Pump,PS_Closed,,,Pump Storage - Closed Loop (pump),,,hydro-phs-pure,hydro-phs-pure-pump,Pumped Hydro,hydro and pumped storage,,,,,,,,,,,,hydro-phs-pure-pump,,
-Other RES,Small Biomass,,,,Others renewable,Other RES,,other-res,other-res-biomass,Other Renewables,other res,other res,,,,,,,for electricity,,,,other-res-biomass,,
+Other RES,Small Biomass,,,,Others renewable,Other RES,,other-res,other-res-biomass,Other Renewables,other res,other res,,,,,,,other res,,,,other-res-biomass,,Biomass supply benchmark
 Other RES,"Geothermal, Marine, Waste and Not Defined",,,,Others renewable,Other RES,,other-res,other-res-mix,Other Renewables,other res,other res,,,,,,,,,,,other-res-mix,,
 ,,,,,,Other RES,,,,,,other res,,,,,,,,,,,,,The TYNDP 2024 Scenarios Report maps Other RES capacities as 'Small Scale RES' and Other RES generation as 'Other RES'
 Gas,Conventional old 1,,,,Gas conventional old 1,Natural Gas,,gas,gas-conv-old1,Gas Conventional,methane (incl. biofuels),methane (incl. biofuels),,,power generation,,,,,,,,gas-conv,OCGT,Methane demand benchmark
