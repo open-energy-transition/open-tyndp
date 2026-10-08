@@ -316,6 +316,7 @@ def load_benchmark(
     # Add table identifier
     df_converted["table"] = table
 
+    # Clean data
     if "scenario" not in df_converted.columns:
         df_converted["scenario"] = opt["report"]["scenario"]
     df_converted["scenario"] = (
