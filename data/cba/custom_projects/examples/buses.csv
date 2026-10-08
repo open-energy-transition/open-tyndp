@@ -1,0 +1,2 @@
+project_name,project_type,project_id,bus_name,country,bidding_zone,low voltage,lat,lon,p_link,category,source,further description
+Example for custom buses,t,9997,new_bus,DE,DE00,FALSE,51.089748,9.246651,400,onshore,,
