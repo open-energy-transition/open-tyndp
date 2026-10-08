@@ -2547,6 +2547,16 @@ def _add_smr_capacities(
     # SMR components
     smr_i = n.links.query("carrier.str.contains('SMR')").index
 
+    # Only consider capacities of enabled SMR carriers
+    smr_capacities = smr_capacities[
+        smr_capacities.carrier.isin(n.links.loc[smr_i, "carrier"])
+    ]
+    missing = smr_capacities.index.difference(smr_i)
+    if not missing.empty:
+        raise ValueError(
+            f"SMR capacities for components not in the network: {missing.tolist()}"
+        )
+
     # Add capacities for SMR and SMR CC
     smr_caps = smr_capacities.p_nom
     n.links.loc[smr_i, ["p_nom", "p_nom_min"]] = smr_caps.reindex(smr_i)
@@ -2603,6 +2613,19 @@ def _add_h2_storage_capacities(
     )
     h2_chargers_i = n.links[h2_chargers].index
 
+    # Only consider capacities of enabled H2 storage carriers
+    flexibility_carriers = {"Daily": "H2 tank-storage", "Monthly": "H2 cavern-storage"}
+    h2_storage_capacities = h2_storage_capacities[
+        h2_storage_capacities.flexibility.map(flexibility_carriers).isin(
+            n.stores.loc[h2_stores_i, "carrier"]
+        )
+    ]
+    missing = pd.Index(h2_storage_capacities.bus).difference(h2_stores_i)
+    if not missing.empty:
+        raise ValueError(
+            f"H2 storage capacities for components not in the network: {missing.tolist()}"
+        )
+
     # Add capacities for H2 Stores and charge/discharge Links
     store_data = h2_storage_capacities.set_index("bus").reindex(h2_stores_i)
     link_caps = pd.concat(
@@ -2616,10 +2639,10 @@ def _add_h2_storage_capacities(
         ]
     )
 
-    n.stores.loc[h2_stores_i, ["e_nom", "e_nom_min"]] = store_data.e_nom.fillna(0.0)
+    n.stores.loc[h2_stores_i, ["e_nom", "e_nom_min"]] = store_data.e_nom
 
     # Set link capacities
-    link_caps = link_caps.reindex(h2_chargers_i, fill_value=0.0)
+    link_caps = link_caps.reindex(h2_chargers_i)
     dischargers_i = h2_chargers_i[h2_chargers_i.str.contains("discharger")]
     link_caps[dischargers_i] = link_caps[dischargers_i].div(
         n.links.loc[dischargers_i, "efficiency"]
@@ -3881,8 +3904,7 @@ def add_h2_grid_tyndp(
 def _add_h2_stores_and_links_tyndp(
     n: pypsa.Network,
     storage_tech: str,
-    name_suffix: str,
-    buses: pd.Index,
+    storages: pd.DataFrame,
     costs: pd.DataFrame,
     extendable: bool,
 ) -> None:
@@ -3896,12 +3918,10 @@ def _add_h2_stores_and_links_tyndp(
     storage_tech: str
         Storage technology cost/carrier key. Can be either 'cavern-storage' or
         'tank-storage'.
-    name_suffix : str
-        Suffix used for the component names/ids (e.g. "Storage_Daily"), matching
-        the TYNDP market-output asset naming convention. Decoupled from
-        `storage_tech` so display names can differ from the underlying carrier.
-    buses : pd.Index
-        nodes of H2 buses to add the storages to.
+    storages : pd.DataFrame
+        Prepped TYNDP H2 storage assets of this technology. The `bus` column holds the
+        storage bus names (e.g. "DEh2 Storage_Daily"), matching the TYNDP market-output
+        asset naming convention, and `location` the H2 bus to connect to.
     costs : pd.DataFrame
         Technology cost assumptions.
     extendable : bool
@@ -3912,15 +3932,16 @@ def _add_h2_stores_and_links_tyndp(
     None
         The function modifies the network object in-place by adding components.
     """
-    bus_names = buses + f" {name_suffix}"
+    bus_names = pd.Index(storages.bus)
+    buses = storages.location.values
 
     n.add(
         "Bus",
         bus_names,
         location=buses,
         carrier=f"H2 {storage_tech}",
-        x=n.buses.loc[list(buses)].x.values,
-        y=n.buses.loc[list(buses)].y.values,
+        x=n.buses.loc[buses].x.values,
+        y=n.buses.loc[buses].y.values,
     )
 
     n.add(
@@ -3941,7 +3962,7 @@ def _add_h2_stores_and_links_tyndp(
         bus0=buses,
         bus1=bus_names,
         carrier=f"H2 {storage_tech} charger",
-        efficiency=costs.at[f"{storage_tech}-charger", "efficiency"],
+        efficiency=storages.efficiency_charge.values,
         marginal_cost=costs.at[storage_tech, "marginal_cost"],
         p_nom_extendable=extendable,
         lifetime=costs.at[storage_tech, "lifetime"],
@@ -3954,7 +3975,7 @@ def _add_h2_stores_and_links_tyndp(
         bus0=bus_names,
         bus1=buses,
         carrier=f"H2 {storage_tech} discharger",
-        efficiency=costs.at[f"{storage_tech}-discharger", "efficiency"],
+        efficiency=storages.efficiency_discharge.values,
         marginal_cost=costs.at[storage_tech, "marginal_cost"],
         p_nom_extendable=extendable,
         lifetime=costs.at[storage_tech, "lifetime"],
@@ -3964,26 +3985,25 @@ def _add_h2_stores_and_links_tyndp(
 def add_h2_storage_tyndp(
     n: pypsa.Network,
     buses_h2: pd.Index,
+    h2_storages_fn: str,
     costs: pd.DataFrame,
     tyndp_stores: list[str],
 ) -> None:
     """
-    Adds TYNDP daily (tank) and monthly (cavern) H2 storage with default assumptions.
+    Adds TYNDP daily (tank) and monthly (cavern) H2 storage from the prepped TYNDP H2 storage data.
 
-    Both storage technologies are added as a non-extendable skeleton (zero
-    capacity by default) at every Z2 and bottleneck H2 bus, since TYNDP capacity data may
-    report either flexibility class at any bus of those categories (e.g. Germany has real tank
-    storage at its dedicated Z2 bus, while the Netherlands has both daily and
-    monthly storage at the same Z2 bus). `_add_h2_storage_capacities` later
-    fills in real capacities wherever TYNDP reports them; buses with no
-    matching data keep zero capacity and get cleaned up.
+    Storages are added as non-extendable components for each asset listed in the TYNDP
+    data, with the TYNDP charge and discharge efficiencies. `_add_h2_storage_capacities`
+    later fills in their capacities.
 
     Parameters
     ----------
     n : pypsa.Network
         The PyPSA network container object.
     buses_h2 : pd.Index
-        Nodes of H2 buses to add components to.
+        Nodes of H2 buses the storages may connect to.
+    h2_storages_fn : str
+        Path to CSV file containing prepped TYNDP H2 storage assets.
     costs : pd.DataFrame
         Technology cost assumptions.
     tyndp_stores : list[str]
@@ -3994,14 +4014,20 @@ def add_h2_storage_tyndp(
     None
         The function modifies the network object in-place by adding components.
     """
+    h2_storages = pd.read_csv(h2_storages_fn)
+    if not (
+        invalid := h2_storages.location[~h2_storages.location.isin(buses_h2)]
+    ).empty:
+        raise ValueError(
+            f"TYNDP H2 storage assets at unknown H2 buses: {invalid.tolist()}"
+        )
 
     if "h2_tank" in tyndp_stores:
         logger.info("Adding TYNDP H2 daily (tank) storage.")
         _add_h2_stores_and_links_tyndp(
             n=n,
             storage_tech="tank-storage",
-            name_suffix="Storage_Daily",
-            buses=buses_h2,
+            storages=h2_storages.query("flexibility == 'Daily'"),
             costs=costs,
             extendable=False,
         )
@@ -4011,8 +4037,7 @@ def add_h2_storage_tyndp(
         _add_h2_stores_and_links_tyndp(
             n=n,
             storage_tech="cavern-storage",
-            name_suffix="Storage_Monthly",
-            buses=buses_h2,
+            storages=h2_storages.query("flexibility == 'Monthly'"),
             costs=costs,
             extendable=False,
         )
@@ -4028,6 +4053,7 @@ def add_h2_topology_tyndp(
     h2_demand_z1_file: str,
     h2_demand_z2_file: str,
     smr_fn: str,
+    h2_storages_fn: str,
     tyndp_stores: list[str],
 ) -> None:
     """
@@ -4062,6 +4088,8 @@ def add_h2_topology_tyndp(
         Path to CSV file containing exogenous Z2 hydrogen demand time series.
     smr_fn : str
         Path to CSV file containing prepped TYNDP SMR and SMR CC assets.
+    h2_storages_fn : str
+        Path to CSV file containing prepped TYNDP H2 storage assets.
     tyndp_stores : list[str]
         TYNDP storage technologies to add (`h2_tank`, `h2_cavern`).
 
@@ -4151,12 +4179,11 @@ def add_h2_topology_tyndp(
         costs=costs,
     )
 
-    # add H2 storage (daily tank and monthly cavern storage at every H2 bus)
+    # add H2 storage (daily tank and monthly cavern storage)
     add_h2_storage_tyndp(
         n=n,
-        buses_h2=spatial.h2_tyndp.nodes[
-            spatial.h2_tyndp.df.category.isin(["Z2", "bottleneck"])
-        ],
+        buses_h2=spatial.h2_tyndp.nodes,
+        h2_storages_fn=h2_storages_fn,
         costs=costs,
         tyndp_stores=tyndp_stores,
     )
@@ -4695,6 +4722,7 @@ def add_h2_gas_infrastructure(
     h2_demand_z1_file,
     h2_demand_z2_file,
     smr_fn,
+    h2_storages_fn,
     tyndp_stores,
 ):
     """
@@ -4739,6 +4767,8 @@ def add_h2_gas_infrastructure(
         Path to CSV file containing exogenous Z2 hydrogen demand data.
     smr_fn : str
         Path to CSV file containing prepped TYNDP SMR and SMR CC assets.
+    h2_storages_fn : str
+        Path to CSV file containing prepped TYNDP H2 storage assets.
     tyndp_stores : list[str]
         TYNDP storage technologies to add (`h2_tank`, `h2_cavern`).
 
@@ -4770,6 +4800,7 @@ def add_h2_gas_infrastructure(
             h2_demand_z1_file=h2_demand_z1_file,
             h2_demand_z2_file=h2_demand_z2_file,
             smr_fn=smr_fn,
+            h2_storages_fn=h2_storages_fn,
             tyndp_stores=tyndp_stores,
         )
     else:
@@ -9486,6 +9517,7 @@ if __name__ == "__main__":
         h2_demand_z1_file=snakemake.input.h2_demand_z1,
         h2_demand_z2_file=snakemake.input.h2_demand_z2,
         smr_fn=snakemake.input.get("tyndp_smr"),
+        h2_storages_fn=snakemake.input.get("tyndp_h2_storages"),
         tyndp_stores=snakemake.params.tyndp_stores,
     )
 

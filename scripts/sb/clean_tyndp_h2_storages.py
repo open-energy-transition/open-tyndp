@@ -65,8 +65,9 @@ def load_h2_storage_data(fn: str, planning_horizon: int, scenario: str) -> pd.Da
         efficiency_charge=lambda df: df.efficiency_charge / 100,  # [1]
         efficiency_discharge=lambda df: df.efficiency_discharge / 100,  # [1]
         e_initial=lambda df: df.e_initial * 1e3,  # [MWh]
-        bus=lambda df: format_bz_names(df.bus) + " Storage_" + df.flexibility,
-    ).drop(columns="flexibility")
+        location=lambda df: format_bz_names(df.bus),
+        bus=lambda df: df.location + " Storage_" + df.flexibility,
+    )
 
     storages = storages.loc[
         ((storages.scenario == scenario) | (storages.scenario == "all"))
