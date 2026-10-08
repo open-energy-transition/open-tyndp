@@ -21,7 +21,6 @@ import os
 from functools import partial
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
@@ -69,21 +68,15 @@ def read_hydro_inflows_file(
     tech_res = "w" if inflow_tech.index.name == "WEEK" else "d"
 
     inflow_tech = (
-        inflow_tech.query("ShortName == 'INFLOW'")
-        .assign(datetime=date_index[tech_res])
-        .set_index("datetime")
+        inflow_tech[f"WS{wscenario:03d}"]
+        .set_axis(date_index[tech_res])
         .reindex(sns)  # filter for hourly subset of snapshots only
         .ffill()  # upsample to hourly data
-        .assign(
-            **{
-                node: lambda df: np.where(  # calculate hourly inflow in MWh/h
-                    # input value was either in GWh/week or in GWh/day
-                    df.Variable.str.contains("week"),
-                    df[f"WS{wscenario:03d}"] / (24 * 7 * 1e-3),
-                    df[f"WS{wscenario:03d}"] / (24 * 1e-3),
-                )
-            }
-        )[node]
+        .div(  # calculate hourly inflow in MW
+            # input value was either in MWh/week or in MWh/day
+            24 * 7 if tech_res == "w" else 24
+        )
+        .rename(node)
     )
 
     return inflow_tech
@@ -112,9 +105,13 @@ if __name__ == "__main__":
             periods=53,  # 53 weeks
             freq="7D",
         ),
-        "d": pd.date_range(
-            start=f"{year}-01-01",
-            periods=366,  # 366 days (incl. first day of next year)
+        "d": get_snapshots(
+            {
+                "start": f"{year}-01-01",
+                "end": f"{year + 1}-01-01",
+                "inclusive": "left",
+            },
+            drop_leap_day=True,
             freq="D",
         ),
     }
