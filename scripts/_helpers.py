@@ -1949,7 +1949,7 @@ def align_demand_to_snapshots(
 
 def extract_crossborder_pattern(df: pd.DataFrame, connector: str = "-"):
     return df.index.str.extract(
-        rf"^(.*?)(\w+)( H2)*{re.escape(connector)}(\w+)( H2)*(.*)$"
+        rf"^(.*?)([\w/]+)( H2)*{re.escape(connector)}([\w/]+)( H2)*(.*)$"
     ).fillna("")
 
 
