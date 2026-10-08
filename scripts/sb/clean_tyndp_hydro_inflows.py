@@ -4,11 +4,11 @@
 """
 Loads and cleans the available hydro inflow data from TYNDP data bundle for a given
 
-* climate year,
+* weather scenario,
 * planning horizon,
 * hydro technology.
 
-Input data for TYNDP 2024 comes from PEMMDB v2.5.
+Input data for TYNDP 2026 comes from PECD v4.2.
 
 Outputs
 -------
