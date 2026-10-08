@@ -12,7 +12,7 @@ and Cost-Benefit Analysis (CBA) phases.
 * **Cost-Benefit Analysis** indicators are benchmarked for all calculated indicators and
   all projects against the official [TYNDP 2024 CBA results](https://tyndp2024.entsoe.eu/projects-map/transmission).
 
-Benchmarking results continue to be published with every release on [Zenodo](https://doi.org/10.5281/zenodo.18608105) (currently only Scenario Building results).  View the [project website](https://open-tyndp.openenergytransition.org) for a detailed explanation of the results.
+Benchmarking results continue to be published with every release on [Zenodo](https://doi.org/10.5281/zenodo.18608105).  View the [project website](https://open-tyndp.openenergytransition.org) for a detailed explanation of the results.
 
 !!! warning
     Open-TYNDP is under active development and is not yet feature-complete. As of v0.7, Open-TYNDP was successfully benchmarked against TYNDP 2024 (see [outcomes](https://open-tyndp.openenergytransition.org)). The current [development status](index.md#development-status) and the general [Limitations](limitations.md) are important to understand before using the model.
@@ -46,30 +46,29 @@ This methodology defines the following accuracy indicators:
 
 ### Metrics
 
-The following metrics from the TYNDP 2026 Scenarios Report are considered relevant for Scenario Building
-benchmarking. They are only available for the NT+ scenario:
+Scenario Building outcomes are compared against two TYNDP 2026 reference sources, both only available
+for the NT+ scenario:
 
-* Exogenous inputs:
+* **Time Series Dashboards** (preferred reference): market model outputs at node level, read for the
+  first weather scenario configured in `wscenarios_tyndp` for each planning horizon.
+* **Scenario Report Data Figures**: EU27 metrics complementing the Dashboards:
 
-  * Final energy demand per carrier, EU27 (TWh), (Fig 4)
-  * Total electricity consumption, EU27 (TWh), (Fig 35)
-  * Total methane consumption, EU27 (TWh), (Fig 46)
-  * Total hydrogen consumption, EU27 (TWh), (Fig 41)
+    * Exogenous inputs:
 
-* Investment and dispatch modelling outputs:
+        * Final energy demand per carrier, EU27 (TWh), (Fig 4)
+        * Total electricity consumption, EU27 (TWh), (Fig 35)
+        * Total methane consumption, EU27 (TWh), (Fig 46)
+        * Total hydrogen consumption, EU27 (TWh), (Fig 41)
 
-  * Installed electricity generation and storage capacity, EU27 (GW), (Fig 57)
-  * Electricity generation by technology, EU27 (TWh), (Fig 58)
-  * Methane supply, EU27 (TWh), (Fig 70)
-  * Hydrogen supply, EU27 (TWh), (Fig 74)
-  * Biomass supply and utilisation, EU27 (TWh), (Fig 81)
-  * Energy imports, EU27 (TWh), (Fig 83)
+    * Investment and dispatch modelling outputs:
 
-The data is published in the TYNDP 2026 Scenario Report Data Figures workbook.
-In addition to the Scenarios Report data, the market model outputs from the TYNDP 2026 Time Series Dashboards
-are also processed and included in the relevant figures, including the prosumer electricity demand
-(`electricity_prosumer_demand`) and the hydrogen demand by use (e-fuels, power generation and heat production). They are only available for the NT+ scenario and are
-read for the first weather scenario configured in `wscenarios_tyndp` for each planning horizon.
+        * Installed electricity generation and storage capacity, EU27 (GW), (Fig 57)
+        * Electricity generation by technology, EU27 (TWh), (Fig 58)
+        * Methane supply, EU27 (TWh), (Fig 70)
+        * Hydrogen supply, EU27 (TWh), (Fig 74)
+        * Biomass supply and utilisation, EU27 (TWh), (Fig 81)
+        * Energy imports, EU27 (TWh), (Fig 83)
+
 Benchmarks are computed per table only for planning horizons available in both Open-TYNDP and the reference data.
 
 Hourly time series from the TYNDP reference data are aggregated to match the temporal resolution of
