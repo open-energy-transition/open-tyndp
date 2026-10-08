@@ -11,7 +11,7 @@
 
 **Features**
 
-feat: align hydro inflows to use TYNDP 2026 data ([#1059](https://github.com/open-energy-transition/open-tyndp/pull/1059)).
+* feat: align hydro inflows to use TYNDP 2026 data ([#1059](https://github.com/open-energy-transition/open-tyndp/pull/1059)).
 
 * feat: switch TYNDP electricity demand to TYNDP 2026 data for three demand types: market, prosumer and prosumer behind-the-meter (BTM) ([#944](https://github.com/open-energy-transition/open-tyndp/pull/944)).
 
