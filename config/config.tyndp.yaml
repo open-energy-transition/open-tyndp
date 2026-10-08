@@ -317,6 +317,8 @@ sector:
     enable: true
     carriers:
     - H2
+    - e-liquids
+    - sng
 
 costs:
   custom_cost_scn: NT
