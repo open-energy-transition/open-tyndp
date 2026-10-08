@@ -1367,6 +1367,9 @@ if (TYNDP_2026_DATASET := dataset_version("tyndp_2026"))["source"] in ARCHIVE_SO
 
     def _unpack_tyndp_2026(input, output):
         for key in input.keys():
+            if key == "p2g_emarket":
+                continue
+
             # Keep zip file
             zip_file = Path(output[f"{key}_zip"])
             copy2(input[key], zip_file)
@@ -1436,6 +1439,14 @@ if (TYNDP_2026_DATASET := dataset_version("tyndp_2026"))["source"] in ARCHIVE_SO
                     TYNDP_2026_DATASET["url"] + "/inputs/Heat.zip"
                 ),
                 hydrogen=storage(TYNDP_2026_DATASET["url"] + "/inputs/Hydrogen.zip"),
+                p2g_emarket=storage(
+                    TYNDP_2026_DATASET["url"]
+                    + (
+                        "/inputs/Hydrogen.zip"
+                        if TYNDP_2026_DATASET["version"] == "2026-08-21"
+                        else "/cba_corrections/Hydrogen.zip"
+                    )
+                ),
                 market_outputs=storage(
                     TYNDP_2026_DATASET["url"] + "/outputs/NT+_TimeSeriesDashboard.zip"
                 ),
@@ -1465,6 +1476,7 @@ if (TYNDP_2026_DATASET := dataset_version("tyndp_2026"))["source"] in ARCHIVE_SO
                 h2_imports=f"{TYNDP_2026_DATASET['folder']}/Hydrogen/H2 IMPORTS GENERATORS PROPERTIES.xlsx",
                 h2_storages=f"{TYNDP_2026_DATASET['folder']}/Hydrogen/H2 STORAGES.xlsx",
                 smr=f"{TYNDP_2026_DATASET['folder']}/Hydrogen/SMR.xlsx",
+                p2g_emarket=f"{TYNDP_2026_DATASET['folder']}/Hydrogen/P2G_emarket_template_corrected_requirecheck.xlsx",
                 market_outputs_zip=f"{TYNDP_2026_DATASET['folder']}/NT+_TimeSeriesDashboard.zip",
                 market_outputs=directory(
                     f"{TYNDP_2026_DATASET['folder']}/NT+_TimeSeriesDashboard"
@@ -1475,6 +1487,13 @@ if (TYNDP_2026_DATASET := dataset_version("tyndp_2026"))["source"] in ARCHIVE_SO
                 "Retrieving TYNDP 2026 data package"
             run:
                 _unpack_tyndp_2026(input, output)
+                with ZipFile(input.p2g_emarket) as archive:
+                    Path(output.p2g_emarket).write_bytes(
+                        archive.read(
+                            "Hydrogen/P2G_emarket_template_corrected_requirecheck.xlsx"
+                        )
+                    )
+
 
 
 def get_osm_archive_files(version):
