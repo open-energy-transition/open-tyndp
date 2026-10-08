@@ -513,6 +513,57 @@ def extract_custom_transmission_projects(
 
     return custom_transmission_projects
 
+def extract_custom_buses(
+    custom_buses_path: str,
+    existing_buses: pd.Index,
+) -> pd.DataFrame:
+    """
+    Extract and prepare custom buses data.
+
+    Parameters
+    ----------
+    custom_buses_path: str
+        Filepath for custom buses
+    existing_buses: pd.Index
+        List of existing buses
+
+    Returns
+    -------
+        pd.DataFrame
+            Pandas dataframe of custom buses
+    """
+
+    custom_buses = read_csv_or_excel(custom_buses_path).drop(
+        ["source", "further description"], axis=1, errors="ignore"
+    )
+    breakpoint()
+    if custom_buses.empty:
+        logger.debug("No custom buses found.")
+        return custom_buses
+
+    # Remove projects without bus name, coordinates, associated project, and p_link
+    mask_null = (
+        custom_buses.bus_name.notnull() & custom_buses.lat.notnull() & custom_buses.lon.notnull() & custom_buses.project_id.notnull() & custom_buses.p_link.notnull()
+    )
+    custom_buses = custom_buses[mask_null]
+
+    # TODO: Add validation for co-ordinates, check if they are within the bounds of the country, and if they are not duplicates of existing buses
+
+    # Add validation for bus names, check if they are unique and not duplicates of existing buses
+    mask_duplicate = (
+        custom_buses.bus_name.isin(existing_buses)
+    )
+    custom_buses = custom_buses[~mask_duplicate]
+
+    # Drop duplicate bus names, keeping the first occurrence
+    custom_buses = custom_buses.drop_duplicates(subset=["bus_name"])
+
+    # TODO: Add validation for if associated project is TOOT or PINT, add bus only for PINT projects
+
+    # TODO: Add validation for onshore/offshore, check if the bus is onshore or offshore and if it is offshore, check if it is connected to an offshore hub
+
+    return custom_buses
+
 
 def extract_custom_generators(
     custom_generators_static_path: str,
@@ -570,7 +621,7 @@ def extract_custom_generators(
             "and to the PyPSA default otherwise. Ensure both datasets are compatible."
         )
 
-    # Remove projects with no project ID
+    # Remove generators with no project ID
     mask_pid_null = custom_gens_static.project_id.isnull()
     if mask_pid_null.any():
         logger.warning(
@@ -578,14 +629,14 @@ def extract_custom_generators(
         )
     custom_gens_static = custom_gens_static[~mask_pid_null].astype({"project_id": int})
 
-    # Remove projects without an existing bus
-    # TODO If generator is being added at a new bus, this bus should have already been listed under `custom_cba_buses.csv`
+    # Remove generators without an existing bus
+    # TODO If generator is being added at a new bus, this bus should have already been listed under `cba/custom_projects/buses.csv`
     mask_no_bus = ~custom_gens_static.bus.isin(existing_buses)
     if mask_no_bus.any():
         missing_buses = custom_gens_static.bus[mask_no_bus].unique().tolist()
         logger.warning(
             f"{mask_no_bus.sum()} custom generator(s) without existing bus have been dropped. Missing buses: {missing_buses}. "
-            "If new bus being added, ensure that it has been added to 'custom_cba_buses.csv'"
+            "If new bus being added, ensure that it has been added to 'cba/custom_projects/buses.csv'"
         )
     custom_gens_static = custom_gens_static[~mask_no_bus]
 
@@ -1116,6 +1167,7 @@ if __name__ == "__main__":
     custom_transmission_path = Path(snakemake.input.custom_transmission)
     custom_generators_static_path = Path(snakemake.input.custom_generators_static)
     custom_generators_dynamic_path = Path(snakemake.input.custom_generators_dynamic)
+    custom_buses_path = Path(snakemake.input.custom_buses)
     corrections_path = snakemake.input.cba_project_corrections
 
     # Get existing buses
@@ -1131,6 +1183,12 @@ if __name__ == "__main__":
     # Custom transmission projects
     custom_transmission_projects = extract_custom_transmission_projects(
         custom_transmission_path, existing_buses
+    )
+
+    # Custom buses
+    custom_buses = extract_custom_buses(
+        custom_buses_path,
+        existing_buses
     )
 
     # Custom generators
