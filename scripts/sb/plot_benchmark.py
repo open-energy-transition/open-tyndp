@@ -97,26 +97,12 @@ def _plot_scenario_comparison(
     if rotation != 0:
         ax.set_ylim(top=ax.get_ylim()[1] * 1.05)
 
-    # notes
-    if table == "power_capacity":
-        note = [
-            'Note: DSR values from the Scenarios Report include both "implicit" and "explicit" DSR; other source show "explicit" DSR only. \n'
-            "The Scenarios Report includes some solar and onshore wind capacities not connected to the grid."
-        ]
-    elif table == "hydrogen_supply":
-        note = [
-            'Note: Open-TYNDP uses endogenous hydrogen fuel prices. The price is fixed in the Market Model and the Scenarios Report and the supply of hydrogen \nis reported as "Undefined for generation". In Open-TYNDP, however, this share is "defined" as either imports or domestic production.'
-        ]
-    else:
-        note = []
-
     add_metadata(
         fig,
         ax,
         model_col=model_col,
         rfc_source=rfc_source,
         rfc_cols=rfc_cols,
-        note=note,
     )
 
     output_filename = Path(
