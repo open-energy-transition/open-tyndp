@@ -111,6 +111,52 @@ def remove_last_day(sws: pd.Series, nhours: int = 24) -> pd.Series:
     return sws
 
 
+def get_h2_imports(n: pypsa.Network) -> pd.Series:
+    """
+    Net H2 imports from import buses, attributed to the receiving bus.
+
+    Imports are the net flows on links connecting a bus with category "import"
+    to a non-import bus. Flows from ammonia import terminals are labelled
+    "H2 import LH2", all others "H2 import Pipeline".
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        Optimised network.
+
+    Returns
+    -------
+    pd.Series
+        Net imported energy indexed by receiving bus and import carrier.
+    """
+    import_buses = n.buses.index[n.buses.category.eq("import")]
+    from_import = n.links.bus0.isin(import_buses)
+    links = n.links[from_import != n.links.bus1.isin(import_buses)]
+    origin = links.bus0.where(from_import[links.index], links.bus1)
+
+    balance = n.statistics.energy_balance(
+        comps="Link",
+        bus_carrier="H2",
+        groupby=["name", "bus"],
+        aggregate_across_components=True,
+    )
+    name = balance.index.get_level_values("name")
+    bus = balance.index.get_level_values("bus")
+    balance = balance[name.isin(links.index) & ~bus.isin(import_buses)]
+
+    balance_origin = balance.index.get_level_values("name").map(origin)
+    carrier = pd.Index(
+        np.where(
+            balance_origin.str.startswith("Ammonia"),
+            "H2 import LH2",
+            "H2 import Pipeline",
+        ),
+        name="carrier",
+    )
+
+    return balance.groupby([balance.index.get_level_values("bus"), carrier]).sum()
+
+
 def compute_benchmark(
     n: pypsa.Network,
     table: str,
@@ -154,6 +200,7 @@ def compute_benchmark(
     supply_comps = ["Generator", "Link"]
     demand_comps = ["Link", "Load"]
     eu27_idx = n.buses[n.buses.country.isin(eu27)].index
+    year_share = n.snapshot_weightings.generators.sum() / 8760
 
     if table == "final_energy_demand":
         grouper = ["bus_carrier"]
@@ -175,27 +222,29 @@ def compute_benchmark(
             aggregate_across_components=True,
         ).loc[lambda s: ~s.index.isin(df_countries.index)]
 
-        # Biogas not upgraded to biomethane is part of the FED in Open-TYNDP
-        biogas_not_upgraded = (
-            options["tables"]["biomass_supply"]["biogas_not_upgraded"][
-                planning_horizons
-            ]
-            * 1e6
-        )
-        df_eu.loc["solid biomass"] -= biogas_not_upgraded
+        # Biogas not upgraded to biomethane and biomass for heat production are part of the FED in Open-TYNDP
+        biomass_opt = options["tables"]["biomass_supply"]
+        df_eu.loc["solid biomass"] -= (
+            biomass_opt["biogas_not_upgraded"][planning_horizons]
+            + biomass_opt["biomass_heat_production"][planning_horizons]
+        ) * (1e6 * year_share)
 
         df = pd.concat([df_countries, df_eu])
-    elif table == "electricity_demand":
+    elif table in ["electricity_demand", "electricity_prosumer_demand"]:
         grouper = ["carrier"]
+        carriers = ["electricity prosumer", "electricity prosumer btm"]
+        if table == "electricity_demand":
+            carriers = ["electricity"] + carriers
         df = (
-            n.statistics.withdrawal(
-                comps=demand_comps,
+            n.statistics.energy_balance(
+                comps="Load",
                 bus_carrier=elec_bus_carrier,
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
             )
-            .loc[pd.IndexSlice[:, ["electricity"]]]
+            .mul(-1)
             .reset_index()
+            .loc[lambda df: df.carrier.isin(carriers)]
             .assign(bus=lambda df: df.bus.map(n.buses.location))
             .set_index(["bus", "carrier"])
         )
@@ -246,14 +295,22 @@ def compute_benchmark(
         ).loc[lambda df: ~df.index.get_level_values("carrier").isin(exclusions)]
     elif table == "power_capacity":
         grouper = ["carrier"]
-        exclusions = ["electricity distribution grid", "DC", "load"]
+        exclusions = [
+            "electricity distribution grid",
+            "DC",
+            "load",
+            "AC_SRES",
+            "EV charge",
+        ]
+        pumps = ["hydro-phs-pump", "hydro-phs-pure-pump"]
         df = (
             n.statistics.optimal_capacity(
                 bus_carrier=elec_bus_carrier,
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
             )
-            .loc[lambda x: x > 0]
+            .loc[lambda x: (x > 0) | x.index.get_level_values("carrier").isin(pumps)]
+            .abs()
             .reset_index()
             .loc[lambda df: ~df.carrier.isin(exclusions)]
             .assign(bus=lambda df: df.bus.map(n.buses.location))
@@ -286,11 +343,10 @@ def compute_benchmark(
             "home battery discharger",
             "home battery charger",
             "PHS",
-            "hydro-phs-turbine",
             "hydro-phs-pump",
-            "hydro-phs-pure-turbine",
             "hydro-phs-pure-pump",
             "H2 Electrolysis",
+            "AC_SRES",
         ]
         df = n.statistics.supply(
             comps=supply_comps + ["StorageUnit"],
@@ -298,27 +354,6 @@ def compute_benchmark(
             groupby=["bus"] + grouper,
             aggregate_across_components=True,
         ).loc[lambda df: ~df.index.get_level_values("carrier").isin(exclusions)]
-
-        # TYNDP 2024 report available generation for renewables (pre-curtailment)
-        # and add H2 offwind capacities in MWh_e
-        # TODO Review once solar thermals are integrated
-        res_carriers = n.carriers.filter(regex="offwind.*|solar.*|onwind", axis=0).index
-        res_idx = n.generators[n.generators.carrier.isin(res_carriers)].index
-        if "efficiency_dc_to_b0" in n.generators.columns:
-            eff_dc_to_b0 = n.generators.loc[res_idx, "efficiency_dc_to_b0"].fillna(1)
-        else:
-            eff_dc_to_b0 = pd.Series(1.0, index=res_idx)
-
-        res_gen = (
-            (
-                n.snapshot_weightings.generators
-                @ (n.generators_t.p_max_pu[res_idx] * n.generators.p_nom_opt[res_idx])
-            )
-            .div(eff_dc_to_b0)
-            .groupby([n.generators.bus, n.generators.carrier])
-            .sum()
-        )
-        df = res_gen.combine_first(df)
 
         df = (
             df.rename(index=n.buses.location.to_dict(), level=0)
@@ -400,12 +435,20 @@ def compute_benchmark(
             "H2 cavern-storage discharger",
             "H2 tank-storage discharger",
         ]
+        import_buses = n.buses.index[n.buses.category.eq("import")]
         df = n.statistics.supply(
             comps=supply_comps,
             bus_carrier="H2",
             groupby=["bus"] + grouper,
             aggregate_across_components=True,
-        ).loc[lambda df: ~df.index.get_level_values("carrier").isin(exclusions)]
+        )
+        carriers = df.index.get_level_values("carrier")
+        df = df[
+            ~carriers.isin(exclusions)
+            & ~carriers.str.startswith("H2 import")
+            & ~df.index.get_level_values("bus").isin(import_buses)
+        ]
+        df = pd.concat([df, get_h2_imports(n)])
     elif table == "biomass_supply":
         grouper = ["carrier"]
         df_fed_btl = n.statistics.withdrawal(
@@ -415,10 +458,18 @@ def compute_benchmark(
             aggregate_across_components=True,
         )
 
-        # Biogas not upgraded to biomethane is part of the FED in Open-TYNDP
-        biogas_not_upgraded = opt["biogas_not_upgraded"][planning_horizons] * 1e6
-        df_fed_btl.loc["biomass final energy demand"] -= biogas_not_upgraded
+        # Biogas not upgraded to biomethane and biomass for heat production are part of the FED in Open-TYNDP
+        biogas_not_upgraded = (
+            opt["biogas_not_upgraded"][planning_horizons] * 1e6 * year_share
+        )
+        heat_production = (
+            opt["biomass_heat_production"][planning_horizons] * 1e6 * year_share
+        )
+        df_fed_btl.loc["biomass final energy demand"] -= (
+            biogas_not_upgraded + heat_production
+        )
         df_fed_btl.loc["for biomethane"] = biogas_not_upgraded
+        df_fed_btl.loc["for heat production"] = heat_production
 
         eff = float(opt["biomass_to_methane_efficiency"][planning_horizons])
 
@@ -435,27 +486,7 @@ def compute_benchmark(
         # TODO No biomass import is assumed
         grouper = ["carrier"]
         df_countries = (
-            n.statistics.supply(
-                comps="Link",
-                bus_carrier=["H2"],
-                groupby=["bus"] + grouper,
-                aggregate_across_components=True,
-            )
-            .reindex(eu27_idx, level="bus")
-            .groupby(by=grouper)
-            .sum()
-            .drop(
-                index=[
-                    "H2 Electrolysis",
-                    "H2 pipeline",
-                    "H2 pipeline OH",
-                    "H2 cavern-storage discharger",
-                    "H2 tank-storage discharger",
-                    "SMR",
-                    "SMR CC",
-                ],
-                errors="ignore",
-            )
+            get_h2_imports(n).reindex(eu27_idx, level="bus").groupby(by=grouper).sum()
         )
 
         # Add EU level demands
@@ -467,38 +498,6 @@ def compute_benchmark(
         ).loc[lambda s: ~s.index.isin(df_countries.index)]
 
         df = pd.concat([df_countries, df_eu])
-    elif table == "generation_profiles":
-        if n.snapshots.year[0] == 2009:
-            grouper = ["carrier"]
-            df = (
-                n.statistics.supply(
-                    bus_carrier=elec_bus_carrier,
-                    groupby=["bus"] + grouper,
-                    aggregate_across_components=True,
-                    groupby_time=False,
-                )
-                .reindex(eu27_idx, level="bus")
-                .groupby(by=grouper)
-                .sum()
-                .drop(
-                    index=[
-                        "DC",
-                        "electricity distribution grid",
-                        "H2 Electrolysis",
-                        "battery charger",
-                        "home battery charger",
-                        "methanolisation",
-                        "electricity",
-                    ],
-                    errors="ignore",
-                )
-                .melt(ignore_index=False)
-                .reset_index()
-                .set_index(["snapshot", "carrier"])["value"]
-            )
-        else:
-            logger.warning(f"Unknown climate year for table: {table}")
-            df = pd.DataFrame(columns=["carrier"])
     elif table in ["electricity_price", "hydrogen_price"]:
         carrier = "AC" if "electricity" in table else "H2"
 
@@ -526,11 +525,15 @@ def compute_benchmark(
         voll = load_shedding.get(carrier, np.inf)
         if opt.get("exclude_coupling_effects", False):
             other_carrier = "AC" if "electricity" not in table else "H2"
-            coupling_carrier = "h2-ccgt" if carrier == "H2" else "H2 Electrolysis"
+            coupling_carriers = (
+                ["h2-ccgt", "h2-ocgt"] if carrier == "H2" else ["H2 Electrolysis"]
+            )
             voll = min(
                 voll,
                 load_shedding.get(other_carrier, np.inf)
-                * n.links.loc[n.links.carrier == coupling_carrier].efficiency.mean(),
+                * n.links.loc[
+                    n.links.carrier.isin(coupling_carriers)
+                ].efficiency.mean(),
             )
 
         df = (
@@ -549,8 +552,6 @@ def compute_benchmark(
     elif table in ["crossborder_electricity", "crossborder_hydrogen"]:
         carrier = "AC" if "elec" in table else "H2"
         bus_carrier = [carrier, f"{carrier}_OH"]  # noqa F814
-        if carrier == "H2":
-            bus_carrier.extend(["import H2"])
         connector = " -> " if carrier == "H2" else "-"
 
         # Intra-carrier transmission (bus0 and bus1 share carrier)

@@ -1949,7 +1949,7 @@ def align_demand_to_snapshots(
 
 def extract_crossborder_pattern(df: pd.DataFrame, connector: str = "-"):
     return df.index.str.extract(
-        rf"^(.*?)(\w+)( H2)*{re.escape(connector)}(\w+)( H2)*(.*)$"
+        rf"^(.*?)([\w/]+)( H2)*{re.escape(connector)}([\w/]+)( H2)*(.*)$"
     ).fillna("")
 
 
@@ -1978,7 +1978,7 @@ def normalize_direction(
         String separator between bus0 and bus1 in the index.
     format_index : bool, default=False
         If True, reformat the index after normalization to
-        ``"bus0[_suffix]->bus1[_suffix]"``.
+        ``"bus0[_suffix]-bus1[_suffix]"``.
 
     Returns
     -------
@@ -2002,11 +2002,7 @@ def normalize_direction(
         df.loc[
             :, ["prefix", "bus0", "bus0_suffix", "bus1", "bus1_suffix", "suffix"]
         ] = extract_crossborder_pattern(df, connector).values
-    # Protect swapping of direction for H2 import links and the bus0 starting with "X"
-    mask_import_link = df["prefix"].str.contains("H2 import", na=False)
-    mask = (
-        (df["bus0"] > df["bus1"]) & ~df["bus0"].str.startswith("X") & ~mask_import_link
-    )
+    mask = df["bus0"] > df["bus1"]
     assignments = {col: np.where(mask, -df[col], df[col]) for col in cols}
 
     # Add bus0, bus1, and border to assignments
@@ -2035,15 +2031,7 @@ def normalize_direction(
 
     if format_index:
         idx_groups = extract_crossborder_pattern(df, connector)
-
-        mask_h2_pipeline = idx_groups[0] == "H2 pipeline "
-        idx_groups.loc[mask_h2_pipeline, [2, 4]] = " H2"
-
-        mask_import = idx_groups[0].str.contains("H2 import")
-        idx_groups.loc[mask_import, 1] = "X" + idx_groups.loc[mask_import, 1]
-        idx_groups.loc[mask_import, 4] = " H2"
-
-        df.index = idx_groups[1] + idx_groups[2] + "->" + idx_groups[3] + idx_groups[4]
+        df.index = idx_groups[1] + idx_groups[2] + "-" + idx_groups[3] + idx_groups[4]
 
     if buses_from_index:
         df.index.name = "border"

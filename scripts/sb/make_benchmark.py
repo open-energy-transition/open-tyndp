@@ -2,11 +2,11 @@
 #
 # SPDX-License-Identifier: MIT
 """
-This script computes accuracy indicators for comparing workflow results against reference data from TYNDP 2024.
+This script computes accuracy indicators for comparing workflow results against reference data
+from the TYNDP 2026 Scenarios Report and the TYNDP 2026 dashboard outputs.
 
-Benchmarks are computed only for planning years available in the TYNDP 2024 Scenarios data:
-- NT (National Trends): 2030, 2040
-- DE (Distributed Energy) and GA (Global Ambition): 2040, 2050
+Benchmarks are computed per table only for planning years available in both the workflow results
+and the reference data.
 
 This module implements a methodology introduced by Wen et al. (2022) for evaluating performance of energy system
 models using multiple accuracy indicators.
@@ -22,13 +22,13 @@ import pandas as pd
 from tqdm import tqdm
 
 from scripts._helpers import configure_logging, get_version, set_scenario_config
+from scripts.build_tyndp_network import extract_country
 
 logger = logging.getLogger(__name__)
 
 SOURCES_MAP = {
-    "market_out": "TYNDP 2024 Market Model Outputs",
-    "report": "TYNDP 2024 Scenarios Report",
-    "vp": "TYNDP 2024 Vis Pltfm",
+    "dashboard_out": "TYNDP 2026 Dashboard Outputs",
+    "report": "TYNDP 2026 Scenarios Report",
 }
 
 
@@ -36,72 +36,67 @@ def load_data(
     benchmarks_fn: str,
     results_fn: str,
     scenario: str,
-    vp_data_fn: str = "",
-    mm_data_fn: str = "",
+    dashboard_data_fn: str = "",
+    model_col: str = "Open-TYNDP",
 ) -> pd.DataFrame:
     """
-    Load Open-TYNDP and TYNDP 2024 results.
+    Load Open-TYNDP results and TYNDP reference data.
+
+    Only tables and years for which both Open-TYNDP results and at least one
+    reference source are available are kept.
 
     Parameters
     ----------
     benchmarks_fn : str
-        Path to the TYNDP 2024 benchmark data file.
+        Path to the TYNDP 2026 Scenarios Report benchmark data file.
     results_fn : str
         Path to the Open-TYNDP results data file.
     scenario : str
         Name of scenario to compare.
-    vp_data_fn : str, optional
-        Path to the Visualisation data file.
-    mm_data_fn : str, optional
-        Path to the Market Model Output data file.
+    dashboard_data_fn : str, optional
+        Path to the TYNDP 2026 dashboard data file.
+    model_col : str, default "Open-TYNDP"
+        Source name of model values.
 
     Returns
     -------
     pd.DataFrame
-        Combined DataFrame containing both Open-TYNDP and TYNDP 2024 data.
+        Combined DataFrame containing both Open-TYNDP and TYNDP reference data.
 
     """
 
     # Load data
-    logger.info("Loading benchmark using TYNDP 2024 and Open-TYNDP")
+    logger.info("Loading benchmark using TYNDP reference data and Open-TYNDP")
     benchmarks_tyndp = pd.read_csv(benchmarks_fn).query("scenario==@scenario")
     benchmarks_n = []
     for fn in results_fn:
         benchmarks_n.append(pd.read_csv(fn).query("scenario==@scenario"))
     benchmarks_n = pd.concat(benchmarks_n)
-    benchmarks_raw = pd.concat([benchmarks_tyndp, benchmarks_n]).dropna(
-        how="all", axis=1
+    benchmarks_raw = [benchmarks_tyndp, benchmarks_n]
+
+    # Add TYNDP 2026 dashboard outputs (optional)
+    if dashboard_data_fn:
+        dashboard_data = pd.concat([pd.read_csv(fn) for fn in dashboard_data_fn])
+        if not dashboard_data.empty:
+            benchmarks_raw.append(dashboard_data)
+        else:
+            logger.info(
+                "Skipping comparison with TYNDP 2026 dashboard outputs, as only available for NT."
+            )
+
+    benchmarks_raw = pd.concat(benchmarks_raw).dropna(how="all", axis=1)
+
+    # Filter common years
+    is_model = benchmarks_raw.source.eq(model_col)
+    has_model = is_model.groupby([benchmarks_raw.table, benchmarks_raw.year]).transform(
+        "any"
     )
-
-    # Filter to keep only years available in the TYNDP 2024 Scenarios data
-    available_years = set(benchmarks_tyndp.year).intersection(benchmarks_n.year)  # noqa: F841
-
-    # Add Visualisation Platform (optional)
-    if vp_data_fn:
-        vp_data = pd.read_csv(vp_data_fn)
-        if not vp_data.empty:
-            available_years = set(vp_data.year).intersection(available_years)
-            benchmarks_raw = pd.concat([benchmarks_raw, vp_data])
-        else:
-            logger.info(
-                "Skipping comparison with Visualisation Platform data, as only available in TYNDP 2024 for the climate years 1995, 2008 and 2009."
-            )
-
-    # Add Market Model Outputs (optional)
-    if mm_data_fn:
-        mm_data = []
-        for fn in mm_data_fn:
-            mm_data.append(pd.read_csv(fn))
-        mm_data = pd.concat(mm_data)
-        if not mm_data.empty:
-            available_years = set(mm_data.year).intersection(available_years)
-            benchmarks_raw = pd.concat([benchmarks_raw, mm_data])
-        else:
-            logger.info(
-                "Skipping comparison with Market Model Output data, as only available in TYNDP 2024 for NT 2030 and NT 2040."
-            )
-
-    benchmarks_raw = benchmarks_raw.query("year in @available_years")
+    has_reference = (
+        (~is_model)
+        .groupby([benchmarks_raw.table, benchmarks_raw.year])
+        .transform("any")
+    )
+    benchmarks_raw = benchmarks_raw[has_model & has_reference]
 
     # Add Country column
     country_map = {
@@ -112,20 +107,23 @@ def load_data(
         "BEIOH01": "DK",
         "BEIOH01 H2": "DK",
         "EU27": "EU27",
-        "XAmmonia": "XAmmonia",
         "Pan-EU": "Pan-EU",
     }
 
     def _bus_to_country(bus: str) -> str:
         code = bus.split(" ")[0]
-        return country_map.get(bus, code[:3] if code.startswith("X") else code[:2])
+        if bus in country_map:
+            return country_map[bus]
+        if code.startswith("Ammonia"):
+            return "Ammonia"
+        return extract_country(code)
 
     benchmarks_raw.loc[:, "country"] = benchmarks_raw["bus"].map(
         lambda x: _bus_to_country(x) if pd.notna(x) else x
     )
     benchmarks_raw.loc[:, "corridor"] = benchmarks_raw["border"].map(
         lambda x: (
-            "->".join(_bus_to_country(b) for b in x.split("->")) if pd.notna(x) else x
+            "-".join(_bus_to_country(b) for b in x.split("-")) if pd.notna(x) else x
         )
     )
 
@@ -136,7 +134,7 @@ def match_temporal_resolution(
     df: pd.DataFrame,
     snapshots: dict[str, str],
     model_col: str = "Open-TYNDP",
-    rfc_col: str = "TYNDP 2024 Scenarios Report",
+    rfc_col: str = "TYNDP 2026 Scenarios Report",
 ) -> pd.DataFrame:
     """
     Match temporal resolution against reference data. Hourly time series from the rfc_col will be
@@ -150,7 +148,7 @@ def match_temporal_resolution(
         Dictionary defining the temporal range with 'start' and 'end' keys.
     model_col : str, default "Open-TYNDP"
         Column name for model values with potentially lower temporal resolution.
-    rfc_col : str, default "TYNDP 2024 Scenarios Report"
+    rfc_col : str, default "TYNDP 2026 Scenarios Report"
         Column name for reference values with hourly temporal resolution.
 
     Returns
@@ -334,7 +332,7 @@ def compute_all_indicators(
     df: pd.DataFrame,
     table: str,
     model_col: str = "Open-TYNDP",
-    rfc_col: str = "TYNDP 2024 Scenarios Report",
+    rfc_col: str = "TYNDP 2026 Scenarios Report",
     eps: float = 1e-6,
     carrier: str = None,
     df_na: pd.DataFrame = pd.DataFrame(),
@@ -352,7 +350,7 @@ def compute_all_indicators(
         Benchmark metric to compute.
     model_col : str, default "Open-TYNDP"
         Column name for model/projected values (ŷᵢ).
-    rfc_col : str, default "TYNDP 2024 Scenarios Report"
+    rfc_col : str, default "TYNDP 2026 Scenarios Report"
         Column name for reference/actual values (yᵢ).
     eps : float, default 1e-6
         Small value used when the denominator is zero.
@@ -393,9 +391,9 @@ def compute_all_indicators(
             df.groupby(by=idx).sum(), table, model_col, rfc_col, eps
         )
 
-    # Exclude zero-valued rows when using Market Model outputs,
+    # Exclude zero-valued rows when using dashboard outputs,
     # as zeros may denote absent data rather than true zero values
-    if rfc_col == SOURCES_MAP["market_out"]:
+    if rfc_col == SOURCES_MAP["dashboard_out"]:
         df_na = df_na[(df_na[rfc_col] != 0) & (df_na[model_col] != 0)]
     missing_name = missing_name if "spatial" in cols_na else "Missing carriers"
     indicators[missing_name] = _compute_missing(df_na, cols=cols_na)
@@ -418,7 +416,7 @@ def compute_indicators(
     table: str,
     snapshots: dict[str, str],
     options,
-    rfc_col: str = "TYNDP 2024 Scenarios Report",
+    rfc_col: str = "TYNDP 2026 Scenarios Report",
     carrier_col: str = "carrier",
     precision: int = 2,
     bus_col_name: str = "bus",
@@ -426,7 +424,7 @@ def compute_indicators(
     """
     Calculate accuracy indicators following Wen et al. (2022) methodology to assess model performance
     against reference data. The function expects paired columns representing workflow estimates
-    and TYNDP 2024 baseline values. The function computes both per-carrier and overall indicators.
+    and TYNDP reference values. The function computes both per-carrier and overall indicators.
 
     Hourly time series from the rfc_col will be aggregated to match the temporal resolution of model_col.
 
@@ -452,7 +450,7 @@ def compute_indicators(
         Dictionary defining the temporal range with 'start' and 'end' keys.
     options : dict
         Full benchmarking configuration.
-    rfc_col : str, default "TYNDP 2024 Scenarios Report"
+    rfc_col : str, default "TYNDP 2026 Scenarios Report"
         Name of the reference data source.
     carrier_col : str, default "carrier"
         Column name for carrier/technology grouping.
@@ -549,7 +547,7 @@ def compare_sources(
 ) -> tuple[pd.DataFrame, pd.Series]:
     """
     Compare data sources for a specified table using accuracy indicators. The function expects
-    paired columns representing workflow results estimates and TYNDP 2024 baseline values.
+    paired columns representing workflow results estimates and TYNDP reference values.
     Results are written to CSV in output_dir.
 
     Parameters
@@ -557,7 +555,7 @@ def compare_sources(
     table : str
         Benchmark metric to compute.
     benchmarks_raw : pd.DataFrame
-        Combined DataFrame containing both Open-TYNDP and TYNDP 2024 data.
+        Combined DataFrame containing both Open-TYNDP and TYNDP reference data.
     scenario : str
         Name of scenario to compare.
     snapshots : dict[str, str]
@@ -604,7 +602,7 @@ def compare_sources(
 
     if benchmarks.empty:
         logger.warning(
-            f"No data available for table '{table}' in {model_col} or TYNDP 2024 datasets"
+            f"No data available for table '{table}' in {model_col} or TYNDP reference datasets"
         )
         return pd.DataFrame(), pd.DataFrame(
             [["NA", "NA"]],
@@ -630,22 +628,7 @@ def compare_sources(
 
     # Check if at least two sources are available to compare
     if len(df.columns) != 2:
-        # Generation profiles only available in TYNDP 2024 for climate year 2009 and DE/GA scenarios
-        show_warning = True
-        if table == "generation_profiles":
-            wscenario = int(
-                pd.DatetimeIndex(df.index.get_level_values("snapshot")).year[0]
-            )
-            show_warning = scenario in ["TYNDP DE", "TYNDP GA"] and wscenario == 2009
-
-        if show_warning:
-            logger.warning(
-                f"Skipping table {table}, need exactly two sources to compare."
-            )
-        else:
-            logger.info(
-                f"Skipping table {table} for scenario {scenario} and weather scenario {wscenario}, generation profiles only available in TYNDP 2024 for climate year 2009 and DE/GA scenarios."
-            )
+        logger.warning(f"Skipping table {table}, need exactly two sources to compare.")
         return pd.DataFrame(), pd.DataFrame(
             [["NA", "NA"]],
             index=[table],
@@ -672,7 +655,7 @@ def compute_overall_accuracy(
     Parameters
     ----------
     benchmarks_raw : pd.DataFrame
-        Combined DataFrame containing both Open-TYNDP and TYNDP 2024 data.
+        Combined DataFrame containing both Open-TYNDP and TYNDP reference data.
     options : dict
         Full benchmarking configuration.
     bus_col_name : str, optional
@@ -685,7 +668,7 @@ def compute_overall_accuracy(
     pd.Series
         Series containing overall accuracy metrics.
     """
-    logger.info("Making global benchmark using TYNDP 2024 and Open-TYNDP")
+    logger.info("Making global benchmark using TYNDP reference data and Open-TYNDP")
     tables_series = [  # noqa: F841
         t for t, v in options["tables"].items() if v["table_type"] == "time_series"
     ]
@@ -708,8 +691,8 @@ def compute_overall_accuracy(
             columns="source",
         )
         .query(
-            f"`{SOURCES_MAP['market_out']}` != 0"
-        )  # Exclude zero-valued rows when using Market Model outputs, as zeros may denote absent data rather than true zero values
+            f"`{SOURCES_MAP['dashboard_out']}` != 0"
+        )  # Exclude zero-valued rows when using dashboard outputs, as zeros may denote absent data rather than true zero values
         .reset_index(level=3)
         .assign(
             reference=lambda df: df.apply(lambda r: r[sources_map[r.table]], axis=1)
@@ -773,7 +756,7 @@ def orchestrate_benchmark(
             benchmark_i.to_csv(
                 Path(
                     output_dir_bus_col,
-                    f"{table}_ws{snapshots['start'][:4]}_s_{clusters}_{opts}_{sector_opts}_all_years.csv",
+                    f"{table}_s_{clusters}_{opts}_{sector_opts}_all_years.csv",
                 )
             )
 
@@ -807,7 +790,7 @@ if __name__ == "__main__":
     scenario = "TYNDP " + snakemake.params["scenario"]
     snapshots = snakemake.params.snapshots
     benchmarks_fn = snakemake.input.benchmarks
-    mm_data_fn = snakemake.input.mm_data
+    dashboard_data_fn = snakemake.input.dashboard_data
     results_fn = snakemake.input.results
     output_dir = snakemake.output.benchmarks
     clusters = snakemake.wildcards.clusters
@@ -820,7 +803,7 @@ if __name__ == "__main__":
         benchmarks_fn=benchmarks_fn,
         results_fn=results_fn,
         scenario=scenario,
-        mm_data_fn=mm_data_fn,
+        dashboard_data_fn=dashboard_data_fn,
     )
 
     # Get version

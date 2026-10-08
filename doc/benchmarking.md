@@ -5,14 +5,14 @@
 
 Open-TYNDP includes a structured benchmarking framework that runs automatically with every
 workflow execution. It provides systematic, reproducible comparisons of Open-TYNDP model
-outcomes against official TYNDP 2024 reference data for both the Scenario Building (SB)
+outcomes against official TYNDP reference data for both the Scenario Building (SB)
 and Cost-Benefit Analysis (CBA) phases.
 
-* **Scenario Building** outcomes are compared against the [TYNDP 2024 Market Model Output Files](https://2024.entsos-tyndp-scenarios.eu/download/) and the [TYNDP 2024 Final Scenario Report](https://2024.entsos-tyndp-scenarios.eu/wp-content/uploads/2025/01/TYNDP_2024_Scenarios_Report_FInal_Version_250128_web.pdf).
+* **Scenario Building** outcomes are compared against the market model outputs from the TYNDP 2026 Time Series Dashboards and the TYNDP 2026 Scenario Report data figures.
 * **Cost-Benefit Analysis** indicators are benchmarked for all calculated indicators and
   all projects against the official [TYNDP 2024 CBA results](https://tyndp2024.entsoe.eu/projects-map/transmission).
 
-Benchmarking results continue to be published with every release on [Zenodo](https://doi.org/10.5281/zenodo.18608105) (currently only Scenario Building results).  View the [project website](https://open-tyndp.openenergytransition.org) for a detailed explanation of the results.
+Benchmarking results continue to be published with every release on [Zenodo](https://doi.org/10.5281/zenodo.18608105).  View the [project website](https://open-tyndp.openenergytransition.org) for a detailed explanation of the results.
 
 !!! warning
     Open-TYNDP is under active development and is not yet feature-complete. As of v0.7, Open-TYNDP was successfully benchmarked against TYNDP 2024 (see [outcomes](https://open-tyndp.openenergytransition.org)). The current [development status](index.md#development-status) and the general [Limitations](limitations.md) are important to understand before using the model.
@@ -46,31 +46,32 @@ This methodology defines the following accuracy indicators:
 
 ### Metrics
 
-The following metrics from the [TYNDP 2024 Scenarios Report](https://2024.entsos-tyndp-scenarios.eu/wp-content/uploads/2025/01/TYNDP_2024_Scenarios_Report_FInal_Version_250128_web.pdf)
-are considered relevant for Scenario Building benchmarking:
+Scenario Building outcomes are compared against two TYNDP 2026 reference sources, both only available
+for the NT+ scenario:
 
-* Exogenous inputs:
+* **Time Series Dashboards** (preferred reference): market model outputs at node level, read for the
+  first weather scenario configured in `wscenarios_tyndp` for each planning horizon.
+* **Scenario Report Data Figures**: EU27 metrics complementing the Dashboards:
 
-  * Final energy demand by fuel, EU27 (TWh), (Fig 5, p24 and Fig 51, p63)
-  * Electricity demand per sector, EU27 (TWh), (Fig 6, p25 and Fig 52, p63)
-  * Methane demand by sector, EU27 (TWh), (Fig 8, p27 and Fig 53, p64)
-  * Hydrogen demand by sector, EU27 (TWh), (Fig 10, p28 and Fig 54, p64)
+    * Exogenous inputs:
 
-* Investment and dispatch modelling outputs:
+        * Final energy demand per carrier, EU27 (TWh), (Fig 4)
+        * Total electricity consumption, EU27 (TWh), (Fig 35)
+        * Total methane consumption, EU27 (TWh), (Fig 46)
+        * Total hydrogen consumption, EU27 (TWh), (Fig 41)
 
-  * Net installed capacity for electricity generation, EU27 (GW), (Fig 25, p39 and Fig 55, p65)
-  * Electricity generation, EU27 (TWh), (Fig 26, p39 and Fig 56, p65)
-  * Methane supply, EU27 (TWh), (Fig 32, p45 and Fig 57, p66)
-  * Hydrogen supply, EU27 (TWh), (Fig 33, p46 and Fig 58, p67)
-  * Biomass supply, EU27 (TWh), (Fig 59, p67)
-  * Energy imports, EU27 (TWh), (Fig 40, p51 and Fig 60, p68)
-  * Hourly generation profile of power generation, (Fig 30, p35)
+    * Investment and dispatch modelling outputs:
 
-The data is published in the [Scenarios package](https://2024-data.entsos-tyndp-scenarios.eu/files/reports/TYNDP-2024-Scenarios-Package-20250128.zip).
-In addition to the Scenarios Report data, data from the [Market Model Outputs](https://2024.entsos-tyndp-scenarios.eu/download/) and the [Visualisation Platform](https://2024.entsos-tyndp-scenarios.eu/visualisation-platform/) are also processed and
-included in the relevant figures.
+        * Installed electricity generation and storage capacity, EU27 (GW), (Fig 57)
+        * Electricity generation by technology, EU27 (TWh), (Fig 58)
+        * Methane supply, EU27 (TWh), (Fig 70)
+        * Hydrogen supply, EU27 (TWh), (Fig 74)
+        * Biomass supply and utilisation, EU27 (TWh), (Fig 81)
+        * Energy imports, EU27 (TWh), (Fig 83)
 
-Hourly time series from TYNDP 2024 are aggregated to match the temporal resolution of
+Benchmarks are computed per table only for planning horizons available in both Open-TYNDP and the reference data.
+
+Hourly time series from the TYNDP reference data are aggregated to match the temporal resolution of
 Open-TYNDP. Summary tables are computed for both overall and per-carrier results. Spatially
 resolved benchmarking at bus and country level is available via the
 `benchmarking.spatial.by_bus` and `benchmarking.spatial.by_country` configuration keys.
@@ -79,24 +80,23 @@ resolved benchmarking at bus and country level is available via the
 
 The SB benchmarking workflow is controlled by `config/benchmarking.default.yaml`.
 
-1. `retrieve_tyndp`: Retrieve the TYNDP 2024 Scenarios Report Data Figures package.
+1. `retrieve_tyndp_2026`: Retrieve the TYNDP 2026 Scenarios Report Data Figures and the TYNDP 2026
+   Time Series Dashboards.
 2. `clean_tyndp_report_benchmark`: Read and process the raw Scenarios Report data into
    a long-format table.
-3. `clean_tyndp_vp_data`: Read and process the Visualisation Platform data into a
-   long-format table.
-4. `clean_tyndp_output_benchmark`: Read and process the Market Model Outputs, including
-   cross-border flows, prices, and country and EU27 level values.
-5. `build_statistics`: Compute benchmarking statistics from the optimised network for
+3. `clean_tyndp_dashboard_benchmark`: Read and process the market model outputs from the Time Series
+   Dashboards, including cross-border flows, prices, and country and EU27 level values.
+4. `build_statistics`: Compute benchmarking statistics from the optimised network for
    every planning horizon.
-6. `make_benchmark`: Compute accuracy indicators comparing model outcomes against the
-   Market Model Outputs, Scenarios Report, and Visualisation Platform.
-7. `make_benchmarks`: Collect outputs from all `make_benchmark` runs.
-8. `plot_benchmark`: Generate visualisation outputs.
-9. `plot_benchmarks`: Collect outputs from all `plot_benchmark` runs.
+5. `make_benchmark`: Compute accuracy indicators comparing model outcomes against the
+   market model outputs from the Time Series Dashboards and the Scenarios Report.
+6. `make_benchmarks`: Collect outputs from all `make_benchmark` runs.
+7. `plot_benchmark`: Generate visualisation outputs.
+8. `plot_benchmarks`: Collect outputs from all `plot_benchmark` runs.
 
-The full set of benchmarking output files is stored under `results/benchmarks/tyndp-2024/`:
+The full set of benchmarking output files is stored under `results/benchmarks/tyndp-2026/`:
 
-* `resources/` — processed benchmarking inputs from both Open-TYNDP and TYNDP 2024.
+* `resources/` — processed benchmarking inputs from Open-TYNDP, the TYNDP 2026 Scenarios Report and the TYNDP 2026 Time Series Dashboards.
 * `csvs_s_{clusters}_{opts}_{sector_opts}_all_years/` — quantitative tables.
 * `graphics_s_{clusters}_{opts}_{sector_opts}_all_years/` — figures.
 * `kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_bus.csv` — summary table aggregated from bus level KPIs.
@@ -110,7 +110,7 @@ The structure of these outputs can be validated in the published preliminary ben
 
 ### Outputs
 
-Example of indicators extracted from `power_generation_ws2009_s_all___all_years.csv` by countries
+Example of indicators extracted from `power_generation_s_all___all_years.csv` by countries
 for the NT scenario with hourly resolution:
 
 | Carrier | sMPE | sMAPE | sMdAPE | RMSLE | Growth Error | Missing countries | reference | version |
@@ -134,7 +134,7 @@ hourly resolution:
 
 ![](img/tyndp/benchmarking_fed_NT_2030.png)
 
-Example of figure including Visualisation Platform data created for the power capacity for
+Example of figure created for the power capacity for
 the NT scenario in 2030 with hourly resolution:
 
 ![](img/tyndp/benchmarking_power_capacity_NT_2030.png)
@@ -148,10 +148,6 @@ Example of figure created for the electricity prices by country for the NT scena
 hourly resolution:
 
 ![](img/tyndp/benchmarking_elec_price_NT_2030.png)
-
-Example of figure created for the generation profiles for the DE scenario in 2040 with 45SEG:
-
-![](img/tyndp/benchmarking_gen_profiles_DE_2040.png)
 
 Example of summary indicators extracted from `kpis_s_all__all_years_by_country.csv` for the NT
 scenario with hourly resolution:
@@ -192,15 +188,13 @@ To align naming conventions across data sources, Open-TYNDP uses a mapping table
 * **pemmdb_hydro_inflows**: Carrier names as listed in the PEMMDB v2.4 hydro inflows dataset.
 * **pecd_carrier**: Carrier names as listed in the PECD v3.1 dataset.
 * **investment_dataset_carrier**: Carrier names as listed in the TYNDP 2024 investment dataset.
-* **tyndp_output_carrier**: Carrier names as listed in the TYNDP 2024 Market Model output files.
-* **tyndp_report_carrier**: Carrier names as listed in the TYNDP 2024 Scenarios Report.
-* **tyndp_vp_carrier**: Carrier names as listed on the TYNDP 2024 Visualization Platform.
+* **tyndp_dashboard_carrier**: Carrier names as listed in the TYNDP 2026 Time Series Dashboards.
+* **tyndp_report_carrier**: Carrier names as listed in the TYNDP 2026 Scenarios Report.
 * **open_tyndp_carrier**: Open-TYNDP carrier naming convention representing either an energy carrier or a technology, depending on the context.
 * **open_tyndp_index**: Open-TYNDP technology naming convention found in the component index.
 * **open_tyndp_nice_names**: Open-TYNDP nice names for better readability and aggregation of technologies for reporting purposes.
 * **benchmarking_capacity**: Naming convention for the benchmarking framework's `power_capacity` table.
 * **benchmarking_generation**: Naming convention for the benchmarking framework's `power_generation` table.
-* **benchmarking_generation_profiles**: Naming convention for the benchmarking framework's `generation_profiles` table.
 * **benchmarking_fed**: Naming convention for the benchmarking framework's `final_energy_demand` table.
 * **benchmarking_elec_demand**: Naming convention for the benchmarking framework's `electricity_demand` table.
 * **benchmarking_ch4_demand**: Naming convention for the benchmarking framework's `methane_demand` table.

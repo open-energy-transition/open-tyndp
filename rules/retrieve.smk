@@ -1371,6 +1371,10 @@ if (TYNDP_2026_DATASET := dataset_version("tyndp_2026"))["source"] in ARCHIVE_SO
             if key == "p2g_emarket":
                 continue
 
+            if Path(input[key]).suffix != ".zip":
+                copy2(input[key], output[key])
+                continue
+
             # Keep zip file
             zip_file = Path(output[f"{key}_zip"])
             copy2(input[key], zip_file)
@@ -1451,6 +1455,10 @@ if (TYNDP_2026_DATASET := dataset_version("tyndp_2026"))["source"] in ARCHIVE_SO
                 market_outputs=storage(
                     TYNDP_2026_DATASET["url"] + "/outputs/NT+_TimeSeriesDashboard.zip"
                 ),
+                benchmark=storage(
+                    TYNDP_2026_DATASET["url"]
+                    + "/additional/TYNDP_2026_Scenario_Report_Data_Figures.xlsx"
+                ),
             output:
                 line_data_zip=f"{TYNDP_2026_DATASET['folder']}/Line-data.zip",
                 nodes_zip=f"{TYNDP_2026_DATASET['folder']}/Nodes.zip",
@@ -1482,6 +1490,7 @@ if (TYNDP_2026_DATASET := dataset_version("tyndp_2026"))["source"] in ARCHIVE_SO
                 market_outputs=directory(
                     f"{TYNDP_2026_DATASET['folder']}/NT+_TimeSeriesDashboard"
                 ),
+                benchmark=f"{TYNDP_2026_DATASET['folder']}/TYNDP_2026_Scenario_Report_Data_Figures.xlsx",
             log:
                 "logs/retrieve_tyndp_2026.log",
             message:
