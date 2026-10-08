@@ -5,7 +5,7 @@ Solar,Rooftop,,Solar PV Rooftop,Solar PV Rooftop,Solar (Photovoltaic),Solar,,sol
 Solar,Photovoltaic dedicated,,Solar PV Utility,,Solar (Photovoltaic),Solar,,solar-pv-utility,solar-pv-utility-dres,Solar PV (Utility-DRES),solar,solar,,,,,,,,,,,solar-pv-utility-dres,,
 Solar,Photovoltaic Shared RES - H2Z1,,Solar PV Utility,,SRES Solar PV,SRES Electricity,,solar-pv-utility,solar-pv-utility-sres-h2z1,Solar PV (Utility-SRES),sres electricity,sres electricity,,,,,,,,,,,solar-pv-utility-sres,,
 Solar,Photovoltaic Shared RES - H2Z2,,Solar PV Utility,,SRES Solar PV,SRES Electricity,,solar-pv-utility,solar-pv-utility-sres-h2z2,Solar PV (Utility-SRES),sres electricity,sres electricity,,,,,,,,,,,solar-pv-utility-sres,,
-Solar,Thermal Solar,,CSP_noStorage,,Solar (Thermal),,,solar-thermal,solar-thermal,Solar Thermal,solar thermal,solar thermal,,,,,,,,,,,solar-thermal,,
+Solar,Thermal Solar,,CSP_noStorage,,Solar CSP (Thermal),,,solar-thermal,solar-thermal,Solar Thermal,solar thermal,solar thermal,,,,,,,,,,,solar-thermal,,
 Solar,Solar Thermal with Storage,,CSP_withStorage,,,,,solar-thermal-w-storage,solar-thermal-w-storage,Solar Thermal,solar thermal,solar thermal,,,,,,,,,,,solar-thermal-w-storage,,
 Solar,Solar Thermal with Storage - Storage,,CSP_withStorage,,,,,solar-thermal-w-storage,solar-thermal-w-storage-storage,Solar Thermal,solar thermal,solar thermal,,,,,,,,,,,solar-thermal-w-storage-storage,,
 Wind,Onshore wind e-market,,Wind_Onshore,Wind Onshore,Wind Onshore,Wind Onshore,,onwind,onwind,Onshore Wind,wind onshore,wind onshore,,,,,,,,,,,onwind,,
@@ -97,7 +97,7 @@ Other Non-RES Shale oil,old,,,,Others non-renewable,Other non RES,,oil-shale,oth
 Other Non-RES Shale oil,new,,,,Others non-renewable,Other non RES,,oil-shale,other-non-res-oil-shale-new,Other Non-Renewables,other non-res,other non-res,,,,,,,,,,,other-non-res-oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
 Other Non-RES Hydrogen,ccgt,,,,Others non-renewable,Other non RES,,h2-ccgt,other-non-res-h2-ccgt,Other Non-Renewables,other non-res,other non-res,,,,power generation,,,,,,,other-non-res-h2-ccgt,,
 Other Non-RES Hydrogen,ocgt,,,,Others non-renewable,Other non RES,,h2-ocgt,other-non-res-h2-ocgt,Other Non-Renewables,other non-res,other non-res,,,,power generation,,,,,,,other-non-res-h2-ocgt,,
-Hydrogen,Fuel Cell,,,,Hydrogen Fuel Cell,Hydrogen,,h2-fuel-cell,h2-fuel-cell,H2 Fuel Cell,hydrogen,hydrogen,,,,power generation,,,,,,,h2-fuel-cell,,Hydrogen demand benchmark
+Hydrogen,Fuel Cell,,,,Hydrogen Fuel cell,Hydrogen,,h2-fuel-cell,h2-fuel-cell,H2 Fuel Cell,hydrogen,hydrogen,,,,power generation,,,,,,,h2-fuel-cell,,Hydrogen demand benchmark
 Hydrogen,CCGT,,,,Hydrogen CCGT,Hydrogen,,h2-ccgt,h2-ccgt,H2 CCGT,hydrogen,hydrogen,,,,power generation,,,,,,,h2-ccgt,,Hydrogen demand benchmark
 Hydrogen,OCGT,,,,Hydrogen OCGT,Hydrogen,,h2-ocgt,h2-ocgt,H2 OCGT,hydrogen,hydrogen,,,,power generation,,,,,,,h2-ocgt,,Hydrogen demand benchmark
 ,,,,Electrolyzers,,P2G,,H2 Electrolysis,H2 Electrolysis,H2 Electrolysis,,,,,,,,p2g,,,,,electrolyser-onshore-grid,,"Hydrogen supply benchmark; 2024 topology, outdated, to be deprecated"
@@ -125,12 +125,13 @@ Battery,Battery Utility Scale Store,,,Batteries Utility,Li-Ion Battery Volume,,,
 ,,,,,Oil shale biofuel,,,,,,oil (incl. biofuels),oil (incl. biofuels),,,,,,,,,,,,,
 ,,,,,Demand Side Response,,,dsr,,DSR,dsr,dsr,,,,,,dsr,,,,,,,
 ,,,,,,,,dsr,,DSR,dsr,dsr,,,,,,,,,,,,,
-,,,,,Unserved energy [GWh],,,load,,Demand Shedding,demand shedding,demand shedding,,,,,,demand shedding,,,,loss of load expectation,,,"Load/Demand shedding, Demand shedding hours benchmark"
+,,,,,Energy Not Served,,,load,,Demand Shedding,demand shedding,demand shedding,,,,,,demand shedding,,,,loss of load expectation,,,"Load/Demand shedding, Demand shedding hours benchmark"
+,,,,,Hydrogen Not Served,,,,,,,,,,,,,demand shedding,,,,,,,Hydrogen demand shedding
 ,,,,,Dump energy [GWh],,,,,,dumped energy,dumped energy,,,,,,,,,,,,,Curtailment/dump energy
 ,,,,,Native Demand,,,H2 exogenous demand,,H2 Exogenous Demand,,,,,,exogenous demand,,,,,,,,,Hydrogen demand benchmark
-,,,,,Marginal Cost Yearly Average [€],,,,,,,,,,,,,,,,AC,,,,Prices benchmark
+,,,,,Marginal Cost,,,,,,,,,,,,,,,,AC,,,,Prices benchmark
 ,,,,,Marginal Cost Yearly Average (excl. 3 000 €/MWh) [€],,,,,,,,,,,,,,,,AC,,,,Prices benchmark
-,,,,,Marginal Cost Yearly Average [€/MWhH2],,,,,,,,,,,,,,,,H2,,,,Prices benchmark
+,,,,,Marginal Cost,,,,,,,,,,,,,,,,H2,,,,Prices benchmark
 ,,,,,Marginal Cost Yearly Average (excl. 3 000 €/MWhH2) [€/MWhH2],,,,,,,,,,,,,,,,H2,,,,Prices benchmark
 ,,,,,,Electricity,,AC,,Electricity,,,electricity,,,,,,,,,,,,Final energy demand benchmark
 ,,,,,,Electricity,,AC_OH,,Electricity Offshore Hub,,,electricity,,,,,,,,,,,,Final energy demand benchmark
