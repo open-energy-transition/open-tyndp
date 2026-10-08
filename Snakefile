@@ -45,7 +45,7 @@ if Path("config/config.yaml").exists():
     configfile: "config/config.yaml"
 
 
-validate_config(config)
+validated_config = validate_config(config)
 
 run = config["run"]
 scenarios = get_scenarios(run)
@@ -603,15 +603,16 @@ onsuccess:
         from snakemake.io import IOFile
 
         cache = Path(LOCAL_CACHE["directory"])
-        collected = sorted(
-            str(path.relative_to(cache))
-            for path in cache.rglob("*")
-            if path.is_file() and path != LOCAL_CACHE_MANIFEST
+        collected = []
+        for path in cache.rglob("*"):
+            # Clean metadata of cached files and directories for correct provenance
+            workflow.persistence.cleanup_metadata(IOFile(path.as_posix()))
+            if path.is_file() and path != LOCAL_CACHE_MANIFEST:
+                collected.append(path.relative_to(cache).as_posix())
+        collected.sort()
+        LOCAL_CACHE_MANIFEST.write_text(
+            "\n".join(collected) + "\n", encoding="utf-8"
         )
-        LOCAL_CACHE_MANIFEST.write_text("\n".join(collected) + "\n")
-        # Update cached files metadata for correct provenance
-        for entry in collected:
-            workflow.persistence.cleanup_metadata(IOFile(str(cache / entry)))
         logger.info(
             f"Recorded {len(collected)} cache entries in {LOCAL_CACHE_MANIFEST}"
         )
@@ -632,7 +633,7 @@ if LOCAL_CACHE_READ:
     cache_root = LOCAL_CACHE_MANIFEST.parent
     if gone := [
         entry
-        for entry in LOCAL_CACHE_MANIFEST.read_text().splitlines()
+        for entry in LOCAL_CACHE_MANIFEST.read_text(encoding="utf-8").splitlines()
         if entry and not (cache_root / entry).exists()
     ]:
         listing = "\n  ".join(gone)
