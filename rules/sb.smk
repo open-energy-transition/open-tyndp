@@ -334,7 +334,7 @@ rule build_tyndp_trajectories:
 
 rule clean_tyndp_hydro_inflows:
     input:
-        hydro_inflows_dir=rules.retrieve_tyndp.output.hydro_inflows,
+        hydro_inflows_dir=rules.retrieve_tyndp_2026.output.hydro_inflows,
         busmap=resources("busmap_base_s_all.csv"),
     output:
         hydro_inflows_tyndp=resources(
@@ -352,6 +352,7 @@ rule clean_tyndp_hydro_inflows:
         available_years=config_provider(
             "electricity", "pemmdb_hydro_profiles", "available_years"
         ),
+        wscenarios=config_provider("wscenarios_tyndp"),
     script:
         scripts("sb/clean_tyndp_hydro_inflows.py")
 
