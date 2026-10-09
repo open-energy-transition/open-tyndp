@@ -154,7 +154,7 @@ renewable generation and hydro inflow profiles used from PECD 3.1 and Hydro Infl
   ```yaml
   snapshots:
     start: "2009-01-01"
-    end:   "2009-12-31"
+    end:   "2010-01-01"
     inclusive: "left"
   ```
 
