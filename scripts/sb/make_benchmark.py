@@ -480,6 +480,16 @@ def compute_indicators(
     df = df_agg[~mask]
     df_na = df_agg[mask]
 
+    if df.empty:
+        logger.warning(
+            f"Skipping table {table}, no overlapping entries between sources."
+        )
+        return pd.DataFrame(), pd.DataFrame(
+            [["NA", "NA"]],
+            index=[table],
+            columns=["Missing carriers", missing_name],
+        )
+
     # Compute overall indicators of the table
     indicators = compute_all_indicators(
         df,

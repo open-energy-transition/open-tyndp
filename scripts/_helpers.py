@@ -960,6 +960,40 @@ def get_snapshots(
     return time
 
 
+def check_snapshot_year(
+    year: int, drop_leap_day: bool, data_type: str = "demand"
+) -> None:
+    """
+    Ensure a leap `year` doesn't leave 29 February in `snapshots`.
+
+    TYNDP 2026 time series always span 365 days, so data built directly
+    against a leap `year` would be missing that day. Therefore,
+    `drop_leap_day` needs to be enabled to strip February 29th from `snapshots`.
+
+    Parameters
+    ----------
+    year : int
+        Snapshot year.
+    drop_leap_day : bool
+        Whether 29 February is dropped from `snapshots`.
+    data_type : str
+        Name of the checked TYNDP data, used in the error message.
+
+    Raises
+    ------
+    ValueError
+        If `year` is a leap year and `drop_leap_day` is False.
+    """
+    is_leap_year = pd.Timestamp(year=year, month=1, day=1).is_leap_year
+    if is_leap_year and not drop_leap_day:
+        raise ValueError(
+            f"Snapshot year {year} is a leap year but `enable.drop_leap_day` "
+            f"is disabled. TYNDP 2026 {data_type} data always spans 365 days (no "
+            "29 February). Enable `enable.drop_leap_day` or configure a "
+            "non-leap `snapshots` year."
+        )
+
+
 def sanitize_custom_columns(n: pypsa.Network):
     """
     Sanitize non-standard columns used throughout the workflow.

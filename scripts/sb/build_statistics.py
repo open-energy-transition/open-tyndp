@@ -150,7 +150,7 @@ def compute_benchmark(
     """
     opt = options["tables"][table]
     mapping = opt.get("mapping", {})
-    elec_bus_carrier = ["AC"] + (["low voltage"] if low_voltage else [])
+    elec_bus_carrier = ["AC", "AC_SRES"] + (["low voltage"] if low_voltage else [])
     supply_comps = ["Generator", "Link"]
     demand_comps = ["Link", "Load"]
     eu27_idx = n.buses[n.buses.country.isin(eu27)].index
@@ -246,7 +246,12 @@ def compute_benchmark(
         ).loc[lambda df: ~df.index.get_level_values("carrier").isin(exclusions)]
     elif table == "power_capacity":
         grouper = ["carrier"]
-        exclusions = ["electricity distribution grid", "DC", "load"]
+        exclusions = [
+            "electricity distribution grid",
+            "DC",
+            "SRES grid connection",
+            "load",
+        ]
         df = (
             n.statistics.optimal_capacity(
                 bus_carrier=elec_bus_carrier,
@@ -280,6 +285,7 @@ def compute_benchmark(
         grouper = ["carrier"]
         exclusions = [
             "DC",
+            "SRES grid connection",
             "electricity distribution grid",
             "battery discharger",
             "battery charger",
