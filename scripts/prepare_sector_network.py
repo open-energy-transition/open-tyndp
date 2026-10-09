@@ -4062,11 +4062,12 @@ def add_h2_topology_tyndp(
     between the different countries.
 
     Additionally added:
-        * H2 production (Z1: Electrolysis, SMR (optional), SMR CC (optional), ATR; Z2: Electrolysis)
-        * H2 DRES electricity nodes and Electrolysis to H2 Z2
+        * H2 production (Z1: SMR (optional), ATR (optional); Z2: SMR CC (optional), Electrolysis)
+        * H2 DRES & SRES electricity nodes and Electrolysis to Z2
+        * H2 Z1 and Z2 demand
         * H2 reconversion (Fuel cells (optional), H2 turbines (optional), methanation (optional))
         * H2 grid (H2 reference grid)
-        * H2 storage (Z1: H2 tanks; Z2: Salt caverns)
+        * H2 storage in Z2 (H2 tanks (daily); Salt caverns (monthly))
 
     Parameters
     ----------
@@ -4148,7 +4149,7 @@ def add_h2_topology_tyndp(
     )
     buses_h2_z1_effective = pd.Index(country_z1.combine_first(country_z2))
 
-    # add H2 production (Z1: Electrolysis, SMR (optional), SMR CC (optional), ATR; Z2: Electrolysis)
+    # add H2 production (Z1: SMR (optional), ATR (optional); Z2: SMR CC (optional), Electrolysis)
     add_h2_production_tyndp(
         n=n,
         nodes=nodes,
@@ -4159,7 +4160,7 @@ def add_h2_topology_tyndp(
         options=options,
     )
 
-    # add H2 DRES electricity nodes and Electrolysis to H2 Z2
+    # add H2 DRES electricity nodes and Electrolysis to Z2
     add_h2_dres_tyndp(n=n, spatial=spatial, buses_h2_z2=buses_h2_z2, costs=costs)
 
     # add H2 reconversion (Fuel cells (optional), H2 turbines (optional), methanation (optional))
