@@ -536,8 +536,6 @@ if config["sector"]["h2_topology_tyndp"]:
         threads: 1
         resources:
             mem_mb=4000,
-        params:
-            scenario=config_provider("tyndp_scenario"),
         script:
             scripts("sb/build_tyndp_h2_imports.py")
 
@@ -555,8 +553,6 @@ if config["sector"]["h2_topology_tyndp"]:
         threads: 1
         resources:
             mem_mb=4000,
-        params:
-            tyndp_scenario=config_provider("tyndp_scenario"),
         script:
             scripts("sb/clean_tyndp_smr.py")
 
@@ -574,8 +570,6 @@ if config["sector"]["h2_topology_tyndp"]:
         threads: 1
         resources:
             mem_mb=4000,
-        params:
-            tyndp_scenario=config_provider("tyndp_scenario"),
         script:
             scripts("sb/clean_tyndp_h2_storages.py")
 

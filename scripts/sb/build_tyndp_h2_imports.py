@@ -3,8 +3,8 @@
 # SPDX-License-Identifier: MIT
 """
 Filters TYNDP H2 import potentials, maximum capacity, offer quantity and marginal cost for pipeline and shipping
-for a specific TYNDP scenario and a given year wildcard.
-The function saves a csv file with TYNDP H2 import potentials and marginal cost filtered for a specific TYNDP scenario
+for the NT scenario and a given year wildcard.
+The function saves a csv file with TYNDP H2 import potentials and marginal cost filtered for the NT scenario
 and for a given year.
 """
 
@@ -32,14 +32,13 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     # Parameters
-    scenario = snakemake.params.scenario
     year = int(snakemake.wildcards.planning_horizons)
 
     # Load prepped import potentials and filter
     fn = snakemake.input.import_potentials_prepped
     import_potentials = pd.read_csv(fn, index_col=0)
     import_potentials_filtered = import_potentials.query(
-        "(Scenario == 'All' or Scenario == @scenario) and Year == @year"
+        "Scenario in ['All', 'NT'] and Year == @year"
     )
 
     # Save filtered H2 import potentials
