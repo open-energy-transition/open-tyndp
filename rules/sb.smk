@@ -440,7 +440,6 @@ rule build_tyndp_gas_demand:
     resources:
         mem_mb=1000,
     params:
-        scenario=config_provider("tyndp_scenario"),
         planning_horizons=config_provider("scenario", "planning_horizons"),
     script:
         scripts("sb/build_tyndp_gas_demand.py")
