@@ -460,7 +460,6 @@ rule build_tyndp_h2_demand:
     params:
         snapshots=config_provider("snapshots"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
-        scenario=config_provider("tyndp_scenario"),
     script:
         scripts("sb/build_tyndp_h2_demand.py")
 
