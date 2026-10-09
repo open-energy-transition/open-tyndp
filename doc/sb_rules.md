@@ -39,19 +39,6 @@ data:
 
 - `data/open_tyndp_prelim/{source}/{version}/base_s_all___{planning_horizons}.nc`
 
-### Rule `retrieve_countries_centroids`
-
-Downloads country centroid geometry data by Copyright (c) 2021 Gavin Rehkemper from
-<https://cdn.jsdelivr.net/gh/gavinr/world-countries-centroids@v1.0.0/dist/countries.geojson>.
-
-**Relevant Settings**
-
-None.
-
-**Outputs**
-
-- `data/countries_centroids.geojson`
-
 ## Development
 
 ### Rule `prepare_tyndp_pecd_release`
@@ -111,10 +98,6 @@ the electricity demand for base regions from the TYNDP electricity market demand
 ### Rule `build_tyndp_h2_network`
 
 ::: build_tyndp_h2_network
-
-### Rule `clean_tyndp_h2_imports`
-
-::: clean_tyndp_h2_imports
 
 ### Rule `build_tyndp_h2_imports`
 
