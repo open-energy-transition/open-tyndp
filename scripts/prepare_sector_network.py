@@ -2116,7 +2116,6 @@ def _add_conventional_thermal_capacities(
             .reindex(tech_i, axis=1, fill_value=0.0)
         )
         # For nuclear, take the minimum of p_min_pu and nuclear_profiles to account for outages
-        # TODO Improve assumption for DE / GA
         if tech == "nuclear":
             common_cols = p_min_pu.columns.intersection(nuclear_profiles.columns)
             if not common_cols.empty:
@@ -2130,7 +2129,6 @@ def _add_conventional_thermal_capacities(
             .reindex(tech_i, axis=1, fill_value=1.0)
         )
         # For nuclear, take the minimum of p_max_pu and nuclear_profiles to account for outages
-        # TODO Improve assumption for DE / GA
         if tech == "nuclear":
             common_cols = p_max_pu.columns.intersection(nuclear_profiles.columns)
             if not common_cols.empty:
