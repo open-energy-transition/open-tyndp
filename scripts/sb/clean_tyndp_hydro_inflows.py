@@ -4,11 +4,11 @@
 """
 Loads and cleans the available hydro inflow data from TYNDP data bundle for a given
 
-* climate year,
+* weather scenario,
 * planning horizon,
 * hydro technology.
 
-Input data for TYNDP 2024 comes from PEMMDB v2.5.
+Input data for TYNDP 2026 comes from PECD v4.2.
 
 Outputs
 -------
@@ -21,24 +21,32 @@ import os
 from functools import partial
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
 from scripts._helpers import (
     configure_logging,
     get_snapshots,
+    get_wscenario,
     safe_planning_horizon,
     set_scenario_config,
 )
 
 logger = logging.getLogger(__name__)
 
+HYDRO_TECH_CODES = {
+    "Run of River": "HRR",
+    "Pondage": "HPI",
+    "Reservoir": "HRI",
+    "PS Open": "HOL",
+    "PS Closed": "HCL",
+}
+
 
 def read_hydro_inflows_file(
     node: str,
     hydro_inflows_dir: str,
-    wscenario: str,
+    wscenario: int,
     planning_horizon: int,
     hydro_tech: str,
     sns: pd.DatetimeIndex,
@@ -46,45 +54,29 @@ def read_hydro_inflows_file(
 ) -> pd.Series:
     fn = Path(
         hydro_inflows_dir,
+        "Hydro Inflows",
         str(planning_horizon),
-        f"PEMMDB_{node.replace('GB', 'UK')}_Hydro_Inflows_{planning_horizon}.xlsx",
+        f"{node.replace('GB', 'UK')}_Hydro_Inflows_{HYDRO_TECH_CODES[hydro_tech]}_{planning_horizon}.csv",
     )
 
     if not os.path.isfile(fn):
         return None
 
-    inflow_tech = pd.read_excel(
-        fn,
-        skiprows=1,
-        usecols=lambda name: (
-            name == "Day"
-            or name == "Week"
-            or name == "ShortName"
-            or name == "Variable"
-            or name == int(wscenario)
-        ),
-        sheet_name=f"{hydro_tech} - Year Dependent",
-    )
+    inflow_tech = pd.read_csv(fn, index_col=0)
 
     # infer resolution of data for each technology
-    tech_res = "w" if "Week" in inflow_tech.columns else "d"
+    tech_res = "w" if inflow_tech.index.name == "WEEK" else "d"
 
     inflow_tech = (
-        inflow_tech.query("ShortName == 'INFLOW'")
-        .assign(datetime=date_index[tech_res])
-        .set_index("datetime")
+        inflow_tech[f"WS{wscenario:03d}"]
+        .set_axis(date_index[tech_res])
         .reindex(sns)  # filter for hourly subset of snapshots only
         .ffill()  # upsample to hourly data
-        .assign(
-            **{
-                node: lambda df: np.where(  # calculate hourly inflow in MWh/h
-                    # input value was either in GWh/week or in GWh/day
-                    df.Variable.str.contains("week"),
-                    df[int(wscenario)] / (24 * 7 * 1e-3),
-                    df[int(wscenario)] / (24 * 1e-3),
-                )
-            }
-        )[node]
+        .div(  # calculate hourly inflow in MW
+            # input value was either in MWh/week or in MWh/day
+            24 * 7 if tech_res == "w" else 24
+        )
+        .rename(node)
     )
 
     return inflow_tech
@@ -99,30 +91,30 @@ if __name__ == "__main__":
             clusters="all",
             planning_horizons=2030,
             tech="Run_of_River",
+            run="NT",
+            configfiles="config/config.tyndp.yaml",
         )
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    # Climate year from snapshots
     sns = get_snapshots(snakemake.params.snapshots, snakemake.params.drop_leap_day)
-    wscenario = sns[0].year
+    year = sns[0].year
     date_index = {
         "w": pd.date_range(
-            start=f"{wscenario}-01-01",
+            start=f"{year}-01-01",
             periods=53,  # 53 weeks
             freq="7D",
         ),
-        "d": pd.date_range(
-            start=f"{wscenario}-01-01",
-            periods=366,  # 366 days (incl. first day of next year)
+        "d": get_snapshots(
+            {
+                "start": f"{year}-01-01",
+                "end": f"{year + 1}-01-01",
+                "inclusive": "left",
+            },
+            drop_leap_day=True,
             freq="D",
         ),
     }
-    if int(wscenario) < 1982 or int(wscenario) > 2019:
-        logger.warning(
-            f"Snapshot year {wscenario} doesn't match available TYNDP data. Falling back to 2009."
-        )
-        wscenario = 2009
 
     # Planning year
     planning_horizon = safe_planning_horizon(
@@ -130,6 +122,9 @@ if __name__ == "__main__":
         available_years=snakemake.params.available_years,
         source="Hydro inflows",
     )
+
+    # Weather scenario
+    wscenario = get_wscenario(snakemake.params.wscenarios, planning_horizon)
 
     # Parameters
     onshore_buses = pd.read_csv(snakemake.input.busmap, index_col=0)
@@ -159,7 +154,8 @@ if __name__ == "__main__":
         inflows = list(tqdm(pool.imap(func, nodes), **tqdm_kwargs))
 
     inflows_df = (
-        pd.concat(inflows, axis=1)
+        # start with empty dataframe so workflow will not crash if no inflows are found (e.g. for PS Closed)
+        pd.concat([pd.DataFrame(index=sns), *inflows], axis=1)
         .reindex(
             nodes,
             axis=1,
