@@ -29,8 +29,12 @@ import logging
 
 import pandas as pd
 
-from scripts._helpers import configure_logging, get_snapshots, set_scenario_config
-from scripts.sb.build_tyndp_demand import check_snapshot_year
+from scripts._helpers import (
+    check_snapshot_year,
+    configure_logging,
+    get_snapshots,
+    set_scenario_config,
+)
 
 logger = logging.getLogger(__name__)
 
