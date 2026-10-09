@@ -159,10 +159,6 @@ class _CbaSbToCbaConfig(ConfigModel):
 class CbaConfig(BaseModel):
     """Configuration for top level `cba` (cost-benefit analysis) settings."""
 
-    hurdle_costs: float = Field(
-        0.01,
-        description="Marginal cost for transmission lines in cost-benefit analysis networks (EUR/MWh).",
-    )
     co2_societal_cost: dict[int, dict[str, float]] = Field(
         default_factory=dict,
         description="Dictionary mapping planning horizons to societal costs of CO2 emissions (EUR/t) for 'low', 'central', and 'high' scenarios.",

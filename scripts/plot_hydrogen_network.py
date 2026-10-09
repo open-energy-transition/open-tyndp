@@ -71,14 +71,16 @@ def plot_h2_map(n, regions, map_fn):
 
     # Drop non-electric buses so they don't clutter the plot
     n.buses.drop(
-        n.buses.index[(n.buses.carrier != "AC") | (n.buses.index.str.contains("DRES"))],
+        n.buses.index[
+            (n.buses.carrier != "AC") | (n.buses.index.str.contains("DRES|SRES"))
+        ],
         inplace=True,
     )
 
     carriers = ["H2 Electrolysis", "H2 Fuel Cell"]
 
     elec = n.links[
-        (n.links.carrier.isin(carriers)) & ~(n.links.index.str.contains("DRES"))
+        (n.links.carrier.isin(carriers)) & ~(n.links.index.str.contains("DRES|SRES"))
     ].index
 
     bus_size = (

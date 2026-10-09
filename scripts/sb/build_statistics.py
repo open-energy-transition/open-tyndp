@@ -150,7 +150,7 @@ def compute_benchmark(
     """
     opt = options["tables"][table]
     mapping = opt.get("mapping", {})
-    elec_bus_carrier = ["AC"] + (["low voltage"] if low_voltage else [])
+    elec_bus_carrier = ["AC", "AC_SRES"] + (["low voltage"] if low_voltage else [])
     supply_comps = ["Generator", "Link"]
     demand_comps = ["Link", "Load"]
     eu27_idx = n.buses[n.buses.country.isin(eu27)].index
@@ -196,7 +196,7 @@ def compute_benchmark(
             )
             .loc[pd.IndexSlice[:, ["electricity"]]]
             .reset_index()
-            .assign(bus=lambda df: df.bus.str.removesuffix(" low voltage"))
+            .assign(bus=lambda df: df.bus.map(n.buses.location))
             .set_index(["bus", "carrier"])
         )
     elif table == "methane_demand":
@@ -246,7 +246,12 @@ def compute_benchmark(
         ).loc[lambda df: ~df.index.get_level_values("carrier").isin(exclusions)]
     elif table == "power_capacity":
         grouper = ["carrier"]
-        exclusions = ["electricity distribution grid", "DC", "load"]
+        exclusions = [
+            "electricity distribution grid",
+            "DC",
+            "SRES grid connection",
+            "load",
+        ]
         df = (
             n.statistics.optimal_capacity(
                 bus_carrier=elec_bus_carrier,
@@ -256,7 +261,7 @@ def compute_benchmark(
             .loc[lambda x: x > 0]
             .reset_index()
             .loc[lambda df: ~df.carrier.isin(exclusions)]
-            .assign(bus=lambda df: df.bus.str.split(" ").str[0])
+            .assign(bus=lambda df: df.bus.map(n.buses.location))
             .groupby(["bus"] + grouper)
             .sum()
             .iloc[:, 0]
@@ -269,7 +274,7 @@ def compute_benchmark(
                 n.generators.query("carrier.isin(@off_car)")
                 .assign(
                     p_nom_opt=lambda df: df.p_nom_opt / df.efficiency_dc_to_h2,
-                    bus=lambda df: df.bus.str.split(" ").str[0],
+                    bus=lambda df: df.bus.map(n.buses.location),
                 )
                 .groupby(by=["bus"] + grouper)
                 .p_nom_opt.sum()
@@ -280,6 +285,7 @@ def compute_benchmark(
         grouper = ["carrier"]
         exclusions = [
             "DC",
+            "SRES grid connection",
             "electricity distribution grid",
             "battery discharger",
             "battery charger",
@@ -321,7 +327,7 @@ def compute_benchmark(
         df = res_gen.combine_first(df)
 
         df = (
-            df.rename(index=lambda x: x.split(" ")[0], level=0)
+            df.rename(index=n.buses.location.to_dict(), level=0)
             .groupby(["bus"] + grouper)
             .sum()
         )
@@ -347,7 +353,7 @@ def compute_benchmark(
                     ~df.index.get_level_values("carrier").isin(curtailment_exclusions)
                 )
             ]
-            .rename(index=lambda x: x.removesuffix(" low voltage"), level="bus")
+            .rename(index=n.buses.location.to_dict(), level="bus")
             .rename(index=lambda _: "dumped energy", level="carrier")
             .groupby(["bus"] + grouper)
             .sum()
@@ -483,6 +489,7 @@ def compute_benchmark(
                 .drop(
                     index=[
                         "DC",
+                        "SRES grid connection",
                         "electricity distribution grid",
                         "H2 Electrolysis",
                         "battery charger",

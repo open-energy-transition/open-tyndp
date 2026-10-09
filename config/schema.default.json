@@ -459,11 +459,6 @@
     "CbaConfig": {
       "description": "Configuration for top level `cba` (cost-benefit analysis) settings.",
       "properties": {
-        "hurdle_costs": {
-          "default": 0.01,
-          "description": "Marginal cost for transmission lines in cost-benefit analysis networks (EUR/MWh).",
-          "type": "number"
-        },
         "co2_societal_cost": {
           "additionalProperties": {
             "additionalProperties": {
@@ -2703,15 +2698,17 @@
               "solar-pv",
               "solar-pv-utility",
               "solar-pv-rooftop",
+              "solar-pv-utility-sres",
+              "solar-pv-utility-dres",
               "onwind",
-              "offwind-ac-fb-r",
-              "offwind-ac-fl-r",
-              "offwind-dc-fb-r",
-              "offwind-dc-fl-r",
-              "offwind-dc-fb-oh",
-              "offwind-dc-fl-oh",
-              "offwind-h2-fb-oh",
-              "offwind-h2-fl-oh",
+              "onwind-sres",
+              "onwind-dres",
+              "offwind-r",
+              "offwind-oh",
+              "offwind-dres-r",
+              "offwind-dres-oh",
+              "offwind-sres-r",
+              "offwind-sres-oh",
               "other-res",
               "hydro-ror",
               "hydro-reservoir",
@@ -3417,13 +3414,6 @@
             }
           }
         },
-        "available_years_tyndp": {
-          "description": "List of years for which TYNDP demand data is available.",
-          "items": {
-            "type": "integer"
-          },
-          "type": "array"
-        },
         "manual_adjustments": {
           "default": true,
           "description": "Whether to adjust the load data manually according to the function in `manual_adjustment`.",
@@ -3471,21 +3461,6 @@
               "type": "number"
             }
           }
-        },
-        "patch_demand_with_mm": {
-          "anyOf": [
-            {
-              "type": "boolean"
-            },
-            {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            }
-          ],
-          "default": false,
-          "description": "Whether to patch the electricity demand with Market Model output data. Set to `true` to apply to all nodes, or provide a list of node names to apply selectively."
         }
       }
     },
@@ -9452,6 +9427,11 @@
         false
       ]
     },
+    "hurdle_costs": {
+      "default": 0.01,
+      "description": "Hurdle cost applied as marginal cost to transmission links (EUR/MWh), used to discourage loop flows. Applied to the electricity and hydrogen grids in Scenario Building and to the DC links in the Cost-Benefit Analysis.",
+      "type": "number"
+    },
     "wscenarios_tyndp": {
       "additionalProperties": {
         "items": {
@@ -9872,15 +9852,17 @@
               "solar-pv",
               "solar-pv-utility",
               "solar-pv-rooftop",
+              "solar-pv-utility-sres",
+              "solar-pv-utility-dres",
               "onwind",
-              "offwind-ac-fb-r",
-              "offwind-ac-fl-r",
-              "offwind-dc-fb-r",
-              "offwind-dc-fl-r",
-              "offwind-dc-fb-oh",
-              "offwind-dc-fl-oh",
-              "offwind-h2-fb-oh",
-              "offwind-h2-fl-oh",
+              "onwind-sres",
+              "onwind-dres",
+              "offwind-r",
+              "offwind-oh",
+              "offwind-dres-r",
+              "offwind-dres-oh",
+              "offwind-sres-r",
+              "offwind-sres-oh",
               "other-res",
               "hydro-ror",
               "hydro-reservoir",
@@ -11671,13 +11653,6 @@
             }
           }
         },
-        "available_years_tyndp": {
-          "description": "List of years for which TYNDP demand data is available.",
-          "items": {
-            "type": "integer"
-          },
-          "type": "array"
-        },
         "manual_adjustments": {
           "default": true,
           "description": "Whether to adjust the load data manually according to the function in `manual_adjustment`.",
@@ -11725,21 +11700,6 @@
               "type": "number"
             }
           }
-        },
-        "patch_demand_with_mm": {
-          "anyOf": [
-            {
-              "type": "boolean"
-            },
-            {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            }
-          ],
-          "default": false,
-          "description": "Whether to patch the electricity demand with Market Model output data. Set to `true` to apply to all nodes, or provide a list of node names to apply selectively."
         }
       }
     },
@@ -15527,11 +15487,6 @@
     "cba": {
       "description": "Configuration for top level `cba` (cost-benefit analysis) settings.",
       "properties": {
-        "hurdle_costs": {
-          "default": 0.01,
-          "description": "Marginal cost for transmission lines in cost-benefit analysis networks (EUR/MWh).",
-          "type": "number"
-        },
         "co2_societal_cost": {
           "additionalProperties": {
             "additionalProperties": {

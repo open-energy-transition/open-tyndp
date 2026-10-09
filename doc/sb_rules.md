@@ -39,19 +39,6 @@ data:
 
 - `data/open_tyndp_prelim/{source}/{version}/base_s_all___{planning_horizons}.nc`
 
-### Rule `retrieve_countries_centroids`
-
-Downloads country centroid geometry data by Copyright (c) 2021 Gavin Rehkemper from
-<https://cdn.jsdelivr.net/gh/gavinr/world-countries-centroids@v1.0.0/dist/countries.geojson>.
-
-**Relevant Settings**
-
-None.
-
-**Outputs**
-
-- `data/countries_centroids.geojson`
-
 ## Development
 
 ### Rule `prepare_tyndp_pecd_release`
@@ -59,16 +46,6 @@ None.
 ::: prepare_tyndp_pecd_release
 
 ## Build electricity
-
-### Rule `clean_tyndp_electricity_demand`
-
-::: clean_tyndp_electricity_demand
-
-### Rule `build_electricity_demand_tyndp`
-
-Extends the upstream [`build_electricity_demand`](preparation.md#electricity_demand) rule with TYNDP-specific load data. Builds
-per-country load time series from the TYNDP electricity demand prepared by
-[`clean_tyndp_electricity_demand`](#rule-clean_tyndp_electricity_demand).
 
 ### Rule `build_tyndp_demand`
 
@@ -101,8 +78,8 @@ per-country load time series from the TYNDP electricity demand prepared by
 ### Rule `build_electricity_demand_base_tyndp`
 
 Extends the upstream [`build_electricity_demand_base`](preparation.md#rule-build_electricity_demand_base) rule with TYNDP-specific load data. Builds
-the electricity demand for base regions from the TYNDP electricity demand prepared by
-[`build_electricity_demand_tyndp`](#rule-build_electricity_demand_tyndp).
+the electricity demand for base regions from the TYNDP electricity market demand prepared by
+[`build_tyndp_demand`](#rule-build_tyndp_demand).
 
 ## Build sector
 
@@ -114,13 +91,13 @@ the electricity demand for base regions from the TYNDP electricity demand prepar
 
 ::: build_tyndp_h2_demand
 
+### Rule `build_tyndp_wheeling_charges`
+
+::: build_tyndp_wheeling_charges
+
 ### Rule `build_tyndp_h2_network`
 
 ::: build_tyndp_h2_network
-
-### Rule `clean_tyndp_h2_imports`
-
-::: clean_tyndp_h2_imports
 
 ### Rule `build_tyndp_h2_imports`
 

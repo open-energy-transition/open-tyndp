@@ -428,12 +428,12 @@ plotting:
     offwind-h2-fb-oh: "#c47dbd"
     offwind-h2-fl-oh: "#9d4d96"
     offwind-r: "#4a7ec4"
-    offwind-dres-r: "#35619e"
-    offwind-sres-r: "#23477a"
     offwind-sres-h2z1-r: "#23477a"
     offwind-sres-h2z2-r: "#23477a"
     offwind-oh: "#5fc9e8"
+    offwind-dres-r: "#3aa8cc"
     offwind-dres-oh: "#3aa8cc"
+    offwind-sres-r: "#23477a"
     offwind-sres-oh: "#2287a8"
     offwind-sres-h2z1-oh: "#2287a8"
     offwind-sres-h2z2-oh: "#2287a8"
@@ -632,11 +632,14 @@ plotting:
     lines: '#6c9459'
     transmission lines: '#6c9459'
     electricity distribution grid: '#97ad8c'
+    SRES grid connection: '#97ad8c'
     low voltage: '#97ad8c'
     # electricity demand
     Electric load: '#110d63'
     electric demand: '#110d63'
     electricity: '#110d63'
+    electricity prosumer: '#3b3785'
+    electricity prosumer btm: '#625fa3'
     industry electricity: '#2d2a66'
     industry new electricity: '#2d2a66'
     agriculture electricity: '#494778'
@@ -878,6 +881,7 @@ plotting:
     geothermal organic rankine cycle: '#ffbf00'
     AC: "#70af1d"
     AC_DRES: "#70af1d"
+    AC_SRES: "#70af1d"
     AC-AC: "#70af1d"
     AC line: "#70af1d"
     links: "#8a1caf"
