@@ -35,6 +35,8 @@
 
 * feat: align H2 imports with TYNDP 2026 ([#939](https://github.com/open-energy-transition/open-tyndp/pull/939)). `clean_tyndp_h2_imports` is merged into `build_tyndp_h2_imports`, which reads the TYNDP 2026 import corridor capacities, offer prices and hourly profiles. The corridors are added as low/high price band generators at the external import nodes of the H2 reference grid, which connect them to the H2 zones. The separate import links are removed, and a warning flags import nodes whose outgoing pipeline capacity is smaller than their import capacity. The unused `retrieve_countries_centroids` rule is removed.
 
+* feat: align TYNDP 2026 H2 storage and SMR components with the TYNDP 2026 ([#931](https://github.com/open-energy-transition/open-tyndp/pull/931)). H2 storages are modelled per flexibility class (`Storage_Daily` for tanks, `Storage_Monthly` for caverns), and the store types to add are selected via `electricity: tyndp_stores:` (`H2 tank-storage`, `H2 cavern-storage`). A new `sector: smr_ramp_limits_tyndp:` option adds the TYNDP ramp limits to SMR and SMR CCS assets. The TYNDP initial SoC of H2 storages is processed but not yet applied to the stores. The stores remain cyclic, meaning their state of charge at the end of the modelled period must equal the state of charge at the start, while the initial level itself is chosen by the optimisation rather than fixed to the TYNDP value. SMR, SMR CCS and H2 storage components are added only for the assets listed in the TYNDP input data. SMR and SMR CCS efficiencies and VOM, and H2 storage charge and discharge efficiencies, are taken per asset directly from that data instead of `custom_costs.csv`.
+
 **Changes**
 
 * feat: align CO2 prices with TYNDP 2026 NT+ (97.47 / 197.51 / 297.54 / 502.74 €/t for 2030 / 2035 / 2040 / 2050) ([#1038](https://github.com/open-energy-transition/open-tyndp/pull/1038)). The interpolated 2045 value is dropped.
@@ -102,7 +104,6 @@
 * Update the maintainer issue templates to ensure compliance with ISO certification ([#924](https://github.com/open-energy-transition/open-tyndp/pull/924)). The risk-level scale gains a `Very High` option and drops `N/A`.
 
 * Run CodeQL on `tyndp-*` branches, so the CodeQL status check required by the branch ruleset is reported and no longer blocks PRs targeting these branches ([#922](https://github.com/open-energy-transition/open-tyndp/pull/922)).
-
 
 ## Upcoming PyPSA-Eur Release
 

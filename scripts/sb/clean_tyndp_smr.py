@@ -11,9 +11,8 @@ import numpy as np
 import pandas as pd
 
 from scripts._helpers import (
-    SCENARIO_DICT,
     configure_logging,
-    safe_planning_horizon,
+    format_bz_names,
     set_scenario_config,
 )
 
@@ -22,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 def load_smr_data(fn: str, planning_horizon: int, scenario: str) -> pd.DataFrame:
     """
-    Load and clean TYNDP SMR capacity, must run and CCS information.
+    Load and clean TYNDP SMR capacity and CCS information.
 
     Parameters
     ----------
@@ -36,40 +35,68 @@ def load_smr_data(fn: str, planning_horizon: int, scenario: str) -> pd.DataFrame
     Returns
     -------
     pd.DataFrame
-        Cleaned TYNDP SMR data with capacity, must run and CCS information.
+        Cleaned TYNDP SMR data with capacity and CCS information.
     """
 
     column_dict = {
+        "Object": "object",
+        "Name": "name",
+        "Fuels": "fuels",
+        "NODE": "bus",
         "YEAR": "year",
         "SCENARIO": "scenario",
-        "NODE": "bus",
         "CAPACITY [MW]": "p_nom",
         "HEAT RATE [GJ/MWh]": "heat_rate",
         "VO&M CHARGE [€/MWh]": "marginal_cost",
-        "MUST-RUN UNITS": "must_run",
         "CCS": "ccs",
+        "COUNTRY": "country",
+        "MAX RAMP UP [MW/min]": "ramp_limit_up",
+        "MAX RAMP DOWN [MW/min]": "ramp_limit_down",
     }
 
-    replace_dict = SCENARIO_DICT | {"UK": "GB"}
+    # TYNDP 2026 has no more scenario split: SCENARIO is always "All"
+    replace_dict = {"All": "all"}
 
     # Read data and rename
     smr = (
-        pd.read_excel(fn)
+        pd.read_excel(fn, sheet_name="TEMPLATE")
         .rename(columns=column_dict)
         .replace(replace_dict)
-        .query("year == @planning_horizon and scenario == @scenario")
-        .assign(
-            bus=lambda df: df.bus + " H2 Z1",
-            carrier=lambda df: np.where(df.ccs, "SMR CC", "SMR"),
-            p_min_pu=lambda df: np.where(df.must_run, 1, 0),
-            efficiency=lambda df: 3.6 / df.heat_rate,  # convert to [MW_CH4/MW_H2]
-            p_nom=lambda df: df.p_nom / df.efficiency,  # convert to [MW_CH4]
-            unit="MW_CH4",
+        .query(
+            "year == @planning_horizon and (scenario == @scenario or scenario == 'all') and p_nom > 0"
         )
-        .drop(columns=["heat_rate", "marginal_cost", "must_run", "ccs", "efficiency"])
     )
 
-    smr.index = smr.bus + " " + smr.carrier
+    if (invalid := ~(smr.heat_rate > 0)).any():
+        logger.warning(
+            f"Dropping SMR plants with non-positive or missing heat rate: {smr.loc[invalid, 'name'].tolist()}"
+        )
+        smr = smr[~invalid]
+
+    smr = smr.assign(
+        bus=lambda df: format_bz_names(df.bus),
+        carrier=lambda df: np.where(df.ccs, "SMR CC", "SMR"),
+        # match the TYNDP market-output asset naming convention
+        name_suffix=lambda df: np.where(df.ccs, "SMR CCS", "SMR"),
+        p_min_pu=0,
+        ramp_limit_up=lambda df: (
+            df.ramp_limit_up * 60 / df.p_nom
+        ),  # convert [MW_H2/min] to [p.u./h]
+        ramp_limit_down=lambda df: (
+            df.ramp_limit_down * 60 / df.p_nom
+        ),  # convert [MW_H2/min] to [p.u./h]
+        efficiency=lambda df: (
+            3.6 / df.heat_rate
+        ),  # convert [GJ_CH4/MWh_H2] to [MWh_H2/MWh_CH4]
+        p_nom=lambda df: df.p_nom / df.efficiency,  # convert [MW_H2] to [MW_CH4]
+        marginal_cost=lambda df: (
+            df.marginal_cost * df.efficiency
+        ),  # convert [EUR/MWh_H2] to [EUR/MWh_CH4]
+        unit="MW_CH4",
+    ).drop(columns=["heat_rate", "ccs", "country", "object", "name", "fuels"])
+
+    smr.index = smr.bus + " " + smr.name_suffix
+    smr = smr.drop(columns="name_suffix")
 
     return smr
 
@@ -91,10 +118,6 @@ if __name__ == "__main__":
     planning_horizon = int(snakemake.wildcards.planning_horizons)
     smr_fn = snakemake.input.smr
     scenario = snakemake.params.tyndp_scenario
-
-    # Fallback for NT scenario
-    if scenario == "NT":
-        planning_horizon = safe_planning_horizon(planning_horizon, [2030, 2040])
 
     # Load and prep SMR data
     smr = load_smr_data(
