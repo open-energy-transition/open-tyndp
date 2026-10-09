@@ -40,8 +40,6 @@ logger = logging.getLogger(__name__)
 REGION_COLS = ["geometry", "name", "x", "y", "country"]
 
 SCENARIO_DICT = {
-    "Distributed Energy": "DE",
-    "Global Ambition": "GA",
     r"National Trends\s*\+": "NT",
     r"NT\s*\+": "NT",
     "National Trends": "NT",
@@ -1627,16 +1625,14 @@ def convert_units(
     return df
 
 
-def check_wscenario(wscenario: int, scenario: str) -> int:
+def check_wscenario(wscenario: int) -> int:
     """
-    Check if the weather scenario is valid for the given scenario.
+    Check if the weather scenario is valid for the TYNDP data.
 
     Parameters
     ----------
     wscenario : int
         Weather scenario to validate.
-    scenario : str
-        TYNDP scenario name.
 
     Returns
     -------
@@ -1644,13 +1640,7 @@ def check_wscenario(wscenario: int, scenario: str) -> int:
         Valid weather scenario, falling back to 2009 if the input is not available.
     """
 
-    valid_years = {
-        "NT": [1995, 2008, 2009],
-        "DE": [1995, 2008, 2009],
-        "GA": [1995, 2008, 2009],
-    }
-
-    if wscenario not in valid_years[scenario]:
+    if wscenario not in [1995, 2008, 2009]:
         logger.warning(
             f"Snapshot year {wscenario} doesn't match available TYNDP data. Falling back to 2009."
         )

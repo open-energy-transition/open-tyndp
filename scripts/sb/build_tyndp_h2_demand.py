@@ -288,7 +288,7 @@ if __name__ == "__main__":
 
     else:
         # Check if weather scenario is valid for scenario
-        wscenario = check_wscenario(wscenario, scenario)
+        wscenario = check_wscenario(wscenario)
 
         # Load demand with interpolation
         logger.info(
