@@ -11,6 +11,8 @@
 
 **Features**
 
+* feat: remove DE and GA scenarios from TYNDP 2026; add in HEV and LEV as scenarios and config entries ([#1066](https://github.com/open-energy-transition/open-tyndp/pull/1066)).
+
 * feat: switch TYNDP electricity demand to TYNDP 2026 data for three demand types: market, prosumer and prosumer behind-the-meter (BTM) ([#944](https://github.com/open-energy-transition/open-tyndp/pull/944)).
 
 * feat: add rule to retrieve TYNDP 2026 data ([#816](https://github.com/open-energy-transition/open-tyndp/pull/816)).

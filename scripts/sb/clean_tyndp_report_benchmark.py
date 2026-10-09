@@ -9,7 +9,6 @@ and headers are then assigned. The data structure is subsequently converted to a
 Finally, the units are converted to standard units: MW for power units and MWh for energy units.
 """
 
-import datetime
 import logging
 import multiprocessing as mp
 from functools import partial
@@ -126,7 +125,7 @@ def _add_identifier(s: str) -> str:
     """
     if s.startswith("TYNDP") or s.startswith("EC"):
         return s
-    elif any(i in s for i in ["DE", "GA", "NT"]):
+    elif "NT" in s:
         return "TYNDP " + s
     elif any(i in s for i in ["IA", "S3"]):
         return "EC IA S3"
@@ -281,18 +280,6 @@ def load_benchmark(
     ncolumns = opt["report"].get("ncolumns", None)
     names = opt["report"]["names"]
 
-    # Fix temporal labeling - source data uses 00:00 as end-of-period (previous day's last hour);
-    # convert to beginning-of-period (current day's first hour)
-    if table == "generation_profiles":
-        time_col = df.iloc[
-            5:, 0
-        ]  # Start reading from row 6 where actual snapshot data begins
-        datetime_series = pd.to_datetime(time_col)
-        midnight_mask = datetime_series.dt.time == datetime.time(0, 0)
-        df.loc[time_col.index[midnight_mask], df.columns[0]] = datetime_series[
-            midnight_mask
-        ] + pd.Timedelta(days=1)
-
     index_col = opt["report"]["index_col"]
     if isinstance(index_col, int):
         index_col = [index_col]
@@ -321,12 +308,6 @@ def load_benchmark(
 
     # Add table identifier
     df_converted["table"] = table
-
-    # Apply exceptions
-    if table == "generation_profiles":
-        # TODO Validate planning year assumption
-        df_converted["year"] = 2040
-        df_converted["scenario"] = scenario
 
     # Clean data
     if "scenario" in df_converted.columns:

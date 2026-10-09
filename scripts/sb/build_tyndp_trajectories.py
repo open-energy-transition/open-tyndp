@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 """
-Loads and cleans the TYNDP capacity trajectories for a given TYNDP scenario.
+Loads and cleans the TYNDP capacity trajectories for the NT scenario.
 
 Outputs
 -------
@@ -38,7 +38,6 @@ if __name__ == "__main__":
 
     # Parameters
     fn = snakemake.input.trajectories
-    tyndp_scenario = snakemake.params.tyndp_scenario
     column_names = {
         "NODE": "bus",
         "SCENARIO": "scenario",
@@ -49,14 +48,12 @@ if __name__ == "__main__":
     }
 
     # TODO: How to add buildout information if even necessary
-    # Trajectories other than Nuclear are only used for DE and GA scenarios
-    trajectories_id = [] if tyndp_scenario == "NT" else ["All"]
     df = (
         pd.read_excel(fn, sheet_name="GLOBAL")
         .rename(column_names, axis="columns")
         .replace(SCENARIO_DICT, regex=True)
         .replace("UK", "GB", regex=True)
-        .query("scenario == @tyndp_scenario or scenario in @trajectories_id")
+        .query("scenario == 'NT'")
     )
 
     carrier_mapping_fn = snakemake.input.carrier_mapping

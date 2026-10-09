@@ -3,18 +3,15 @@
 
 # Open-TYNDP Scenarios {#scenarios}
 
-The modelling for the reference, National Trends+ (NT+),
-and the deviation, Distributed Energy (DE) and Global Ambition (GA), scenarios
-differ in terms of assumptions, storyline and method (capacity expansion vs dispatch modelling).
+The modelling for the reference scenario, National Trends+ (NT+),
+and its economic variants, High Economic Variant (HEV) and Low Economic Variant (LEV),
+differ in terms of price and demand assumptions.
 
 Here we explain these modelling differences and how these differences have been implemented into open-tyndp.
 We discuss the relevant configuration settings and the implications of these implementation decisions.
 
 Background information can be found in the report from ENTSO-E and ENTSO-G
 [TYNDP 2024 Scenarios Methodology Report](https://2024.entsos-tyndp-scenarios.eu/wp-content/uploads/2025/01/TYNDP_2024_Scenarios_Methodology_Report_Final_Version_250128.pdf).
-
-A description of the storylines underlying the NT+, DE and GA scenarios can be found in the
-[TYNDP 2024 Scenarios Storyline Report](https://2024.entsos-tyndp-scenarios.eu/wp-content/uploads/2023/12/ENTSOs_TYNDP_2024_Scenarios_Storyline_Report_2023-12-04.pdf).
 
 ## National Trends+
 
@@ -25,50 +22,19 @@ of TYNDP 2024 (e.g. during 2023).
 - Modelled as a pure dispatch problem, with fixed generation capacities for 2030 and 2040
 - All energy carriers included in final energy demand, not just electricity and gas (as with TYNDP < 2024)
 
-## Deviation Scenarios
-
-- Begins with National Trends+ 2030 scenario results for grid topology, generation capacity and final energy demands
-- Uses predefined final energy demands for 2040 and 2050 collected from transmission system operators and public consultation
-- Capacity expansion model is used to identify where and when investment in renewable generation capacity and storage is required
-- Exogenous constraints on generation investment are imposed to force:
-    - no new nuclear power capacity
-    - all existing fossil gas plants are decommissioned
-- Upper and lower bounds are also imposed to force trajectories for
-    - the expansion of solar, wind, prosumer batteries and large scale batteries
-    - H2 import potentials
-
-### Distributed Energy
-
-> *This scenario pictures a pathway achieving EU27 carbon neutrality target by 2050 with
-> higher European Economy. The scenario is driven by a willingness of the society to achieve
-> high levels of independence in terms of energy supply and goods of strategic importance
-> (e. g., industrial and agricultural produce). It translates into both a behavioural shift and
-> strong decentralised drive towards decarbonisation through local initiatives by citizens,
-> communities and businesses, supported by authorities*
->
-> — [TYNDP 2024 Scenarios Storyline Report](https://2024.entsos-tyndp-scenarios.eu/wp-content/uploads/2023/12/ENTSOs_TYNDP_2024_Scenarios_Storyline_Report_2023-12-04.pdf)
-
-### Global Ambition
-
-> *This scenario pictures a pathway to achieving carbon neutrality by 2050, driven by a fast
-> and global move towards the Paris Agreement targets. It translates into development of a
-> very wide range of technologies (many being centralised) and the use of global energy
-> trade as a tool to accelerate decarbonisation.*
->
-> — [TYNDP 2024 Scenarios Storyline Report](https://2024.entsos-tyndp-scenarios.eu/wp-content/uploads/2023/12/ENTSOs_TYNDP_2024_Scenarios_Storyline_Report_2023-12-04.pdf)
 
 ## Open-TYNDP Implementation
 
 The TYNDP scenarios are defined in `config/config.tyndp.yaml` and `config/scenarios.tyndp.yaml`.
 
 The NT+ scenario is defined in full in `config/config.tyndp.yaml` and the modifications to NT+
-to form the two deviation scenarios are defined in `config/scenarios.tyndp.yaml`.
+to form the two economic variants are defined in `config/scenarios.tyndp.yaml`.
 
 | Config Key | Description |
 |---|---|
 | `run` | Run naming/prefix and scenario file reference; scenarios enabled. |
 | `foresight` | Sets planning foresight to myopic. |
-| `tyndp_scenario` | Selects TYNDP scenario code (NT). |
+| `tyndp_scenario` | Selects TYNDP scenario code (NT, HEV or LEV). |
 | `scenario` | Defines cluster set and planning horizons (2030, 2040). |
 | `countries` | Lists modeled countries/regions. |
 | `snapshots` | Time span for simulation (2009 calendar year). |
@@ -89,12 +55,12 @@ to form the two deviation scenarios are defined in `config/scenarios.tyndp.yaml`
 | `benchmarking` | Enables benchmarking. |
 | `cba` | Cost-benefit analysis settings (hurdle costs, horizons, projects, solver options). |
 
-The base config is `config.tyndp.yaml`. The scenario file `scenarios.tyndp.yaml` defines per-scenario override blocks (e.g., NT, DE, GA).
+The base config is `config.tyndp.yaml`. The scenario file `scenarios.tyndp.yaml` defines per-scenario override blocks (e.g., NT, HEV, LEV).
 When a scenario is selected, its keys are merged onto the base config: matching keys override the base values,
 and nested keys override only their sub-keys.
 
 Examples:
 
 - `tyndp_scenario` is overwritten by the scenario's value.
-- In DE/GA, `electricity.extendable_carriers.Generator` replaces the base list for that path.
+- In HEV/LEV, `costs.emission_prices.co2` replaces the base CO2 price trajectory.
 - If a key is not present in the scenario block, the base config value remains unchanged.

@@ -19,9 +19,10 @@ from scripts._helpers import (
 logger = logging.getLogger(__name__)
 
 
-def load_h2_storage_data(fn: str, planning_horizon: int, scenario: str) -> pd.DataFrame:
+def load_h2_storage_data(fn: str, planning_horizon: int) -> pd.DataFrame:
     """
-    Load and clean TYNDP H2 storage energy capacities as well as charge/discharge capacities and efficiencies.
+    Load and clean TYNDP H2 storage energy capacities as well as charge/discharge capacities and efficiencies
+    for the NT scenario.
 
     Parameters
     ----------
@@ -29,8 +30,6 @@ def load_h2_storage_data(fn: str, planning_horizon: int, scenario: str) -> pd.Da
         Path to Excel file containing TYNDP H2 storage data.
     planning_horizon : int
         Planning horizon to read H2 storage data for.
-    scenario : str
-        TYNDP scenario to filter for.
 
     Returns
     -------
@@ -97,8 +96,7 @@ def load_h2_storage_data(fn: str, planning_horizon: int, scenario: str) -> pd.Da
         storages.loc[err_entry_i, ["p_nom_max_discharge"]] *= 10
 
     storages = storages.loc[
-        ((storages.scenario == scenario) | (storages.scenario == "all"))
-        & (storages.year == planning_horizon)
+        storages.scenario.isin(["NT", "all"]) & (storages.year == planning_horizon)
     ]
 
     return storages
@@ -120,13 +118,11 @@ if __name__ == "__main__":
     # Parameters
     planning_horizon = int(snakemake.wildcards.planning_horizons)
     h2_storage_fn = snakemake.input.h2_storages
-    scenario = snakemake.params.tyndp_scenario
 
     # Load and prep H2 storage data
     h2_storages = load_h2_storage_data(
         fn=h2_storage_fn,
         planning_horizon=planning_horizon,
-        scenario=scenario,
     )
 
     # Save clean H2 Storage data

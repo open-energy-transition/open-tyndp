@@ -5,7 +5,7 @@
 
 Scenario Building (SB) is the first phase of the Open-TYNDP workflow. Starting from raw
 ENTSO-E input datasets, it constructs a sector-coupled European energy system model
-and solves a least-cost capacity expansion (DE and GA scenarios only, see [Open-TYNDP scenarios](scenarios.md)) and dispatch optimisation. The solved network
+and solves a dispatch optimisation (see [Open-TYNDP scenarios](scenarios.md)). The solved network
 produced by SB serves as the direct input to the [Cost-Benefit Analysis (CBA)](cba.md).
 
 Open-TYNDP implements the [TYNDP 2024 Scenario Building methodology](https://www.entsoe.eu/outlooks/tyndp/2024/) as a soft-fork of
@@ -93,8 +93,7 @@ Which carriers are **extendable** varies by scenario and planning horizon.
 
 ### Sector Coupling
 
-Open-TYNDP models the electricity and hydrogen sectors as fully coupled. For the Distributed
-Energy (DE) and Global Ambition (GA) scenarios, heating sector links are included in addition (see [Open-TYNDP scenarios](scenarios.md)). Cross-sector components include:
+Open-TYNDP models the electricity and hydrogen sectors as fully coupled. Cross-sector components include:
 
 * **Electrolysers:** Convert electricity to hydrogen; capacity is either fixed per PEMMDB 2.5
   or left extendable depending on the scenario.
@@ -117,7 +116,6 @@ The SB optimisation minimises **total annualised system cost** (variable operati
 * Minimum and maximum generation constraints from PEMMDB, including must-run levels and
   scheduled maintenance outages.
 * Country-level annual hydrogen supply and demand balances.
-* Capacity expansion constraints reflecting given trajectories in the case of the DE and GA scenario.
 
 The problem is formulated as a **linear programme (LP)** and solved with the configured
 solver (HiGHS as default as an open-source alternative for lower
@@ -136,8 +134,8 @@ and Open-TYNDP configuration options.
 
 ### Scenarios and Planning Horizons
 
-* `scenario`: Selects the TYNDP 2024 scenario. Supported values are `NT`
-  (National Trends), `GA` (Global Ambition) and `DE` (Distributed Energy).
+* `tyndp_scenario`: Selects the TYNDP scenario. Supported values are `NT`
+  (National Trends +), `HEV` (High Economic Variant) and `LEV` (Low Economic Variant).
 * `planning_horizons`: List of target years to solve (e.g. `[2030, 2035, 2040, 2050]`). Each
   horizon is solved as an independent optimisation.
 * `run.name`: Identifies the run and determines the output directory; typically set to
