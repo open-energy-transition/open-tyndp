@@ -1846,6 +1846,10 @@ rule prepare_sector_network:
             config_provider("tyndp_scenario"),
             resources("gas_demand_tyndp_{planning_horizons}.csv"),
         ),
+        gas_hybrid=branch(
+            config_provider("tyndp_scenario"),
+            resources("gas_hybrid_heating_tyndp_{planning_horizons}.csv"),
+        ),
         h2_demand_z1=branch(
             config_provider("tyndp_scenario"),
             resources("demand_tyndp_h2_z1_{planning_horizons}.csv"),
