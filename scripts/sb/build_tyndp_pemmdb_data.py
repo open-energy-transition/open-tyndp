@@ -655,8 +655,6 @@ def _process_thermal_hydrogen_profiles(
     node_tech_data: pd.DataFrame,
     node: str,
     thermal_techs: list[str],
-    tyndp_scenario: str,
-    planning_horizon_i: int,
     sns: pd.DatetimeIndex,
 ) -> pd.DataFrame:
     """
@@ -720,10 +718,6 @@ def _process_thermal_hydrogen_profiles(
         .set_index(["bus", "pemmdb_carrier", "pemmdb_type"], append=True)
         .sort_index()  # sort index for more efficient indexing
     )
-
-    # Remove must-runs for DE and GA scenarios after 2030 (per TYNDP 2024 Methodology, p.37)
-    if tyndp_scenario != "NT" and planning_horizon_i > 2030:
-        profiles.loc[:, "p_min_pu"] = 0.0
 
     return profiles
 
@@ -1108,10 +1102,8 @@ def process_pemmdb_profiles(
     node: str,
     pemmdb_tech_sheet: str,
     thermal_techs: list[str],
-    tyndp_scenario: str,
     wscenario: int,
     planning_horizon: int,
-    planning_horizon_i: int,
     sns: pd.DatetimeIndex,
     sns_year_h: pd.DatetimeIndex,
     carrier_mapping_fn: str,
@@ -1130,14 +1122,10 @@ def process_pemmdb_profiles(
         PEMMDB technology sheet to read data for.
     thermal_techs: list[str]
         Thermal technologies to read data for.
-    tyndp_scenario : str
-        TYNDP scenario to read data for.
     wscenario : int
         Weather scenario to read data for.
     planning_horizon : int
-        Planning year used for data retrieval (fallback year if planning_horizon_i not available).
-    planning_horizon_i : int
-        Original planning year.
+        Planning year used for data retrieval (fallback year if the original planning year is not available).
     sns : pd.DatetimeIndex
         Modelled snapshots.
     sns_year_h : pd.DatetimeIndex
@@ -1157,8 +1145,6 @@ def process_pemmdb_profiles(
                 node_tech_data,
                 node,
                 thermal_techs,
-                tyndp_scenario,
-                planning_horizon_i,
                 sns,
             )
 
@@ -1235,8 +1221,6 @@ def process_pemmdb_data(
     thermal_techs: list[str],
     wscenario: int,
     planning_horizon: int,
-    planning_horizon_i: int,
-    tyndp_scenario: str,
     sns: pd.DatetimeIndex,
     sns_year_h: pd.DatetimeIndex,
     carrier_mapping_fn: str,
@@ -1258,11 +1242,7 @@ def process_pemmdb_data(
     wscenario : int
         Weather scenario to read data for.
     planning_horizon : int
-        Planning year used for data retrieval (fallback year if planning_horizon_i not available).
-    planning_horizon_i : int
-        Original planning year.
-    tyndp_scenario : str
-        TYNDP scenario to read data for.
+        Planning year used for data retrieval (fallback year if the original planning year is not available).
     sns : pd.DatetimeIndex
         Modelled snapshots.
     sns_year_h : pd.DatetimeIndex
@@ -1300,10 +1280,8 @@ def process_pemmdb_data(
             node,
             pemmdb_tech_sheet,
             thermal_techs,
-            tyndp_scenario,
             wscenario,
             planning_horizon,
-            planning_horizon_i,
             sns,
             sns_year_h,
             carrier_mapping_fn,
@@ -1338,7 +1316,6 @@ if __name__ == "__main__":
     # Electricity nodes of the TYNDP network, onshore and offshore
     nodes = pd.read_csv(snakemake.input.buses_tyndp, index_col="bus_id").index
     pemmdb_dir = snakemake.input.pemmdb_dir
-    tyndp_scenario = snakemake.params.tyndp_scenario
     carrier_mapping_fn = snakemake.input.carrier_mapping
 
     # Snapshot year
@@ -1424,8 +1401,6 @@ if __name__ == "__main__":
                     thermal_techs=thermal_techs,
                     wscenario=wscenario,
                     planning_horizon=planning_horizon,
-                    planning_horizon_i=planning_horizon_i,
-                    tyndp_scenario=tyndp_scenario,
                     sns=sns,
                     sns_year_h=sns_year_h,
                     carrier_mapping_fn=carrier_mapping_fn,
@@ -1470,8 +1445,6 @@ if __name__ == "__main__":
                     thermal_techs=thermal_techs,
                     wscenario=wscenario,
                     planning_horizon=planning_horizon,
-                    planning_horizon_i=planning_horizon_i,
-                    tyndp_scenario=tyndp_scenario,
                     sns=sns,
                     sns_year_h=sns_year_h,
                     carrier_mapping_fn=carrier_mapping_fn,

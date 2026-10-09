@@ -310,7 +310,6 @@ rule build_tyndp_pemmdb_data:
         available_years=config_provider(
             "electricity", "pemmdb_capacities", "available_years"
         ),
-        tyndp_scenario=config_provider("tyndp_scenario"),
     script:
         scripts("sb/build_tyndp_pemmdb_data.py")
 
