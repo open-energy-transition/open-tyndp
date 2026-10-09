@@ -2181,7 +2181,6 @@ def _add_electrolyzer_capacities(
     # Z1/Z2 (and SRES/DRES) "h2-electrolysis" capacities per bus; match each
     # electrolyser link to its own zone's capacity (SRES/DRES are handled
     # separately, see `add_h2_dres_tyndp`).
-    # TODO: Add split between zones for DE/GA
     base = pemmdb_capacities.query(
         "carrier == 'H2 Electrolysis' and open_tyndp_type == 'h2-electrolysis'"
     )
@@ -2193,7 +2192,7 @@ def _add_electrolyzer_capacities(
     n.links.loc[z1_i, "p_nom"] = n.links.loc[z1_i, "bus0"].map(caps_z1).fillna(0.0)
     n.links.loc[z2_i, "p_nom"] = n.links.loc[z2_i, "bus0"].map(caps_z2).fillna(0.0)
 
-    # For NT, no trajectories will be added to the model and electrolyser capacities will be fixed
+    # Without trajectories, electrolyser capacities are fixed
     if trajectories.empty:
         n.links.loc[electrolyser_i, "p_nom_extendable"] = False
         remove_zero_capacity_non_extendable(
@@ -2205,15 +2204,13 @@ def _add_electrolyzer_capacities(
         )
         return
 
-    # Otherwise, for DE/GA, set trajectories
+    # Otherwise, set trajectories
     # p_nom_min as the maximum of PEMMDB capacity and p_nom_min value
-    # TODO: Adjust added trajectories for DE/GA to account for zonal split
     n.links.loc[electrolyser_i, "p_nom_min"] = np.maximum(
         n.links.loc[electrolyser_i, "p_nom"],
         n.links.loc[electrolyser_i, "bus0"].map(trajectories["p_nom_min"]).fillna(0.0),
     )
     # p_nom_max as the maximum of PEMMDB capacity and p_nom_max value
-    # TODO: Adjust added trajectories for DE/GA to account for zonal split
     n.links.loc[electrolyser_i, "p_nom_max"] = np.maximum(
         n.links.loc[electrolyser_i, "p_nom"],
         n.links.loc[electrolyser_i, "bus0"].map(trajectories["p_nom_max"]).fillna(0.0),
@@ -2801,7 +2798,6 @@ def _add_other_res_capacities(
 def _add_battery_capacities(
     n: pypsa.Network,
     pemmdb_capacities: pd.DataFrame,
-    tyndp_scenario: str,
 ) -> None:
     """
     Add PEMMDB capacities for battery storages to existing assets in the network.
@@ -2812,8 +2808,6 @@ def _add_battery_capacities(
         The PyPSA network container object.
     pemmdb_capacities : pd.DataFrame
         All PEMMDB capacities.
-    tyndp_scenario : str
-        TYNDP scenario to model.
 
     Returns
     -------
@@ -2829,8 +2823,7 @@ def _add_battery_capacities(
     caps = pemmdb_capacities.query(f"`index_carrier` == '{tech}'")
     caps = caps.set_index(caps.index + " " + caps["index_carrier"])
     n.stores.loc[stores_i, "e_nom"] = caps.e_nom.reindex(stores_i, fill_value=0.0)
-    if tyndp_scenario == "NT":
-        n.components.stores.static.loc[stores_i, "e_nom_extendable"] = False
+    n.components.stores.static.loc[stores_i, "e_nom_extendable"] = False
 
     # Add links capacities
     for tech in ["battery charger", "battery discharger"]:
@@ -2849,9 +2842,7 @@ def _add_battery_capacities(
             p_nom = p_nom.div(n.links.loc[links_i, "efficiency"]).fillna(0.0)
         n.links.loc[links_i, "p_nom"] = p_nom
 
-        # Set p_nom_extendable False for NT scenario
-        if tyndp_scenario == "NT":
-            n.links.loc[links_i, "p_nom_extendable"] = False
+        n.links.loc[links_i, "p_nom_extendable"] = False
 
     remove_zero_capacity_non_extendable(
         n,
@@ -2888,7 +2879,6 @@ def add_existing_tyndp_capacities(
     extendable_carriers: list | set,
     investment_year: int,
     enable_pemmdb_caps: bool,
-    tyndp_scenario: str,
     group_conventionals: bool,
 ) -> None:
     """
@@ -2941,8 +2931,6 @@ def add_existing_tyndp_capacities(
         Year for which to get trajectories.
     enable_pemmdb_caps : bool
         Whether to include PEMMDB capacities.
-    tyndp_scenario : str
-        TYNDP scenario to model.
     group_conventionals : bool
         Whether TYNDP conventional carriers are aggregated into higher level groups.
 
@@ -3015,7 +3003,6 @@ def add_existing_tyndp_capacities(
             _add_battery_capacities(
                 n=n,
                 pemmdb_capacities=pemmdb_capacities,
-                tyndp_scenario=tyndp_scenario,
             )
 
         # Add existing electrolyzer capacities from PEMMDB to already attached electrolyzer components
@@ -9522,7 +9509,6 @@ if __name__ == "__main__":
             extendable_carriers=snakemake.params.electricity["extendable_carriers"],
             investment_year=investment_year,
             enable_pemmdb_caps=enable_pemmdb_caps,
-            tyndp_scenario=tyndp_scenario,
             group_conventionals=snakemake.params.electricity[
                 "group_tyndp_conventionals"
             ],
