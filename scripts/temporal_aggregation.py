@@ -141,9 +141,9 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "temporal_aggregation",
-            configfiles="config/test/config.tyndp.yaml",
+            configfiles="config/test/config.overnight.yaml",
             opts="",
-            clusters="all",
+            clusters="5",
             sector_opts="",
             planning_horizons="2030",
         )
