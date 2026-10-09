@@ -48,7 +48,7 @@ countries: ['AL', 'AT', 'BA', 'BE', 'BG', 'CH', 'CZ', 'CY', 'DE', 'DK', 'EE', 'E
 
 snapshots:
   start: "2009-01-01"
-  end: "2009-12-31"  # Ignore the last day of the year to get exactly 52 weeks
+  end: "2010-01-01"
 
 co2_budget:
 
