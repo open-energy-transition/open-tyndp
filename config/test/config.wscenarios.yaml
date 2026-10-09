@@ -82,16 +82,18 @@ electricity:
   - hydro-phs
   - hydro-phs-pure
   - onwind
+  - onwind-sres
+  - onwind-dres
   - solar-pv-utility
   - solar-pv-rooftop
-  - offwind-ac-fb-r
-  - offwind-ac-fl-r
-  - offwind-dc-fb-r
-  - offwind-dc-fl-r
-  - offwind-dc-fb-oh
-  - offwind-dc-fl-oh
-  - offwind-h2-fb-oh
-  - offwind-h2-fl-oh
+  - solar-pv-utility-dres
+  - solar-pv-utility-sres
+  - offwind-r
+  - offwind-oh
+  - offwind-dres-r
+  - offwind-dres-oh
+  - offwind-sres-r
+  - offwind-sres-oh
   tyndp_stores:
   - battery
   - H2 cavern-storage
