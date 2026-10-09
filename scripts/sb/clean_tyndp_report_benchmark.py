@@ -125,7 +125,7 @@ def _add_identifier(s: str) -> str:
     """
     if s.startswith("TYNDP") or s.startswith("EC"):
         return s
-    elif any(i in s for i in ["DE", "GA", "NT"]):
+    elif "NT" in s:
         return "TYNDP " + s
     elif any(i in s for i in ["IA", "S3"]):
         return "EC IA S3"
