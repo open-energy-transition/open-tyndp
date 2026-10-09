@@ -149,10 +149,6 @@ hourly resolution:
 
 ![](img/tyndp/benchmarking_elec_price_NT_2030.png)
 
-Example of figure created for the generation profiles for the DE scenario in 2040 with 45SEG:
-
-![](img/tyndp/benchmarking_gen_profiles_DE_2040.png)
-
 Example of summary indicators extracted from `kpis_s_all__all_years_by_country.csv` for the NT
 scenario with hourly resolution:
 
@@ -167,7 +163,6 @@ scenario with hourly resolution:
 | electricity_price_excl_shed | -0.04 | 0.12 | 0.07 | 0.19 | -0.02 | 0 | 0 | TYNDP 2024 Market Model Outputs | v0.7.1 |
 | energy_imports | 0.52 | 0.52 | 0.3 | 1.15 | 0.01 | 1 | 0 | TYNDP 2024 Scenarios Report | v0.7.1 |
 | final_energy_demand | 0.11 | 0.11 | 0.09 | 0.15 | 0.01 | 0 | 0 | TYNDP 2024 Scenarios Report | v0.7.1 |
-| generation_profiles | — | — | — | — | — | NA | NA | — | v0.7.1 |
 | hydrogen_demand | -0.22 | 0.28 | 0 | 2.96 | 0 | 0 | 1 | TYNDP 2024 Market Model Outputs | v0.7.1 |
 | hydrogen_demand_shedding_hours | 0.38 | 0.38 | 0 | 5.64 | 0 | 0 | 0 | TYNDP 2024 Market Model Outputs | v0.7.1 |
 | hydrogen_price | 0.11 | 0.16 | 0.03 | 0.27 | 0 | 0 | 0 | TYNDP 2024 Market Model Outputs | v0.7.1 |
@@ -200,7 +195,6 @@ To align naming conventions across data sources, Open-TYNDP uses a mapping table
 * **open_tyndp_nice_names**: Open-TYNDP nice names for better readability and aggregation of technologies for reporting purposes.
 * **benchmarking_capacity**: Naming convention for the benchmarking framework's `power_capacity` table.
 * **benchmarking_generation**: Naming convention for the benchmarking framework's `power_generation` table.
-* **benchmarking_generation_profiles**: Naming convention for the benchmarking framework's `generation_profiles` table.
 * **benchmarking_fed**: Naming convention for the benchmarking framework's `final_energy_demand` table.
 * **benchmarking_elec_demand**: Naming convention for the benchmarking framework's `electricity_demand` table.
 * **benchmarking_ch4_demand**: Naming convention for the benchmarking framework's `methane_demand` table.
