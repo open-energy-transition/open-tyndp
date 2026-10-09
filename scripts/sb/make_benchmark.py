@@ -4,9 +4,8 @@
 """
 This script computes accuracy indicators for comparing workflow results against reference data from TYNDP 2024.
 
-Benchmarks are computed only for planning years available in the TYNDP 2024 Scenarios data:
-- NT (National Trends): 2030, 2040
-- DE (Distributed Energy) and GA (Global Ambition): 2040, 2050
+Benchmarks are computed only for planning years available in the TYNDP 2024 Scenarios data
+for NT (National Trends): 2030, 2040
 
 This module implements a methodology introduced by Wen et al. (2022) for evaluating performance of energy system
 models using multiple accuracy indicators.
