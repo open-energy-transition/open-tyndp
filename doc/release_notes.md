@@ -49,7 +49,7 @@
 
 * fix: add missing plotting colors for electricity demand and btm ([#1053](https://github.com/open-energy-transition/open-tyndp/pull/1053)).
 
-* fix: remove the TYNDP 2024 trajectories for TYNDP 2026 ([#1051](https://github.com/open-energy-transition/open-tyndp/pull/1051)). The `build_tyndp_trajectories` rule is removed and `build_pemmdb_and_trajectories` is renamed to `build_tyndp_pemmdb_datas`. Generation capacities now follow PEMMDB in all planning horizons. The trajectory interface in `prepare_sector_network` is kept for potential use in future cycles.
+* fix: remove the TYNDP 2024 trajectories for TYNDP 2026 ([#1051](https://github.com/open-energy-transition/open-tyndp/pull/1051)). The `build_tyndp_trajectories` rule is removed and `build_pemmdb_and_trajectories` is renamed to `build_tyndp_pemmdb_datas`. Generation capacities now follow PEMMDB in all planning horizons. The trajectory handling in `prepare_sector_network` and `attach_wind_and_solar` is removed.
 
 **Documentation**
 

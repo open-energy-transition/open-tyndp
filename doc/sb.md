@@ -118,12 +118,6 @@ The SB optimisation minimises **total annualised system cost** (variable operati
   scheduled maintenance outages.
 * Country-level annual hydrogen supply and demand balances.
 
-TYNDP 2026 provides no capacity expansion trajectories. The model keeps the trajectory
-interface for potential use in future cycles: a table with the columns `carrier`, `index_carrier`,
-`bus`, `planning_horizon`, `p_nom_min` and `p_nom_max` sets capacity bounds for solar, wind,
-nuclear and electrolysers. In TYNDP 2026 this table is empty, so PEMMDB capacities are used
-as given.
-
 The problem is formulated as a **linear programme (LP)** and solved with the configured
 solver (HiGHS as default as an open-source alternative for lower
 temporal resolution runs; other solvers like Gurobi/Mosek are also supported and recommended for high-resolution runs).
