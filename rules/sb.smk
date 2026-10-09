@@ -325,8 +325,6 @@ rule build_tyndp_trajectories:
     benchmark:
         benchmarks("performances/build_tyndp_trajectories")
     threads: 4
-    params:
-        tyndp_scenario=config_provider("tyndp_scenario"),
     script:
         scripts("sb/build_tyndp_trajectories.py")
 
