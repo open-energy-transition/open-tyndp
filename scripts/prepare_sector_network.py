@@ -2566,11 +2566,6 @@ def _add_smr_capacities(
         ramp_attrs = ["ramp_limit_up", "ramp_limit_down"]
         n.links.loc[smr_i, ramp_attrs] = smr_capacities[ramp_attrs].reindex(smr_i)
 
-    # Add must-runs if given for any units
-    if (smr_capacities.p_min_pu > 0).any():
-        smr_p_min_pu = smr_capacities.p_min_pu
-        n.links.loc[smr_i, "p_min_pu"] = smr_p_min_pu.reindex(smr_i)
-
     remove_zero_capacity_non_extendable(
         n,
         carriers=["SMR", "SMR CC"],
