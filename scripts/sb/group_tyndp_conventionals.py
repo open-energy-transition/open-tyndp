@@ -215,7 +215,7 @@ if __name__ == "__main__":
     # Parameters
     tyndp_conventional_carriers = snakemake.params.tyndp_conventional_carriers
 
-    # Read in PEMMDB data and trajectories
+    # Read in PEMMDB data
     pemmdb_capacities = pd.read_csv(snakemake.input.pemmdb_capacities)
     pemmdb_profiles = xr.open_dataset(snakemake.input.pemmdb_profiles).to_dataframe()
 

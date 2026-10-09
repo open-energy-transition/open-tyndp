@@ -76,10 +76,6 @@ None.
 
 ::: build_tyndp_pemmdb_data
 
-### Rule `build_tyndp_trajectories`
-
-::: build_tyndp_trajectories
-
 ### Rule `clean_tyndp_hydro_inflows`
 
 ::: clean_tyndp_hydro_inflows
@@ -188,9 +184,9 @@ Aggregate [`make_benchmark`](#rule-make_benchmark) outputs.
 
 Aggregate [`plot_benchmark`](#rule-plot_benchmark) outputs.
 
-### Rule `build_pemmdb_and_trajectories`
+### Rule `build_tyndp_pemmdb_datas`
 
-Aggregate [`build_tyndp_pemmdb_data`](#rule-build_tyndp_pemmdb_data) and [`build_tyndp_trajectories`](#rule-build_tyndp_trajectories) outputs.
+Aggregate [`build_tyndp_pemmdb_data`](#rule-build_tyndp_pemmdb_data) outputs.
 
 ### Rule `build_tyndp_demands`
 

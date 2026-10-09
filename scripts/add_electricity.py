@@ -540,7 +540,6 @@ def attach_wind_and_solar(
     extendable_carriers: list | set,
     line_length_factor: float = 1.0,
     landfall_lengths: dict = None,
-    trajectories: pd.DataFrame = pd.DataFrame(),
     planning_horizon: int = None,
 ) -> None:
     """
@@ -564,9 +563,6 @@ def attach_wind_and_solar(
         Factor to scale the line length, by default 1.0.
     landfall_lengths : dict, optional
         Dictionary containing the landfall lengths for offshore wind, by default None.
-    trajectories : pd.DataFrame, optional, by default None
-        DataFrame containing the trajectories for the current planning_horizon to attach (p_nom_min and p_nom_max). When
-        provided, these values override any p_nom_max defined in the profile itself.
     planning_horizon: int, optional
         Planning horizon for which renewable profiles should be added. Optional input defaults to None. If
         year is part of the coordinates and planning_horizon is None, then the first year is used by default.
@@ -651,24 +647,11 @@ def attach_wind_and_solar(
                 caps = pd.Series(index=ds.indexes["bus"]).fillna(0)
             caps.index = caps.index.map(flatten)
 
-            if not trajectories.empty:
-                p_nom_max_min = (
-                    trajectories.query("carrier == @car")
-                    .groupby("bus")[["p_nom_max", "p_nom_min"]]
-                    .sum()
-                )
-                p_nom_max_min = p_nom_max_min.reindex(
-                    ds.indexes["bus_bin"].get_level_values("bus"), fill_value=0
-                ).set_axis(ds.indexes["bus_bin"].map(flatten), axis=0)
-                p_nom_max = p_nom_max_min["p_nom_max"]
-                p_nom_min = p_nom_max_min["p_nom_min"]
-            elif "p_nom_max" in ds.data_vars:
+            if "p_nom_max" in ds.data_vars:
                 p_nom_max = ds["p_nom_max"].to_pandas()
                 p_nom_max.index = p_nom_max.index.map(flatten)
-                p_nom_min = caps
             else:
                 p_nom_max = np.inf
-                p_nom_min = caps
 
             p_max_pu = ds["profile"].to_pandas()
             p_max_pu.columns = p_max_pu.columns.map(flatten)
@@ -680,7 +663,7 @@ def attach_wind_and_solar(
                 bus=buses,
                 carrier=car,
                 p_nom=caps,
-                p_nom_min=p_nom_min,
+                p_nom_min=caps,
                 p_nom_extendable=car in extendable_carriers["Generator"],
                 p_nom_max=p_nom_max,
                 marginal_cost=costs.at[supcar, "marginal_cost"],
