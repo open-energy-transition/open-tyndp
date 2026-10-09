@@ -214,6 +214,19 @@ def prepare_costs(
     # TODO Remove this temporary mapping once proper cost assumptions are implemented
     costs.loc["solar-pv-utility"] = costs.loc["solar-utility"]
     costs.loc["solar-pv-rooftop"] = costs.loc["solar-rooftop"]
+    costs.loc["solar-pv-utility-dres"] = costs.loc["solar-utility"]
+    costs.loc["solar-pv-utility-sres"] = costs.loc["solar-utility"]
+    costs.loc["onwind-dres"] = costs.loc["onwind"]
+    costs.loc["onwind-sres"] = costs.loc["onwind"]
+    for car in [
+        "offwind-r",
+        "offwind-oh",
+        "offwind-dres-r",
+        "offwind-dres-oh",
+        "offwind-sres-r",
+        "offwind-sres-oh",
+    ]:
+        costs.loc[car] = costs.loc["offwind"]
 
     costs = costs.rename(columns={"standing losses": "standing_losses"})
 
