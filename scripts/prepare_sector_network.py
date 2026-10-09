@@ -2587,7 +2587,7 @@ def _add_h2_storage_capacities(
 
     Parameters
     ----------
-    n : pypsa.Network#
+    n : pypsa.Network
         The PyPSA network container object.
     h2_storage_capacities : pd.DataFrame
         Existing H2 storage energy and charge/discharge capacities.
