@@ -14,7 +14,15 @@ The Open-TYNDP project does not aim to change or improve any of the existing TYN
 For a comprehensive overview of the TYNDP modelling methodology and its limitations refer to the [2024 TYNDP Scenarios Methodology Report](https://2024.entsos-tyndp-scenarios.eu/wp-content/uploads/2025/01/TYNDP_2024_Scenarios_Methodology_Report_Final_Version_250128.pdf).
 
 !!! note "See also"
-    Refer also to the current [development status](https://open-tyndp.readthedocs.io/en/latest/index.html#development-status) of the Open-TYNDP project for an overview of currently implemented and missing features.
+    Refer also to the current [development status](https://open-tyndp.readthedocs.io/en/latest/#development-status) of the Open-TYNDP project for an overview of currently implemented and missing features.
+
+## Limitations of Open-TYNDP
+
+- **Only the National Trends (NT) scenario is implemented:** the Distributed Energy (DE) and
+  Global Ambition (GA) deviation scenarios are incomplete and unsupported, and there are no plans
+  to support them. They can still be selected via `tyndp_scenario`, but the workflow may fail for
+  them and any results produced are neither validated nor benchmarked. Our assumptions for the DE and GA
+  scenarios are kept in `config/scenarios.tyndp.yaml` for reference. See [Scenarios](scenarios.md).
 
 ## Limitations of PyPSA-Eur
 

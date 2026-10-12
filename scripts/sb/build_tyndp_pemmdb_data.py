@@ -41,14 +41,17 @@ from tqdm.contrib.logging import logging_redirect_tqdm
 
 from scripts._helpers import (
     configure_logging,
-    convert_units,
     get_snapshots,
+<<<<<<< HEAD:scripts/sb/build_tyndp_pemmdb_data.py
     get_wscenario,
     map_tyndp_carrier_names,
     parse_wscenario,
     safe_planning_horizon,
+=======
+>>>>>>> origin/master:scripts/sb/build_pemmdb_data.py
     set_scenario_config,
 )
+from scripts.sb._helpers import convert_units, map_tyndp_carrier_names, safe_pyear
 
 # for compatibility with future pandas downcasting behaviour
 pd.set_option("future.no_silent_downcasting", True)
@@ -539,6 +542,29 @@ def _process_battery_capacities(
     """
     Extract and clean `Battery` capacities.
     """
+<<<<<<< HEAD:scripts/sb/build_tyndp_pemmdb_data.py
+=======
+    # Fill missing data for FR15
+    if node == "FR15":
+        idx = [5, 7, 8]
+        cols = node_tech_data.columns[idx]
+        node_tech_data[cols] = node_tech_data[cols].astype(object)
+        node_tech_data.iloc[-1, idx] = 0
+
+    # Extract data
+    df_raw = (
+        node_tech_data.iloc[7:, 1:]
+        .dropna(how="all", axis=0)
+        .dropna(how="all", axis=1)
+        .reset_index(drop=True)
+    )
+
+    if df_raw.empty:
+        logger.debug(
+            f"No PEMMDB data available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
+        )
+        return None
+>>>>>>> origin/master:scripts/sb/build_pemmdb_data.py
 
     column_names = [
         "pemmdb_type",
@@ -834,7 +860,7 @@ def _process_other_nonres_profiles(
 
     # Extract plant type
     price_band_type = _extract_price_band_type(df.T).rename("price_band_type")
-    price = df.T.price
+    price = df.T.price.astype(float)
     pemmdb_carrier = (
         "Other Non-RES" + " " + df.T.pemmdb_type.str.split("/").str[1]
     ).rename("pemmdb_carrier")

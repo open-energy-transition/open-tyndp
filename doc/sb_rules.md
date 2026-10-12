@@ -39,6 +39,27 @@ data:
 
 - `data/open_tyndp_prelim/{source}/{version}/base_s_all___{planning_horizons}.nc`
 
+<<<<<<< HEAD
+=======
+### Rule `retrieve_countries_centroids`
+
+Downloads country centroid geometry data by Copyright (c) 2021 Gavin Rehkemper from
+<https://cdn.jsdelivr.net/gh/gavinr/world-countries-centroids@v1.0.0/dist/countries.geojson>.
+
+**Relevant Settings**
+
+```yaml
+data:
+    countries_centroids:
+        source:
+        version:
+```
+
+**Outputs**
+
+- `data/countries_centroids/{source}/{version}/countries.geojson`
+
+>>>>>>> origin/master
 ## Development
 
 ### Rule `prepare_tyndp_pecd_release`

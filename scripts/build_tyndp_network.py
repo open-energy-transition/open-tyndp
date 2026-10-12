@@ -26,10 +26,14 @@ from shapely.geometry import LineString
 
 from scripts._helpers import (
     configure_logging,
+<<<<<<< HEAD
     extract_grid_data_tyndp,
     format_bz_names,
+=======
+>>>>>>> origin/master
     set_scenario_config,
 )
+from scripts.sb._helpers import extract_grid_data_tyndp
 
 logger = logging.getLogger(__name__)
 

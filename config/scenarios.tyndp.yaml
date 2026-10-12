@@ -200,6 +200,7 @@ NT-ws2009:
   cba:
     sb_scenario: NT
 
+<<<<<<< HEAD
 
 DE-ws1995:
 #  <<: *cba-common
@@ -292,3 +293,8 @@ DE-wscenarios:
 GA-wscenarios:
   cba:
     scenarios: [GA-ws2009, GA-ws2008, GA-ws1995]
+=======
+NT-cyears:
+  cba:
+    scenarios: [NT-cy2009, NT-cy2008, NT-cy1995]
+>>>>>>> origin/master

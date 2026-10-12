@@ -14,10 +14,15 @@ import pandas as pd
 
 from scripts._helpers import (
     configure_logging,
+<<<<<<< HEAD
     extract_grid_data_tyndp,
     format_bz_names,
+=======
+    get_snapshots,
+>>>>>>> origin/master
     set_scenario_config,
 )
+from scripts.sb._helpers import SCENARIO_DICT, extract_grid_data_tyndp
 
 logger = logging.getLogger(__name__)
 
