@@ -3,8 +3,12 @@
 # SPDX-License-Identifier: MIT
 
 
+<<<<<<< HEAD
 from scripts.sb.build_tyndp_demand import DEMAND_TYPE_MAP
 from scripts._helpers import safe_planning_horizon, find_free_port
+=======
+from scripts.sb._helpers import safe_pyear, find_free_port
+>>>>>>> origin/master
 from shutil import unpack_archive, copy2
 
 # Retrieve
@@ -97,6 +101,26 @@ if (PRESOLVED_NETWORKS_DATASET := dataset_version("open_tyndp_prelim"))[
                     copyfileobj(src, dst)
 
 
+<<<<<<< HEAD
+=======
+# License - MIT - Copyright (c) 2021 Gavin Rehkemper
+# Website: https://github.com/gavinr/world-countries-centroids
+if (CENTROIDS_DATASET := dataset_version("countries_centroids"))["source"] in [
+    "primary",
+    *ARCHIVE_SOURCES,
+]:
+
+    rule retrieve_countries_centroids:
+        input:
+            centroids=storage(CENTROIDS_DATASET["url"]),
+        output:
+            f"{CENTROIDS_DATASET['folder']}/countries.geojson",
+        log:
+            "logs/retrieve_countries_centroids.log",
+        run:
+            copy2(input["centroids"], output[0])
+
+>>>>>>> origin/master
 
 # Development
 #############
@@ -982,7 +1006,6 @@ rule launch_explorer:
 
         output_log = str(output[0])
         input_files = list(input)
-
         # Define command line executable
         cmd = [
             sys.executable,
@@ -990,29 +1013,23 @@ rule launch_explorer:
             output_log,
             str(params.port),
         ] + input_files
-
         print(params.launch_msg)
-
         # Open logfile before Popen so the log exists when the subprocess validates its path
         popen_kwargs = {
             "stdout": open(output_log, "w"),
             "stderr": subprocess.STDOUT,
         }
-
         # Use creationflags for Windows and start_new_session for Linux/Unix
         if platform.system() == "Windows":
             popen_kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
         else:
             popen_kwargs["start_new_session"] = True
-
         process = subprocess.Popen(cmd, **popen_kwargs)
-
         print(f"Explorer subprocess started with PID: {process.pid}")
         print(f"PyPSA-Explorer is running at http://127.0.0.1:{params.port}.")
         print(
             f"Your browser should open automatically. If not, click the link above."
         )
-
 
 
 rule close_explorers:
@@ -1021,7 +1038,6 @@ rule close_explorers:
 
         print("Closing all explorer instances...")
         killed_count = 0
-
         for proc in psutil.process_iter(["pid", "name", "cmdline"]):
             try:
                 cmdline = proc.info.get("cmdline", [])
@@ -1031,7 +1047,6 @@ rule close_explorers:
                     killed_count += 1
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 pass
-
         if killed_count == 0:
             print("No explorer processes found running.")
         else:

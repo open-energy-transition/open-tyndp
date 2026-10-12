@@ -28,9 +28,13 @@ from tqdm import tqdm
 from scripts._helpers import (
     configure_logging,
     get_snapshots,
+<<<<<<< HEAD:scripts/sb/clean_tyndp_pecd_data.py
     safe_planning_horizon,
+=======
+>>>>>>> origin/master:scripts/sb/clean_pecd_data.py
     set_scenario_config,
 )
+from scripts.sb._helpers import safe_pyear
 
 logger = logging.getLogger(__name__)
 

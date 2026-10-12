@@ -9,19 +9,17 @@ import copy
 import logging
 import os
 import re
-import socket
 import time
-from bisect import bisect_right
 from collections.abc import Callable
 from functools import lru_cache, partial, wraps
+from itertools import takewhile
+from operator import attrgetter
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Literal
 
 import atlite
 import fiona
-import git
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pypsa
@@ -39,6 +37,7 @@ logger = logging.getLogger(__name__)
 
 REGION_COLS = ["geometry", "name", "x", "y", "country"]
 
+<<<<<<< HEAD
 SCENARIO_DICT = {
     "Distributed Energy": "DE",
     "Global Ambition": "GA",
@@ -60,6 +59,8 @@ AVAILABLE_WSCENARIOS = {
     2050: [91, 92, 106],
 }
 
+=======
+>>>>>>> origin/master
 PYPSA_V1 = bool(re.match(r"^1\.\d", pypsa.__version__))
 
 
@@ -1164,6 +1165,34 @@ def load_costs(cost_file: str) -> pd.DataFrame:
     return pd.read_csv(cost_file, index_col=0)
 
 
+def _simplify_polys(
+    polys, minarea=100 * 1e6, maxdistance=None, tolerance=None, filterremote=True
+):  # 100*1e6 = 100 km² if CRS is DISTANCE_CRS
+    from shapely.geometry import MultiPolygon
+
+    if isinstance(polys, MultiPolygon):
+        polys = sorted(polys.geoms, key=attrgetter("area"), reverse=True)
+        mainpoly = polys[0]
+        mainlength = np.sqrt(mainpoly.area / (2.0 * np.pi))
+
+        if maxdistance is not None:
+            mainlength = maxdistance
+
+        if mainpoly.area > minarea:
+            polys = MultiPolygon(
+                [
+                    p
+                    for p in takewhile(lambda p: p.area > minarea, polys)
+                    if not filterremote or (mainpoly.distance(p) < mainlength)
+                ]
+            )
+        else:
+            polys = mainpoly
+    if tolerance is not None:
+        polys = polys.simplify(tolerance=tolerance)
+    return polys
+
+
 @lru_cache
 def load_data_versions(*files: Path) -> pd.DataFrame:
     """
@@ -1233,6 +1262,7 @@ def _load_data_version(file: str | Path, validate: bool = True) -> pd.DataFrame:
         data_versions = VersionsSchema.validate(data_versions)
 
     return data_versions
+<<<<<<< HEAD
 
 
 def make_index(
@@ -2129,3 +2159,5 @@ def get_wscenario(wscenarios, planning_horizon):
         wscenario = fallback_scenario
 
     return wscenario
+=======
+>>>>>>> origin/master

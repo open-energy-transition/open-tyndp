@@ -28,9 +28,13 @@ from tqdm import tqdm
 from scripts._helpers import (
     configure_logging,
     get_snapshots,
+<<<<<<< HEAD
     safe_planning_horizon,
+=======
+>>>>>>> origin/master
     set_scenario_config,
 )
+from scripts.sb._helpers import safe_pyear
 
 logger = logging.getLogger(__name__)
 

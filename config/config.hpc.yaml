@@ -3,17 +3,25 @@
 #
 # SPDX-License-Identifier: CC0-1.0
 
-# example for syncing individual files from remote using `sync_file` rule
-#remote:
-#  sync_file:
-#    results:
-#    - cba/results/2030/indicators_2030.csv
-#    - cba/results/2040/indicators_2040.csv
-
 # Specify the name of the scenario(s) you want to run from config/scenarios.tyndp.yaml
 run:
   name:
   - NT
+
+remote:
+  # Project-specific files to pull with sync_file rule
+  # TODO Improve the feature to collect project-specific data across weather scenarios
+  sync_file:
+    results:
+    - cba/networks/project_t335_*.nc  # PINT
+    - cba/networks/project_t339_*.nc  # TOOT
+    - cba/networks/project_t1106_*.nc  # TOOT, offshore
+    - cba/networks/project_s1001_*.nc  # PHS
+    - cba/networks/project_s1013_*.nc  # CAES
+    - cba/networks/project_s1035_*.nc  # battery
+  # Paths to skip with sync rule
+  sync_exclude:
+  - cba/networks/project_*
 
 # Remote runs usually can't launch the explorer
 launch_explorer: false
@@ -38,9 +46,8 @@ solving:
 cba:
   # Default high-res CBA projects
   projects:
-  - t335
-  - t339
-  - t1106
+  - t*
+  - s*
   # MSV solver settings
   msv_extraction:
     solving:
