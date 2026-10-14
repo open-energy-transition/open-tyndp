@@ -394,6 +394,7 @@ rule prepare_project:
         storage_projects=rules.clean_projects.output.storage_projects,
         generator_projects_static=rules.clean_projects.output.generator_projects_static,
         generator_projects_dynamic=rules.clean_projects.output.generator_projects_dynamic,
+        buses=rules.clean_projects.output.buses,
         methods=rules.clean_projects.output.methods,
         costs=resources("costs_{planning_horizons}_processed.csv"),
     output:

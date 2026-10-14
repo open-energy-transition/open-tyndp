@@ -536,7 +536,6 @@ def extract_custom_buses(
     custom_buses = read_csv_or_excel(custom_buses_path).drop(
         ["source", "further description"], axis=1, errors="ignore"
     )
-    breakpoint()
     if custom_buses.empty:
         logger.debug("No custom buses found.")
         return custom_buses
@@ -546,8 +545,12 @@ def extract_custom_buses(
         custom_buses.bus_name.notnull() & custom_buses.lat.notnull() & custom_buses.lon.notnull() & custom_buses.project_id.notnull() & custom_buses.p_link.notnull()
     )
     custom_buses = custom_buses[mask_null]
+    breakpoint()
+    # TODO: Add validation for co-ordinates, 
+    # TODO: check if coordinates are within the bounds of the country, 
+    # TODO: Check coordinates are not duplicates of existing buses
+    # TODO: Round of coordinates to 4 decimal places to avoid duplicates due to precision issues
 
-    # TODO: Add validation for co-ordinates, check if they are within the bounds of the country, and if they are not duplicates of existing buses
 
     # Add validation for bus names, check if they are unique and not duplicates of existing buses
     mask_duplicate = (
@@ -1248,3 +1251,5 @@ if __name__ == "__main__":
     custom_gens_static.to_csv(snakemake.output.generator_projects_static, index=False)
 
     custom_gens_dynamic.to_csv(snakemake.output.generator_projects_dynamic)
+
+    custom_buses.to_csv(snakemake.output.buses, index=False)
