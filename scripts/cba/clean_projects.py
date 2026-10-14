@@ -540,16 +540,29 @@ def extract_custom_buses(
         logger.debug("No custom buses found.")
         return custom_buses
 
-    # Remove projects without bus name, coordinates, associated project, and p_link
+    # Remove projects without bus name, coordinates, associated project, p_link and p_link_capacity
     mask_null = (
-        custom_buses.bus_name.notnull() & custom_buses.lat.notnull() & custom_buses.lon.notnull() & custom_buses.project_id.notnull() & custom_buses.p_link.notnull()
+        custom_buses[["bus_name","lat","lon","project_id","p_link","p_link_capacity"]].notnull().all(axis=1)
     )
     custom_buses = custom_buses[mask_null]
-    breakpoint()
-    # TODO: Add validation for co-ordinates, 
+
+    # Add validation for co-ordinates, 
+    valid_lat = custom_buses["lat"].between(-90, 90)
+    valid_lon = custom_buses["lon"].between(-180, 180)
+    valid_coords = valid_lat & valid_lon
+
+    custom_buses = custom_buses[valid_coords]
+
+    # Round of coordinates to 4 decimal places to avoid duplicates due to precision issues
+    custom_buses = custom_buses.round({"lat": 4, "lon": 4})
+
+    # Check coordinates are not duplicates of existing buses
+    mask_duplicate_coords = (
+        custom_buses[["lat", "lon"]].apply(tuple, axis=1).isin(existing_buses[["lat", "lon"]].apply(tuple, axis=1))
+    )
+    custom_buses = custom_buses[~mask_duplicate_coords]
+
     # TODO: check if coordinates are within the bounds of the country, 
-    # TODO: Check coordinates are not duplicates of existing buses
-    # TODO: Round of coordinates to 4 decimal places to avoid duplicates due to precision issues
 
 
     # Add validation for bus names, check if they are unique and not duplicates of existing buses
