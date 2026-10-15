@@ -551,7 +551,9 @@ def extract_custom_buses(
     )
     custom_buses = custom_buses[mask_null]
     if mask_null.any():
-        logger.warning(f"Removed {(~mask_null).sum()} buses due to missing required fields.")
+        logger.warning(
+            f"Removed {(~mask_null).sum()} buses due to missing required fields."
+        )
 
     # Add validation for co-ordinates,
     valid_lat = custom_buses["lat"].between(-90, 90)
@@ -559,29 +561,27 @@ def extract_custom_buses(
     valid_coords = valid_lat & valid_lon
 
     if not valid_coords.any():
-        logger.warning(f"Removed {(~valid_coords).sum()} buses due to invalid coordinates.")
-        
+        logger.warning(
+            f"Removed {(~valid_coords).sum()} buses due to invalid coordinates."
+        )
+
     custom_buses = custom_buses[valid_coords]
 
     # Round of coordinates to 4 decimal places to avoid duplicates due to precision issues
     custom_buses = custom_buses.round({"lat": 4, "lon": 4})
 
-
-    # TODO: check if coordinates are within the bounds of the country, 
+    # TODO: check if coordinates are within the bounds of the country,
     # TODO: Check if coordinates have duplicates
 
     # Add validation for bus names, check if they are unique and not duplicates of existing buses
     # Check if this is required as custom bus suffix is added to the bus name to avoid duplicates with existing buses
-    mask_duplicate = (
-        custom_buses.bus_name.isin(existing_buses)
-    )
+    mask_duplicate = custom_buses.bus_name.isin(existing_buses)
     custom_buses = custom_buses[~mask_duplicate]
 
     if mask_duplicate.any():
         logger.warning(
             f"Dropped {(~mask_duplicate).sum()} buses due to duplicate bus names with existing buses, "
         )
-
 
     # Drop duplicate bus names, keeping the first occurrence - this is to avoid issues with duplicate bus names in the custom buses file
     custom_buses = custom_buses.drop_duplicates(subset=["bus_name"])
@@ -600,10 +600,7 @@ def extract_custom_buses(
         )
     custom_buses = custom_buses[mask_p_link_exists]
 
-    
-    logger.info(
-        f"Extracted {len(custom_buses)} custom buses after cleaning. "
-    )
+    logger.info(f"Extracted {len(custom_buses)} custom buses after cleaning. ")
 
     return custom_buses
 
