@@ -1,1 +1,1 @@
-project_name,project_type,project_id,bus_name,country,bidding_zone,low voltage,lat,lon,p_link,category,source,further description
+project_name,project_type,project_id,bus_name,country,low voltage,lat,lon,p_link,p_link_capacity,category,source,further description
