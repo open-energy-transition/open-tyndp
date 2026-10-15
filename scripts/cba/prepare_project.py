@@ -580,6 +580,76 @@ def prepare_transmission_project(
     )
 
 
+def prepare_custom_buses(
+    n: pypsa.Network, snakemake, prefix_pid: str, method: str
+) -> None:
+    """
+    Add custom buses accompanying a storage or transmission project.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        Network to modify.
+    snakemake : snakemake object
+        Snakemake object containing input/output paths and parameters.
+    prefix_pid : str
+        Project ID with prefix (e.g. "s1500" or "t1500")
+    method : str
+        Method (toot/pint) to apply the project.
+
+    Raises
+    ------
+    ValueError
+        If `method` is neither "pint" nor "toot".
+    """
+    custom_buses = pd.read_csv(snakemake.input.buses)
+
+    custom_buses_project = custom_buses[
+        (custom_buses["project_id"] == int(prefix_pid[1:]))
+        & (custom_buses["project_type"] == prefix_pid[0])
+    ]
+    if custom_buses_project.empty:
+        logger.debug(f"No custom buses found for project {prefix_pid}")
+        return
+
+    if method == "toot":
+        logger.warning(
+            f"Custom buses are not removed for TOOT projects. Project {prefix_pid} will keep its custom buses."
+        )
+    elif method == "pint":
+        for _, bus in custom_buses_project.iterrows():
+            # Add a suffix to the bus name to avoid conflicts with existing buses in the network
+            custom_bus_name = bus["bus_name"] + " custom bus"
+            n.add(
+                "Bus",
+                custom_bus_name,
+                carrier="AC",
+                country=bus["country"],
+                y=bus["lat"],
+                x=bus["lon"],
+                category=bus["category"],
+                v_nom=380
+                if not bus["low voltage"]
+                else 1,  # Use 380 kV for high voltage, 1 kV for low voltage
+            )
+            logger.info(f"Added custom bus {custom_bus_name} for project {prefix_pid}")
+
+            if bus["p_link"]:
+                n.add(
+                    "Link",
+                    f"{custom_bus_name} link",
+                    bus0=custom_bus_name,
+                    bus1=bus["p_link"],
+                    p_nom=bus["p_link_capacity"],
+                    p_min_pu=-1,  # Allow reverse flow
+                    p_max_pu=1,  # Allow forward flow
+                    carrier="DC",
+                    marginal_cost=0,  # Chk: Assuming no marginal cost for the link
+                )
+    else:
+        raise ValueError(f"Unknown method {method} for project {prefix_pid}")
+
+
 def prepare_custom_generators(
     n: pypsa.Network, snakemake, prefix_pid: str, method: str
 ) -> None:
@@ -690,6 +760,7 @@ if __name__ == "__main__":
             f"Unknown project type {project_type} for project {cba_project}"
         )
 
+    prepare_custom_buses(n, snakemake, cba_project, method)
     prepare_custom_generators(n, snakemake, cba_project, method)
 
     n.export_to_netcdf(snakemake.output.network)

@@ -514,6 +514,97 @@ def extract_custom_transmission_projects(
     return custom_transmission_projects
 
 
+def extract_custom_buses(
+    custom_buses_path: str,
+    existing_buses: pd.Index,
+) -> pd.DataFrame:
+    """
+    Extract and prepare custom buses data.
+
+    Parameters
+    ----------
+    custom_buses_path: str
+        Filepath for custom buses
+    existing_buses: pd.Index
+        List of existing buses
+
+    Returns
+    -------
+        pd.DataFrame
+            Pandas dataframe of custom buses
+    """
+
+    custom_buses = read_csv_or_excel(custom_buses_path).drop(
+        ["source", "further description"], axis=1, errors="ignore"
+    )
+    if custom_buses.empty:
+        logger.debug("No custom buses found.")
+        return custom_buses
+
+    # Remove projects without bus name, coordinates, associated project, p_link and p_link_capacity
+    mask_null = (
+        custom_buses[
+            ["bus_name", "lat", "lon", "project_id", "p_link", "p_link_capacity"]
+        ]
+        .notnull()
+        .all(axis=1)
+    )
+    custom_buses = custom_buses[mask_null]
+    if mask_null.any():
+        logger.warning(
+            f"Removed {(~mask_null).sum()} buses due to missing required fields."
+        )
+
+    # Add validation for co-ordinates,
+    valid_lat = custom_buses["lat"].between(-90, 90)
+    valid_lon = custom_buses["lon"].between(-180, 180)
+    valid_coords = valid_lat & valid_lon
+
+    if not valid_coords.any():
+        logger.warning(
+            f"Removed {(~valid_coords).sum()} buses due to invalid coordinates."
+        )
+
+    custom_buses = custom_buses[valid_coords]
+
+    # Round of coordinates to 4 decimal places to avoid duplicates due to precision issues
+    custom_buses = custom_buses.round({"lat": 4, "lon": 4})
+
+    # TODO: check if coordinates are within the bounds of the country,
+    # TODO: Check if coordinates have duplicates
+
+    # Add validation for bus names, check if they are unique and not duplicates of existing buses
+    # Check if this is required as custom bus suffix is added to the bus name to avoid duplicates with existing buses
+    mask_duplicate = custom_buses.bus_name.isin(existing_buses)
+    custom_buses = custom_buses[~mask_duplicate]
+
+    if mask_duplicate.any():
+        logger.warning(
+            f"Dropped {(~mask_duplicate).sum()} buses due to duplicate bus names with existing buses, "
+        )
+
+    # Drop duplicate bus names, keeping the first occurrence - this is to avoid issues with duplicate bus names in the custom buses file
+    custom_buses = custom_buses.drop_duplicates(subset=["bus_name"])
+
+    # Check if `p_link` bus exists in the existing buses
+    # Connecting a new bus to an existing bus is allowed, but connecting two new buses is not allowed
+
+    # Replace "UK" with "GB" in the `p_link` column to match existing bus names, if UK is used in the custom buses filepi
+    custom_buses["p_link"] = custom_buses["p_link"].replace({"UK": "GB"}, regex=True)
+    mask_p_link_exists = custom_buses["p_link"].isin(existing_buses)
+
+    if not mask_p_link_exists.all():
+        logger.warning(
+            f"{(~mask_p_link_exists).sum()} custom buses have a `p_link` bus that does not exist in the existing buses. "
+            "These buses will be ignored."
+        )
+    custom_buses = custom_buses[mask_p_link_exists]
+
+    logger.info(f"Extracted {len(custom_buses)} custom buses after cleaning. ")
+
+    return custom_buses
+
+
 def extract_custom_generators(
     custom_generators_static_path: str,
     custom_generator_dynamic_path: str,
@@ -570,7 +661,7 @@ def extract_custom_generators(
             "and to the PyPSA default otherwise. Ensure both datasets are compatible."
         )
 
-    # Remove projects with no project ID
+    # Remove generators with no project ID
     mask_pid_null = custom_gens_static.project_id.isnull()
     if mask_pid_null.any():
         logger.warning(
@@ -578,14 +669,14 @@ def extract_custom_generators(
         )
     custom_gens_static = custom_gens_static[~mask_pid_null].astype({"project_id": int})
 
-    # Remove projects without an existing bus
-    # TODO If generator is being added at a new bus, this bus should have already been listed under `custom_cba_buses.csv`
+    # Remove generators without an existing bus
+    # TODO If generator is being added at a new bus, this bus should have already been listed under `cba/custom_projects/buses.csv`
     mask_no_bus = ~custom_gens_static.bus.isin(existing_buses)
     if mask_no_bus.any():
         missing_buses = custom_gens_static.bus[mask_no_bus].unique().tolist()
         logger.warning(
             f"{mask_no_bus.sum()} custom generator(s) without existing bus have been dropped. Missing buses: {missing_buses}. "
-            "If new bus being added, ensure that it has been added to 'custom_cba_buses.csv'"
+            "If new bus being added, ensure that it has been added to 'cba/custom_projects/buses.csv'"
         )
     custom_gens_static = custom_gens_static[~mask_no_bus]
 
@@ -1116,6 +1207,7 @@ if __name__ == "__main__":
     custom_transmission_path = Path(snakemake.input.custom_transmission)
     custom_generators_static_path = Path(snakemake.input.custom_generators_static)
     custom_generators_dynamic_path = Path(snakemake.input.custom_generators_dynamic)
+    custom_buses_path = Path(snakemake.input.custom_buses)
     corrections_path = snakemake.input.cba_project_corrections
 
     # Get existing buses
@@ -1132,6 +1224,9 @@ if __name__ == "__main__":
     custom_transmission_projects = extract_custom_transmission_projects(
         custom_transmission_path, existing_buses
     )
+
+    # Custom buses
+    custom_buses = extract_custom_buses(custom_buses_path, existing_buses)
 
     # Custom generators
     # TODO Ensure custom buses have already been extracted and grouped under existing_buses
@@ -1190,3 +1285,5 @@ if __name__ == "__main__":
     custom_gens_static.to_csv(snakemake.output.generator_projects_static, index=False)
 
     custom_gens_dynamic.to_csv(snakemake.output.generator_projects_dynamic)
+
+    custom_buses.to_csv(snakemake.output.buses, index=False)
