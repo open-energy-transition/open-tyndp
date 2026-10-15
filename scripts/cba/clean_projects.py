@@ -543,13 +543,17 @@ def extract_custom_buses(
 
     # Remove projects without bus name, coordinates, associated project, p_link and p_link_capacity
     mask_null = (
-        custom_buses[["bus_name","lat","lon","project_id","p_link","p_link_capacity"]].notnull().all(axis=1)
+        custom_buses[
+            ["bus_name", "lat", "lon", "project_id", "p_link", "p_link_capacity"]
+        ]
+        .notnull()
+        .all(axis=1)
     )
     custom_buses = custom_buses[mask_null]
     if mask_null.any():
         logger.warning(f"Removed {(~mask_null).sum()} buses due to missing required fields.")
 
-    # Add validation for co-ordinates, 
+    # Add validation for co-ordinates,
     valid_lat = custom_buses["lat"].between(-90, 90)
     valid_lon = custom_buses["lon"].between(-180, 180)
     valid_coords = valid_lat & valid_lon

@@ -622,13 +622,15 @@ def prepare_custom_buses(
             custom_bus_name = bus["bus_name"] + " custom bus"
             n.add(
                 "Bus",
-                custom_bus_name, 
-                carrier="AC", 
+                custom_bus_name,
+                carrier="AC",
                 country=bus["country"],
                 y=bus["lat"],
                 x=bus["lon"],
                 category=bus["category"],
-                v_nom=380 if not bus["low voltage"] else 1, # Use 380 kV for high voltage, 1 kV for low voltage
+                v_nom=380
+                if not bus["low voltage"]
+                else 1,  # Use 380 kV for high voltage, 1 kV for low voltage
             )
             logger.info(f"Added custom bus {custom_bus_name} for project {prefix_pid}")
 
@@ -647,7 +649,7 @@ def prepare_custom_buses(
     else:
         raise ValueError(f"Unknown method {method} for project {prefix_pid}")
 
-    
+
 def prepare_custom_generators(
     n: pypsa.Network, snakemake, prefix_pid: str, method: str
 ) -> None:
