@@ -513,6 +513,7 @@ def extract_custom_transmission_projects(
 
     return custom_transmission_projects
 
+
 def extract_custom_buses(
     custom_buses_path: str,
     existing_buses: pd.Index,
@@ -566,9 +567,7 @@ def extract_custom_buses(
 
 
     # Add validation for bus names, check if they are unique and not duplicates of existing buses
-    mask_duplicate = (
-        custom_buses.bus_name.isin(existing_buses)
-    )
+    mask_duplicate = custom_buses.bus_name.isin(existing_buses)
     custom_buses = custom_buses[~mask_duplicate]
 
     # Drop duplicate bus names, keeping the first occurrence
@@ -1202,10 +1201,7 @@ if __name__ == "__main__":
     )
 
     # Custom buses
-    custom_buses = extract_custom_buses(
-        custom_buses_path,
-        existing_buses
-    )
+    custom_buses = extract_custom_buses(custom_buses_path, existing_buses)
 
     # Custom generators
     # TODO Ensure custom buses have already been extracted and grouped under existing_buses
