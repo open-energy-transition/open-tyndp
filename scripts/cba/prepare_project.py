@@ -603,7 +603,7 @@ def prepare_custom_buses(
         If `method` is neither "pint" nor "toot".
     """
     custom_buses = pd.read_csv(snakemake.input.buses)
-    breakpoint()
+
     custom_buses_project = custom_buses[
         (custom_buses["project_id"] == int(prefix_pid[1:]))
         & (custom_buses["project_type"] == prefix_pid[0])
@@ -639,6 +639,10 @@ def prepare_custom_buses(
                     bus0=custom_bus_name,
                     bus1=bus["p_link"],
                     p_nom=bus["p_link_capacity"],
+                    p_min_pu =-1,  # Allow reverse flow
+                    p_max_pu = 1,   # Allow forward flow
+                    carrier="DC",
+                    marginal_cost=0,  # Chk: Assuming no marginal cost for the link
                 )
     else:
         raise ValueError(f"Unknown method {method} for project {prefix_pid}")

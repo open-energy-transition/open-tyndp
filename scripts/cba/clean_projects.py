@@ -546,36 +546,60 @@ def extract_custom_buses(
         custom_buses[["bus_name","lat","lon","project_id","p_link","p_link_capacity"]].notnull().all(axis=1)
     )
     custom_buses = custom_buses[mask_null]
+    if mask_null.any():
+        logger.warning(f"Removed {(~mask_null).sum()} buses due to missing required fields.")
 
     # Add validation for co-ordinates, 
     valid_lat = custom_buses["lat"].between(-90, 90)
     valid_lon = custom_buses["lon"].between(-180, 180)
     valid_coords = valid_lat & valid_lon
 
+    if not valid_coords.any():
+        logger.warning(f"Removed {(~valid_coords).sum()} buses due to invalid coordinates.")
+        
     custom_buses = custom_buses[valid_coords]
 
     # Round of coordinates to 4 decimal places to avoid duplicates due to precision issues
     custom_buses = custom_buses.round({"lat": 4, "lon": 4})
 
-    # Check coordinates are not duplicates of existing buses
-    mask_duplicate_coords = (
-        custom_buses[["lat", "lon"]].apply(tuple, axis=1).isin(existing_buses[["lat", "lon"]].apply(tuple, axis=1))
-    )
-    custom_buses = custom_buses[~mask_duplicate_coords]
 
     # TODO: check if coordinates are within the bounds of the country, 
-
+    # TODO: Check if coordinates have duplicates
 
     # Add validation for bus names, check if they are unique and not duplicates of existing buses
-    mask_duplicate = custom_buses.bus_name.isin(existing_buses)
+    # Check if this is required as custom bus suffix is added to the bus name to avoid duplicates with existing buses
+    mask_duplicate = (
+        custom_buses.bus_name.isin(existing_buses)
+    )
     custom_buses = custom_buses[~mask_duplicate]
 
-    # Drop duplicate bus names, keeping the first occurrence
+    if mask_duplicate.any():
+        logger.warning(
+            f"Dropped {(~mask_duplicate).sum()} buses due to duplicate bus names with existing buses, "
+        )
+
+
+    # Drop duplicate bus names, keeping the first occurrence - this is to avoid issues with duplicate bus names in the custom buses file
     custom_buses = custom_buses.drop_duplicates(subset=["bus_name"])
 
-    # TODO: Add validation for if associated project is TOOT or PINT, add bus only for PINT projects
+    # Check if `p_link` bus exists in the existing buses
+    # Connecting a new bus to an existing bus is allowed, but connecting two new buses is not allowed
 
-    # TODO: Add validation for onshore/offshore, check if the bus is onshore or offshore and if it is offshore, check if it is connected to an offshore hub
+    # Replace "UK" with "GB" in the `p_link` column to match existing bus names, if UK is used in the custom buses filepi
+    custom_buses["p_link"] = custom_buses["p_link"].replace({"UK": "GB"}, regex=True)
+    mask_p_link_exists = custom_buses["p_link"].isin(existing_buses)
+
+    if not mask_p_link_exists.all():
+        logger.warning(
+            f"{(~mask_p_link_exists).sum()} custom buses have a `p_link` bus that does not exist in the existing buses. "
+            "These buses will be ignored."
+        )
+    custom_buses = custom_buses[mask_p_link_exists]
+
+    
+    logger.info(
+        f"Extracted {len(custom_buses)} custom buses after cleaning. "
+    )
 
     return custom_buses
 
