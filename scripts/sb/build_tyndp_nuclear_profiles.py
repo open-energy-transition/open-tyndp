@@ -24,14 +24,18 @@ import pandas as pd
 
 from scripts._helpers import (
     configure_logging,
+    convert_units,
     format_bz_names,
+    get_snapshots,
     get_wscenario,
     set_scenario_config,
 )
 from scripts.sb.clean_tyndp_dashboard_benchmark import (
     CAPACITY_SHEET,
+    NROWS_HEADER,
+    get_dashboard_files,
+    parse_dashboard_header,
     parse_installed_capacity,
-    split_unit_from_category,
 )
 
 logger = logging.getLogger(__name__)
@@ -58,17 +62,21 @@ def read_nuclear_availability(fn: Path) -> pd.DataFrame | None:
                 pd.read_excel(file, sheet_name=CAPACITY_SHEET, header=None)
             )
             .query("carrier == 'Nuclear' and sheet == 'E-Market' and value > 0")
+            .pipe(convert_units)
             .set_index("bus")
-            .value.mul(1e3)  # GW to MW
+            .value
         )
         if capacity.empty:
             return None
         df = pd.read_excel(file, sheet_name="E-Market", header=None)
 
-    # Row 5 holds the market zone, row 6 the category, hourly values start in row 10
-    carrier, _ = split_unit_from_category(df.iloc[6])
-    generation = df.loc[10:, carrier == "Nuclear"].astype(float)
-    generation.columns = df.loc[5, generation.columns]
+    # Hourly values start after the header and the row of hour labels
+    header = parse_dashboard_header(df).query("carrier == 'Nuclear'")
+    generation = (
+        df.loc[NROWS_HEADER + 1 :, header.index]
+        .astype(float)
+        .set_axis(header.bus, axis=1)
+    )
     assert generation.columns.is_unique, f"Several nuclear series per node in {fn}"
 
     return generation.div(capacity)
@@ -93,12 +101,8 @@ if __name__ == "__main__":
         f"Building nuclear availability profiles for {planning_horizon}, weather scenario WS{wscenario:03d}"
     )
 
-    dashboard_files = sorted(
-        Path(
-            snakemake.input.dashboard_dir,
-            str(planning_horizon),
-            f"Weather scenario {wscenario:03d}",
-        ).glob("*_TimeSeriesDashboard_*.xlsx")
+    dashboard_files = get_dashboard_files(
+        snakemake.input.dashboard_dir, planning_horizon, wscenario
     )
     with ProcessPoolExecutor(max_workers=snakemake.threads) as executor:
         profiles = pd.concat(
@@ -111,9 +115,11 @@ if __name__ == "__main__":
         )
 
     # Dashboards cover 8760 hours without a year, hence align them to the snapshot year
-    year = pd.Timestamp(snakemake.params.snapshots["start"]).year
-    sns = pd.date_range(f"{year}-01-01", f"{year}-12-31 23:00", freq="h")
-    sns = sns[~((sns.month == 2) & (sns.day == 29))]
+    year = get_snapshots(snakemake.params.snapshots)[0].year
+    sns = get_snapshots(
+        {"start": f"{year}-01-01", "end": f"{year + 1}-01-01", "inclusive": "left"},
+        drop_leap_day=True,
+    )
 
     profiles = (
         profiles.set_axis(sns)
