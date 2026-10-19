@@ -305,7 +305,7 @@ rule build_tyndp_nuclear_profiles:
         benchmarks("performances/build_tyndp_nuclear_profiles_{planning_horizons}")
     threads: 4
     resources:
-        mem_mb=1000,
+        mem_mb=2000,
     params:
         wscenarios=config_provider("wscenarios_tyndp"),
         snapshots=config_provider("snapshots"),
