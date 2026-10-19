@@ -301,11 +301,6 @@ def get_dashboard_files(
     -------
     list[Path]
         Sorted paths to the TimeSeries Dashboard files, one per country.
-
-    Raises
-    ------
-    FileNotFoundError
-        If no TimeSeries Dashboard file is found.
     """
     files = sorted(
         Path(

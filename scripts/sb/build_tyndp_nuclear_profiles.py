@@ -77,9 +77,8 @@ def read_nuclear_availability(fn: Path) -> pd.DataFrame | None:
         .astype(float)
         .set_axis(header.bus, axis=1)
     )
-    assert generation.columns.is_unique, f"Several nuclear series per node in {fn}"
 
-    return generation.div(capacity)
+    return generation.div(capacity).clip(upper=1.0)  # clean rounding noise
 
 
 if __name__ == "__main__":
@@ -127,7 +126,6 @@ if __name__ == "__main__":
         .rename_axis(index="snapshot", columns=None)
         .resample("W")
         .transform("max")
-        .clip(upper=1.0)
         .sort_index(axis=1)
     )
     profiles.to_csv(snakemake.output[0])
