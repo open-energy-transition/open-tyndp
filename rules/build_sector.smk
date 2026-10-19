@@ -1867,7 +1867,9 @@ rule prepare_sector_network:
         tyndp_nuclear_profiles=branch(
             lambda w: config_provider("tyndp_scenario")(w)
             and config_provider("conventional", "tyndp_availability_profiles")(w),
-            resources("nuclear_p_max_pu_{planning_horizons}.csv"),
+            resources(
+                "tyndp_nuclear_profiles/nuclear_p_max_pu_{planning_horizons}.csv"
+            ),
         ),
         tyndp_smr=branch(
             config_provider("sector", "h2_topology_tyndp"),

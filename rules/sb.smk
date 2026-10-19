@@ -298,7 +298,7 @@ rule build_tyndp_nuclear_profiles:
     input:
         dashboard_dir=rules.retrieve_tyndp_2026.output.market_outputs,
     output:
-        resources("nuclear_p_max_pu_{planning_horizons}.csv"),
+        resources("tyndp_nuclear_profiles/nuclear_p_max_pu_{planning_horizons}.csv"),
     log:
         logs("build_tyndp_nuclear_profiles_{planning_horizons}.log"),
     benchmark:

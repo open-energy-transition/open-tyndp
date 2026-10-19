@@ -13,7 +13,7 @@ The profiles are derived from the weather scenario selected for the planning hor
 
 Outputs
 -------
-- `resources/nuclear_p_max_pu_{planning_horizons}.csv`: weekly nuclear availability factor per bus.
+- `resources/tyndp_nuclear_profiles/nuclear_p_max_pu_{planning_horizons}.csv`: weekly nuclear availability factor per bus.
 """
 
 import logging
