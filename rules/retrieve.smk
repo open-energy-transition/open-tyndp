@@ -1475,6 +1475,7 @@ if (TYNDP_2026_DATASET := dataset_version("tyndp_2026"))["source"] in ARCHIVE_SO
                 hydrogen_zip=f"{TYNDP_2026_DATASET['folder']}/Hydrogen.zip",
                 hydrogen=directory(f"{TYNDP_2026_DATASET['folder']}/Hydrogen"),
                 h2_imports=f"{TYNDP_2026_DATASET['folder']}/Hydrogen/H2 IMPORTS GENERATORS PROPERTIES.xlsx",
+                h2_import_profiles=f"{TYNDP_2026_DATASET['folder']}/Hydrogen/H2 IMPORT PROFILES.xlsx",
                 h2_storages=f"{TYNDP_2026_DATASET['folder']}/Hydrogen/H2 STORAGES.xlsx",
                 smr=f"{TYNDP_2026_DATASET['folder']}/Hydrogen/SMR.xlsx",
                 p2g_emarket=f"{TYNDP_2026_DATASET['folder']}/Hydrogen/P2G_emarket_template_corrected_requirecheck.xlsx",

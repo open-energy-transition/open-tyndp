@@ -412,15 +412,17 @@ class ElectricityConfig(BaseModel):
             "solar-pv",
             "solar-pv-utility",
             "solar-pv-rooftop",
+            "solar-pv-utility-sres",
+            "solar-pv-utility-dres",
             "onwind",
-            "offwind-ac-fb-r",
-            "offwind-ac-fl-r",
-            "offwind-dc-fb-r",
-            "offwind-dc-fl-r",
-            "offwind-dc-fb-oh",
-            "offwind-dc-fl-oh",
-            "offwind-h2-fb-oh",
-            "offwind-h2-fl-oh",
+            "onwind-sres",
+            "onwind-dres",
+            "offwind-r",
+            "offwind-oh",
+            "offwind-dres-r",
+            "offwind-dres-oh",
+            "offwind-sres-r",
+            "offwind-sres-oh",
             "other-res",
             "hydro-ror",
             "hydro-reservoir",
@@ -432,9 +434,11 @@ class ElectricityConfig(BaseModel):
         default_factory=list,
         description="List of TYNDP renewable generators to include in the model. Technologies covered by specified TYNDP renewable carriers need to be removed from `estimate_renewable_carriers` technology list.",
     )
-    tyndp_stores: list[Literal["battery", "h2_cavern", "h2_tank"]] = Field(
-        default_factory=list,
-        description="List of TYNDP storage units (battery and/or hydrogen).",
+    tyndp_stores: list[Literal["battery", "H2 cavern-storage", "H2 tank-storage"]] = (
+        Field(
+            default_factory=list,
+            description="List of TYNDP storage units (battery and/or hydrogen).",
+        )
     )
     pecd_renewable_profiles: _PecdRenewableProfilesConfig = Field(
         default_factory=_PecdRenewableProfilesConfig,
