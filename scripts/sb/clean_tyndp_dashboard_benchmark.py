@@ -192,7 +192,7 @@ def parse_dashboard_header(df: pd.DataFrame) -> pd.DataFrame:
     -------
     pd.DataFrame
         One row per timeseries, indexed by its column in ``df``, with columns
-        [bus, element, flow, min, max, avg, sum, carrier, unit].
+        [min, max, avg, sum, bus, element, flow, carrier, unit].
     """
     col_keys = 1
 
@@ -351,7 +351,7 @@ def read_dashboard(
 
 def load_crossborder(
     df: pd.DataFrame,
-    stats: list[str] = ["min", "max", "avg", "sum"],
+    stats: list[str] = STATS,
 ) -> pd.DataFrame:
     """
     Load the cross-border flows from the "Exchanges" sheets of the TYNDP TimeSeries Dashboard.
