@@ -2105,8 +2105,13 @@ def _add_conventional_thermal_capacities(
         # (nuclear only) Define availability profiles,
         # accounting for maintenance schedules and forced outages
         if tech == "nuclear":
-            nuclear_profiles.columns = nuclear_profiles.columns + " nuclear"
-            nuclear_profiles = nuclear_profiles.reindex(n.snapshots)
+            # Fall back to the country profile for nodes aggregated in the dashboards (e.g. IT in 2050)
+            bus = n.links.loc[tech_i, "bus1"]
+            bus = bus.where(bus.isin(nuclear_profiles.columns), bus.str[:2])
+            bus = bus[bus.isin(nuclear_profiles.columns)]
+            nuclear_profiles = (
+                nuclear_profiles[bus].set_axis(bus.index, axis=1).reindex(n.snapshots)
+            )
 
         # Filter for profiles
         profiles = pemmdb_profiles.query("index_carrier == @tech")

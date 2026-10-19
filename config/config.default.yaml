@@ -1589,9 +1589,6 @@ data:
   tyndp_cba_projects:
     source: archive
     version: latest
-  tyndp_nuclear_profiles:
-    source: archive
-    version: latest
   open_tyndp_prelim:
     source: archive
     version: latest
