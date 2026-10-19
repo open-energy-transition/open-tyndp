@@ -28,26 +28,6 @@ if (PECD_DATASET := dataset_version("tyndp_pecd"))["source"] in ARCHIVE_SOURCES:
             os.remove(output["dir"] + ".zip")
 
 
-if (NUC_PROFILES := dataset_version("tyndp_nuclear_profiles"))[
-    "source"
-] in ARCHIVE_SOURCES:
-
-    rule retrieve_tyndp_nuclear_profiles:
-        input:
-            # TODO Derive this from Market Model Outputs directly
-            zip_file=storage(NUC_PROFILES["url"]),
-        output:
-            dir=directory(NUC_PROFILES["folder"]),
-            nuclear_p_max_pu_2030=f"{NUC_PROFILES['folder']}/nuclear_p_max_pu_2030.csv",
-            nuclear_p_max_pu_2040=f"{NUC_PROFILES['folder']}/nuclear_p_max_pu_2040.csv",
-        log:
-            "logs/retrieve_tyndp_nuclear_profiles.log",
-        run:
-            copy2(input["zip_file"], output["dir"] + ".zip")
-            unpack_archive(output["dir"] + ".zip", output["dir"])
-            os.remove(output["dir"] + ".zip")
-
-
 if (PRESOLVED_NETWORKS_DATASET := dataset_version("open_tyndp_prelim"))[
     "source"
 ] in ARCHIVE_SOURCES:
@@ -312,6 +292,25 @@ rule build_tyndp_trajectories:
         tyndp_scenario=config_provider("tyndp_scenario"),
     script:
         scripts("sb/build_tyndp_trajectories.py")
+
+
+rule build_tyndp_nuclear_profiles:
+    input:
+        dashboard_dir=rules.retrieve_tyndp_2026.output.market_outputs,
+    output:
+        resources("tyndp_nuclear_profiles/nuclear_p_max_pu_{planning_horizons}.csv"),
+    log:
+        logs("build_tyndp_nuclear_profiles_{planning_horizons}.log"),
+    benchmark:
+        benchmarks("performances/build_tyndp_nuclear_profiles_{planning_horizons}")
+    threads: 4
+    resources:
+        mem_mb=2000,
+    params:
+        wscenarios=config_provider("wscenarios_tyndp"),
+        snapshots=config_provider("snapshots"),
+    script:
+        scripts("sb/build_tyndp_nuclear_profiles.py")
 
 
 rule clean_tyndp_hydro_inflows:

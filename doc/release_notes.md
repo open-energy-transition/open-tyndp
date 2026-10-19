@@ -31,6 +31,8 @@
 
 * feat: update the TYNDP 2026 data bundle to version 2026-10-07, which follows the reference datasets from ENTSO-E's official downloads page ([#1055](https://github.com/open-energy-transition/open-tyndp/pull/1055)). The previous bundle of 2026-08-21 was intended for project promoters and contained CBA corrections not intended for Scenario Building. The only file still taken from these corrections is `P2G_emarket_template_corrected_requirecheck.xlsx` from `cba_corrections/Hydrogen.zip`, because the reference datasets do not include it. The bundle version date is also the date the data was retrieved from the downloads page. ENTSO-E does not version these datasets, so the bundle may include upstream changes made since 2026-08-21.
 
+* feat: update the nuclear availability profiles with the TYNDP 2026 NT+ TimeSeries Dashboards ([#1073](https://github.com/open-energy-transition/open-tyndp/pull/1073)). The new rule `build_tyndp_nuclear_profiles` extracts the profiles for each planning horizon from the weather scenario selected in `wscenarios_tyndp`. The pre-built TYNDP 2024 dataset `tyndp_nuclear_profiles` and the rule `retrieve_tyndp_nuclear_profiles` are removed.
+
 **Changes**
 
 * feat: align CO2 prices with TYNDP 2026 NT+ (97.47 / 197.51 / 297.54 / 502.74 €/t for 2030 / 2035 / 2040 / 2050) ([#1038](https://github.com/open-energy-transition/open-tyndp/pull/1038)). The interpolated 2045 value is dropped.

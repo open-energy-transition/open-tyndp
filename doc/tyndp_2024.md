@@ -108,12 +108,6 @@ The original data files can be found under <https://2024.entsos-tyndp-scenarios.
 - **Link:** <https://2024-data.entsos-tyndp-scenarios.eu/files/reports/TYNDP-2024-Scenarios-Package-20250128.zip>
 - **Description:** Contains the TYNDP Scenarios Report Data Figures data and calculations used to produce the figures in the Scenarios Report.
 
-## `TYNDP Nuclear profiles`
-
-- **Source:** Derived from TYNDP 2024 Market Model Outputs
-- **Link:** <https://storage.googleapis.com/open-tyndp-data-store/2024/nuclear_p_max_pu.zip>
-- **Description:** Contains availability profiles for nuclear power plants, derived from normalized generation time series in TYNDP 2024 Market Model Outputs. Resampled weekly, retaining maximum availability factor per week to account for maintenance schedules and forced outages.
-
 ## `data/cba/a.3_non-co2-emissions.csv`
 
 - **Source:** TYNDP 2024 Methodology: CBA Implementation Guidelines, <https://tyndp.entsoe.eu/resources/tyndp-2024-methodology-cba-implementation-guidelines-for-consultation-1>

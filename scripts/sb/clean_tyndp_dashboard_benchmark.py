@@ -50,6 +50,9 @@ ELECTRICITY_SHEETS = ["E-Market", "Prosumer", "Offshore"]
 H2_SHEETS = ["H2 Zone 1", "H2 Zone 2"]
 EXCHANGES_SHEET = "Exchanges"
 CAPACITY_SHEET = "Installed Capacity"
+# Header rows of the timeseries sheets and the yearly aggregates in their first rows
+NROWS_HEADER = 9
+STATS = ["min", "max", "avg", "sum"]
 
 LOOKUP_TABLES: dict[str, dict] = {
     "power_capacity": {"sheet": [CAPACITY_SHEET]},
@@ -168,9 +171,9 @@ def rename_prosumer_nodes(buses: pd.Series) -> pd.Series:
     return format_bz_names(buses).str.removesuffix("RETE")
 
 
-def parse_dashboard_sheet(df: pd.DataFrame, sheet_name: str) -> pd.DataFrame:
+def parse_dashboard_header(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Parse the yearly aggregates of a sheet from a TYNDP TimeSeries Dashboard output file.
+    Parse the header of a sheet from a TYNDP TimeSeries Dashboard output file.
 
     All sheets, except "Installed Capacity", share the same structure:
     - Rows 1-4: Yearly values (min, max, average, and sum) of the hourly timeseries
@@ -178,6 +181,45 @@ def parse_dashboard_sheet(df: pd.DataFrame, sheet_name: str) -> pd.DataFrame:
     - Row 7: Category (similar to carrier)
     - Row 8: Element (similar to type)
     - Row 9: Generation/Load, indicates flow direction.
+    - Row 10: Hour labels, followed by the hourly values.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Raw sheet read without header.
+
+    Returns
+    -------
+    pd.DataFrame
+        One row per timeseries, indexed by its column in ``df``, with columns
+        [min, max, avg, sum, bus, element, flow, carrier, unit].
+    """
+    col_keys = 1
+
+    header = df.iloc[:NROWS_HEADER].copy()
+    header.iloc[: len(STATS), col_keys] = STATS
+    header = header.set_index(col_keys).T.dropna(how="all").dropna(how="all", axis=1)
+
+    carrier, unit = split_unit_from_category(header["Category"])
+    return (
+        header.drop(columns="Category")
+        .rename_axis(columns=None)  # drop the name 1 from set_index, it breaks query
+        .rename(
+            columns={
+                "Market Zone": "bus",
+                "Element": "element",
+                "Generation/Load": "flow",
+            }
+        )
+        .assign(carrier=carrier, unit=unit)
+    )
+
+
+def parse_dashboard_sheet(df: pd.DataFrame, sheet_name: str) -> pd.DataFrame:
+    """
+    Parse the yearly aggregates of a sheet from a TYNDP TimeSeries Dashboard output file.
+
+    See ``parse_dashboard_header`` for the structure of the sheet.
 
     Parameters
     ----------
@@ -192,27 +234,11 @@ def parse_dashboard_sheet(df: pd.DataFrame, sheet_name: str) -> pd.DataFrame:
         Long format with columns [bus, element, flow, carrier, unit, stats,
         value, sheet]
     """
-    stats = ["min", "max", "avg", "sum"]
-    col_keys, row_flow = 1, 8
-
-    header = df.iloc[: row_flow + 1].copy()
-    header.iloc[: len(stats), col_keys] = stats
-    df = header.set_index(col_keys).T.dropna(how="all").dropna(how="all", axis=1)
-
-    carrier, unit = split_unit_from_category(df["Category"])
     df = (
-        df.drop(columns="Category")
-        .rename(
-            columns={
-                "Market Zone": "bus",
-                "Element": "element",
-                "Generation/Load": "flow",
-            }
-        )
-        .assign(carrier=carrier, unit=unit)
+        parse_dashboard_header(df)
         .melt(
             id_vars=["bus", "element", "flow", "carrier", "unit"],
-            value_vars=stats,
+            value_vars=STATS,
             var_name="stats",
         )
         .assign(sheet=sheet_name)
@@ -256,6 +282,40 @@ def parse_installed_capacity(df: pd.DataFrame) -> pd.DataFrame:
     )
 
 
+def get_dashboard_files(
+    dashboard_dir: str | Path, planning_horizon: int, wscenario: int
+) -> list[Path]:
+    """
+    List the TYNDP TimeSeries Dashboard files of a planning horizon and weather scenario.
+
+    Parameters
+    ----------
+    dashboard_dir : str or Path
+        Directory of the TimeSeries Dashboard files.
+    planning_horizon : int
+        Planning horizon.
+    wscenario : int
+        Weather scenario.
+
+    Returns
+    -------
+    list[Path]
+        Sorted paths to the TimeSeries Dashboard files, one per country.
+    """
+    files = sorted(
+        Path(
+            dashboard_dir, str(planning_horizon), f"Weather scenario {wscenario:03d}"
+        ).glob("*_TimeSeriesDashboard_*.xlsx")
+    )
+    if not files:
+        raise FileNotFoundError(
+            f"No TimeSeries Dashboard files for planning year {planning_horizon} "
+            f"and weather scenario WS{wscenario:03d}."
+        )
+
+    return files
+
+
 def read_dashboard(
     filepath: str | Path,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -273,7 +333,6 @@ def read_dashboard(
         Yearly aggregates of all timeseries sheets and installed capacities.
     """
     sheet_names = ELECTRICITY_SHEETS + H2_SHEETS + [EXCHANGES_SHEET]
-    nrows_header = 9
 
     # Some nodes are missing sheets
     with pd.ExcelFile(filepath, engine="calamine") as file:
@@ -281,7 +340,7 @@ def read_dashboard(
             file,
             sheet_name=[s for s in sheet_names if s in file.sheet_names],
             header=None,
-            nrows=nrows_header,
+            nrows=NROWS_HEADER,
         )
         capacity = pd.read_excel(file, sheet_name=CAPACITY_SHEET, header=None)
 
@@ -292,7 +351,7 @@ def read_dashboard(
 
 def load_crossborder(
     df: pd.DataFrame,
-    stats: list[str] = ["min", "max", "avg", "sum"],
+    stats: list[str] = STATS,
 ) -> pd.DataFrame:
     """
     Load the cross-border flows from the "Exchanges" sheets of the TYNDP TimeSeries Dashboard.
@@ -559,18 +618,9 @@ if __name__ == "__main__":
     eu27 = cc.EU27as("ISO2").ISO2.tolist()
 
     # TYNDP TimeSeries Dashboard files
-    dashboard_files = sorted(
-        Path(
-            snakemake.input.dashboard_dir,
-            str(planning_horizon),
-            f"Weather scenario {wscenario:03d}",
-        ).glob("*_TimeSeriesDashboard_*.xlsx")
+    dashboard_files = get_dashboard_files(
+        snakemake.input.dashboard_dir, planning_horizon, wscenario
     )
-    if not dashboard_files:
-        raise FileNotFoundError(
-            f"No TimeSeries Dashboard files for planning year {planning_horizon} "
-            f"and weather scenario WS{wscenario:03d}."
-        )
 
     logger.info(f"Reading {len(dashboard_files)} TimeSeries Dashboard files")
     with ProcessPoolExecutor(max_workers=snakemake.threads) as executor:
