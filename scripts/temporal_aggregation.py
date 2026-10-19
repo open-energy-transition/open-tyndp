@@ -9,6 +9,7 @@ Description
 -----------
 Reads the snapshot weightings from the CSV file prepared in `build_snapshot_weightings`
 and applies it on the time-varying network data prepared in `prepare_sector_network.py`.
+Hourly ramp limits are scaled to the duration of each aggregated snapshot.
 """
 
 import logging
@@ -24,6 +25,39 @@ from scripts._helpers import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def scale_ramp_limits(n: pypsa.Network) -> None:
+    """
+    Scale hourly ramp limits to match snapshot durations for generators and links.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        PyPSA network with ramp limits given per unit of nominal power per hour.
+
+    Returns
+    -------
+    None
+        Modifies the network in-place. Ramp limits that are constant across
+        snapshots are set as static values. Otherwise, they are set as
+        time-varying values and the static ones are reset to their default.
+    """
+    hours = n.snapshot_weightings.generators
+    for c in n.components[{"Generator", "Link"}]:
+        for attr in ["ramp_limit_up", "ramp_limit_down"]:
+            limits = n.get_switchable_as_dense(c.name, attr).dropna(axis=1, how="all")
+            if limits.empty:
+                continue
+            logger.info(
+                f"Scale {attr} of {limits.shape[1]} {c.list_name} to match snapshot durations."
+            )
+            scaled = limits.mul(hours, axis=0).clip(upper=1.0)
+            is_constant = scaled.eq(scaled.iloc[0]).all()
+            c.static.loc[limits.columns, attr] = scaled.iloc[0].where(
+                is_constant, c.defaults.at[attr, "default"]
+            )
+            c.dynamic[attr] = scaled.loc[:, ~is_constant]
 
 
 def set_temporal_aggregation(
@@ -56,6 +90,7 @@ def set_temporal_aggregation(
         logger.info("Use every %s snapshot as representative", sn)
         n.set_snapshots(n.snapshots[::sn])
         n.snapshot_weightings *= sn
+        scale_ramp_limits(n)
         return n
     else:
         # Otherwise, use the provided snapshots
@@ -94,6 +129,8 @@ def set_temporal_aggregation(
                         pnl[k] = df.groupby(aggregation_map).max()
                     else:
                         pnl[k] = df.groupby(aggregation_map).mean()
+
+        scale_ramp_limits(m)
 
         return m
 
