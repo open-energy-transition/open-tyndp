@@ -35,8 +35,6 @@ def add_brownfield(
     h2_retrofit=False,
     h2_retrofit_capacity_per_ch4=None,
     capacity_threshold=None,
-    h2_topology_tyndp=False,
-    carriers_tyndp=list[str],
 ):
     """
     Add brownfield capacity from previous network.
@@ -55,10 +53,6 @@ def add_brownfield(
         Ratio of hydrogen to methane capacity for pipeline retrofitting. Default is None.
     capacity_threshold : float, optional
         Threshold for removing assets with low capacity. Default is None.
-    h2_topology_tyndp : bool, optional
-        Whether to enable TYNDP Hydrogen topology. Default is False.
-    carriers_tyndp : list[str]
-        List of TYNDP carriers included in the model.
     """
     logger.info(f"Preparing brownfield for the year {year}")
 
@@ -134,77 +128,6 @@ def add_brownfield(
         for tattr in n.component_attrs[c.name].index[selection]:
             # TODO: Needs to be rewritten to
             n._import_series_from_df(c.dynamic[tattr], c.name, tattr)
-
-    # adjust TYNDP onwind and solar technologies expansion by subtracting existing capacity from previous years
-    # from current year total capacity and potential
-    onwind_solar_car = [c for c in carriers_tyndp if c.startswith(("solar", "onwind"))]
-    if onwind_solar_car:
-        onwind_solar_fixed_i = n.generators[
-            (n.generators.carrier.isin(onwind_solar_car))
-            & (n.generators.build_year != year)
-        ].index
-        onwind_solar_i = n.generators[
-            (n.generators.carrier.isin(onwind_solar_car))
-            & (n.generators.build_year == year)
-        ].index
-        onwind_solar_min = n.generators.loc[onwind_solar_i, "p_nom_min"]
-        onwind_solar_capacity = n.generators.loc[onwind_solar_i, "p_nom"]
-        onwind_solar_potential = n.generators.loc[onwind_solar_i, "p_nom_max"]
-        already_existing = (
-            n.generators.loc[onwind_solar_fixed_i, "p_nom_opt"]
-            .rename(lambda x: x.split("-2")[0] + f"-{year}")
-            .groupby(level=0)
-            .sum()
-            .reindex(index=onwind_solar_capacity.index, fill_value=0)
-        )
-        remaining_min = (onwind_solar_min - already_existing).clip(lower=0)
-        remaining_capacity = (onwind_solar_capacity - already_existing).clip(lower=0)
-        remaining_potential = onwind_solar_potential - already_existing
-        existing_large = remaining_potential[remaining_potential < 0].index
-        if len(existing_large):
-            logger.warning(
-                f"Existing capacities larger than technical potential for {list(existing_large)}, adjusting technical potential to existing capacities"
-            )
-            remaining_potential = remaining_potential.clip(0)
-        n.generators.loc[onwind_solar_i, "p_nom_min"] = remaining_min
-        n.generators.loc[onwind_solar_i, "p_nom"] = remaining_capacity
-        n.generators.loc[onwind_solar_i, "p_nom_max"] = remaining_potential
-
-    # Adjust Open-TYNDP H2 cavern storage expansion by subtracting existing capacity from previous years
-    if h2_topology_tyndp:
-        carrier = "H2 cavern-storage"
-        for c in n.components[["Store", "Link"]]:
-            if c.static.empty:
-                continue
-            attr = "e" if c.name == "Store" else "p"
-            fixed_i = c.static[
-                (c.static.carrier == carrier) & (c.static.build_year != year)
-            ].index
-            expand_i = c.static[
-                (c.static.carrier == carrier) & (c.static.build_year == year)
-            ].index
-            capacity = c.static.loc[expand_i, f"{attr}_nom"]
-            potential = c.static.loc[expand_i, f"{attr}_nom_max"]
-            already_existing = (
-                c.static.loc[fixed_i, f"{attr}_nom_opt"]
-                .rename(lambda x: x.split("-2")[0] + f"-{year}")
-                .groupby(level=0)
-                .sum()
-                .reindex(index=capacity.index, fill_value=0)
-            )
-            remaining_capacity = (capacity - already_existing).clip(lower=0)
-            remaining_potential = potential - already_existing
-            existing_large = remaining_potential[remaining_potential < 0].index
-            if len(existing_large):
-                logger.warning(
-                    f"Existing capacities larger than TYNDP 2024 expansion potential for "
-                    f"{list(existing_large)}, adjusting technical potential to existing capacities"
-                )
-                remaining_potential = remaining_potential.clip(0)
-            c.static.loc[expand_i, [f"{attr}_nom_min", f"{attr}_nom"]] = (
-                remaining_capacity
-            )
-            c.static.loc[expand_i, f"{attr}_nom_max"] = remaining_potential
 
     # deal with gas network
     if h2_retrofit:
@@ -603,8 +526,6 @@ if __name__ == "__main__":
         h2_retrofit=snakemake.params.H2_retrofit,
         h2_retrofit_capacity_per_ch4=snakemake.params.H2_retrofit_capacity_per_CH4,
         capacity_threshold=snakemake.params.threshold_capacity,
-        h2_topology_tyndp=snakemake.params.h2_topology_tyndp,
-        carriers_tyndp=snakemake.params.carriers_tyndp,
     )
 
     if snakemake.params.uniform_renewable_profiles:
