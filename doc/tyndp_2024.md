@@ -13,43 +13,11 @@ The original data files can be found under <https://2024.entsos-tyndp-scenarios.
 - **Link:** <https://storage.googleapis.com/open-tyndp-data-store/2024/CBA_projects.zip>
 - **Description:** Contains 177 transmission and 33 storage projects, which have been assessed by TYNDP 2024 in its Cost-Benefit Analysis.
 
-## `Demand Profiles`
-
-- **Source:** TYNDP 2024 Scenarios, <https://2024.entsos-tyndp-scenarios.eu/download/>
-- **Link:** <https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/Demand-Profiles.zip>
-- **Description:** Contains hourly demand profiles for CH4, electricity (market and prosumer),
-  H2 (heat, zone 1 and zone 2), synthetic fuels (e-diesel, e-kerosene, SNG).
-
-## `EV Modelling Inputs`
-
-- **Source:** TYNDP 2024 Scenarios, <https://2024.entsos-tyndp-scenarios.eu/download/>
-- **Link:** <https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/EV-Modelling-Inputs.zip>
-- **Description:** Contains hourly availability, min SOC and driving profiles, EV charging stations,
-  and EV technology assumptions.
-
-## `Hybrid Heat Pump Modelling Inputs`
-
-- **Source:** TYNDP 2024 Scenarios, <https://2024.entsos-tyndp-scenarios.eu/download/>
-- **Link:** <https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/Hybrid-Heat-Pump-Modelling-Inputs.zip>
-- **Description:** Contains hourly COP profiles, HP capacity and heat rate for H2 and CH4 hybrid HP.
-
-## `Hydrogen`
-
-- **Source:** TYNDP 2024 Scenarios, <https://2024.entsos-tyndp-scenarios.eu/download/>
-- **Link:** <https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/Hydrogen.zip>
-- **Description:** Contains H2 import generator properties, synthetic fuel generator properties, CO2 synthetic fuel ratios, synthetic fuel lines, H2 storage data, and SMR figures.
-
 ## `Hydro Inflows`
 
 - **Source:** TYNDP 2024 Scenarios, <https://2024.entsos-tyndp-scenarios.eu/download/>
 - **Link:** <https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/Hydro-Inflows.zip>
 - **Description:** Contains hourly hydro inflows for climate years from 1982 to 2017, for all modelled hydro technologies, per node and planning horizon.
-
-## `Line data`
-
-- **Source:** TYNDP 2024 Scenarios, <https://2024.entsos-tyndp-scenarios.eu/download/>
-- **Link:** <https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/Line-data.zip>
-- **Description:** Contains electricity and hydrogen reference grids and e-market prosumer wheeling charge.
 
 ## `Market Model Outputs for NT`
 
@@ -82,12 +50,6 @@ The original data files can be found under <https://2024.entsos-tyndp-scenarios.
 - **Source:** TYNDP 2024 Scenarios, <https://2024.entsos-tyndp-scenarios.eu/download/>
 - **Link:** `https://storage.googleapis.com/open-tyndp-data-store/PECD/PECD_{pecd_prebuilt_version}.zip`
 - **Description:** Contains pre-built hourly PECD v3.1 capacity factor time series for climate years 1995, 2008, and 2009, covering Solar PV rooftop, Solar PV utility, Onshore Wind, Offshore Wind and Solar CSP.
-
-## `PEMMDB2`
-
-- **Source:** TYNDP 2024 Scenarios, <https://2024.entsos-tyndp-scenarios.eu/download/>
-- **Link:** <https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/PEMMDB2.zip>
-- **Description:** Contains PEMMDB v2.5 capacities, as well as must-run and availability profiles for various PEMMDB technologies (thermal, RES, reserves, DSR, batteries and electrolysers).
 
 ## `Supply Tool`
 

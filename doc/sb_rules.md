@@ -83,10 +83,6 @@ the electricity demand for base regions from the TYNDP electricity market demand
 
 ::: build_tyndp_gas_demand
 
-### Rule `build_tyndp_h2_demand`
-
-::: build_tyndp_h2_demand
-
 ### Rule `build_tyndp_wheeling_charges`
 
 ::: build_tyndp_wheeling_charges
@@ -174,10 +170,6 @@ Aggregate [`build_tyndp_pemmdb_data`](#rule-build_tyndp_pemmdb_data) outputs.
 ### Rule `build_tyndp_demands`
 
 Aggregate [`build_tyndp_demand`](#rule-build_tyndp_demand) outputs.
-
-### Rule `build_tyndp_h2_demands`
-
-Aggregate [`build_tyndp_h2_demand`](#rule-build_tyndp_h2_demand) outputs.
 
 ### Rule `build_tyndp_gas_demands`
 
