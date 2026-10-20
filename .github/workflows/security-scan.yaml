@@ -41,7 +41,7 @@ jobs:
         shell: bash -l {0}
     steps:
     - uses: actions/checkout@v7
-    - uses: prefix-dev/setup-pixi@v0.11.0
+    - uses: prefix-dev/setup-pixi@v0.11.2
       with:
         pixi-version: v0.68.1
         environments: open-tyndp
@@ -79,7 +79,7 @@ jobs:
 
     - name: Upload SARIF
       if: github.ref == 'refs/heads/master'
-      uses: github/codeql-action/upload-sarif@v4.38.3
+      uses: github/codeql-action/upload-sarif@v4.39.0
       with:
         sarif_file: ${{ steps.scan.outputs.sarif }}
         category: pixi-vuln-scan
