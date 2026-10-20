@@ -55,10 +55,6 @@ files, the output files are used as the reference.
 Electricity and hydrogen transmission network topology for both the reference grid and
 candidate lines. Electricity and H₂ line data are used from 2030 onward.
 
-**[Investment Candidates](https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/Investment-Datasets.zip)**
-
-Optional extendable transmission and storage assets for the 2035 and 2040 planning horizons.
-
 **[Hydrogen](https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/Hydrogen.zip)**
 
 Hydrogen storage parameters, steam methane reforming (SMR and SMR+CCS) capacities, and

@@ -45,13 +45,6 @@ The original data files can be found under <https://2024.entsos-tyndp-scenarios.
 - **Link:** <https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/Hydro-Inflows.zip>
 - **Description:** Contains hourly hydro inflows for climate years from 1982 to 2017, for all modelled hydro technologies, per node and planning horizon.
 
-## `Investment Datasets`
-
-- **Source:** TYNDP 2024 Scenarios, <https://2024.entsos-tyndp-scenarios.eu/download/>
-- **Link:** <https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/Investment-Datasets.zip>
-- **Description:** Contains expansion constraints (capacities, capex, opex, trajectories)
-  for grids' and generators' investment candidates.
-
 ## `Line data`
 
 - **Source:** TYNDP 2024 Scenarios, <https://2024.entsos-tyndp-scenarios.eu/download/>

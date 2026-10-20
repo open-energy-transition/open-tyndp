@@ -1288,9 +1288,6 @@ if (TYNDP_DATASET := dataset_version("tyndp"))["source"] in [
                     TYNDP_DATASET["url"] + "/Hybrid-Heat-Pump-Modelling-Inputs.zip"
                 ),
                 hydrogen=storage(TYNDP_DATASET["url"] + "/Hydrogen.zip"),
-                investment_datasets=storage(
-                    TYNDP_DATASET["url"] + "/Investment-Datasets.zip"
-                ),
                 offshore_hubs=storage(TYNDP_DATASET["url"] + "/Offshore-hubs.zip"),
                 market_outputs_NT2030_CY2009=storage(
                     TYNDP_DATASET["url"]
@@ -1332,8 +1329,6 @@ if (TYNDP_DATASET := dataset_version("tyndp"))["source"] in [
                 h2_imports=f"{TYNDP_DATASET['folder']}/Hydrogen/H2 IMPORTS GENERATORS PROPERTIES.xlsx",
                 h2_storages=f"{TYNDP_DATASET['folder']}/Hydrogen/H2 STORAGES.xlsx",
                 smr=f"{TYNDP_DATASET['folder']}/Hydrogen/SMR Figures.xlsx",
-                investment_datasets_zip=f"{TYNDP_DATASET['folder']}/Investment-Datasets.zip",
-                invest_grid=f"{TYNDP_DATASET['folder']}/Investment Datasets/GRID.xlsx",
                 offshore_hubs_zip=f"{TYNDP_DATASET['folder']}/Offshore-hubs.zip",
                 offshore_nodes=f"{TYNDP_DATASET['folder']}/Offshore hubs/NODE.xlsx",
                 market_outputs_NT2030_CY2009_zip=f"{TYNDP_DATASET['folder']}/MMStandardOutputFile_NT2030_Plexos_CY2009_2.5_v40.xlsx.zip",
