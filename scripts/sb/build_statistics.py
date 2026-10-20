@@ -18,7 +18,6 @@ from scripts._helpers import (
     POWER_UNITS,
     PRICE_UNITS,
     configure_logging,
-    normalize_direction,
     set_scenario_config,
 )
 
@@ -105,8 +104,8 @@ def get_h2_imports(n: pypsa.Network) -> pd.Series:
     Net H2 imports from import buses, attributed to the receiving bus.
 
     Imports are the net flows on links connecting a bus with category "import"
-    to a non-import bus. Flows from ammonia import terminals are labelled
-    "H2 import LH2", all others "H2 import Pipeline".
+    to a non-import bus. Flows from import buses with "H2 import LH2" generators
+    are labelled "H2 import LH2", all others "H2 import Pipeline".
 
     Parameters
     ----------
@@ -133,10 +132,11 @@ def get_h2_imports(n: pypsa.Network) -> pd.Series:
     bus = balance.index.get_level_values("bus")
     balance = balance[name.isin(links.index) & ~bus.isin(import_buses)]
 
+    lh2_buses = n.generators.bus[n.generators.carrier.eq("H2 import LH2")]
     balance_origin = balance.index.get_level_values("name").map(origin)
     carrier = pd.Index(
         np.where(
-            balance_origin.str.startswith("Ammonia"),
+            balance_origin.isin(lh2_buses),
             "H2 import LH2",
             "H2 import Pipeline",
         ),
@@ -521,24 +521,23 @@ def compute_benchmark(
         )
     elif table in ["crossborder_electricity", "crossborder_hydrogen"]:
         carrier = "AC" if "elec" in table else "H2"
-        connector = " -> " if carrier == "H2" else "-"
 
         df = n.statistics.transmission(
             bus_carrier=carrier,
             at_port=0,
             aggregate_across_components=True,
-            groupby="name",
-        )
+            groupby=["bus0", "bus1"],
+        ).reset_index(name="value")
 
-        df = normalize_direction(
-            df, buses_from_index=True, connector=connector, format_index=True
-        )
-
+        swap = df.bus0 > df.bus1
         df = (
-            df.reset_index()
-            .assign(carrier=carrier)
+            df.assign(
+                border=np.where(swap, df.bus1 + "-" + df.bus0, df.bus0 + "-" + df.bus1),
+                value=df.value.where(~swap, -df.value),
+                carrier=carrier,
+            )
             .groupby(["border", "carrier"])
-            .sum()
+            .value.sum()
         )
     else:
         logger.warning(f"Unknown benchmark table: {table}")
