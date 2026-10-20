@@ -99,6 +99,33 @@ def remove_last_day(sws: pd.Series, nhours: int = 24) -> pd.Series:
     return sws
 
 
+def assign_bus_carrier(s: pd.Series, n: pypsa.Network, bus_carrier: str) -> pd.Series:
+    """
+    Replace the carrier of all assets on buses with the given bus carrier by the bus carrier.
+
+    This groups e.g. all generators on SRES buses under one benchmark carrier,
+    independent of their technology names.
+
+    Parameters
+    ----------
+    s : pd.Series
+        Statistics indexed by (at least) "bus" and "carrier".
+    n : pypsa.Network
+        Optimised network.
+    bus_carrier : str
+        Bus carrier whose assets are relabelled.
+
+    Returns
+    -------
+    pd.Series
+        Statistics with relabelled carrier level.
+    """
+    idx = s.index.to_frame(index=False)
+    on_bus = idx.bus.map(n.buses.carrier).eq(bus_carrier)
+    idx["carrier"] = idx.carrier.where(~on_bus, bus_carrier)
+    return s.set_axis(pd.MultiIndex.from_frame(idx))
+
+
 def get_h2_imports(n: pypsa.Network) -> pd.Series:
     """
     Net H2 imports from import buses, attributed to the receiving bus.
@@ -296,6 +323,7 @@ def compute_benchmark(
                 aggregate_across_components=True,
             )
             .loc[lambda x: (x > 0) | x.index.get_level_values("carrier").isin(pumps)]
+            .pipe(assign_bus_carrier, n=n, bus_carrier="AC_SRES")
             .abs()
             .reset_index()
             .loc[lambda df: ~df.carrier.isin(exclusions)]
@@ -319,12 +347,16 @@ def compute_benchmark(
             "hydro-phs-pure-pump",
             "H2 Electrolysis",
         ]
-        df = n.statistics.supply(
-            comps=supply_comps + ["StorageUnit"],
-            bus_carrier=elec_bus_carrier,
-            groupby=["bus"] + grouper,
-            aggregate_across_components=True,
-        ).loc[lambda df: ~df.index.get_level_values("carrier").isin(exclusions)]
+        df = (
+            n.statistics.supply(
+                comps=supply_comps + ["StorageUnit"],
+                bus_carrier=elec_bus_carrier,
+                groupby=["bus"] + grouper,
+                aggregate_across_components=True,
+            )
+            .loc[lambda df: ~df.index.get_level_values("carrier").isin(exclusions)]
+            .pipe(assign_bus_carrier, n=n, bus_carrier="AC_SRES")
+        )
 
         df = (
             df.rename(index=n.buses.location.to_dict(), level=0)

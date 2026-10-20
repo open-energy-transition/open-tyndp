@@ -19,6 +19,7 @@ Wind,Offshore wind e-market - radial,,Wind_Offshore,,Wind Offshore,Wind Offshore
 Wind,Offshore wind dedicated - radial,,Wind_Offshore,,Wind Offshore,Wind Offshore,,offwind-dres-r,offwind-dres-r,Offshore Wind (DRES Radial),wind offshore,wind offshore,,,,,,,,,,,offwind-dres-r,,
 Wind,Offshore wind Shared RES - H2Z1 - radial,,Wind_Offshore,,SRES Offshore Wind,SRES Electricity,,offwind-sres-r,offwind-sres-h2z1-r,Offshore Wind (SRES Radial),sres electricity,sres electricity,,,,,,,,,,,offwind-sres-r,,
 Wind,Offshore wind Shared RES - H2Z2 - radial,,Wind_Offshore,,SRES Offshore Wind,SRES Electricity,,offwind-sres-r,offwind-sres-h2z2-r,Offshore Wind (SRES Radial),sres electricity,sres electricity,,,,,,,,,,,offwind-sres-r,,
+,,,,,,,,AC_SRES,AC_SRES,SRES Electricity,sres electricity,sres electricity,,,,,,,,,,,,,All assets on SRES buses
 Hydro,Run of River - Turbine,Run_of_River,,,Run-of-River,Hydro and pumped storage,,hydro-ror,hydro-ror,Run of River,hydro and pumped storage,hydro and pumped storage,,,,,,,,,,,hydro-ror-turbine,,
 Hydro,Pondage - Reservoir,Pondage,,,,,,hydro-pondage,hydro-pondage-reservoir,Hydro Pondage (Reservoir),,,,,,,,,,,,,hydro-pondage-reservoir,,
 Hydro,Pondage - Turbine,Pondage,,,Pondage,Hydro and pumped storage,,hydro-pondage,hydro-pondage,Hydro Pondage,hydro and pumped storage,hydro and pumped storage,,,,,,,,,,,hydro-pondage-turbine,,
