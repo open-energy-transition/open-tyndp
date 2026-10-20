@@ -99,24 +99,12 @@ def load_data(
     benchmarks_raw = benchmarks_raw[has_model & has_reference]
 
     # Add Country column
-    country_map = {
-        "IBIT": "IT",
-        "IBIT H2": "IT",
-        "IBFI": "FI",
-        "IBFI H2": "FI",
-        "BEIOH01": "DK",
-        "BEIOH01 H2": "DK",
-        "EU27": "EU27",
-        "Pan-EU": "Pan-EU",
-    }
-
     def _bus_to_country(bus: str) -> str:
-        code = bus.split(" ")[0]
-        if bus in country_map:
-            return country_map[bus]
-        if code.startswith("Ammonia"):
+        if bus in ["EU27", "Pan-EU"]:
+            return bus
+        if bus.startswith("Ammonia"):
             return "Ammonia"
-        return extract_country(code)
+        return extract_country(bus)
 
     benchmarks_raw.loc[:, "country"] = benchmarks_raw["bus"].map(
         lambda x: _bus_to_country(x) if pd.notna(x) else x
