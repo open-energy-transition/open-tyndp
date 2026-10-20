@@ -2725,8 +2725,8 @@
           "items": {
             "enum": [
               "battery",
-              "h2_cavern",
-              "h2_tank"
+              "H2 cavern-storage",
+              "H2 tank-storage"
             ],
             "type": "string"
           },
@@ -5572,6 +5572,11 @@
         "h2_topology_tyndp": {
           "default": false,
           "description": "Use TYNDP H2 topology for hydrogen network.",
+          "type": "boolean"
+        },
+        "smr_ramp_limits_tyndp": {
+          "default": false,
+          "description": "Add TYNDP ramp limits to SMR and SMR CCS links. Only used with `h2_topology_tyndp`.",
           "type": "boolean"
         },
         "gas_network": {
@@ -9879,8 +9884,8 @@
           "items": {
             "enum": [
               "battery",
-              "h2_cavern",
-              "h2_tank"
+              "H2 cavern-storage",
+              "H2 tank-storage"
             ],
             "type": "string"
           },
@@ -12730,6 +12735,11 @@
         "h2_topology_tyndp": {
           "default": false,
           "description": "Use TYNDP H2 topology for hydrogen network.",
+          "type": "boolean"
+        },
+        "smr_ramp_limits_tyndp": {
+          "default": false,
+          "description": "Add TYNDP ramp limits to SMR and SMR CCS links. Only used with `h2_topology_tyndp`.",
           "type": "boolean"
         },
         "gas_network": {

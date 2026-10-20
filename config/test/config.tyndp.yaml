@@ -95,8 +95,8 @@ electricity:
 
   tyndp_stores:
   - battery
-  - h2_cavern
-  - h2_tank
+  - H2 cavern-storage
+  - H2 tank-storage
   estimate_renewable_capacities:
     enable: false
 
@@ -306,6 +306,7 @@ sector:
     biomass_to_methanol: false
   ammonia: false
   h2_topology_tyndp: true
+  smr_ramp_limits_tyndp: true
   gas_network: false
   gas_demand_exogenously: true
   biomass_spatial: false
