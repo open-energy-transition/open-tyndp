@@ -1,7 +1,6 @@
 pemmdb_carrier,pemmdb_type,pemmdb_hydro_inflows,pecd_carrier,investment_dataset_carrier,tyndp_dashboard_carrier,tyndp_report_carrier,cba_storage_technology,open_tyndp_carrier,open_tyndp_index,open_tyndp_nice_name,benchmarking_capacity,benchmarking_generation,benchmarking_fed,benchmarking_elec_demand,benchmarking_ch4_demand,benchmarking_h2_demand,benchmarking_ch4_supply,benchmarking_h2_supply,benchmarking_biomass_supply,benchmarking_energy_imports,benchmarking_prices,benchmarking_shed_hours,open_tyndp_type,pypsa_eur_carrier,comment
 Solar,Photovoltaic e-market,,Solar PV Utility,Solar PV Utility,Solar (Photovoltaic),Solar,,solar-pv-utility,solar-pv-utility,Solar PV (Utility),solar,solar,,,,,,,,,,,solar-pv-utility,,
 Solar,Rooftop,,Solar PV Rooftop,Solar PV Rooftop,Solar (Photovoltaic),Solar,,solar-pv-rooftop,solar-pv-rooftop,Solar PV (Rooftop),solar,solar,,,,,,,,,,,solar-pv-rooftop,,
-,,,,,,,,,,,solar,solar,,,,,,,,,,,,,
 Solar,Photovoltaic dedicated,,Solar PV Utility,,Solar (Photovoltaic),Solar,,solar-pv-utility-dres,solar-pv-utility-dres,Solar PV (Utility-DRES),solar,solar,,,,,,,,,,,solar-pv-utility-dres,,
 Solar,Photovoltaic Shared RES - H2Z1,,Solar PV Utility,,SRES Solar PV,SRES Electricity,,solar-pv-utility-sres,solar-pv-utility-sres-h2z1,Solar PV (Utility-SRES),sres electricity,sres electricity,,,,,,,,,,,solar-pv-utility-sres,,
 Solar,Photovoltaic Shared RES - H2Z2,,Solar PV Utility,,SRES Solar PV,SRES Electricity,,solar-pv-utility-sres,solar-pv-utility-sres-h2z2,Solar PV (Utility-SRES),sres electricity,sres electricity,,,,,,,,,,,solar-pv-utility-sres,,
@@ -122,9 +121,7 @@ Battery,Battery Utility Scale Store,,,Batteries Utility,Li-Ion Battery Volume,,,
 ,,,,,Dumped Hydrogen,,,,,,,,,,,,,dumped hydrogen,,,,,,,Curtailment/dump energy
 ,,,,,Native Demand,,,H2 exogenous demand,,H2 Exogenous Demand,,,,,,exogenous demand,,,,,,,,,Hydrogen demand benchmark
 ,,,,,Marginal Cost,,,,,,,,,,,,,,,,AC,,,,Prices benchmark
-,,,,,Marginal Cost Yearly Average (excl. 3 000 €/MWh) [€],,,,,,,,,,,,,,,,AC,,,,Prices benchmark
 ,,,,,Marginal Cost,,,,,,,,,,,,,,,,H2,,,,Prices benchmark
-,,,,,Marginal Cost Yearly Average (excl. 3 000 €/MWhH2) [€/MWhH2],,,,,,,,,,,,,,,,H2,,,,Prices benchmark
 ,,,,,,Electricity,,AC,,Electricity,,,electricity,,,,,,,,,,,,Final energy demand benchmark
 ,,,,,,Electricity,,low voltage,,Electricity Low Voltage,,,electricity,,,,,,,,,,,,Final energy demand benchmark
 ,,,,,,Hydrogen,,H2,,Hydrogen,,,hydrogen,,,,,,,,,,,,Final energy demand benchmark
