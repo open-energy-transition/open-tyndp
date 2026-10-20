@@ -151,7 +151,6 @@ def compute_benchmark(
     table: str,
     options: dict,
     eu27: list[str],
-    tyndp_renewable_carriers: list[str],
     planning_horizons: int,
     load_shedding: dict[str, int],
     low_voltage: bool,
@@ -169,8 +168,6 @@ def compute_benchmark(
         Full benchmarking configuration.
     eu27 : list[str]
         List of member state of European Union (EU27).
-    tyndp_renewable_carriers : list[str]
-        List of renewable carriers in TYNDP 2024.
     planning_horizons : int
         The current planning horizon year.
     load_shedding : dict[str, int]
@@ -307,21 +304,6 @@ def compute_benchmark(
             .sum()
             .iloc[:, 0]
         )
-
-        # Add H2 offwind capacities in MW_e
-        off_car = [c for c in tyndp_renewable_carriers if c.startswith("offwind-h2")]  # noqa: F841
-        if off_car and "efficiency_dc_to_h2" in n.generators.columns:
-            df_offwind_h2 = (
-                n.generators.query("carrier.isin(@off_car)")
-                .assign(
-                    p_nom_opt=lambda df: df.p_nom_opt / df.efficiency_dc_to_h2,
-                    bus=lambda df: df.bus.map(n.buses.location),
-                )
-                .groupby(by=["bus"] + grouper)
-                .p_nom_opt.sum()
-            )
-
-            df = pd.concat([df, df_offwind_h2])
     elif table == "power_generation":
         grouper = ["carrier"]
         exclusions = [
@@ -648,7 +630,6 @@ if __name__ == "__main__":
 
     # Parameters
     options = snakemake.params["benchmarking"]
-    tyndp_renewable_carriers = snakemake.params["tyndp_renewable_carriers"]
     load_shedding = snakemake.params["load_shedding"]
     low_voltage = snakemake.params["low_voltage"]
     group_tyndp_conventionals = snakemake.params["group_tyndp_conventionals"]
@@ -690,7 +671,6 @@ if __name__ == "__main__":
             table=table,
             options=options,
             eu27=eu27,
-            tyndp_renewable_carriers=tyndp_renewable_carriers,
             planning_horizons=planning_horizons,
             load_shedding=load_shedding,
             low_voltage=low_voltage,

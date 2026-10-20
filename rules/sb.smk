@@ -667,9 +667,6 @@ if config["benchmarking"]["enable"]:
         params:
             benchmarking=config_provider("benchmarking"),
             scenario=config_provider("tyndp_scenario"),
-            tyndp_renewable_carriers=config_provider(
-                "electricity", "tyndp_renewable_carriers"
-            ),
             load_shedding=config_provider(
                 "solving", "options", "load_shedding", "carriers"
             ),

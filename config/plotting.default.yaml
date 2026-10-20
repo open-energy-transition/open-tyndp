@@ -425,8 +425,6 @@ plotting:
     offshore wind (Float): "#b5e2fa"
     offshore wind float: "#b5e2fa"
     offwind-dc-fl-oh: "#b5e2fa"
-    offwind-h2-fb-oh: "#c47dbd"
-    offwind-h2-fl-oh: "#9d4d96"
     offwind-r: "#4a7ec4"
     offwind-sres-h2z1-r: "#23477a"
     offwind-sres-h2z2-r: "#23477a"
