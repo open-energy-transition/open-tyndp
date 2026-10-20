@@ -80,20 +80,23 @@ electricity:
   - hydro-phs
   - hydro-phs-pure
   - onwind
+  - onwind-sres
+  - onwind-dres
   - solar-pv-utility
   - solar-pv-rooftop
-  - offwind-ac-fb-r
-  - offwind-ac-fl-r
-  - offwind-dc-fb-r
-  - offwind-dc-fl-r
-  - offwind-dc-fb-oh
-  - offwind-dc-fl-oh
-  - offwind-h2-fb-oh
-  - offwind-h2-fl-oh
+  - solar-pv-utility-dres
+  - solar-pv-utility-sres
+  - offwind-r
+  - offwind-oh
+  - offwind-dres-r
+  - offwind-dres-oh
+  - offwind-sres-r
+  - offwind-sres-oh
+
   tyndp_stores:
   - battery
-  - h2_cavern
-  - h2_tank
+  - H2 cavern-storage
+  - H2 tank-storage
   estimate_renewable_capacities:
     enable: false
 
@@ -303,6 +306,7 @@ sector:
     biomass_to_methanol: false
   ammonia: false
   h2_topology_tyndp: true
+  smr_ramp_limits_tyndp: true
   gas_network: false
   gas_demand_exogenously: true
   biomass_spatial: false

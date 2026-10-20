@@ -196,7 +196,7 @@ def compute_benchmark(
     """
     opt = options["tables"][table]
     mapping = opt.get("mapping", {})
-    elec_bus_carrier = ["AC"] + (["low voltage"] if low_voltage else [])
+    elec_bus_carrier = ["AC", "AC_SRES"] + (["low voltage"] if low_voltage else [])
     supply_comps = ["Generator", "Link"]
     demand_comps = ["Link", "Load"]
     eu27_idx = n.buses[n.buses.country.isin(eu27)].index
@@ -299,7 +299,7 @@ def compute_benchmark(
             "electricity distribution grid",
             "DC",
             "load",
-            "AC_SRES",
+            "SRES grid connection",
             "EV charge",
         ]
         pumps = ["hydro-phs-pump", "hydro-phs-pure-pump"]
@@ -337,6 +337,7 @@ def compute_benchmark(
         grouper = ["carrier"]
         exclusions = [
             "DC",
+            "SRES grid connection",
             "electricity distribution grid",
             "battery discharger",
             "battery charger",
@@ -346,7 +347,6 @@ def compute_benchmark(
             "hydro-phs-pump",
             "hydro-phs-pure-pump",
             "H2 Electrolysis",
-            "AC_SRES",
         ]
         df = n.statistics.supply(
             comps=supply_comps + ["StorageUnit"],

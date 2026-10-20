@@ -2,33 +2,24 @@ pemmdb_carrier,pemmdb_type,pemmdb_hydro_inflows,pecd_carrier,investment_dataset_
 Solar,Photovoltaic e-market,,Solar PV Utility,Solar PV Utility,Solar (Photovoltaic),Solar,,solar-pv-utility,solar-pv-utility,Solar PV (Utility),solar,solar,,,,,,,,,,,solar-pv-utility,,
 Solar,Rooftop,,Solar PV Rooftop,Solar PV Rooftop,Solar (Photovoltaic),Solar,,solar-pv-rooftop,solar-pv-rooftop,Solar PV (Rooftop),solar,solar,,,,,,,,,,,solar-pv-rooftop,,
 ,,,,,,,,,,,solar,solar,,,,,,,,,,,,,
-Solar,Photovoltaic dedicated,,Solar PV Utility,,Solar (Photovoltaic),Solar,,solar-pv-utility,solar-pv-utility-dres,Solar PV (Utility-DRES),solar,solar,,,,,,,,,,,solar-pv-utility-dres,,
-Solar,Photovoltaic Shared RES - H2Z1,,Solar PV Utility,,SRES Solar PV,SRES Electricity,,solar-pv-utility,solar-pv-utility-sres-h2z1,Solar PV (Utility-SRES),sres electricity,sres electricity,,,,,,,,,,,solar-pv-utility-sres,,
-Solar,Photovoltaic Shared RES - H2Z2,,Solar PV Utility,,SRES Solar PV,SRES Electricity,,solar-pv-utility,solar-pv-utility-sres-h2z2,Solar PV (Utility-SRES),sres electricity,sres electricity,,,,,,,,,,,solar-pv-utility-sres,,
+Solar,Photovoltaic dedicated,,Solar PV Utility,,Solar (Photovoltaic),Solar,,solar-pv-utility-dres,solar-pv-utility-dres,Solar PV (Utility-DRES),solar,solar,,,,,,,,,,,solar-pv-utility-dres,,
+Solar,Photovoltaic Shared RES - H2Z1,,Solar PV Utility,,SRES Solar PV,SRES Electricity,,solar-pv-utility-sres,solar-pv-utility-sres-h2z1,Solar PV (Utility-SRES),sres electricity,sres electricity,,,,,,,,,,,solar-pv-utility-sres,,
+Solar,Photovoltaic Shared RES - H2Z2,,Solar PV Utility,,SRES Solar PV,SRES Electricity,,solar-pv-utility-sres,solar-pv-utility-sres-h2z2,Solar PV (Utility-SRES),sres electricity,sres electricity,,,,,,,,,,,solar-pv-utility-sres,,
 Solar,Thermal Solar,,CSP_noStorage,,Solar CSP (Thermal),,,solar-thermal,solar-thermal,Solar Thermal,solar thermal,solar thermal,,,,,,,,,,,solar-thermal,,
 Solar,Solar Thermal with Storage,,CSP_withStorage,,,,,solar-thermal-w-storage,solar-thermal-w-storage,Solar Thermal,solar thermal,solar thermal,,,,,,,,,,,solar-thermal-w-storage,,
 Solar,Solar Thermal with Storage - Storage,,CSP_withStorage,,,,,solar-thermal-w-storage,solar-thermal-w-storage-storage,Solar Thermal,solar thermal,solar thermal,,,,,,,,,,,solar-thermal-w-storage-storage,,
 Wind,Onshore wind e-market,,Wind_Onshore,Wind Onshore,Wind Onshore,Wind Onshore,,onwind,onwind,Onshore Wind,wind onshore,wind onshore,,,,,,,,,,,onwind,,
-Wind,Onshore wind dedicated,,Wind_Onshore,,Wind Onshore,Wind Onshore,,onwind,onwind-dres,Onshore Wind (DRES),wind onshore,wind onshore,,,,,,,,,,,onwind-dres,,
-Wind,Onshore wind Shared RES - H2Z1,,Wind_Onshore,,SRES Onshore Wind,SRES Electricity,,onwind,onwind-sres-h2z1,Onshore Wind (SRES),sres electricity,sres electricity,,,,,,,,,,,onwind-sres,,
-Wind,Onshore wind Shared RES - H2Z2,,Wind_Onshore,,SRES Onshore Wind,SRES Electricity,,onwind,onwind-sres-h2z2,Onshore Wind (SRES),sres electricity,sres electricity,,,,,,,,,,,onwind-sres,,
-,,,Wind_Offshore,,Wind Offshore,Wind Offshore,,offwind,offwind,Offshore Wind,wind offshore,wind offshore,,,,,,,,,,,offwind,,"only used w/o offshore hubs; 2024 topology, outdated, to be deprecated"
-,,,Wind_Offshore,,Wind Offshore,Wind Offshore,,offwind-ac-fb-r,offwind-ac-fb-r,Offshore Wind (AC),wind offshore,wind offshore,,,,,,,,,,,offwind-ac-fb-r,,"only used with offshore hubs; 2024 topology, outdated, to be deprecated"
-,,,Wind_Offshore,,Wind Offshore,Wind Offshore,,offwind-ac-fl-r,offwind-ac-fl-r,Offshore Wind (AC Float.),wind offshore,wind offshore,,,,,,,,,,,offwind-ac-fl-r,,"only used with offshore hubs; 2024 topology, outdated, to be deprecated"
-,,,Wind_Offshore,,Wind Offshore,Wind Offshore,,offwind-dc-fb-r,offwind-dc-fb-r,Offshore Wind (DC),wind offshore,wind offshore,,,,,,,,,,,offwind-dc-fb-r,,"only used with offshore hubs; 2024 topology, outdated, to be deprecated"
-,,,Wind_Offshore,,Wind Offshore,Wind Offshore,,offwind-dc-fl-r,offwind-dc-fl-r,Offshore Wind (DC Float.),wind offshore,wind offshore,,,,,,,,,,,offwind-dc-fl-r,,"only used with offshore hubs; 2024 topology, outdated, to be deprecated"
-,,,Wind_Offshore,,Wind Offshore,Wind Offshore,,offwind-dc-fb-oh,offwind-dc-fb-oh,Offshore Wind (DC OH),wind offshore,wind offshore,,,,,,,,,,,offwind-dc-fb-oh,,"only used with offshore hubs; 2024 topology, outdated, to be deprecated"
-,,,Wind_Offshore,,Wind Offshore,Wind Offshore,,offwind-dc-fl-oh,offwind-dc-fl-oh,Offshore Wind (DC Float. OH),wind offshore,wind offshore,,,,,,,,,,,offwind-dc-fl-oh,,"only used with offshore hubs; 2024 topology, outdated, to be deprecated"
-,,,Wind_Offshore,,Wind Offshore,Wind Offshore,,offwind-h2-fb-oh,offwind-h2-fb-oh,Offshore Wind (H2 OH),wind offshore,wind offshore,,,,,,,,,,,offwind-h2-fb-oh,,"only used with offshore hubs; 2024 topology, outdated, to be deprecated"
-,,,Wind_Offshore,,Wind Offshore,Wind Offshore,,offwind-h2-fl-oh,offwind-h2-fl-oh,Offshore Wind (H2 Float. OH),wind offshore,wind offshore,,,,,,,,,,,offwind-h2-fl-oh,,"only used with offshore hubs; 2024 topology, outdated, to be deprecated"
-Wind,Offshore wind e-market - hub ready,,Wind_Offshore,,Wind Offshore,Wind Offshore,,offwind,offwind-oh,Offshore Wind (Hub Ready),wind offshore,wind offshore,,,,,,,,,,,offwind-oh,,
-Wind,Offshore wind dedicated - hub ready,,Wind_Offshore,,Wind Offshore,Wind Offshore,,offwind,offwind-dres-oh,Offshore Wind (DRES Hub Ready),wind offshore,wind offshore,,,,,,,,,,,offwind-dres-oh,,
-Wind,Offshore wind Shared RES - H2Z1 - hub ready,,Wind_Offshore,,SRES Offshore Wind,SRES Electricity,,offwind,offwind-sres-h2z1-oh,Offshore Wind (SRES Hub Ready),sres electricity,sres electricity,,,,,,,,,,,offwind-sres-oh,,
-Wind,Offshore wind Shared RES - H2Z2 - hub ready,,Wind_Offshore,,SRES Offshore Wind,SRES Electricity,,offwind,offwind-sres-h2z2-oh,Offshore Wind (SRES Hub Ready),sres electricity,sres electricity,,,,,,,,,,,offwind-sres-oh,,
-Wind,Offshore wind e-market - radial,,Wind_Offshore,,Wind Offshore,Wind Offshore,,offwind,offwind-r,Offshore Wind (Radial),wind offshore,wind offshore,,,,,,,,,,,offwind-r,,
-Wind,Offshore wind dedicated - radial,,Wind_Offshore,,Wind Offshore,Wind Offshore,,offwind,offwind-dres-r,Offshore Wind (DRES Radial),wind offshore,wind offshore,,,,,,,,,,,offwind-dres-r,,
-Wind,Offshore wind Shared RES - H2Z1 - radial,,Wind_Offshore,,SRES Offshore Wind,SRES Electricity,,offwind,offwind-sres-h2z1-r,Offshore Wind (SRES Radial),sres electricity,sres electricity,,,,,,,,,,,offwind-sres-r,,
-Wind,Offshore wind Shared RES - H2Z2 - radial,,Wind_Offshore,,SRES Offshore Wind,SRES Electricity,,offwind,offwind-sres-h2z2-r,Offshore Wind (SRES Radial),sres electricity,sres electricity,,,,,,,,,,,offwind-sres-r,,
+Wind,Onshore wind dedicated,,Wind_Onshore,,Wind Onshore,Wind Onshore,,onwind-dres,onwind-dres,Onshore Wind (DRES),wind onshore,wind onshore,,,,,,,,,,,onwind-dres,,
+Wind,Onshore wind Shared RES - H2Z1,,Wind_Onshore,,SRES Onshore Wind,SRES Electricity,,onwind-sres,onwind-sres-h2z1,Onshore Wind (SRES),sres electricity,sres electricity,,,,,,,,,,,onwind-sres,,
+Wind,Onshore wind Shared RES - H2Z2,,Wind_Onshore,,SRES Onshore Wind,SRES Electricity,,onwind-sres,onwind-sres-h2z2,Onshore Wind (SRES),sres electricity,sres electricity,,,,,,,,,,,onwind-sres,,
+Wind,Offshore wind e-market - hub ready,,Wind_Offshore,,Wind Offshore,Wind Offshore,,offwind-oh,offwind-oh,Offshore Wind (Hub Ready),wind offshore,wind offshore,,,,,,,,,,,offwind-oh,,
+Wind,Offshore wind dedicated - hub ready,,Wind_Offshore,,Wind Offshore,Wind Offshore,,offwind-dres-oh,offwind-dres-oh,Offshore Wind (DRES Hub Ready),wind offshore,wind offshore,,,,,,,,,,,offwind-dres-oh,,
+Wind,Offshore wind Shared RES - H2Z1 - hub ready,,Wind_Offshore,,SRES Offshore Wind,SRES Electricity,,offwind-sres-oh,offwind-sres-h2z1-oh,Offshore Wind (SRES Hub Ready),sres electricity,sres electricity,,,,,,,,,,,offwind-sres-oh,,
+Wind,Offshore wind Shared RES - H2Z2 - hub ready,,Wind_Offshore,,SRES Offshore Wind,SRES Electricity,,offwind-sres-oh,offwind-sres-h2z2-oh,Offshore Wind (SRES Hub Ready),sres electricity,sres electricity,,,,,,,,,,,offwind-sres-oh,,
+Wind,Offshore wind e-market - radial,,Wind_Offshore,,Wind Offshore,Wind Offshore,,offwind-r,offwind-r,Offshore Wind (Radial),wind offshore,wind offshore,,,,,,,,,,,offwind-r,,
+Wind,Offshore wind dedicated - radial,,Wind_Offshore,,Wind Offshore,Wind Offshore,,offwind-dres-r,offwind-dres-r,Offshore Wind (DRES Radial),wind offshore,wind offshore,,,,,,,,,,,offwind-dres-r,,
+Wind,Offshore wind Shared RES - H2Z1 - radial,,Wind_Offshore,,SRES Offshore Wind,SRES Electricity,,offwind-sres-r,offwind-sres-h2z1-r,Offshore Wind (SRES Radial),sres electricity,sres electricity,,,,,,,,,,,offwind-sres-r,,
+Wind,Offshore wind Shared RES - H2Z2 - radial,,Wind_Offshore,,SRES Offshore Wind,SRES Electricity,,offwind-sres-r,offwind-sres-h2z2-r,Offshore Wind (SRES Radial),sres electricity,sres electricity,,,,,,,,,,,offwind-sres-r,,
 Hydro,Run of River - Turbine,Run_of_River,,,Run-of-River,Hydro and pumped storage,,hydro-ror,hydro-ror,Run of River,hydro and pumped storage,hydro and pumped storage,,,,,,,,,,,hydro-ror-turbine,,
 Hydro,Pondage - Reservoir,Pondage,,,,,,hydro-pondage,hydro-pondage-reservoir,Hydro Pondage (Reservoir),,,,,,,,,,,,,hydro-pondage-reservoir,,
 Hydro,Pondage - Turbine,Pondage,,,Pondage,Hydro and pumped storage,,hydro-pondage,hydro-pondage,Hydro Pondage,hydro and pumped storage,hydro and pumped storage,,,,,,,,,,,hydro-pondage-turbine,,
