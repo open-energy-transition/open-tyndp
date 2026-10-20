@@ -16,8 +16,7 @@ logger = logging.getLogger(__name__)
 
 def load_h2_storage_data(fn: str, planning_horizon: int) -> pd.DataFrame:
     """
-    Load and clean TYNDP H2 storage energy capacities as well as charge/discharge capacities and efficiencies
-    for the NT scenario.
+    Load and clean TYNDP H2 storage energy capacities as well as charge/discharge capacities and efficiencies.
 
     Parameters
     ----------
