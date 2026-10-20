@@ -6,7 +6,6 @@ This script computes the benchmark statistics from the optimised network.
 """
 
 import logging
-import re
 
 import country_converter as coco
 import numpy as np
@@ -22,16 +21,6 @@ from scripts._helpers import (
     normalize_direction,
     set_scenario_config,
 )
-
-NODE_MAP = {
-    "BEIOH01": "DKBH",
-    "BEOH001": "BEOF",
-    "DKWOH01": "DKNS",
-    "EEOH001": "EEOF",
-    "LTOR001": "LTOF",
-    "NLOH001": "NLLL",
-    "DEOH002": "DEKF",
-}
 
 logger = logging.getLogger(__name__)
 
@@ -581,13 +570,6 @@ def compute_benchmark(
         # Combine intra- and cross-carrier transmission
         df = pd.concat([df, df_x])
         df.index = df.index.droplevel("bus0")
-
-        if carrier == "H2":
-            df = df.rename(
-                lambda x: re.sub(r"\b([A-Z]+)00\b", r"\1", x).replace("UK", "GB")
-            )
-
-        df.index = df.index.to_series().replace(regex=NODE_MAP).values
 
         df = normalize_direction(
             df, buses_from_index=True, connector=connector, format_index=True
