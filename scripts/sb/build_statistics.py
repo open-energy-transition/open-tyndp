@@ -452,7 +452,7 @@ def compute_benchmark(
 
         df = pd.concat([df_fed_btl, df_biogas])
     elif table == "energy_imports":
-        # TODO Account for domestic production of gas, solid and liquid fossil fuels
+        # TODO Account for domestic production of gas and liquid fossil fuels
         # TODO No biomass import is assumed
         grouper = ["carrier"]
         df_countries = (
@@ -462,7 +462,7 @@ def compute_benchmark(
         # Add EU level demands
         df_eu = n.statistics.supply(
             comps="Generator",
-            bus_carrier=["oil primary", "coal", "lignite", "gas"],
+            bus_carrier=["oil primary", "gas"],
             groupby=grouper,
             aggregate_across_components=True,
         ).loc[lambda s: ~s.index.isin(df_countries.index)]

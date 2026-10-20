@@ -175,11 +175,8 @@ Battery,Battery Utility Scale Store,,,Batteries Utility,Li-Ion Battery Volume,,,
 ,,,,,,For bioliquids,,biomass to liquid CC,,Biomass to Liquid (CCS),,,,,,,,,for biofuels,,,,,,Biomass supply benchmark
 ,,,,,,Methane,,gas,,Gas Primary,,,,,,,,,,methane,,,,,Energy imports benchmark
 ,,,,,,,,H2 import LH2,,H2 Import LH2,,,,,,,,,,hydrogen,,,,,Energy imports benchmark
-,,,,,,Ammonia,,,,,,,,,,,,,,ammonia,,,,,Energy imports benchmark
 ,,,,,,Hydrogen,,H2 import Pipeline,,H2 Import Pipeline,,,,,,,,,,hydrogen,,,,,Energy imports benchmark
 ,,,,,,Liquids,,oil primary,,Oil Primary,,,,,,,,,,liquids,,,,,Energy imports benchmark
-,,,,,,Solids,,coal,,Coal Primary,,,,,,,,,,solids,,,,,Energy imports benchmark
-,,,,,,Solids,,lignite,,Lignite Primary,,,,,,,,,,solids,,,,,Energy imports benchmark
 ,,,,,,,,electricity distribution grid,,Electricity Distribution Grid,,,,,,,,,,,,,,,
 ,,,,,,,,DC,,Electricity Transmission,,,,,,,,,,,,,,,
 ,,,,,,,,H2 cavern-storage charger,,H2 Cavern Storage Bicharger,,,,,,,,,,,,,,,

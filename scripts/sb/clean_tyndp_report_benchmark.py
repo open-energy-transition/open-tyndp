@@ -220,6 +220,9 @@ def clean_data_for_benchmarking(
     elif table == "power_generation":
         df = df[df.carrier != "total generation"]
 
+    elif table == "energy_imports":
+        df = df[~df.carrier.isin(["sum", "total", "ammonia", "solids"])]
+
     # Remove aggregated values
     else:
         df = df[~df.carrier.isin(["sum", "aggregated", "total generation", "total"])]
