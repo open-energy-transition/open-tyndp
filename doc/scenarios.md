@@ -7,6 +7,13 @@ The modelling for the reference scenario, National Trends+ (NT+),
 and its economic variants, High Economic Variant (HEV) and Low Economic Variant (LEV),
 differ in terms of price and demand assumptions.
 
+!!! warning
+    Not all HEV/LEV assumptions are included yet. HEV/LEV currently differ from NT+ only in fuel and CO2 prices. Still missing are:
+
+    - demand adjustments (electricity market, prosumer demand, EV, H2, thermal energy demand)
+    - hydrogen import prices
+    - benchmarking
+
 Here we explain these modelling differences and how these differences have been implemented into open-tyndp.
 We discuss the relevant configuration settings and the implications of these implementation decisions.
 
