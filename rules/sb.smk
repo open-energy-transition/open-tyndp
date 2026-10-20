@@ -641,7 +641,6 @@ if config["benchmarking"]["enable"]:
         params:
             benchmarking=config_provider("benchmarking"),
             scenario=config_provider("tyndp_scenario"),
-            snapshots=config_provider("snapshots"),
         script:
             scripts("sb/clean_tyndp_report_benchmark.py")
 
