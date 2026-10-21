@@ -1414,6 +1414,7 @@ if (TYNDP_2026_DATASET := dataset_version("tyndp_2026"))["source"] in ARCHIVE_SO
                 market_outputs=storage(
                     TYNDP_2026_DATASET["url"] + "/outputs/NT+_TimeSeriesDashboard.zip"
                 ),
+                sres_profiles=storage(TYNDP_2026_DATASET["url"] + "/inputs/SRES.zip"),
             output:
                 line_data_zip=f"{TYNDP_2026_DATASET['folder']}/Line-data.zip",
                 nodes_zip=f"{TYNDP_2026_DATASET['folder']}/Nodes.zip",
@@ -1446,6 +1447,8 @@ if (TYNDP_2026_DATASET := dataset_version("tyndp_2026"))["source"] in ARCHIVE_SO
                 market_outputs=directory(
                     f"{TYNDP_2026_DATASET['folder']}/NT+_TimeSeriesDashboard"
                 ),
+                sres_profiles_zip=f"{TYNDP_2026_DATASET['folder']}/SRES.zip",
+                sres_profiles=directory(f"{TYNDP_2026_DATASET['folder']}/SRES"),
             log:
                 "logs/retrieve_tyndp_2026.log",
             message:
