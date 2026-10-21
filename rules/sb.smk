@@ -297,23 +297,6 @@ rule build_tyndp_pemmdb_data:
         scripts("sb/build_tyndp_pemmdb_data.py")
 
 
-rule build_tyndp_trajectories:
-    input:
-        trajectories=rules.retrieve_tyndp.output.trajectories,
-        carrier_mapping="data/tyndp_technology_map.csv",
-    output:
-        tyndp_trajectories=resources("tyndp_trajectories.csv"),
-    log:
-        logs("build_tyndp_trajectories.log"),
-    benchmark:
-        benchmarks("performances/build_tyndp_trajectories")
-    threads: 4
-    params:
-        tyndp_scenario=config_provider("tyndp_scenario"),
-    script:
-        scripts("sb/build_tyndp_trajectories.py")
-
-
 rule clean_tyndp_hydro_inflows:
     input:
         hydro_inflows_dir=rules.retrieve_tyndp_2026.output.hydro_inflows,
@@ -430,26 +413,6 @@ rule build_tyndp_gas_demand:
         planning_horizons=config_provider("scenario", "planning_horizons"),
     script:
         scripts("sb/build_tyndp_gas_demand.py")
-
-
-rule build_tyndp_h2_demand:
-    input:
-        h2_demand=rules.retrieve_tyndp.output.demand_profiles,
-    output:
-        h2_demand=resources("h2_demand_tyndp_{planning_horizons}.csv"),
-    log:
-        logs("build_tyndp_h2_demand_{planning_horizons}.log"),
-    benchmark:
-        benchmarks("performances/build_tyndp_h2_demand_{planning_horizons}")
-    threads: 1
-    resources:
-        mem_mb=1000,
-    params:
-        snapshots=config_provider("snapshots"),
-        drop_leap_day=config_provider("enable", "drop_leap_day"),
-        scenario=config_provider("tyndp_scenario"),
-    script:
-        scripts("sb/build_tyndp_h2_demand.py")
 
 
 rule build_tyndp_wheeling_charges:
@@ -928,24 +891,11 @@ def input_pemmdb_datas(w):
     )
 
 
-rule build_pemmdb_and_trajectories:
+rule build_tyndp_pemmdb_datas:
     input:
         expand(
             rules.build_tyndp_pemmdb_data.output.pemmdb_capacities,
             planning_horizons=input_pemmdb_datas,
-            run=config["run"]["name"],
-        ),
-        expand(
-            resources("tyndp_trajectories.csv"),
-            run=config["run"]["name"],
-        ),
-
-
-rule build_tyndp_h2_demands:
-    input:
-        expand(
-            resources("h2_demand_tyndp_{planning_horizons}.csv"),
-            **config["scenario"],
             run=config["run"]["name"],
         ),
 
