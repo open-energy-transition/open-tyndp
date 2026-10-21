@@ -583,10 +583,6 @@ load:
     enable: true
     interpolate_limit: 6
     time_shift_for_large_gaps: 1w
-  available_years_tyndp:
-  - 2030
-  - 2040
-  - 2050
   manual_adjustments: true
   scaling_factor: 1.0
   fixed_year: false
@@ -595,7 +591,6 @@ load:
   distribution_key:
     gdp: 0.6
     population: 0.4
-  patch_demand_with_mm: false
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#pypsa_eur
 pypsa_eur:
@@ -1024,6 +1019,7 @@ sector:
       efficiency_static: 0.97
   H2_network: true
   h2_topology_tyndp: false
+  smr_ramp_limits_tyndp: false
   gas_network: true
   gas_demand_exogenously: false
   H2_retrofit: false

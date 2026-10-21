@@ -5,69 +5,68 @@
 
 Scenario Building (SB) is the first phase of the Open-TYNDP workflow. Starting from raw
 ENTSO-E input datasets, it constructs a sector-coupled European energy system model
-and solves a least-cost capacity expansion (DE and GA scenarios only, see [Open-TYNDP scenarios](scenarios.md)) and dispatch optimisation. The solved network
-produced by SB serves as the direct input to the [Cost-Benefit Analysis (CBA)](cba.md).
+and solves a least-cost dispatch optimisation. The solved network produced by SB serves
+as the direct input to the [Cost-Benefit Analysis (CBA)](cba.md).
 
-Open-TYNDP implements the [TYNDP 2024 Scenario Building methodology](https://www.entsoe.eu/outlooks/tyndp/2024/) as a soft-fork of
+Open-TYNDP implements the [TYNDP 2026 Scenario Building methodology](https://2026.entsos-tyndp-scenarios.eu/scenarios-methodology-report/introduction/) as a soft-fork of
 [PyPSA-Eur](https://pypsa-eur.readthedocs.io/en/latest/), inheriting its modelling
 framework (optimisation structure, network representation, and sector-coupling capabilities)
-while replacing specific inputs and assumptions to match TYNDP 2024 reference data.
+while replacing specific inputs and assumptions to match TYNDP 2026 reference data.
 
 ## Input Data
 
-All used input datasets are publicly available from the [TYNDP 2024 scenarios download page](https://2024.entsos-tyndp-scenarios.eu/download/). The diagram below shows how they
-flow into Open-TYNDP and into the benchmarking process.
+Most input datasets are publicly available from the [TYNDP 2026 scenarios download page](https://2026.entsos-tyndp-scenarios.eu/download/).
+Some inputs currently still come from the [TYNDP 2024 scenarios download page](https://2024.entsos-tyndp-scenarios.eu/download/).
+The diagram below shows the TYNDP 2024 data flow. An updated diagram for TYNDP 2026 is not yet available.
 
 ![TYNDP 2024 Scenario Building data overview diagram](img/tyndp/data_overview.png)
 
 Public input data from ENTSO-E is used wherever available. Where publicly available data does
 not match the fixed values observed in the Market Model output files, the output files are used
 as the reference for fixed input assumptions. This applies strictly to exogenous variables that
-are not part of the optimisation (H₂ demand profiles, reference grid topologies,
-and generator maintenance profiles).
+are not part of the optimisation (e.g. generator maintenance profiles).
 
 The following datasets are ingested and processed by dedicated `build_tyndp_*` Snakemake rules:
 
-**[PEMMDB 2.5](https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/PEMMDB2.zip)**
+**[PEMMDB 2.X](https://2026-data.entsos-tyndp-scenarios.eu/input/model-input/national-trends/PEMMDB_2.X.zip)**
 
 Installed generation and storage capacities, must-run constraints, and per-unit cost
-assumptions by country and technology. Also provides efficiency and variable O&M parameters
-for conventional thermal generation sourced from ERAA 2025.
+assumptions by country and technology.
 
-**[PECD 3.1](https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/PECD.zip)**
+**[PEMMDB 2.X Common Data](https://2026-data.entsos-tyndp-scenarios.eu/input/model-input/national-trends/PEMMDB_CommonData.xlsx)**
+
+Provides efficiency and variable O&M parameters for conventional thermal generation.
+
+**[PECD 4.2](https://2026-data.entsos-tyndp-scenarios.eu/input/model-input/national-trends/PECD.zip)**
 
 Hourly capacity factor time series for wind (onshore and offshore) and solar PV, derived
-from ERA5 reanalysis data. Profiles are provided per climate year and TYNDP bidding zone.
+from ERA5 reanalysis data. Profiles are provided per weather scenario and TYNDP bidding zone.
 
 **[Hydro Inflows](https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/Hydro-Inflows.zip)**
 
 Hourly inflow profiles for reservoir and run-of-river hydro plants, used to constrain
 hydro dispatch across planning horizons. Profiles are provided per climate year and TYNDP bidding zone.
 
-**[Demand Profiles](https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/Demand-Profiles.zip)**
+**[Demand Profiles](https://2026-data.entsos-tyndp-scenarios.eu/input/model-input/national-trends/Demand.zip)**
 
-Hourly electricity and hydrogen demand profiles by country, interpolated to the target
-planning horizon. Where public profiles do not match fixed values in the Market Model output
-files, the output files are used as the reference.
+Hourly electricity, hydrogen, synthetic fuel, BTM and EV fixed demand profiles by country, interpolated to the target
+planning horizon.
 
-**[Line Data](https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/Line-data.zip)**
+**[Line Data](https://2026-data.entsos-tyndp-scenarios.eu/input/model-input/national-trends/Line-data.zip)**
 
-Electricity and hydrogen transmission network topology for both the reference grid and
-candidate lines. Electricity and H₂ line data are used from 2030 onward.
+Electricity and hydrogen transmission network topology for the reference grid, incl. ramp rates
+and wheeling charges. Electricity and H₂ line data are provided for 2030, 2035, 2040 and 2050.
 
-**[Investment Candidates](https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/Investment-Datasets.zip)**
+**[Hydrogen](https://2026-data.entsos-tyndp-scenarios.eu/input/model-input/national-trends/Hydrogen.zip)**
 
-Optional extendable transmission and storage assets for the 2035 and 2040 planning horizons.
+Hydrogen storage parameters, steam methane reforming (SMR and SMR+CCS) capacities, synthetic fuel generator properties,
+and import pipeline assumptions.
 
-**[Hydrogen](https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/Hydrogen.zip)**
-
-Hydrogen storage parameters, steam methane reforming (SMR and SMR+CCS) capacities, and
-import pipeline assumptions.
-
-**[Supply Tool](https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-outputs/20240518-Supply-Tool.xlsm.zip)**
+**[Supply Tool](https://2026-data.entsos-tyndp-scenarios.eu/output/Supply-Tool.zip)**
 
 Methane demand and biomass potentials for energy carriers modelled in Open-TYNDP. This is
-a scenario output file from the TYNDP 2024 process used as a fixed input.
+a scenario output file from the TYNDP 2026 process used as a fixed input. It contains one
+workbook per scenario (NT+, HEV and LEV); Open-TYNDP uses the NT+ variant.
 
 !!! note
     In the underlying PyPSA-Eur framework, RES profiles, hydro inflows, and demand time series
@@ -116,7 +115,6 @@ The SB optimisation minimises **total annualised system cost** (variable operati
 * Minimum and maximum generation constraints from PEMMDB, including must-run levels and
   scheduled maintenance outages.
 * Country-level annual hydrogen supply and demand balances.
-* Capacity expansion constraints reflecting given trajectories in the case of the DE and GA scenario.
 
 The problem is formulated as a **linear programme (LP)** and solved with the configured
 solver (HiGHS as default as an open-source alternative for lower
@@ -153,7 +151,7 @@ renewable generation and hydro inflow profiles used from PECD 3.1 and Hydro Infl
   ```yaml
   snapshots:
     start: "2009-01-01"
-    end:   "2009-12-31"
+    end:   "2010-01-01"
     inclusive: "left"
   ```
 

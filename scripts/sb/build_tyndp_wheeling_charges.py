@@ -5,17 +5,15 @@
 Builds per-node TYNDP wheeling charges between the e-market and prosumer nodes.
 
 TYNDP applies a wheeling charge between the e-market and prosumer nodes to
-represent distribution grid costs. The charge is applied in both directions,
-but the TYNDP 2026 data only prices the e-market to prosumer direction; the
-prosumer to e-market direction is zero for every node.
+represent distribution grid costs. The file gives one charge per flow
+direction, and each is applied to its own direction. In the TYNDP 2026 data,
+the prosumer to e-market charge is zero for every node.
 
 The prosumer nodes are taken from the sheet names of the prosumer demand
-files rather than from the wheeling charges file, since the two do not agree:
-CH00 has a prosumer node in the TYNDP market model but no entry in the
-wheeling charges file (its implied charge is zero there, verified against the
-``Marginal Cost`` columns of the NT+ time series dashboards), while UK00 and
-UKNI have an entry but no prosumer node. Prosumer nodes without an entry are
-given a zero charge and reported in a warning.
+files, not from the wheeling charges file, because the two differ: e.g. CH00
+has prosumer demand but no wheeling charge entry. Prosumer nodes without an
+entry get a zero charge, matching the TYNDP market model, and are reported in
+a warning.
 
 Inputs
 ------
@@ -77,11 +75,11 @@ def get_prosumer_nodes(fn: str) -> pd.Index:
         raise FileNotFoundError(f"No prosumer demand file found in {fn}")
 
     nodes = {
-        sheet.removesuffix("_corrected")
+        format_bz_names(sheet.removesuffix("_corrected"))
         for match in matches
         for sheet in pd.ExcelFile(match, engine="calamine").sheet_names
     }
-    return pd.Index(format_bz_names(pd.Series(sorted(nodes))))
+    return pd.Index(sorted(nodes))
 
 
 def load_wheeling_charges(fn: str, nodes: pd.Index) -> pd.DataFrame:

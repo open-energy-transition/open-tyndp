@@ -264,19 +264,12 @@ class ConfigSchema(BaseModel):
             in self.sector.transmission_efficiency.enable
         ):
             raise ValueError(
-                "'sector:transmission_efficiency:enable' must not contain 'electricity distribution grid' "
-                "for a TYNDP scenario. The TYNDP distribution grid is already modelled as two unidirectional "
-                "links carrying the wheeling charges; splitting them again adds a reverse link per direction "
-                "that bypasses the charge."
-            )
-        return self
-
-    # TODO: Remove when adding MM output compatibility with DE/GA
-    @model_validator(mode="after")
-    def check_patch_demand_requires_nt_scenario(self):
-        if self.load.patch_demand_with_mm and self.tyndp_scenario != "NT":
-            raise ValueError(
-                "'load:patch_demand_with_mm' can only be enabled for 'tyndp_scenario' National Trends (NT). "
-                f"Current 'tyndp_scenario' is '{self.tyndp_scenario}'."
+                "'sector:transmission_efficiency:enable' must not contain "
+                "'electricity distribution grid' for a TYNDP scenario. TYNDP "
+                "transmission and distribution grid losses are already included in "
+                "the electricity demand time series. The TYNDP distribution grid is "
+                "also modelled as two unidirectional links carrying wheeling charges; "
+                "splitting them again adds a reverse link per direction that bypasses "
+                "the charge."
             )
         return self
