@@ -89,6 +89,13 @@ benchmarking:
       - dashboard_out
       unit: TWh
 
+    ev_charging:
+      table_type: scenario_comparison
+      mapping_col: benchmarking_elec_demand
+      rfc_sources:
+      - dashboard_out
+      unit: TWh
+
     methane_demand:
       table_type: scenario_comparison
       mapping_col: benchmarking_ch4_demand

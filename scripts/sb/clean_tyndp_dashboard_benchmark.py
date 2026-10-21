@@ -77,6 +77,11 @@ LOOKUP_TABLES: dict[str, dict] = {
         "stats": "sum",
     },
     "hydrogen_supply": {"sheet": H2_SHEETS, "stats": "sum"},
+    "ev_charging": {
+        "sheet": ["E-Market", "Prosumer"],
+        "category": ["EV charge (load)", "EV discharge (gen.)"],
+        "stats": "sum",
+    },
     # TODO: For shedding hours, TYNDP 2026 does not give a direct value, so it can be derived
     # where "Energy Not Served" is above 0.
     # "electricity_demand_shedding_hours": [
