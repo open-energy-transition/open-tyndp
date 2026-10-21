@@ -113,8 +113,6 @@ rule add_brownfield:
         dynamic_ptes_capacity=config_provider(
             "sector", "district_heating", "ptes", "dynamic_capacity"
         ),
-        h2_topology_tyndp=config_provider("sector", "h2_topology_tyndp"),
-        carriers_tyndp=config_provider("electricity", "tyndp_renewable_carriers"),
         tyndp_conventional_carriers=config_provider(
             "electricity", "tyndp_conventional_carriers"
         ),
