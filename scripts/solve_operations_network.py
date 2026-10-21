@@ -14,10 +14,10 @@ import pypsa
 from scripts._benchmark import memory_logger
 from scripts._helpers import (
     configure_logging,
-    get_version,
     set_scenario_config,
     update_config_from_wildcards,
 )
+from scripts.sb._helpers import get_version
 from scripts.solve_network import (
     collect_kwargs,
     prepare_network,

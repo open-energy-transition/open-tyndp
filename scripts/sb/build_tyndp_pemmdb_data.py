@@ -39,15 +39,13 @@ import xarray as xr
 from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
-from scripts._helpers import (
-    configure_logging,
+from scripts._helpers import configure_logging, get_snapshots, set_scenario_config
+from scripts.sb._helpers import (
     convert_units,
-    get_snapshots,
     get_wscenario,
     map_tyndp_carrier_names,
     parse_wscenario,
     safe_planning_horizon,
-    set_scenario_config,
 )
 
 # for compatibility with future pandas downcasting behaviour
@@ -834,7 +832,7 @@ def _process_other_nonres_profiles(
 
     # Extract plant type
     price_band_type = _extract_price_band_type(df.T).rename("price_band_type")
-    price = df.T.price
+    price = df.T.price.astype(float)
     pemmdb_carrier = (
         "Other Non-RES" + " " + df.T.pemmdb_type.str.split("/").str[1]
     ).rename("pemmdb_carrier")

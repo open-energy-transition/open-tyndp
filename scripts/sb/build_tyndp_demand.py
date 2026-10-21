@@ -50,13 +50,12 @@ from pathlib import Path
 import pandas as pd
 
 from scripts._helpers import (
-    align_demand_to_snapshots,
     check_snapshot_year,
     configure_logging,
     get_snapshots,
-    get_wscenario,
     set_scenario_config,
 )
+from scripts.sb._helpers import align_demand_to_snapshots, get_wscenario
 
 logger = logging.getLogger(__name__)
 

@@ -25,12 +25,8 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-from scripts._helpers import (
-    configure_logging,
-    get_snapshots,
-    safe_planning_horizon,
-    set_scenario_config,
-)
+from scripts._helpers import configure_logging, get_snapshots, set_scenario_config
+from scripts.sb._helpers import safe_planning_horizon
 
 logger = logging.getLogger(__name__)
 
