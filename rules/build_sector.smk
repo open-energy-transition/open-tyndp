@@ -1845,9 +1845,17 @@ rule prepare_sector_network:
             config_provider("tyndp_scenario"),
             resources("ev_demand_tyndp_{planning_horizons}.csv"),
         ),
-        ev_charging_stations=branch(
+        ev_fleets=branch(
             config_provider("tyndp_scenario"),
-            resources("ev_charging_stations_tyndp_{planning_horizons}.csv"),
+            resources("ev_fleets_tyndp_{planning_horizons}.csv"),
+        ),
+        ev_availability=branch(
+            config_provider("tyndp_scenario"),
+            resources("ev_availability_tyndp_{planning_horizons}.csv"),
+        ),
+        ev_min_soc=branch(
+            config_provider("tyndp_scenario"),
+            resources("ev_min_soc_tyndp_{planning_horizons}.csv"),
         ),
         wheeling_charges=branch(
             lambda w: config_provider("tyndp_scenario")(w)

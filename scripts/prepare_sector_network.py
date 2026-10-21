@@ -3247,66 +3247,106 @@ def add_hurdle_costs_tyndp(n: pypsa.Network, hurdle_costs: float) -> None:
 
 
 def add_ev_tyndp(
-    n: pypsa.Network, ev_demand_fn: str, charging_stations_fn: str
+    n: pypsa.Network,
+    ev_demand_fn: str,
+    ev_fleets_fn: str,
+    ev_availability_fn: str,
+    ev_min_soc_fn: str,
+    dsm: bool,
+    v2g: bool,
 ) -> None:
     """
-    Add the TYNDP fixed EV fleets as loads behind their charging links.
-
-    Each fleet segment (e.g. 'DE00 Street Fixed', 'DE00 Prosumer Fixed')
-    gets its own bus carrying the EV demand as a load, supplied by a charging
-    link with the TYNDP charging efficiency. Street charging is connected to
-    the e-market node, home charging to the prosumer node ('{node}RETE') if
-    the electricity distribution grid is modelled, otherwise to the e-market
-    node.
+    Add the TYNDP EV fleets with their charging, V2G and battery components.
 
     Parameters
     ----------
     n : pypsa.Network
-        The PyPSA network container object to be modified
+        Network to modify.
     ev_demand_fn : str
-        Path to the EV demand per segment in MW, with columns
-        '{node} {Street|Prosumer} Fixed'.
-    charging_stations_fn : str
-        Path to the charging station parameters indexed by segment
-        ('Street', 'Prosumer'), containing at least 'charge_efficiency'.
-
-    Returns
-    -------
-    None
-        Modifies the network object in-place
+        Path to the driving demand per fleet in MW.
+    ev_fleets_fn : str
+        Path to the fleet parameters.
+    ev_availability_fn : str
+        Path to the availability per flexible fleet in p.u.
+    ev_min_soc_fn : str
+        Path to the minimum state of charge per flexible fleet in p.u.
+    dsm : bool
+        Add the batteries of the flexible fleets as stores for demand-side
+        management.
+    v2g : bool
+        Add V2G discharging of the flexible fleets, only if `dsm` is enabled.
     """
+    fleets = pd.read_csv(ev_fleets_fn, index_col=0)
     demand = pd.read_csv(ev_demand_fn, index_col=0, parse_dates=True)
-    demand = demand.reindex(n.snapshots)
-    charging_stations = pd.read_csv(charging_stations_fn, index_col=0)
+    availability = pd.read_csv(ev_availability_fn, index_col=0, parse_dates=True)
+    min_soc = pd.read_csv(ev_min_soc_fn, index_col=0, parse_dates=True)
+    demand, availability, min_soc = (
+        df.reindex(n.snapshots) for df in (demand, availability, min_soc)
+    )
 
-    fleets = demand.columns
-    nodes = fleets.str.split(" ").str[0]
-    location = fleets.str.split(" ").str[1]
-    carriers = "EV " + fleets.str.split(" ", n=1).str[1]
+    grid_buses = (fleets["node"] + "RETE").where(
+        fleets["segment"] == "Prosumer", fleets["node"]
+    )
+    carriers = "EV " + fleets["segment"] + " " + fleets["fleet"]
+    flexible = fleets.index[fleets["fleet"] != "Fixed"] if dsm else pd.Index([])
+    availability = availability.reindex(columns=flexible).reindex(
+        columns=fleets.index, fill_value=1.0
+    )
 
-    missing = nodes.difference(n.buses.index)
-    if not missing.empty:
-        raise ValueError(f"EV demand given for nodes not in the network: {missing}")
-
-    prosumer_buses = nodes + "RETE"
-    on_prosumer = (location == "Prosumer") & prosumer_buses.isin(n.buses.index)
-    bus0 = prosumer_buses.where(on_prosumer, nodes)
-    efficiency = charging_stations.loc[location, "charge_efficiency"].values
-
-    n.add("Carrier", carriers.unique().union(["EV charge"]))
-    n.add("Bus", fleets, location=nodes, carrier=carriers, unit="MWh_el")
+    n.add("Carrier", carriers.unique().tolist() + ["BEV charger"])
+    n.add("Bus", fleets.index, location=fleets["node"], carrier=carriers, unit="MWh_el")
     n.add(
         "Link",
-        fleets + " EV charge",
-        bus0=bus0,
-        bus1=fleets,
-        carrier="EV charge",
-        p_nom=demand.max().div(efficiency).values,
-        efficiency=efficiency,
+        fleets.index + " BEV charger",
+        bus0=grid_buses.to_numpy(),
+        bus1=fleets.index,
+        carrier="BEV charger",
+        p_nom=fleets["charge_p_nom"].to_numpy(),
+        p_max_pu=availability.add_suffix(" BEV charger"),
+        efficiency=fleets["charge_efficiency"].to_numpy(),
+        marginal_cost=fleets["use_of_system_charge"].to_numpy(),
     )
-    n.add("Load", fleets, bus=fleets, carrier=carriers, p_set=demand)
+    n.add(
+        "Load",
+        fleets.index,
+        bus=fleets.index,
+        carrier=carriers,
+        p_set=demand[fleets.index],
+    )
 
-    logger.info(f"Added {len(fleets)} TYNDP fixed EV fleets")
+    if dsm:
+        n.add(
+            "Store",
+            flexible,
+            bus=flexible,
+            carrier=carriers[flexible],
+            e_nom=fleets.loc[flexible, "e_nom"],
+            e_min_pu=min_soc[flexible],
+            e_cyclic=True,
+        )
+
+        if v2g:
+            v2g_fleets = fleets.loc[flexible].query("discharge_p_nom > 0")
+            n.add("Carrier", "V2G")
+            n.add(
+                "Link",
+                v2g_fleets.index + " V2G",
+                bus0=v2g_fleets.index,
+                bus1=grid_buses[v2g_fleets.index].to_numpy(),
+                carrier="V2G",
+                p_nom=v2g_fleets.eval(
+                    "discharge_p_nom / discharge_efficiency"
+                ).to_numpy(),
+                p_max_pu=availability[v2g_fleets.index].add_suffix(" V2G"),
+                efficiency=v2g_fleets["discharge_efficiency"].to_numpy(),
+                marginal_cost=v2g_fleets.eval(
+                    "use_of_system_charge * discharge_efficiency"
+                ).to_numpy(),
+            )
+
+    logger.info(
+        f"Added {len(fleets)} TYNDP EV fleets, of which {len(flexible)} with DSM"
+    )
 
 
 def insert_electricity_distribution_grid(
@@ -9961,7 +10001,11 @@ if __name__ == "__main__":
         add_ev_tyndp(
             n,
             ev_demand_fn=snakemake.input.ev_demand,
-            charging_stations_fn=snakemake.input.ev_charging_stations,
+            ev_fleets_fn=snakemake.input.ev_fleets,
+            ev_availability_fn=snakemake.input.ev_availability,
+            ev_min_soc_fn=snakemake.input.ev_min_soc,
+            dsm=options["bev_dsm"],
+            v2g=options["v2g"],
         )
 
     if tyndp_scenario and snakemake.params.hurdle_costs:
