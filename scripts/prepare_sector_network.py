@@ -2917,7 +2917,6 @@ def _add_other_res_capacities(
 def _add_battery_capacities(
     n: pypsa.Network,
     pemmdb_capacities: pd.DataFrame,
-    tyndp_scenario: str,
 ) -> None:
     """
     Add PEMMDB capacities for battery storages to existing assets in the network.
@@ -2928,8 +2927,6 @@ def _add_battery_capacities(
         The PyPSA network container object.
     pemmdb_capacities : pd.DataFrame
         All PEMMDB capacities.
-    tyndp_scenario : str
-        TYNDP scenario to model.
 
     Returns
     -------
@@ -2939,25 +2936,25 @@ def _add_battery_capacities(
 
     logger.info("Adding PEMMDB capacities to battery storage assets.")
 
-    batteries = {"battery": "battery-utility", "home battery": "battery-prosumer"}
-    # Add Store capacities
-    for carrier, pemmdb_index in batteries.items():
+    for carrier in ["battery", "home battery"]:
         stores_i = n.stores.query("carrier == @carrier").index
         if stores_i.empty:
             continue
 
-        caps = pemmdb_capacities.query("index_carrier == @pemmdb_index")
+        # All battery capacities
+        battery_caps = pemmdb_capacities.query("carrier == @carrier")
+
+        # Add store capacities
+        caps = battery_caps.query("unit == 'MWh'")
         caps = caps.set_index(caps.index + " " + carrier)
         n.stores.loc[stores_i, "e_nom"] = caps.e_nom.reindex(stores_i, fill_value=0.0)
-        if tyndp_scenario == "NT":
-            n.components.stores.static.loc[stores_i, "e_nom_extendable"] = False
+        n.stores.loc[stores_i, "e_nom_extendable"] = False
 
         # Add links capacities
         for suffix in ["charger", "discharger"]:
             tech = f"{carrier} {suffix}"
-            pemmdb_tech = f"{pemmdb_index} {suffix}"
             links_i = n.links.query("carrier == @tech").index
-            caps = pemmdb_capacities.query(f"index_carrier == '{pemmdb_tech}'")
+            caps = battery_caps[battery_caps.index_carrier.str.endswith(f" {suffix}")]
             caps = caps.set_index(caps.index + " " + tech)
 
             # Adjust efficiencies with PEMMDB values
@@ -2971,9 +2968,7 @@ def _add_battery_capacities(
                 p_nom = p_nom.div(n.links.loc[links_i, "efficiency"]).fillna(0.0)
             n.links.loc[links_i, "p_nom"] = p_nom
 
-            # Set p_nom_extendable False for NT scenario
-            if tyndp_scenario == "NT":
-                n.links.loc[links_i, "p_nom_extendable"] = False
+            n.links.loc[links_i, "p_nom_extendable"] = False
 
     remove_zero_capacity_non_extendable(
         n,
@@ -3017,7 +3012,6 @@ def add_existing_tyndp_capacities(
     extendable_carriers: list | set,
     investment_year: int,
     enable_pemmdb_caps: bool,
-    tyndp_scenario: str,
     group_conventionals: bool,
 ) -> None:
     """
@@ -3072,8 +3066,6 @@ def add_existing_tyndp_capacities(
         Year for which to get trajectories.
     enable_pemmdb_caps : bool
         Whether to include PEMMDB capacities.
-    tyndp_scenario : str
-        TYNDP scenario to model.
     group_conventionals : bool
         Whether TYNDP conventional carriers are aggregated into higher level groups.
 
@@ -3142,7 +3134,6 @@ def add_existing_tyndp_capacities(
             _add_battery_capacities(
                 n=n,
                 pemmdb_capacities=pemmdb_capacities,
-                tyndp_scenario=tyndp_scenario,
             )
 
         # Add existing electrolyzer capacities from PEMMDB to already attached electrolyzer components
