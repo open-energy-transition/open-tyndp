@@ -235,7 +235,7 @@ class _PecdHydroProfilesConfig(BaseModel):
     )
     technologies: list[Literal["HRR", "HPI", "HRI", "HOL", "HCL"]] = Field(
         default_factory=lambda: ["HRR", "HPI", "HRI", "HOL", "HCL"],
-        description="The hydro technologies for which PECD hydro inflows data is used., as PECD codes: HRR (run of river), HPI (pondage), HRI (reservoir), HOL (open-loop pumped storage), HCL (closed-loop pumped storage).",
+        description="The hydro technologies for which PECD hydro inflows data is used, as PECD codes: HRR (run of river), HPI (pondage), HRI (reservoir), HOL (open-loop pumped storage), HCL (closed-loop pumped storage).",
     )
 
 
