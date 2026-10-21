@@ -315,7 +315,7 @@ rule clean_tyndp_hydro_inflows:
         snapshots=config_provider("snapshots"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
         available_years=config_provider(
-            "electricity", "pemmdb_hydro_profiles", "available_years"
+            "electricity", "pecd_hydro_profiles", "available_years"
         ),
         wscenarios=config_provider("wscenarios_tyndp"),
     script:
@@ -324,20 +324,20 @@ rule clean_tyndp_hydro_inflows:
 
 def input_data_hydro_tyndp(w):
     available_years = config_provider(
-        "electricity", "pemmdb_hydro_profiles", "available_years"
+        "electricity", "pecd_hydro_profiles", "available_years"
     )(w)
     planning_horizons = config_provider("scenario", "planning_horizons")(w)
     safe_planning_horizons = set(
         safe_planning_horizon(
             year,
             available_years,
-            "PEMMDB hydro",
+            "PECD hydro",
             verbose=False,
         )
         for year in planning_horizons
     )
     technologies = config_provider(
-        "electricity", "pemmdb_hydro_profiles", "technologies"
+        "electricity", "pecd_hydro_profiles", "technologies"
     )(w)
     return {
         f"hydro_inflow_tyndp_{tech}_{planning_horizon}": resources(
@@ -353,7 +353,7 @@ rule build_tyndp_hydro_profile:
         unpack(input_data_hydro_tyndp),
         carrier_mapping="data/tyndp_technology_map.csv",
     output:
-        profile=resources("profile_pemmdb_hydro.nc"),
+        profile=resources("profile_pecd_hydro.nc"),
     log:
         logs("build_tyndp_hydro_profile.log"),
     benchmark:
@@ -365,10 +365,10 @@ rule build_tyndp_hydro_profile:
         drop_leap_day=config_provider("enable", "drop_leap_day"),
         planning_horizons=config_provider("scenario", "planning_horizons"),
         available_years=config_provider(
-            "electricity", "pemmdb_hydro_profiles", "available_years"
+            "electricity", "pecd_hydro_profiles", "available_years"
         ),
         technologies=config_provider(
-            "electricity", "pemmdb_hydro_profiles", "technologies"
+            "electricity", "pecd_hydro_profiles", "technologies"
         ),
     script:
         scripts("sb/build_tyndp_hydro_profile.py")

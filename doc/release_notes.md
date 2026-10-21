@@ -11,7 +11,7 @@
 
 **Features**
 
-* feat: align hydro inflows to use TYNDP 2026 data ([#1059](https://github.com/open-energy-transition/open-tyndp/pull/1059)).
+* feat: align hydro inflows to use TYNDP 2026 data. The config section `electricity.pemmdb_hydro_profiles` is renamed to `electricity.pecd_hydro_profiles`, and its `technologies` now use the PECD codes `HRR`, `HPI`, `HRI`, `HOL` and `HCL` ([#1059](https://github.com/open-energy-transition/open-tyndp/pull/1059)).
 
 * feat: align snapshots to full year (8760 for hourly modeling) ([#1065](https://github.com/open-energy-transition/open-tyndp/pull/1065)).
 

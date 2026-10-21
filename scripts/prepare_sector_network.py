@@ -9674,7 +9674,7 @@ if __name__ == "__main__":
             costs=costs,
             profiles_pecd=profiles_pecd,
             nuclear_profiles=tyndp_nuclear_profiles,
-            hydro_inflows_fn=snakemake.input.profile_pemmdb_hydro,
+            hydro_inflows_fn=snakemake.input.profile_pecd_hydro,
             extendable_carriers=snakemake.params.electricity["extendable_carriers"],
             investment_year=investment_year,
             enable_pemmdb_caps=enable_pemmdb_caps,
