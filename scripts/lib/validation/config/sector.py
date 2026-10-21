@@ -848,6 +848,10 @@ class SectorConfig(BaseModel):
         False,
         description="Use TYNDP H2 topology for hydrogen network.",
     )
+    smr_ramp_limits_tyndp: bool = Field(
+        False,
+        description="Add TYNDP ramp limits to SMR and SMR CCS links. Only used with `h2_topology_tyndp`.",
+    )
     gas_network: bool = Field(
         True,
         description="Add existing natural gas infrastructure, incl. LNG terminals, production and entry-points. The existing gas network is added with a lossless transport model. A length-weighted `k-edge augmentation algorithm <https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.connectivity.edge_augmentation.k_edge_augmentation.html#networkx.algorithms.connectivity.edge_augmentation.k_edge_augmentation>`_ can be run to add new candidate gas pipelines such that all regions of the model can be connected to the gas network. When activated, all the gas demands are regionally disaggregated as well.",
