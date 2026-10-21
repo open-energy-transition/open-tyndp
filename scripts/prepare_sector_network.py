@@ -9766,7 +9766,6 @@ if __name__ == "__main__":
             extendable_carriers=snakemake.params.electricity["extendable_carriers"],
             investment_year=investment_year,
             enable_pemmdb_caps=enable_pemmdb_caps,
-            tyndp_scenario=tyndp_scenario,
             group_conventionals=snakemake.params.electricity[
                 "group_tyndp_conventionals"
             ],

@@ -11,7 +11,7 @@ See docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#elect
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from scripts.lib.validation.config._base import ConfigModel
 
@@ -473,3 +473,19 @@ class ElectricityConfig(BaseModel):
         description="Toggles specific dispatch constraints for DSR units within the SB workflow.",
     )
     model_config = ConfigDict(populate_by_name=True)
+
+    @model_validator(mode="after")
+    def check_tyndp_batteries_not_extendable(self) -> "ElectricityConfig":
+        """Validate that TYNDP batteries are not also listed as extendable stores."""
+        overlap = (
+            {"battery", "home battery"}
+            & set(self.tyndp_stores)
+            & set(self.extendable_carriers.Store)
+        )
+        if overlap:
+            raise ValueError(
+                f"{sorted(overlap)} must not be listed in both "
+                "'electricity:tyndp_stores' and 'electricity:extendable_carriers:Store'. "
+                "TYNDP batteries are added with fixed PEMMDB capacities."
+            )
+        return self
