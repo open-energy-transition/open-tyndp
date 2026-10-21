@@ -430,9 +430,9 @@ rule build_tyndp_ev_demand:
         ev_modelling=rules.retrieve_tyndp_2026.output.ev_modelling,
     output:
         ev_demand=resources("ev_demand_tyndp_{planning_horizons}.csv"),
-        charging_stations=resources(
-            "ev_charging_stations_tyndp_{planning_horizons}.csv"
-        ),
+        ev_fleets=resources("ev_fleets_tyndp_{planning_horizons}.csv"),
+        ev_availability=resources("ev_availability_tyndp_{planning_horizons}.csv"),
+        ev_min_soc=resources("ev_min_soc_tyndp_{planning_horizons}.csv"),
     log:
         logs("build_tyndp_ev_demand_{planning_horizons}.log"),
     benchmark:
