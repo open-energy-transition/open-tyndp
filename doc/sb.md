@@ -49,8 +49,14 @@ hydro dispatch across planning horizons. Profiles are provided per climate year 
 
 **[Demand Profiles](https://2026-data.entsos-tyndp-scenarios.eu/input/model-input/national-trends/Demand.zip)**
 
-Hourly electricity, hydrogen, synthetic fuel, BTM and EV fixed demand profiles by country, interpolated to the target
-planning horizon.
+Hourly electricity, hydrogen, synthetic fuel, BTM and fixed EV fleet demand profiles by node, for 2030, 2035, 2040
+and 2050.
+
+**[Electric Vehicle](https://2026-data.entsos-tyndp-scenarios.eu/input/model-input/national-trends/Electric-Vehicle.zip)**
+
+Passenger EV fleet inputs: national EV stock and demand, market zone, flexible fleet and V2G shares, charging station
+and battery parameters, and daily availability, driving and minimum state of charge profiles, for 2030, 2035, 2040 and
+2050.
 
 **[Line Data](https://2026-data.entsos-tyndp-scenarios.eu/input/model-input/national-trends/Line-data.zip)**
 
