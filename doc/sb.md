@@ -42,10 +42,10 @@ Provides efficiency and variable O&M parameters for conventional thermal generat
 Hourly capacity factor time series for wind (onshore and offshore) and solar PV, derived
 from ERA5 reanalysis data. Profiles are provided per weather scenario and TYNDP bidding zone.
 
-**[Hydro Inflows](https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/Hydro-Inflows.zip)**
+**[Hydro Inflows](https://2026-data.entsos-tyndp-scenarios.eu/input/model-input/national-trends/Hydro-Inflow.zip)**
 
-Hourly inflow profiles for reservoir and run-of-river hydro plants, used to constrain
-hydro dispatch across planning horizons. Profiles are provided per climate year and TYNDP bidding zone.
+Daily or weekly inflow time series from PECD 4.2 for run-of-river, pondage, reservoir and pumped storage hydro plants,
+used to constrain hydro dispatch across planning horizons. Profiles are provided per weather scenario and TYNDP bidding zone.
 
 **[Demand Profiles](https://2026-data.entsos-tyndp-scenarios.eu/input/model-input/national-trends/Demand.zip)**
 
@@ -144,7 +144,7 @@ and Open-TYNDP configuration options.
 ### Climate Years
 
 Each scenario run is tied to a specific historical climate year, which determines the
-renewable generation and hydro inflow profiles used from PECD 3.1 and Hydro Inflows:
+renewable generation and hydro inflow profiles used from PECD 4.2:
 
 * `snapshots`: Defines the modelling time window, e.g.:
 
