@@ -85,7 +85,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "prepare_reference",
-            planning_horizons="2030",
+            horizon="2030",
             run="NT",
             configfiles=["config/config.tyndp.yaml"],
         )
@@ -103,7 +103,7 @@ if __name__ == "__main__":
     storage_projects = pd.read_csv(snakemake.input.storage_projects)
 
     # Get planning horizons from config
-    planning_horizons = int(snakemake.wildcards.planning_horizons)
+    planning_horizons = int(snakemake.wildcards.horizon)
 
     logger.debug(f"\n{'=' * 80}")
     logger.debug("PREPARING REFERENCE NETWORK")

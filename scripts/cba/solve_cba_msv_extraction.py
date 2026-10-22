@@ -11,12 +11,12 @@ rolling horizon optimization.
 
 **Inputs**
 
-- `resources/cba/networks/reference_{planning_horizons}.nc`: Reference network
-- `resources/cba/msv_snapshot_weightings_{planning_horizons}.csv`: Snapshot weightings (optional)
+- `resources/cba/networks/reference_{horizon}.nc`: Reference network
+- `resources/cba/msv_snapshot_weightings_{horizon}.csv`: Snapshot weightings (optional)
 
 **Outputs**
 
-- `resources/cba/networks/msv_{planning_horizons}.nc`: Network with marginal storage values in stores_t.mu_energy_balance
+- `resources/cba/networks/msv_{horizon}.nc`: Network with marginal storage values in stores_t.mu_energy_balance
 """
 
 import copy
@@ -44,7 +44,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "solve_cba_msv_extraction",
-            planning_horizons="2030",
+            horizon="2030",
             run="NT",
             configfiles=["config/config.tyndp.yaml"],
         )
@@ -81,7 +81,7 @@ if __name__ == "__main__":
         solve_opts=solve_opts,
         foresight="overnight",
         renewable_carriers=[],
-        planning_horizons=snakemake.wildcards.get("planning_horizons", None),
+        planning_horizons=snakemake.wildcards.get("horizon", None),
         co2_sequestration_potential=None,
         limit_max_growth=None,
         config=snakemake.config,
@@ -104,7 +104,7 @@ if __name__ == "__main__":
         model_kwargs, solve_kwargs = collect_kwargs(
             snakemake.config,
             solving,
-            snakemake.wildcards.get("planning_horizons", None),
+            snakemake.wildcards.get("horizon", None),
             log_fn=solver_log,
             mode="single",
         )

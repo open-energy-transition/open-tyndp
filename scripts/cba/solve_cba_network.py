@@ -324,7 +324,7 @@ if __name__ == "__main__":
             "solve_cba_network",
             run="NT",
             cba_project="t16",
-            planning_horizons="2030",
+            horizon="2030",
             configfiles=["config/config.tyndp.yaml"],
         )
 
@@ -338,7 +338,7 @@ if __name__ == "__main__":
     np.random.seed(solving["options"].get("seed", 123))
 
     n = pypsa.Network(snakemake.input.network)
-    planning_horizons = snakemake.wildcards.get("planning_horizons", None)
+    planning_horizons = snakemake.wildcards.get("horizon", None)
 
     prepare_network(
         n,

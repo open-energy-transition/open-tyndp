@@ -15,11 +15,11 @@ for the supported resolution formats:
 
 **Inputs**
 
-- `resources/cba/networks/reference_{planning_horizons}.nc`: Reference network
+- `resources/cba/networks/reference_{horizon}.nc`: Reference network
 
 **Outputs**
 
-- `resources/cba/msv_snapshot_weightings_{planning_horizons}.csv`: Snapshot weightings
+- `resources/cba/msv_snapshot_weightings_{horizon}.csv`: Snapshot weightings
 """
 
 import logging
@@ -38,7 +38,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "build_msv_snapshot_weightings",
-            planning_horizons="2030",
+            horizon="2030",
             run="NT",
             configfiles=["config/config.tyndp.yaml"],
         )
