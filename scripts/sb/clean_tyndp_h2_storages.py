@@ -63,11 +63,7 @@ def load_h2_storage_data(fn: str, planning_horizon: int) -> pd.DataFrame:
         bus=lambda df: df.location + " Storage_" + df.flexibility,
     )
 
-    storages = storages.loc[
-        storages.scenario.isin(["NT", "all"])
-        & (storages.year == planning_horizon)
-        & (storages.e_nom > 0)
-    ]
+    storages = storages.loc[(storages.year == planning_horizon) & (storages.e_nom > 0)]
 
     return storages
 

@@ -56,7 +56,7 @@ def load_smr_data(fn: str, planning_horizon: int) -> pd.DataFrame:
         pd.read_excel(fn, sheet_name="TEMPLATE")
         .rename(columns=column_dict)
         .replace(replace_dict)
-        .query("year == @planning_horizon and scenario in ['NT', 'all'] and p_nom > 0")
+        .query("year == @planning_horizon and p_nom > 0")
     )
 
     if (invalid := ~(smr.heat_rate > 0)).any():
