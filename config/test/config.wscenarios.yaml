@@ -100,6 +100,7 @@ electricity:
   - battery
   - H2 cavern-storage
   - H2 tank-storage
+  - home battery
   estimate_renewable_capacities:
     enable: false
 
@@ -490,6 +491,7 @@ cba:
     # marginal storage value and have cyclicity disabled
     cyclic_carriers:
     - battery
+    - home battery
     - caes
     # Carriers whose state of charge is fixed at window boundaries
     # from perfect foresight (applies to StorageUnit components only).
