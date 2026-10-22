@@ -240,11 +240,11 @@ sector:
   agriculture: false
   fossil_fuels: true
 
-  land_transport_ice_share:  # TODO Improve TYNDP 2024 approximations
-    2030: 0.96
-    2035: 0.82  # interpolation
-    2040: 0.68
-    2050: 0.16
+  land_transport_ice_share:  # default demand scaled to TYNDP 2026 NT+ EU27 road and rail liquids demand (Supply Tool)
+    2030: 0.90
+    2035: 0.67
+    2040: 0.48
+    2050: 0.19
   shipping_hydrogen_share:  # included in exogenous demand  # TODO Validate assumption
     2030: 0
     2035: 0
