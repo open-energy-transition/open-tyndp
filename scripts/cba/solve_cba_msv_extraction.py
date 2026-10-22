@@ -30,7 +30,6 @@ from scripts._helpers import (
     configure_logging,
     get_temporal_resolution,
     set_scenario_config,
-    update_config_from_wildcards,
 )
 from scripts.sb._helpers import get_version
 from scripts.prepare_sector_network import set_temporal_aggregation
@@ -52,7 +51,6 @@ if __name__ == "__main__":
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
-    update_config_from_wildcards(snakemake.config, snakemake.wildcards)
 
     # Load base network
     n = pypsa.Network(snakemake.input.network)
