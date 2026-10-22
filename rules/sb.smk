@@ -415,7 +415,7 @@ rule build_tyndp_wheeling_charges:
         scripts("sb/build_tyndp_wheeling_charges.py")
 
 
-rule build_tyndp_ev_demand:
+rule build_tyndp_ev_fleets:
     input:
         ev_market=expand(
             rules.build_tyndp_demand.output.demand,
@@ -434,16 +434,16 @@ rule build_tyndp_ev_demand:
         ev_availability=resources("ev_availability_tyndp_{planning_horizons}.csv"),
         ev_min_soc=resources("ev_min_soc_tyndp_{planning_horizons}.csv"),
     log:
-        logs("build_tyndp_ev_demand_{planning_horizons}.log"),
+        logs("build_tyndp_ev_fleets_{planning_horizons}.log"),
     benchmark:
-        benchmarks("performances/build_tyndp_ev_demand_{planning_horizons}")
+        benchmarks("performances/build_tyndp_ev_fleets_{planning_horizons}")
     conda:
         "../envs/environment.yaml"
     threads: 1
     resources:
         mem_mb=1000,
     script:
-        scripts("sb/build_tyndp_ev_demand.py")
+        scripts("sb/build_tyndp_ev_fleets.py")
 
 
 if config["sector"]["h2_topology_tyndp"]:

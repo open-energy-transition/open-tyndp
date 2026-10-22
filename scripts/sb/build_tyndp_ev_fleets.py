@@ -320,7 +320,7 @@ if __name__ == "__main__":
         from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake(
-            "build_tyndp_ev_demand",
+            "build_tyndp_ev_fleets",
             planning_horizons="2030",
             configfiles="config/test/config.tyndp.yaml",
         )
