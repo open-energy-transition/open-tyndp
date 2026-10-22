@@ -2767,7 +2767,8 @@
             "enum": [
               "battery",
               "H2 cavern-storage",
-              "H2 tank-storage"
+              "H2 tank-storage",
+              "home battery"
             ],
             "type": "string"
           },
@@ -9972,7 +9973,8 @@
             "enum": [
               "battery",
               "H2 cavern-storage",
-              "H2 tank-storage"
+              "H2 tank-storage",
+              "home battery"
             ],
             "type": "string"
           },
