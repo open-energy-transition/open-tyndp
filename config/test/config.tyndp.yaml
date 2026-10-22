@@ -475,7 +475,7 @@ cba:
     use_presolved: false
     sb_version: latest # use 'latest' or a supported version from data/tyndp_versions.csv for pre-solved SB network input in CBA; only applies if use_presolved is true
   projects:
-  - t335 # PINT
+  - t225 # PINT
   - t339 # TOOT
   - t1106 # TOOT, offshore
   - s1001 # PHS
