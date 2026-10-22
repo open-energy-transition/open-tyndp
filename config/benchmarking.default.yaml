@@ -15,42 +15,37 @@ benchmarking:
       table_type: scenario_comparison
       mapping_col: benchmarking_capacity
       rfc_sources:
-      - market_out
+      - dashboard_out
       - report
-      - vp
       unit: GW
       report:
-        sheet_name: 25-
-        index_col: [2, 3]
-        header: 4
-        nrows: 10
-        ncolumns: 17
+        sheet_name: "57"
+        index_col: 3
+        header: 3
+        scenario: NT+
         names:
           index:
-          - scenario
-          - year
-          column:
           - carrier
+          column:
+          - year
 
     power_generation:
       table_type: scenario_comparison
       mapping_col: benchmarking_generation
       rfc_sources:
-      - market_out
+      - dashboard_out
       - report
       unit: TWh
       report:
-        sheet_name: 26-
-        index_col: [2, 3]
-        header: 4
-        nrows: 10
-        ncolumns: 16
+        sheet_name: "58"
+        index_col: 2
+        header: 2
+        scenario: NT+
         names:
           index:
-          - scenario
-          - year
-          column:
           - carrier
+          column:
+          - year
 
     final_energy_demand:
       table_type: scenario_comparison
@@ -59,34 +54,40 @@ benchmarking:
       - report
       unit: TWh
       report:
-        sheet_name: 5-
+        sheet_name: "4"
         index_col: 2
-        header: [4, 5]
+        header: 5
+        scenario: NT+
         names:
           index:
-          - carrier
-          column:
-          - scenario
           - year
+          column:
+          - carrier
 
     electricity_demand:
       table_type: scenario_comparison
       mapping_col: benchmarking_elec_demand
       rfc_sources:
-      - market_out
+      - dashboard_out
       - report
-      - vp
       unit: TWh
       report:
-        sheet_name: 23-
-        index_col: [2, 3]
+        sheet_name: "35"
+        index_col: 3
         header: 4
+        scenario: NT+
         names:
           index:
-          - scenario
-          - year
-          column:
           - carrier
+          column:
+          - year
+
+    electricity_prosumer_demand:
+      table_type: scenario_comparison
+      mapping_col: benchmarking_elec_demand
+      rfc_sources:
+      - dashboard_out
+      unit: TWh
 
     methane_demand:
       table_type: scenario_comparison
@@ -95,34 +96,32 @@ benchmarking:
       - report
       unit: TWh
       report:
-        sheet_name: 8-
-        index_col: 2
-        header: [4, 5]
-        nrows: 15
+        sheet_name: "46"
+        index_col: 3
+        header: 4
+        scenario: NT+
         names:
           index:
           - carrier
           column:
-          - scenario
           - year
 
     hydrogen_demand:
       table_type: scenario_comparison
       mapping_col: benchmarking_h2_demand
       rfc_sources:
-      - market_out
+      - dashboard_out
       - report
       unit: TWh
       report:
-        sheet_name: 10-
-        index_col: 2
-        header: [4, 5]
-        nrows: 15
+        sheet_name: "41"
+        index_col: 3
+        header: 4
+        scenario: NT+
         names:
           index:
           - carrier
           column:
-          - scenario
           - year
 
     methane_supply:
@@ -132,36 +131,34 @@ benchmarking:
       - report
       unit: TWh
       report:
-        sheet_name: 32-
-        index_col: 2
-        header: [6, 7]
-        nrows: 13
-        ncolumns: 9
+        sheet_name: "70"
+        index_col: [3, 4]
+        header: 4
+        nrows: 10
+        scenario: NT+
         names:
           index:
+          - origin
           - carrier
           column:
-          - scenario
           - year
 
     hydrogen_supply:
       table_type: scenario_comparison
       mapping_col: benchmarking_h2_supply
       rfc_sources:
-      - market_out
+      - dashboard_out
       - report
       unit: TWh
       report:
-        sheet_name: 33-
-        index_col: 2
-        header: [4, 5]
-        nrows: 13
-        ncolumns: 9
+        sheet_name: "74"
+        index_col: 3
+        header: 5
+        scenario: NT+
         names:
           index:
           - carrier
           column:
-          - scenario
           - year
 
     biomass_supply:
@@ -171,14 +168,14 @@ benchmarking:
       - report
       unit: TWh
       report:
-        sheet_name: 22-
+        sheet_name: "81"
         index_col: 2
-        header: [3, 4]
+        header: 4
+        scenario: NT+
         names:
           index:
           - carrier
           column:
-          - scenario
           - year
       biomass_to_methane_efficiency:
         # Values from TYNDP 2026 Supply Tool NT+ (per-country sheets, "Efficiency Conversion Biomass to Biomethane (%)"; identical for all 27 countries)
@@ -192,6 +189,12 @@ benchmarking:
         2035: 105
         2040: 111
         2050: 106
+      biomass_heat_production:
+        # Values from TYNDP 2026 Supply Tool NT+, EU27, 8760h (biomass and biofuels primary energy demand for district heating)
+        2030: 130  # TWh
+        2035: 127
+        2040: 116
+        2050: 126
 
     energy_imports:
       table_type: scenario_comparison
@@ -200,46 +203,29 @@ benchmarking:
       - report
       unit: TWh
       report:
-        sheet_name: 60-
+        sheet_name: "83"
         index_col: 2
-        header: [3, 4]
+        header: 3
+        ncolumns: 7
+        scenario: NT+
         names:
           index:
           - carrier
           column:
-          - scenario
           - year
-
-    generation_profiles:
-      table_type: time_series
-      mapping_col: benchmarking_generation_profiles
-      rfc_sources:
-      - report
-      unit: GW
-      report:
-        sheet_name:
-          DE: 30a
-          GA: 30b
-        index_col: 1
-        header: 4
-        names:
-          index:
-          - snapshot
-          column:
-          - carrier
 
     electricity_price:
       table_type: prices
       mapping_col: benchmarking_prices
       rfc_sources:
-      - market_out
+      - dashboard_out
       unit: EUR/MWh_e
 
     electricity_price_excl_shed:
       table_type: prices
       mapping_col: benchmarking_prices
       rfc_sources:
-      - market_out
+      - dashboard_out
       unit: EUR/MWh_e
       exclude_coupling_effects: true  # If true, derive threshold from VOLL EUR/MWh_H2 × electrolysis efficiency
 
@@ -247,39 +233,39 @@ benchmarking:
       table_type: prices
       mapping_col: benchmarking_prices
       rfc_sources:
-      - market_out
+      - dashboard_out
       unit: EUR/MWh_H2
 
     hydrogen_price_excl_shed:
       table_type: prices
       mapping_col: benchmarking_prices
       rfc_sources:
-      - market_out
+      - dashboard_out
       unit: EUR/MWh_H2
       exclude_coupling_effects: true  # If true, derive threshold from VOLL EUR/MWh_e × H2-CCGT efficiency
 
     crossborder_electricity:
       table_type: flows
       rfc_sources:
-      - market_out
+      - dashboard_out
       unit: MWh
 
     crossborder_hydrogen:
       table_type: flows
       rfc_sources:
-      - market_out
+      - dashboard_out
       unit: MWh
 
     electricity_demand_shedding_hours:
       table_type: hours
       mapping_col: benchmarking_shed_hours
       rfc_sources:
-      - market_out
+      - dashboard_out
       unit: hours
 
     hydrogen_demand_shedding_hours:
       table_type: hours
       mapping_col: benchmarking_shed_hours
       rfc_sources:
-      - market_out
+      - dashboard_out
       unit: hours
