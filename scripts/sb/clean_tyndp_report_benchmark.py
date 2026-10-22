@@ -222,6 +222,8 @@ def clean_data_for_benchmarking(
 
     elif table == "energy_imports":
         df = df[~df.carrier.isin(["sum", "total", "ammonia", "solids"])]
+    elif table == "ev_charging":
+        df = df[df.carrier.str.startswith("v2g")]
 
     # Remove aggregated values
     else:

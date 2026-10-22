@@ -51,6 +51,10 @@ for the NT+ scenario:
 
 * **Time Series Dashboards** (preferred reference): market model outputs at node level, read for the
   first weather scenario configured in `wscenarios_tyndp` for each planning horizon.
+  Besides the tables shared with the Scenario Report, the `electricity_prosumer_demand` table
+  compares the prosumer demand and the `ev_charging` table compares the grid side EV charging
+  (`BEV charger`) and V2G discharging (`V2G`) per node. V2G is also compared to the Scenario Report
+  (figure 61).
 * **Scenario Report Data Figures**: EU27 metrics complementing the Dashboards:
 
     * Exogenous inputs:
@@ -196,7 +200,7 @@ To align naming conventions across data sources, Open-TYNDP uses a mapping table
 * **benchmarking_capacity**: Naming convention for the benchmarking framework's `power_capacity` table.
 * **benchmarking_generation**: Naming convention for the benchmarking framework's `power_generation` table.
 * **benchmarking_fed**: Naming convention for the benchmarking framework's `final_energy_demand` table.
-* **benchmarking_elec_demand**: Naming convention for the benchmarking framework's `electricity_demand` table.
+* **benchmarking_elec_demand**: Naming convention for the benchmarking framework's `electricity_demand`, `electricity_prosumer_demand` and `ev_charging` tables.
 * **benchmarking_ch4_demand**: Naming convention for the benchmarking framework's `methane_demand` table.
 * **benchmarking_h2_demand**: Naming convention for the benchmarking framework's `hydrogen_demand` table.
 * **benchmarking_ch4_supply**: Naming convention for the benchmarking framework's `methane_supply` table.

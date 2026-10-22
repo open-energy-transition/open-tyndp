@@ -3249,6 +3249,109 @@ def add_hurdle_costs_tyndp(n: pypsa.Network, hurdle_costs: float) -> None:
     )
 
 
+def add_ev_tyndp(
+    n: pypsa.Network,
+    ev_demand_fn: str,
+    ev_fleets_fn: str,
+    avail_profile_fn: str,
+    dsm_profile_fn: str,
+    dsm: bool,
+    v2g: bool,
+) -> None:
+    """
+    Add the TYNDP EV fleets with their charging, V2G and battery components.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        Network to modify.
+    ev_demand_fn : str
+        Path to the driving demand per fleet in MW.
+    ev_fleets_fn : str
+        Path to the fleet parameters.
+    avail_profile_fn : str
+        Path to the availability per flexible fleet in p.u.
+    dsm_profile_fn : str
+        Path to the minimum state of charge per flexible fleet in p.u.
+    dsm : bool
+        Add the batteries of the flexible fleets as stores for demand-side
+        management.
+    v2g : bool
+        Add V2G discharging of the flexible fleets, only if `dsm` is enabled.
+    """
+    fleets = pd.read_csv(ev_fleets_fn, index_col=0)
+    p_set = pd.read_csv(ev_demand_fn, index_col=0, parse_dates=True)
+    avail_profile = pd.read_csv(avail_profile_fn, index_col=0, parse_dates=True)
+    dsm_profile = pd.read_csv(dsm_profile_fn, index_col=0, parse_dates=True)
+    p_set, avail_profile, dsm_profile = (
+        df.reindex(n.snapshots) for df in (p_set, avail_profile, dsm_profile)
+    )
+
+    grid_buses = (fleets["node"] + "RETE").where(
+        fleets["segment"] == "Prosumer", fleets["node"]
+    )
+    carriers = "EV " + fleets["segment"] + " " + fleets["fleet"]
+    flexible = fleets.index[fleets["fleet"] != "Fixed"] if dsm else pd.Index([])
+    avail_profile = avail_profile.reindex(columns=flexible).reindex(
+        columns=fleets.index, fill_value=1.0
+    )
+
+    n.add("Carrier", carriers.unique().tolist() + ["BEV charger"])
+    n.add("Bus", fleets.index, location=fleets["node"], carrier=carriers, unit="MWh_el")
+    n.add(
+        "Link",
+        fleets.index + " BEV charger",
+        bus0=grid_buses.to_numpy(),
+        bus1=fleets.index,
+        carrier="BEV charger",
+        p_nom=fleets["charge_p_nom"].to_numpy(),
+        p_max_pu=avail_profile.add_suffix(" BEV charger"),
+        efficiency=fleets["charge_efficiency"].to_numpy(),
+        marginal_cost=fleets["use_of_system_charge"].to_numpy(),
+    )
+    n.add(
+        "Load",
+        fleets.index,
+        bus=fleets.index,
+        carrier=carriers,
+        p_set=p_set[fleets.index],
+    )
+
+    if dsm:
+        n.add(
+            "Store",
+            flexible,
+            bus=flexible,
+            carrier=carriers[flexible],
+            e_nom=fleets.loc[flexible, "e_nom"],
+            e_min_pu=dsm_profile[flexible],
+            e_cyclic=True,
+        )
+
+        if v2g:
+            v2g_fleets = fleets.loc[flexible].query("discharge_p_nom > 0")
+            n.add("Carrier", "V2G")
+            n.add(
+                "Link",
+                v2g_fleets.index + " V2G",
+                bus0=v2g_fleets.index,
+                bus1=grid_buses[v2g_fleets.index].to_numpy(),
+                carrier="V2G",
+                p_nom=v2g_fleets.eval(
+                    "discharge_p_nom / discharge_efficiency"
+                ).to_numpy(),
+                p_max_pu=avail_profile[v2g_fleets.index].add_suffix(" V2G"),
+                efficiency=v2g_fleets["discharge_efficiency"].to_numpy(),
+                marginal_cost=v2g_fleets.eval(
+                    "use_of_system_charge * discharge_efficiency"
+                ).to_numpy(),
+            )
+
+    logger.info(
+        f"Added {len(fleets)} TYNDP EV fleets, of which {len(flexible)} with DSM"
+    )
+
+
 def insert_electricity_distribution_grid(
     n: pypsa.Network,
     costs: pd.DataFrame,
@@ -5478,6 +5581,7 @@ def add_land_transport(
     options,
     investment_year,
     nodes,
+    tyndp_scenario: bool = False,
 ) -> None:
     """
     Add land transport demand and infrastructure to the network.
@@ -5507,6 +5611,9 @@ def add_land_transport(
         Year for which to get the transport shares
     nodes : list-like
         List of spatial nodes to consider
+    tyndp_scenario : bool, optional
+        Whether a TYNDP scenario is modelled, in which case EVs are added by
+        `add_ev_tyndp` instead.
 
     Returns
     -------
@@ -5530,7 +5637,9 @@ def add_land_transport(
     dsm_profile = pd.read_csv(dsm_profile_file, index_col=0, parse_dates=True)
 
     # exogenous share of passenger car type
-    engine_types = ["fuel_cell", "electric", "ice"]
+    engine_types = (
+        ["fuel_cell", "ice"] if tyndp_scenario else ["fuel_cell", "electric", "ice"]
+    )
     shares = pd.Series()
     for engine in engine_types:
         share_key = f"land_transport_{engine}_share"
@@ -5551,7 +5660,9 @@ def add_land_transport(
     )
     temperature = temperature.apply(lambda col: col.fillna(temperature.mean(axis=1)))
 
-    if shares["electric"] > 0:
+    if tyndp_scenario:
+        logger.info("EVs are added from TYNDP data in add_ev_tyndp")
+    elif shares["electric"] > 0:
         add_EVs(
             n,
             avail_profile,
@@ -9719,6 +9830,7 @@ if __name__ == "__main__":
             options=options,
             investment_year=investment_year,
             nodes=spatial.nodes,
+            tyndp_scenario=bool(tyndp_scenario),
         )
 
     if options["heating"]:
@@ -9904,6 +10016,17 @@ if __name__ == "__main__":
             prosumer_btm_demand_fn=snakemake.input.get(
                 "elec_demand_prosumer_btm_tyndp", ""
             ),
+        )
+
+    if tyndp_scenario:
+        add_ev_tyndp(
+            n,
+            ev_demand_fn=snakemake.input.ev_demand,
+            ev_fleets_fn=snakemake.input.ev_fleets,
+            avail_profile_fn=snakemake.input.avail_profile_tyndp,
+            dsm_profile_fn=snakemake.input.dsm_profile_tyndp,
+            dsm=options["bev_dsm"],
+            v2g=options["v2g"],
         )
 
     if tyndp_scenario and snakemake.params.hurdle_costs:

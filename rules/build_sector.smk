@@ -1841,6 +1841,22 @@ rule prepare_sector_network:
             config_provider("tyndp_scenario"),
             resources("demand_tyndp_h2_z2_{planning_horizons}.csv"),
         ),
+        ev_demand=branch(
+            config_provider("tyndp_scenario"),
+            resources("ev_demand_tyndp_{planning_horizons}.csv"),
+        ),
+        ev_fleets=branch(
+            config_provider("tyndp_scenario"),
+            resources("ev_fleets_tyndp_{planning_horizons}.csv"),
+        ),
+        avail_profile_tyndp=branch(
+            config_provider("tyndp_scenario"),
+            resources("avail_profile_tyndp_{planning_horizons}.csv"),
+        ),
+        dsm_profile_tyndp=branch(
+            config_provider("tyndp_scenario"),
+            resources("dsm_profile_tyndp_{planning_horizons}.csv"),
+        ),
         wheeling_charges=branch(
             lambda w: config_provider("tyndp_scenario")(w)
             and config_provider("sector", "electricity_distribution_grid")(w),
