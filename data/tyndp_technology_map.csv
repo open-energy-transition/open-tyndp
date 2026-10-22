@@ -104,9 +104,9 @@ Electrolyser,Electrolyser Dedicated RES Z2,,,Electrolyzers,DRES,P2G,,H2 Electrol
 ,,,,,,,,home battery charger,,Battery Storage Home,battery charge (load),,,,,,,,,,,,,,
 ,,,,,,,ElectrochemicalStorage,battery,battery,Battery Storage,,,,,,,,,,,,,battery,,
 ,,,,,,,CompressedAirEnergyStorage,caes,caes,Compressed Air Energy Storage,,,,,,,,,,,,,caes,,Only used for CBA storage projects (no SB source; not part of the TYNDP scenarios)
-Battery,Battery Residential Discharge,,,,Li-Ion Battery Capacity,Batteries,,battery,battery-prosumer discharger,Battery Storage Prosumer,battery,,,,,,,,,,,,battery-prosumer discharger,,
-Battery,Battery Residential Charge,,,,,,,battery,battery-prosumer charger,Battery Storage Prosumer,battery charge (load),,,,,,,,,,,,battery-prosumer charger,,
-Battery,Battery Residential Store,,,Batteries Prosumer,Li-Ion Battery Volume,,,battery,battery-prosumer,Battery Storage Prosumer,,,,,,,,,,,,,battery-prosumer,,
+Battery,Battery Residential Discharge,,,,Li-Ion Battery Capacity,Batteries,,home battery,battery-prosumer discharger,Battery Storage Prosumer,battery,,,,,,,,,,,,battery-prosumer discharger,,
+Battery,Battery Residential Charge,,,,,,,home battery,battery-prosumer charger,Battery Storage Prosumer,battery charge (load),,,,,,,,,,,,battery-prosumer charger,,
+Battery,Battery Residential Store,,,Batteries Prosumer,Li-Ion Battery Volume,,,home battery,battery-prosumer,Battery Storage Prosumer,,,,,,,,,,,,,battery-prosumer,,
 Battery,Battery Utility Scale Discharge,,,,Li-Ion Battery Capacity,Batteries,,battery,battery-utility discharger,Battery Storage Utility,battery,,,,,,,,,,,,battery-utility discharger,,
 Battery,Battery Utility Scale Charge,,,,,,,battery,battery-utility charger,Battery Storage Utility,battery charge (load),,,,,,,,,,,,battery-utility charger,,
 Battery,Battery Utility Scale Store,,,Batteries Utility,Li-Ion Battery Volume,,,battery,battery-utility,Battery Storage Utility,,,,,,,,,,,,,battery-utility,,

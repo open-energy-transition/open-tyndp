@@ -1272,24 +1272,13 @@ if (TYNDP_DATASET := dataset_version("tyndp"))["source"] in [
 
         rule retrieve_tyndp:
             input:
-                line_data=storage(TYNDP_DATASET["url"] + "/Line-data.zip"),
                 nodes=storage(TYNDP_DATASET["url"] + "/Nodes.zip"),
                 hydro_inflows=storage(TYNDP_DATASET["url"] + "/Hydro-Inflows.zip"),
-                pemmdb=storage(TYNDP_DATASET["url"] + "/PEMMDB2.zip"),
                 supply_tool=storage(
                     TYNDP_DATASET["url"] + "/20240518-Supply-Tool.xlsm.zip"
                 ),
                 benchmark=storage(
                     TYNDP_DATASET["url"] + "/TYNDP-2024-Scenarios-Package-20250128.zip"
-                ),
-                demand_profiles=storage(TYNDP_DATASET["url"] + "/Demand-Profiles.zip"),
-                ev_modelling=storage(TYNDP_DATASET["url"] + "/EV-Modelling-Inputs.zip"),
-                hybrid_hp_modelling=storage(
-                    TYNDP_DATASET["url"] + "/Hybrid-Heat-Pump-Modelling-Inputs.zip"
-                ),
-                hydrogen=storage(TYNDP_DATASET["url"] + "/Hydrogen.zip"),
-                investment_datasets=storage(
-                    TYNDP_DATASET["url"] + "/Investment-Datasets.zip"
                 ),
                 offshore_hubs=storage(TYNDP_DATASET["url"] + "/Offshore-hubs.zip"),
                 market_outputs_NT2030_CY2009=storage(
@@ -1300,41 +1289,15 @@ if (TYNDP_DATASET := dataset_version("tyndp"))["source"] in [
                     TYNDP_DATASET["url"]
                     + "/MMStandardOutputFile_NT2040_Plexos_CY2009_2.5_v40.xlsx.zip"
                 ),
-                h2_reference_grid_entsoe=storage(
-                    TYNDP_DATASET["url"] + "/StartingGrid2030.xlsx.zip"
-                ),
             output:
-                line_data_zip=f"{TYNDP_DATASET['folder']}/Line-data.zip",
                 nodes_zip=f"{TYNDP_DATASET['folder']}/Nodes.zip",
-                elec_reference_grid=f"{TYNDP_DATASET['folder']}/Line data/ReferenceGrid_Electricity.xlsx",
-                h2_reference_grid_entsos=f"{TYNDP_DATASET['folder']}/Line data/ReferenceGrid_Hydrogen.xlsx",
-                h2_reference_grid_entsoe_zip=f"{TYNDP_DATASET['folder']}/StartingGrid2030.xlsx.zip",
-                h2_reference_grid_entsoe=f"{TYNDP_DATASET['folder']}/StartingGrid2030.xlsx",
                 nodes=f"{TYNDP_DATASET['folder']}/Nodes/LIST OF NODES.xlsx",
                 hydro_inflows_zip=f"{TYNDP_DATASET['folder']}/Hydro-Inflows.zip",
                 hydro_inflows=directory(f"{TYNDP_DATASET['folder']}/Hydro Inflows"),
-                pemmdb_zip=f"{TYNDP_DATASET['folder']}/PEMMDB2.zip",
-                pemmdb=directory(f"{TYNDP_DATASET['folder']}/PEMMDB2"),
                 supply_tool_zip=f"{TYNDP_DATASET['folder']}/20240518-Supply-Tool.xlsm.zip",
                 supply_tool=f"{TYNDP_DATASET['folder']}/20240518-Supply-Tool.xlsm",
                 benchmark_zip=f"{TYNDP_DATASET['folder']}/TYNDP-2024-Scenarios-Package-20250128.zip",
                 benchmark=f"{TYNDP_DATASET['folder']}/TYNDP-2024-Scenarios-Package/TYNDP_2024-Scenario-Report-Data-Figures_240522.xlsx",
-                demand_profiles_zip=f"{TYNDP_DATASET['folder']}/Demand-Profiles.zip",
-                demand_profiles=directory(f"{TYNDP_DATASET['folder']}/Demand Profiles"),
-                ev_modelling_zip=f"{TYNDP_DATASET['folder']}/EV-Modelling-Inputs.zip",
-                ev_modelling=directory(f"{TYNDP_DATASET['folder']}/EV Modelling Inputs"),
-                hybrid_hp_modelling_zip=f"{TYNDP_DATASET['folder']}/Hybrid-Heat-Pump-Modelling-Inputs.zip",
-                hybrid_hp_modelling=directory(
-                    f"{TYNDP_DATASET['folder']}/Hybrid Heat Pump Modelling Inputs"
-                ),
-                hydrogen_zip=f"{TYNDP_DATASET['folder']}/Hydrogen.zip",
-                hydrogen=directory(f"{TYNDP_DATASET['folder']}/Hydrogen"),
-                h2_imports=f"{TYNDP_DATASET['folder']}/Hydrogen/H2 IMPORTS GENERATORS PROPERTIES.xlsx",
-                h2_storages=f"{TYNDP_DATASET['folder']}/Hydrogen/H2 STORAGES.xlsx",
-                smr=f"{TYNDP_DATASET['folder']}/Hydrogen/SMR Figures.xlsx",
-                investment_datasets_zip=f"{TYNDP_DATASET['folder']}/Investment-Datasets.zip",
-                trajectories=f"{TYNDP_DATASET['folder']}/Investment Datasets/TRAJECTORY.xlsx",
-                invest_grid=f"{TYNDP_DATASET['folder']}/Investment Datasets/GRID.xlsx",
                 offshore_hubs_zip=f"{TYNDP_DATASET['folder']}/Offshore-hubs.zip",
                 offshore_nodes=f"{TYNDP_DATASET['folder']}/Offshore hubs/NODE.xlsx",
                 market_outputs_NT2030_CY2009_zip=f"{TYNDP_DATASET['folder']}/MMStandardOutputFile_NT2030_Plexos_CY2009_2.5_v40.xlsx.zip",

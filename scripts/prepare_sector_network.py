@@ -2005,7 +2005,6 @@ def _add_conventional_thermal_capacities(
     pemmdb_capacities: pd.DataFrame,
     pemmdb_profiles: pd.DataFrame,
     tyndp_conventional_thermals: list[str],
-    nuclear_trajectories: pd.DataFrame,
     nuclear_profiles: pd.DataFrame,
     group_conventionals: bool,
 ) -> None:
@@ -2022,8 +2021,6 @@ def _add_conventional_thermal_capacities(
         All PEMMDB must-run and availability profiles.
     tyndp_conventional_thermals : list[str]
         List of TYNDP conventional thermal technologies that were added to the network.
-    nuclear_trajectories : pd.DataFrame
-        Trajectories for exogenous nuclear pathways.
     nuclear_profiles : pd.DataFrame
         DataFrame containing the availability profiles of nuclear power plants.
     group_conventionals : bool
@@ -2061,41 +2058,6 @@ def _add_conventional_thermal_capacities(
             .fillna(0.0)
             .div(n.links.loc[tech_i, "efficiency"])
         )
-
-        # Add nuclear-specific trajectories
-        if tech == "nuclear":
-            # Set p_nom_min and p_nom_max
-            n.links.loc[tech_i, "p_nom_min"] = (
-                n.links.loc[tech_i, "bus1"]
-                .map(nuclear_trajectories["p_nom_min"])
-                .fillna(0.0)
-                .div(n.links.loc[tech_i, "efficiency"])
-            )
-            n.links.loc[tech_i, "p_nom_max"] = (
-                n.links.loc[tech_i, "bus1"]
-                .map(nuclear_trajectories["p_nom_max"])
-                .fillna(0.0)
-                .div(n.links.loc[tech_i, "efficiency"])
-            )
-
-            # Set p_nom to p_nom_min if p_nom != p_nom_min as pathway supersedes given PEMMDB capacity
-            exist_mismatch_i = n.links.loc[tech_i].query("p_nom != p_nom_min").index
-            if not exist_mismatch_i.empty:
-                logger.warning(
-                    f"Existing PEMMDB capacities don't match with TYNDP 2024 trajectories for {list(exist_mismatch_i)}, "
-                    f"adjusting capacity as pathway supersedes given PEMMDB capacities."
-                )
-                n.links.loc[exist_mismatch_i, "p_nom"] = n.links.loc[
-                    exist_mismatch_i, "p_nom_min"
-                ]
-
-            # Enable expansion if p_nom_min != p_nom_max
-            tech_i_exp = n.links.loc[tech_i].query("p_nom_min != p_nom_max").index
-            if not tech_i_exp.empty:
-                logger.info(
-                    f"Enabling expansion for {tech_i_exp.values} as trajectories are not fixed but a range."
-                )
-                n.links.loc[tech_i_exp, "p_nom_extendable"] = True
 
         # Profiles
         ##########
@@ -2147,10 +2109,9 @@ def _add_conventional_thermal_capacities(
 def _add_electrolyzer_capacities(
     n: pypsa.Network,
     pemmdb_capacities: pd.DataFrame,
-    trajectories: pd.DataFrame,
 ) -> None:
     """
-    Add existing onshore electrolyzer capacities from PEMMDB and TYNDP trajectories.
+    Add existing onshore electrolyzer capacities from PEMMDB.
 
     Parameters
     ----------
@@ -2158,8 +2119,6 @@ def _add_electrolyzer_capacities(
         The PyPSA network container object.
     pemmdb_capacities : pd.DataFrame
         All PEMMDB capacities.
-    trajectories: pd.DataFrame
-        TYNDP trajectories for onshore electrolyzers.
 
     Returns
     -------
@@ -2191,30 +2150,13 @@ def _add_electrolyzer_capacities(
     n.links.loc[z1_i, "p_nom"] = n.links.loc[z1_i, "bus0"].map(caps_z1).fillna(0.0)
     n.links.loc[z2_i, "p_nom"] = n.links.loc[z2_i, "bus0"].map(caps_z2).fillna(0.0)
 
-    # For NT, no trajectories will be added to the model and electrolyser capacities will be fixed
-    if trajectories.empty:
-        n.links.loc[electrolyser_i, "p_nom_extendable"] = False
-        remove_zero_capacity_non_extendable(
-            n,
-            carriers=[
-                "H2 Electrolysis",
-            ],
-            component_types={"Link"},
-        )
-        return
-
-    # Otherwise, for DE/GA, set trajectories
-    # p_nom_min as the maximum of PEMMDB capacity and p_nom_min value
-    # TODO: Adjust added trajectories for DE/GA to account for zonal split
-    n.links.loc[electrolyser_i, "p_nom_min"] = np.maximum(
-        n.links.loc[electrolyser_i, "p_nom"],
-        n.links.loc[electrolyser_i, "bus0"].map(trajectories["p_nom_min"]).fillna(0.0),
-    )
-    # p_nom_max as the maximum of PEMMDB capacity and p_nom_max value
-    # TODO: Adjust added trajectories for DE/GA to account for zonal split
-    n.links.loc[electrolyser_i, "p_nom_max"] = np.maximum(
-        n.links.loc[electrolyser_i, "p_nom"],
-        n.links.loc[electrolyser_i, "bus0"].map(trajectories["p_nom_max"]).fillna(0.0),
+    n.links.loc[electrolyser_i, "p_nom_extendable"] = False
+    remove_zero_capacity_non_extendable(
+        n,
+        carriers=[
+            "H2 Electrolysis",
+        ],
+        component_types={"Link"},
     )
 
 
@@ -2917,7 +2859,6 @@ def _add_other_res_capacities(
 def _add_battery_capacities(
     n: pypsa.Network,
     pemmdb_capacities: pd.DataFrame,
-    tyndp_scenario: str,
 ) -> None:
     """
     Add PEMMDB capacities for battery storages to existing assets in the network.
@@ -2928,8 +2869,6 @@ def _add_battery_capacities(
         The PyPSA network container object.
     pemmdb_capacities : pd.DataFrame
         All PEMMDB capacities.
-    tyndp_scenario : str
-        TYNDP scenario to model.
 
     Returns
     -------
@@ -2939,34 +2878,38 @@ def _add_battery_capacities(
 
     logger.info("Adding PEMMDB capacities to battery storage assets.")
 
-    # Add Store capacities
-    tech = "battery"
-    stores_i = n.stores.query("carrier == @tech").index
-    caps = pemmdb_capacities.query(f"`index_carrier` == '{tech}'")
-    caps = caps.set_index(caps.index + " " + caps["index_carrier"])
-    n.stores.loc[stores_i, "e_nom"] = caps.e_nom.reindex(stores_i, fill_value=0.0)
-    if tyndp_scenario == "NT":
-        n.components.stores.static.loc[stores_i, "e_nom_extendable"] = False
+    for carrier in ["battery", "home battery"]:
+        stores_i = n.stores.query("carrier == @carrier").index
+        if stores_i.empty:
+            continue
 
-    # Add links capacities
-    for tech in ["battery charger", "battery discharger"]:
-        links_i = n.links.query("carrier == @tech").index
-        caps = pemmdb_capacities.query(f"`index_carrier` == '{tech}'")
-        caps = caps.set_index(caps.index + " " + caps["index_carrier"])
+        # All battery capacities
+        battery_caps = pemmdb_capacities.query("carrier == @carrier")
 
-        # Adjust efficiencies with PEMMDB values
-        n.links.loc[links_i, "efficiency"] = (
-            caps.efficiency.reindex(links_i, fill_value=0.0) ** 0.5
-        )
+        # Add store capacities
+        caps = battery_caps.query("unit == 'MWh'")
+        caps = caps.set_index(caps.index + " " + carrier)
+        n.stores.loc[stores_i, "e_nom"] = caps.e_nom.reindex(stores_i, fill_value=0.0)
+        n.stores.loc[stores_i, "e_nom_extendable"] = False
 
-        # Set capacities
-        p_nom = caps.p_nom.reindex(links_i, fill_value=0.0)
-        if tech == "battery discharger":
-            p_nom = p_nom.div(n.links.loc[links_i, "efficiency"]).fillna(0.0)
-        n.links.loc[links_i, "p_nom"] = p_nom
+        # Add links capacities
+        for suffix in ["charger", "discharger"]:
+            tech = f"{carrier} {suffix}"
+            links_i = n.links.query("carrier == @tech").index
+            caps = battery_caps[battery_caps.index_carrier.str.endswith(f" {suffix}")]
+            caps = caps.set_index(caps.index + " " + tech)
 
-        # Set p_nom_extendable False for NT scenario
-        if tyndp_scenario == "NT":
+            # Adjust efficiencies with PEMMDB values
+            n.links.loc[links_i, "efficiency"] = (
+                caps.efficiency.reindex(links_i, fill_value=0.0) ** 0.5
+            )
+
+            # Set capacities
+            p_nom = caps.p_nom.reindex(links_i, fill_value=0.0)
+            if suffix == "discharger":
+                p_nom = p_nom.div(n.links.loc[links_i, "efficiency"]).fillna(0.0)
+            n.links.loc[links_i, "p_nom"] = p_nom
+
             n.links.loc[links_i, "p_nom_extendable"] = False
 
     remove_zero_capacity_non_extendable(
@@ -2975,13 +2918,19 @@ def _add_battery_capacities(
             "battery",
             "battery charger",
             "battery discharger",
+            "home battery",
+            "home battery charger",
+            "home battery discharger",
         ],
         component_types={"Store", "Link"},
     )
     # Drop Storage buses that do not have a store connected to it anymore
-    remaining_stores = n.stores[n.stores.carrier == "battery"].bus.unique()
+    remaining_stores = n.stores[
+        n.stores.carrier.isin(["battery", "home battery"])
+    ].bus.unique()
     idx = n.buses.loc[
-        (n.buses.carrier == "battery") & ~n.buses.index.isin(remaining_stores)
+        (n.buses.carrier.isin(["battery", "home battery"]))
+        & ~n.buses.index.isin(remaining_stores)
     ].index
     n.remove("Bus", idx)
 
@@ -2992,7 +2941,6 @@ def add_existing_tyndp_capacities(
     pemmdb_profiles: pd.DataFrame,
     smr_capacities: pd.DataFrame,
     h2_storage_capacities: pd.DataFrame,
-    trajectories: pd.DataFrame,
     tyndp_renewable_carriers: list[str],
     tyndp_conventional_thermals: list[str],
     h2_topology_tyndp: bool,
@@ -3005,7 +2953,6 @@ def add_existing_tyndp_capacities(
     extendable_carriers: list | set,
     investment_year: int,
     enable_pemmdb_caps: bool,
-    tyndp_scenario: str,
     group_conventionals: bool,
 ) -> None:
     """
@@ -3034,8 +2981,6 @@ def add_existing_tyndp_capacities(
         DataFrame containing existing SMR capacities.
     h2_storage_capacities : pd.DataFrame
         DataFrame containing existing H2 storage capacities.
-    trajectories : pd.DataFrame
-        DataFrame containing the trajectories for the current planning_horizon to attach (p_nom_min and p_nom_max).
     tyndp_renewable_carriers : list[str]
         List of TYNDP renewable carriers.
     tyndp_conventional_thermals : list[str]
@@ -3057,11 +3002,9 @@ def add_existing_tyndp_capacities(
     extendable_carriers : list[str] | set
         List of extendable renewable energy carriers.
     investment_year : int
-        Year for which to get trajectories.
+        Year for which to add capacities and profiles.
     enable_pemmdb_caps : bool
         Whether to include PEMMDB capacities.
-    tyndp_scenario : str
-        TYNDP scenario to model.
     group_conventionals : bool
         Whether TYNDP conventional carriers are aggregated into higher level groups.
 
@@ -3105,16 +3048,11 @@ def add_existing_tyndp_capacities(
 
         # Add existing conventional thermal capacities from PEMMDB to already attached conventional technologies
         if tyndp_conventional_thermals:
-            trajectories_nuclear = trajectories.query(
-                "planning_horizon == @investment_year and index_carrier == 'nuclear'"
-            ).set_index("bus")
-
             _add_conventional_thermal_capacities(
                 n=n,
                 pemmdb_capacities=pemmdb_capacities,
                 pemmdb_profiles=pemmdb_profiles,
                 tyndp_conventional_thermals=tyndp_conventional_thermals,
-                nuclear_trajectories=trajectories_nuclear,
                 nuclear_profiles=nuclear_profiles,
                 group_conventionals=group_conventionals,
             )
@@ -3126,19 +3064,14 @@ def add_existing_tyndp_capacities(
         )
 
         # Add existing battery capacities from PEMMDB to already attached storage components
-        if "battery" in tyndp_stores:
+        if {"battery", "home battery"} & set(tyndp_stores):
             _add_battery_capacities(
                 n=n,
                 pemmdb_capacities=pemmdb_capacities,
-                tyndp_scenario=tyndp_scenario,
             )
 
         # Add existing electrolyzer capacities from PEMMDB to already attached electrolyzer components
         if h2_topology_tyndp:
-            trajectories_electrolyser = trajectories.query(
-                "planning_horizon == @investment_year and carrier == 'electrolyser'"
-            ).set_index("bus")
-
             _add_h2_dres_capacities(
                 n=n,
                 pemmdb_capacities=pemmdb_capacities,
@@ -3152,7 +3085,6 @@ def add_existing_tyndp_capacities(
             _add_electrolyzer_capacities(
                 n=n,
                 pemmdb_capacities=pemmdb_capacities,
-                trajectories=trajectories_electrolyser,
             )
 
         # Add existing Other RES capacities from PEMMDB to already attached Other RES components
@@ -3551,6 +3483,16 @@ def insert_electricity_distribution_grid(
         (n.generators.carrier == "solar") & n.generators.bus.isin(nodes)
     ]
     n.generators.loc[solar, "capital_cost"] = costs.at["solar-utility", "capital_cost"]
+
+    homeb_chargers = n.links.index[
+        (n.links.carrier == "home battery charger") & n.links.bus0.isin(nodes)
+    ]
+    n.links.loc[homeb_chargers, "bus0"] += lv_suffix
+
+    homeb_dischargers = n.links.index[
+        (n.links.carrier == "home battery discharger") & n.links.bus1.isin(nodes)
+    ]
+    n.links.loc[homeb_dischargers, "bus1"] += lv_suffix
 
     fn = solar_rooftop_potentials_fn
     if len(fn) > 0:
@@ -9626,12 +9568,11 @@ if __name__ == "__main__":
     # Initialize variables that are conditionally assigned later
     pemmdb_capacities = None
     pemmdb_profiles = None
-    tyndp_trajectories = None
     tyndp_nuclear_profiles = None
     smr_capacities = None
     h2_storage_capacities = None
 
-    # Read in PEMMDB data, trajectories and availability profiles
+    # Read in PEMMDB data and availability profiles
     enable_pemmdb_caps = snakemake.params.electricity["pemmdb_capacities"]["enable"]
     if enable_pemmdb_caps:
         pemmdb_capacities = pd.read_csv(snakemake.input.pemmdb_capacities).set_index(
@@ -9640,8 +9581,6 @@ if __name__ == "__main__":
         pemmdb_profiles = xr.open_dataset(
             snakemake.input.pemmdb_profiles
         ).to_dataframe()
-    if tyndp_trajectories_fn := snakemake.input.tyndp_trajectories:
-        tyndp_trajectories = pd.read_csv(tyndp_trajectories_fn)
     if tyndp_nuclear_profiles_fn := snakemake.input.tyndp_nuclear_profiles:
         tyndp_nuclear_profiles = pd.read_csv(
             tyndp_nuclear_profiles_fn, index_col=0, parse_dates=True
@@ -9740,7 +9679,6 @@ if __name__ == "__main__":
             pemmdb_profiles=pemmdb_profiles,
             smr_capacities=smr_capacities,
             h2_storage_capacities=h2_storage_capacities,
-            trajectories=tyndp_trajectories,
             tyndp_renewable_carriers=tyndp_renewable_carriers,
             tyndp_conventional_thermals=tyndp_conventional_thermals,
             h2_topology_tyndp=options["h2_topology_tyndp"],
@@ -9753,7 +9691,6 @@ if __name__ == "__main__":
             extendable_carriers=snakemake.params.electricity["extendable_carriers"],
             investment_year=investment_year,
             enable_pemmdb_caps=enable_pemmdb_caps,
-            tyndp_scenario=tyndp_scenario,
             group_conventionals=snakemake.params.electricity[
                 "group_tyndp_conventionals"
             ],
