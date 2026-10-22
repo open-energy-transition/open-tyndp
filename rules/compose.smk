@@ -133,7 +133,9 @@ def get_compose_inputs(w):
     elec = cfg["electricity"]
     sector = cfg["sector"]
     import_carriers = (
-        set(sector["imports"]["price"]) if sector["imports"]["enable"] else set()
+        set(sector["imports"]["carriers"] or sector["imports"]["price"])
+        if sector["imports"]["enable"]
+        else set()
     )
     if sector["h2_topology_tyndp"]:  # TYNDP brings its own H2 imports
         import_carriers -= {"H2"}

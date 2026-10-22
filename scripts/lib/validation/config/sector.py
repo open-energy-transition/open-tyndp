@@ -376,6 +376,10 @@ class _ImportsConfig(BaseModel):
         float("inf"), description="Maximum allowed renewable energy imports (TWh)."
     )
     limit_sense: str = Field("<=", description="Sense of the limit.")
+    carriers: list[str] | None = Field(
+        None,
+        description="Carriers to import. Defaults to all carriers in `price`.",
+    )
     price: dict[str, float] = Field(
         default_factory=lambda: {
             "H2": 74,

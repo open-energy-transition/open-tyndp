@@ -6711,6 +6711,21 @@
               "description": "Sense of the limit.",
               "type": "string"
             },
+            "carriers": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Carriers to import. Defaults to all carriers in `price`."
+            },
             "price": {
               "additionalProperties": {
                 "type": "number"
@@ -9371,6 +9386,21 @@
           "default": "<=",
           "description": "Sense of the limit.",
           "type": "string"
+        },
+        "carriers": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Carriers to import. Defaults to all carriers in `price`."
         },
         "price": {
           "additionalProperties": {
@@ -15122,6 +15152,21 @@
               "default": "<=",
               "description": "Sense of the limit.",
               "type": "string"
+            },
+            "carriers": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Carriers to import. Defaults to all carriers in `price`."
             },
             "price": {
               "additionalProperties": {

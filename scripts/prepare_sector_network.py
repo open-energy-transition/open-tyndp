@@ -9334,9 +9334,10 @@ def add_import_options(
 
     import_config = options["imports"]
     import_options = import_config["price"]
-    logger.info(f"Adding import options:\n{pd.Series(import_config['carriers'])}")
+    carriers = import_config["carriers"] or import_options
+    logger.info(f"Adding import options:\n{pd.Series(carriers)}")
 
-    if "methanol" in import_config["carriers"]:
+    if "methanol" in carriers:
         co2_intensity = costs.at["methanolisation", "carbondioxide-input"]
 
         n.add(
@@ -9351,7 +9352,7 @@ def add_import_options(
             p_nom=1e7,
         )
 
-    if "oil" in import_config["carriers"]:
+    if "oil" in carriers:
         co2_intensity = costs.at["oil", "CO2 intensity"]
 
         n.add(
@@ -9366,7 +9367,7 @@ def add_import_options(
             p_nom=1e7,
         )
 
-    if "gas" in import_config["carriers"]:
+    if "gas" in carriers:
         co2_intensity = costs.at["gas", "CO2 intensity"]
 
         p_nom = gas_input_nodes["lng"].dropna()
@@ -9389,7 +9390,7 @@ def add_import_options(
             p_nom=p_nom / co2_intensity,
         )
 
-    if "NH3" in import_config["carriers"]:
+    if "NH3" in carriers:
         if options["ammonia"]:
             n.add(
                 "Generator",
@@ -9406,7 +9407,7 @@ def add_import_options(
                 "Skipping specified ammonia imports because ammonia carrier is not present."
             )
 
-    if "H2" in import_config["carriers"]:
+    if "H2" in carriers:
         if options["h2_topology_tyndp"]:
             logger.info("Adding TYNDP H2 import.")
 
