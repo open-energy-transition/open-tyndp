@@ -29,7 +29,7 @@ launch_explorer: false
 # Use 1H for high-resolution SB results
 clustering:
   temporal:
-    resolution_sector: 1H
+    averaging: false
 
 # SB solver settings
 solving:

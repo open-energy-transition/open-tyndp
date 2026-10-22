@@ -11,12 +11,12 @@ rolling horizon optimization.
 
 **Inputs**
 
-- `resources/cba/networks/reference_{planning_horizons}.nc`: Reference network
-- `resources/cba/msv_snapshot_weightings_{planning_horizons}.csv`: Snapshot weightings (optional)
+- `resources/cba/networks/reference_{horizon}.nc`: Reference network
+- `resources/cba/msv_snapshot_weightings_{horizon}.csv`: Snapshot weightings (optional)
 
 **Outputs**
 
-- `resources/cba/networks/msv_{planning_horizons}.nc`: Network with marginal storage values in stores_t.mu_energy_balance
+- `resources/cba/networks/msv_{horizon}.nc`: Network with marginal storage values in stores_t.mu_energy_balance
 """
 
 import copy
@@ -28,12 +28,12 @@ from snakemake.utils import update_config
 from scripts._benchmark import memory_logger
 from scripts._helpers import (
     configure_logging,
+    get_temporal_resolution,
     set_scenario_config,
-    update_config_from_wildcards,
 )
+from scripts.prepare_sector_network import set_temporal_aggregation
 from scripts.sb._helpers import get_version
 from scripts.solve_network import collect_kwargs, prepare_network
-from scripts.temporal_aggregation import set_temporal_aggregation
 
 logger = logging.getLogger(__name__)
 
@@ -44,22 +44,21 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "solve_cba_msv_extraction",
-            planning_horizons="2030",
+            horizon="2030",
             run="NT",
             configfiles=["config/config.tyndp.yaml"],
         )
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
-    update_config_from_wildcards(snakemake.config, snakemake.wildcards)
 
     # Load base network
     n = pypsa.Network(snakemake.input.network)
 
     # Optional: resample to coarser resolution for faster solve
-    msv_resolution = snakemake.params.get("msv_resolution", False)
+    msv_resolution = snakemake.params.msv_resolution
     snapshot_weightings = snakemake.input.get("snapshot_weightings", None)
-    if msv_resolution:
+    if get_temporal_resolution(msv_resolution):
         n = set_temporal_aggregation(n, msv_resolution, snapshot_weightings)
 
     # Merge CBA-specific solving overrides into the global solving config
@@ -80,8 +79,7 @@ if __name__ == "__main__":
         n,
         solve_opts=solve_opts,
         foresight="overnight",
-        renewable_carriers=[],
-        planning_horizons=snakemake.wildcards.get("planning_horizons", None),
+        planning_horizons=snakemake.wildcards.get("horizon", None),
         co2_sequestration_potential=None,
         limit_max_growth=None,
         config=snakemake.config,
@@ -104,7 +102,7 @@ if __name__ == "__main__":
         model_kwargs, solve_kwargs = collect_kwargs(
             snakemake.config,
             solving,
-            snakemake.wildcards.get("planning_horizons", None),
+            snakemake.wildcards.get("horizon", None),
             log_fn=solver_log,
             mode="single",
         )

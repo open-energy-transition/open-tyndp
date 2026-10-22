@@ -1,3 +1,4 @@
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
 # SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: CC0-1.0
@@ -11,6 +12,116 @@ base → simplified → clustered → composed → solved
 All configuration is now driven by config sections rather than wildcards.
 """
 
+from scripts.sb._helpers import safe_pyear
+
+
+def gated(condition, **paths):
+    """Keep input keys present, blanking their paths when the feature is off."""
+    return {k: v if condition else [] for k, v in paths.items()}
+
+
+def get_tyndp_compose_inputs(w):
+    """Open-TYNDP additions to the compose_network inputs."""
+    cfg = get_config(w)
+    horizon = int(w.horizon)
+    scenario = cfg["tyndp_scenario"]
+    sector = cfg["sector"]
+    elec = cfg["electricity"]
+    h2_tyndp = sector["h2_topology_tyndp"]
+    mm_years = [2030, 2040]  # only years with Market Model output data
+    mm_dir = RESULTS + "benchmarks/tyndp-2024/resources/"
+    mm_available = scenario == "NT" and horizon in mm_years
+
+    inputs = {
+        "carrier_mapping": "data/tyndp_technology_map.csv",
+        "load_tyndp": (
+            resources(f"electricity_demand_clustered_{horizon}.nc")
+            if cfg["load"]["source"] == "tyndp"
+            else []
+        ),
+        "profile_pemmdb_hydro": (
+            resources("pemmdb_hydro_profile.nc")
+            if elec["pemmdb_hydro_profiles"]["enable"]
+            else []
+        ),
+        "gas_demand": resources(f"gas_demand_tyndp_{horizon}.csv") if scenario else [],
+        "tyndp_trajectories": (
+            resources("tyndp_trajectories.csv")
+            if elec["tyndp_renewable_carriers"]
+            or "uranium" in elec["tyndp_conventional_carriers"]
+            else []
+        ),
+        "tyndp_projects": (
+            resources(f"tyndp/new_links_{horizon}.csv")
+            if horizon in (cfg["tyndp_investment_candidates"]["elec_projects"] or {})
+            else []
+        ),
+        "tyndp_projects_fix": (
+            resources(f"cba/reference_sb_to_cba_{horizon}.csv")
+            if cfg["tyndp_investment_candidates"]["patch_sb_with_annexe"]
+            else []
+        ),
+        "tyndp_nuclear_profiles": (
+            rules.retrieve_tyndp_nuclear_profiles.output[
+                f"nuclear_p_max_pu_{safe_pyear(horizon, available_years=mm_years, verbose=False)}"
+            ]
+            if scenario and cfg["conventional"]["tyndp_availability_profiles"]
+            else []
+        ),
+        "h2_demand": (
+            f"{mm_dir}benchmarks_tyndp_output_h2_demand_{scenario}{horizon}.csv"
+            if mm_available and sector["h2_demand_patch_with_mm"]
+            else (resources(f"h2_demand_tyndp_{horizon}.csv") if scenario else [])
+        ),
+        "elec_demand_mm": (
+            f"{mm_dir}benchmarks_tyndp_output_elec_demand_{scenario}{horizon}.csv"
+            if mm_available and cfg["load"]["patch_demand_with_mm"]
+            else []
+        ),
+    }
+
+    inputs |= gated(
+        h2_tyndp,
+        h2_grid_tyndp=resources(f"h2_reference_grid_tyndp_{horizon}.csv"),
+        interzonal_prepped=resources(f"h2_interzonal_tyndp_{horizon}.csv"),
+        buses_h2=resources("tyndp/build/geojson/buses_h2.geojson"),
+        h2_imports_tyndp=resources(f"h2_import_potentials_{horizon}.csv"),
+        tyndp_smr=resources(f"smr_data_prepped_{horizon}.csv"),
+        tyndp_h2_storages=resources(f"h2_storages_prepped_{horizon}.csv"),
+    )
+
+    if elec["pecd_renewable_profiles"]["enable"]:
+        for tech in elec["pecd_renewable_profiles"]["technologies"]:
+            inputs[f"profile_pecd_{tech}"] = resources(f"pecd_profile_{tech}.nc")
+
+    if elec["pemmdb_capacities"]["enable"]:
+        pemmdb_year = safe_pyear(
+            horizon, elec["pemmdb_capacities"]["available_years"], verbose=False
+        )
+        grouped = "_grouped" if elec["group_tyndp_conventionals"] else ""
+        inputs["pemmdb_capacities"] = resources(
+            f"pemmdb_capacities_{pemmdb_year}{grouped}.csv"
+        )
+        inputs["pemmdb_profiles"] = resources(
+            f"pemmdb_profiles_{pemmdb_year}{grouped}.nc"
+        )
+
+    inputs |= gated(
+        sector["offshore_hubs_tyndp"]["enable"],
+        offshore_buses=resources("offshore_buses.csv"),
+        offshore_grid=resources("offshore_grid.csv"),
+        offshore_electrolysers=resources("offshore_electrolysers.csv"),
+        offshore_generators=resources("offshore_generators.csv"),
+        tyndp_offshore_fix=(
+            f"{mm_dir}benchmarks_tyndp_output_crossborder_{scenario}{horizon}.csv"
+            if sector["offshore_hubs_tyndp"]["patch_crossborder_with_mm"]
+            and horizon in mm_years
+            else []
+        ),
+    )
+
+    return inputs
+
 
 def get_compose_inputs(w):
     """Determine inputs for compose rule based on foresight and horizon."""
@@ -21,7 +132,13 @@ def get_compose_inputs(w):
     horizons = cfg["planning_horizons"]
     elec = cfg["electricity"]
     sector = cfg["sector"]
-    import_carriers = sector["imports"]["price"] if sector["imports"]["enable"] else {}
+    import_carriers = (
+        set(sector["imports"]["carriers"] or sector["imports"]["price"])
+        if sector["imports"]["enable"]
+        else set()
+    )
+    if sector["h2_topology_tyndp"]:  # TYNDP brings its own H2 imports
+        import_carriers -= {"H2"}
 
     # Electricity-only inputs (always included)
     inputs = dict(
@@ -39,7 +156,11 @@ def get_compose_inputs(w):
                 elec["estimate_renewable_capacities"]["enable"]
                 and elec["estimate_renewable_capacities"]["from_powerplantmatching"]
             )
-            or (foresight != "overnight" and horizon == horizons[0])
+            or (
+                not cfg["tyndp_scenario"]
+                and foresight != "overnight"
+                and horizon == horizons[0]
+            )
             else []
         ),
         hydro_capacities=ancient("data/hydro_capacities.csv"),
@@ -60,7 +181,11 @@ def get_compose_inputs(w):
             if cfg["co2_budget"]["relative"]
             else []
         ),
-        load=resources("electricity_demand.nc"),
+        load=(
+            resources("electricity_demand.nc")
+            if cfg["load"]["source"] != "tyndp"
+            else []
+        ),
         snapshot_weightings=resources("snapshot_weightings.csv"),
         network=resources("networks/clustered.nc"),
         solar_rooftop_potentials=(
@@ -81,7 +206,10 @@ def get_compose_inputs(w):
             ),
             gas_input_nodes_simplified=(
                 rules.build_gas_input_locations.output.gas_input_nodes_simplified
-                if sector["gas_network"] or {"gas", "H2"} & set(import_carriers)
+                if sector["gas_network"]
+                or {"gas", "H2"}
+                & set(import_carriers)
+                - ({"H2"} if sector["h2_topology_tyndp"] else set())
                 else []
             ),
             pop_weighted_energy_totals=resources("pop_weighted_energy_totals.csv"),
@@ -93,36 +221,59 @@ def get_compose_inputs(w):
             transport_data=resources("transport_data.csv"),
             avail_profile=resources("avail_profile.csv"),
             dsm_profile=resources("dsm_profile.csv"),
-            heat_dsm_profile=resources("residential_heat_dsm_profile.csv"),
+            heat_dsm_profile=(
+                resources("residential_heat_dsm_profile.csv")
+                if sector["residential_heat"]["dsm"]["enable"]
+                else []
+            ),
             biomass_potentials=resources("biomass_potentials_{horizon}.csv"),
             h2_cavern=(
                 resources("salt_cavern_potentials.csv")
                 if sector["hydrogen_underground_storage"]
+                and not sector["h2_topology_tyndp"]
                 else []
             ),
             clustered_pop_layout=resources("pop_layout.csv"),
-            industrial_demand=resources("industrial_energy_demand_{horizon}.csv"),
-            hourly_heat_demand_total=resources("hourly_heat_demand_total.nc"),
-            industrial_production=resources("industrial_production_{horizon}.csv"),
-            district_heat_share=resources("district_heat_share_{horizon}.csv"),
+            industrial_demand=(
+                resources("industrial_energy_demand_{horizon}.csv")
+                if sector["industry"]
+                else []
+            ),
+            hourly_heat_demand_total=(
+                resources("hourly_heat_demand_total.nc") if sector["heating"] else []
+            ),
+            industrial_production=(
+                resources("industrial_production_{horizon}.csv")
+                if sector["industry"]
+                else []
+            ),
+            district_heat_share=(
+                resources("district_heat_share_{horizon}.csv")
+                if sector["heating"]
+                else []
+            ),
             heating_efficiencies=resources("heating_efficiencies.csv"),
             existing_heating_distribution=resources(
                 "existing_heating_distribution_{horizon}.csv"
             ),
             temp_soil_total=resources("temp_soil_total.nc"),
             temp_air_total=resources("temp_air_total.nc"),
-            cop_profiles=resources("cop_profiles_{horizon}.nc"),
-            direct_heat_source_utilisation_profiles=resources(
-                "direct_heat_source_utilisation_profiles_{horizon}.nc"
+            cop_profiles=(
+                resources("cop_profiles_{horizon}.nc") if sector["heating"] else []
+            ),
+            direct_heat_source_utilisation_profiles=(
+                resources("direct_heat_source_utilisation_profiles_{horizon}.nc")
+                if sector["heating"]
+                else []
             ),
             retro_cost=(
                 resources("retro_cost.csv")
-                if cfg["sector"]["retrofitting"]["retro_endogen"]
+                if cfg["sector"]["retrofitting"]["retro_endogen"] and sector["heating"]
                 else []
             ),
             floor_area=(
                 resources("floor_area.csv")
-                if cfg["sector"]["retrofitting"]["retro_endogen"]
+                if cfg["sector"]["retrofitting"]["retro_endogen"] and sector["heating"]
                 else []
             ),
             biomass_transport_costs=(
@@ -176,6 +327,8 @@ def get_compose_inputs(w):
         )
         inputs.update(sector_inputs)
 
+    inputs.update(get_tyndp_compose_inputs(w))
+
     # Add brownfield inputs for non-first horizons
     if foresight == "overnight" and len(horizons) > 1:
         raise ValueError(
@@ -220,7 +373,7 @@ rule compose_network:
     log:
         logs("compose_network_{horizon}.log"),
     benchmark:
-        benchmarks("compose_network_{horizon}")
+        benchmarks("performances/compose_network_{horizon}")
     threads: 1
     resources:
         mem_mb=10000,
@@ -270,6 +423,7 @@ rule compose_network:
         ),
         co2_budget=config_provider("co2_budget"),
         adjustments=config_provider("adjustments"),
+        tyndp_scenario=config_provider("tyndp_scenario"),
     message:
         "Composing network for horizon {wildcards.horizon}"
     script:

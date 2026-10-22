@@ -34,7 +34,7 @@ def add_brownfield(
     capacity_threshold=None,
     offshore_hubs_tyndp=False,
     h2_topology_tyndp=False,
-    carriers_tyndp=list[str],
+    carriers_tyndp=(),
 ):
     """
     Add brownfield capacity from previous network.
@@ -710,19 +710,21 @@ def main(
         f"Applying brownfield constraints from horizon {horizons[horizons.index(current_horizon) - 1]}"
     )
 
-    tyndp_carrier_mapping = pd.read_csv(snakemake.input.carrier_mapping).set_index(
+    tyndp_carrier_mapping = pd.read_csv(inputs.carrier_mapping).set_index(
         "open_tyndp_index"
     )
     # Get lists of conventional thermal and hydro technologies
     _, tyndp_conventional_thermals = get_tyndp_conventional_thermals(
         mapping=tyndp_carrier_mapping,
-        tyndp_conventional_carriers=snakemake.params.tyndp_conventional_carriers,
-        group_conventionals=snakemake.params.group_tyndp_conventionals,
-        include_h2_fuel_cell=snakemake.params.hydrogen_fuel_cell,
-        include_h2_turbine=snakemake.params.hydrogen_turbine,
+        tyndp_conventional_carriers=params.electricity["tyndp_conventional_carriers"],
+        group_conventionals=params.electricity["group_tyndp_conventionals"],
+        include_h2_fuel_cell=params.sector["hydrogen_fuel_cell"],
+        include_h2_turbine=params.sector["hydrogen_turbine"],
     )
     tyndp_hydro = [
-        c for c in snakemake.params.tyndp_renewable_carriers if c.startswith("hydro")
+        c
+        for c in params.electricity["tyndp_renewable_carriers"]
+        if c.startswith("hydro")
     ] + [
         "hydro-phs-turbine",
         "hydro-phs-pump",

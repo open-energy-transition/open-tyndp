@@ -1407,7 +1407,7 @@ def main(
         logger.info(
             f"Skipping TYNDP renewable carriers - they will be attached later with TYNDP data: {', '.join(tyndp_renewable_carriers)}"
         )
-    renewable_carriers = params.electricity["renewable_carriers"]
+    renewable_carriers = set(params.electricity["renewable_carriers"])
     extendable_carriers = params.electricity["extendable_carriers"]
     conventional_carriers = params.electricity["conventional_carriers"]
     conventional_inputs = {
@@ -1471,11 +1471,7 @@ def main(
                 "in add_existing_baseyear with foresight mode 'myopic'."
             )
         else:
-            tech_map = {
-                key: value
-                for key, value in estimate_renewable_caps["technology_mapping"].items()
-                if key in estimate_renewable_caps["technology_mapping"].keys()
-            }
+            tech_map = estimate_renewable_caps["technology_mapping"]
             expansion_limit = estimate_renewable_caps["expansion_limit"]
             year = estimate_renewable_caps["year"]
 
