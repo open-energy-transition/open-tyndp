@@ -242,10 +242,10 @@ sector:
   fossil_fuels: true
 
   land_transport_ice_share:  # default demand scaled to TYNDP 2026 NT+ EU27 road and rail liquids demand (Supply Tool)
-    2030: 0.90
-    2035: 0.67
-    2040: 0.48
-    2050: 0.19
+    2030: 0.900
+    2035: 0.670
+    2040: 0.483
+    2050: 0.186
   shipping_hydrogen_share:  # included in exogenous demand  # TODO Validate assumption
     2030: 0
     2035: 0
