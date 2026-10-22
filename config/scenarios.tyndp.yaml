@@ -12,6 +12,8 @@ NT:
 
 HEV:
   tyndp_scenario: HEV
+  benchmarking:
+    enable: false
   costs:
     custom_cost_scn: HEV
     emission_prices:
@@ -26,6 +28,8 @@ HEV:
 # TODO: demand adjustment (electricity market, prosumer demand, EV, H2, thermal energy demand), hydrogen import prices, benchmarking
 LEV:
   tyndp_scenario: LEV
+  benchmarking:
+    enable: false
   costs:
     custom_cost_scn: LEV
     emission_prices:
