@@ -81,9 +81,7 @@ if (PRESOLVED_NETWORKS_DATASET := dataset_version("open_tyndp_prelim"))[
             from shutil import copyfileobj
             from zipfile import ZipFile
 
-            target_suffix = (
-                f"networks/base_s_all___{wildcards.horizon}.nc"
-            )
+            target_suffix = f"networks/base_s_all___{wildcards.horizon}.nc"
             with ZipFile(input["zip_file"], "r") as zf:
                 matches = [m for m in zf.namelist() if m.endswith(target_suffix)]
                 if not matches:
@@ -365,9 +363,7 @@ rule clean_tyndp_hydro_inflows:
         hydro_inflows_dir=rules.retrieve_tyndp.output.hydro_inflows,
         busmap=resources("busmap_cluster_network.csv"),
     output:
-        hydro_inflows_tyndp=resources(
-            "hydro_inflows_tyndp_{tech}_{horizon}.csv"
-        ),
+        hydro_inflows_tyndp=resources("hydro_inflows_tyndp_{tech}_{horizon}.csv"),
     log:
         logs("clean_tyndp_hydro_inflows_{tech}_{horizon}.log"),
     benchmark:
@@ -568,9 +564,7 @@ if config["sector"]["h2_topology_tyndp"]:
         input:
             import_potentials_prepped=rules.clean_tyndp_h2_imports.output.import_potentials_prepped,
         output:
-            import_potentials_filtered=resources(
-                "h2_import_potentials_{horizon}.csv"
-            ),
+            import_potentials_filtered=resources("h2_import_potentials_{horizon}.csv"),
         log:
             logs("build_tyndp_h2_imports_{horizon}.log"),
         benchmark:
@@ -699,16 +693,11 @@ if config["foresight"] != "perfect":
             network=resources("networks/composed_{horizon}.nc"),
             regions_onshore=resources("onshore_regions.geojson"),
         output:
-            map=resources(
-                "maps/base_h2_network_{horizon}.pdf"
-            ),
+            map=resources("maps/base_h2_network_{horizon}.pdf"),
         log:
-            RESULTS
-            + "logs/plot_base_hydrogen_network_{horizon}.log",
+            RESULTS + "logs/plot_base_hydrogen_network_{horizon}.log",
         benchmark:
-            benchmarks(
-                "performances/plot_base_hydrogen_network_{horizon}"
-            )
+            benchmarks("performances/plot_base_hydrogen_network_{horizon}")
         conda:
             "../envs/environment.yaml"
         threads: 1
@@ -724,16 +713,11 @@ if config["foresight"] != "perfect":
             network=resources("networks/composed_{horizon}.nc"),
             regions_offshore=resources("offshore_regions.geojson"),
         output:
-            map=resources(
-                "maps/base_offshore_network_{horizon}_{carrier}.pdf"
-            ),
+            map=resources("maps/base_offshore_network_{horizon}_{carrier}.pdf"),
         log:
-            RESULTS
-            + "logs/plot_base_offshore_network_{horizon}_{carrier}.log",
+            RESULTS + "logs/plot_base_offshore_network_{horizon}_{carrier}.log",
         benchmark:
-            benchmarks(
-                "performances/plot_base_offshore_network_{horizon}_{carrier}"
-            )
+            benchmarks("performances/plot_base_offshore_network_{horizon}_{carrier}")
         conda:
             "../envs/environment.yaml"
         threads: 1
@@ -749,15 +733,11 @@ if config["foresight"] != "perfect":
         input:
             network=RESULTS + "networks/solved_{horizon}.nc",
         output:
-            map=RESULTS
-            + "maps/static/offshore_network_{carrier}_{horizon}.pdf",
+            map=RESULTS + "maps/static/offshore_network_{carrier}_{horizon}.pdf",
         log:
-            RESULTS
-            + "logs/plot_offshore_network_{horizon}_{carrier}.log",
+            RESULTS + "logs/plot_offshore_network_{horizon}_{carrier}.log",
         benchmark:
-            benchmarks(
-                "performances/plot_offshore_network_{horizon}_{carrier}"
-            )
+            benchmarks("performances/plot_offshore_network_{horizon}_{carrier}")
         params:
             expanded=True,
 
@@ -787,9 +767,7 @@ if config["benchmarking"]["enable"]:
         log:
             logs("clean_tyndp_output_benchmark_{scenario}{horizon}.log"),
         benchmark:
-            benchmarks(
-                "performances/clean_tyndp_output_benchmark_{scenario}{horizon}"
-            )
+            benchmarks("performances/clean_tyndp_output_benchmark_{scenario}{horizon}")
         wildcard_constraints:
             horizon="(2030|2040)",  # Only years with MM output data
         threads: 4
@@ -852,16 +830,11 @@ if config["benchmarking"]["enable"]:
             network=RESULTS + "networks/solved_{horizon}.nc",
             carrier_mapping="data/tyndp_technology_map.csv",
         output:
-            RESULTS
-            + "benchmarks/tyndp-2024/resources/benchmarks_{horizon}.csv",
+            RESULTS + "benchmarks/tyndp-2024/resources/benchmarks_{horizon}.csv",
         log:
-            python=logs(
-                "build_statistics_{horizon}.log"
-            ),
+            python=logs("build_statistics_{horizon}.log"),
         benchmark:
-            benchmarks(
-                "performances/build_statistics_{horizon}"
-            )
+            benchmarks("performances/build_statistics_{horizon}")
         threads: 1
         resources:
             mem_mb=8000,
@@ -884,8 +857,7 @@ if config["benchmarking"]["enable"]:
     rule make_benchmark:
         input:
             results=expand(
-                RESULTS
-                + "benchmarks/tyndp-2024/resources/benchmarks_{horizon}.csv",
+                RESULTS + "benchmarks/tyndp-2024/resources/benchmarks_{horizon}.csv",
                 horizon=config["planning_horizons"],
                 allow_missing=True,
             ),
@@ -908,20 +880,14 @@ if config["benchmarking"]["enable"]:
                 else []
             ),
         output:
-            benchmarks=directory(
-                RESULTS
-                + "benchmarks/tyndp-2024/csvs_all_years/"
-            ),
-            kpis_by_bus=RESULTS
-            + "benchmarks/tyndp-2024/kpis_all_years_by_bus.csv",
+            benchmarks=directory(RESULTS + "benchmarks/tyndp-2024/csvs_all_years/"),
+            kpis_by_bus=RESULTS + "benchmarks/tyndp-2024/kpis_all_years_by_bus.csv",
             kpis_by_country=RESULTS
             + "benchmarks/tyndp-2024/kpis_all_years_by_country.csv",
         log:
             logs("make_benchmark_all_years.log"),
         benchmark:
-            benchmarks(
-                "performances/make_benchmark_all_years"
-            )
+            benchmarks("performances/make_benchmark_all_years")
         threads: 4
         resources:
             mem_mb=8000,
@@ -935,8 +901,7 @@ if config["benchmarking"]["enable"]:
     rule plot_benchmark:
         input:
             results=expand(
-                RESULTS
-                + "benchmarks/tyndp-2024/resources/benchmarks_{horizon}.csv",
+                RESULTS + "benchmarks/tyndp-2024/resources/benchmarks_{horizon}.csv",
                 horizon=config["planning_horizons"],
                 allow_missing=True,
             ),
@@ -959,25 +924,18 @@ if config["benchmarking"]["enable"]:
             ),
             benchmarks=RESULTS + "benchmarks/tyndp-2024/resources/benchmarks_tyndp.csv",
             vp_data=RESULTS + "benchmarks/tyndp-2024/resources/vp_data_tyndp.csv",
-            kpis_by_bus=RESULTS
-            + "benchmarks/tyndp-2024/kpis_all_years_by_bus.csv",
+            kpis_by_bus=RESULTS + "benchmarks/tyndp-2024/kpis_all_years_by_bus.csv",
             kpis_by_country=RESULTS
             + "benchmarks/tyndp-2024/kpis_all_years_by_country.csv",
         output:
-            dir=directory(
-                RESULTS
-                + "benchmarks/tyndp-2024/graphics_all_years/"
-            ),
-            kpis_by_bus=RESULTS
-            + "benchmarks/tyndp-2024/kpis_all_years_by_bus.pdf",
+            dir=directory(RESULTS + "benchmarks/tyndp-2024/graphics_all_years/"),
+            kpis_by_bus=RESULTS + "benchmarks/tyndp-2024/kpis_all_years_by_bus.pdf",
             kpis_by_country=RESULTS
             + "benchmarks/tyndp-2024/kpis_all_years_by_country.pdf",
         log:
             logs("plot_benchmark_all_years.log"),
         benchmark:
-            benchmarks(
-                "performances/plot_benchmark_all_years"
-            )
+            benchmarks("performances/plot_benchmark_all_years")
         threads: 4
         resources:
             mem_mb=8000,
@@ -1022,8 +980,7 @@ rule build_renewable_profiles_pecds:
 rule prepare_benchmarks:
     input:
         expand(
-            RESULTS
-            + "benchmarks/tyndp-2024/resources/benchmarks_{horizon}.csv",
+            RESULTS + "benchmarks/tyndp-2024/resources/benchmarks_{horizon}.csv",
             horizon=config["planning_horizons"],
             run=config["run"]["name"],
         ),

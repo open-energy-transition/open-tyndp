@@ -31,8 +31,8 @@ from scripts._helpers import (
     get_temporal_resolution,
     set_scenario_config,
 )
-from scripts.sb._helpers import get_version
 from scripts.prepare_sector_network import set_temporal_aggregation
+from scripts.sb._helpers import get_version
 from scripts.solve_network import collect_kwargs, prepare_network
 
 logger = logging.getLogger(__name__)

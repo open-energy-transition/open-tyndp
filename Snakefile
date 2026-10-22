@@ -257,11 +257,7 @@ def input_all_tyndp(w):
     ):
         files.extend(
             expand(
-                (
-                    resources(
-                        "maps/base_h2_network_{horizon}.pdf"
-                    )
-                ),
+                (resources("maps/base_h2_network_{horizon}.pdf")),
                 run=config["run"]["name"],
                 horizon=config["planning_horizons"],
             )
@@ -269,11 +265,7 @@ def input_all_tyndp(w):
     if config_provider("sector", "offshore_hubs_tyndp", "enable")(w):
         files.extend(
             expand(
-                (
-                    resources(
-                        "maps/base_offshore_network_{horizon}_{carrier}.pdf"
-                    )
-                ),
+                (resources("maps/base_offshore_network_{horizon}_{carrier}.pdf")),
                 run=config["run"]["name"],
                 horizon=config["planning_horizons"],
                 carrier=config_provider("plotting", "offshore_maps", "bus_carriers")(w),
@@ -281,10 +273,7 @@ def input_all_tyndp(w):
         )
         files.extend(
             expand(
-                (
-                    RESULTS
-                    + "maps/static/offshore_network_{carrier}_{horizon}.pdf"
-                ),
+                (RESULTS + "maps/static/offshore_network_{carrier}_{horizon}.pdf"),
                 run=config["run"]["name"],
                 horizon=config["planning_horizons"],
                 carrier=config_provider("plotting", "offshore_maps", "bus_carriers")(w),
