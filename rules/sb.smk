@@ -436,7 +436,7 @@ rule build_tyndp_hydro_profile:
         scripts("sb/build_tyndp_hydro_profile.py")
 
 
-use rule build_electricity_demand_base as build_electricity_demand_base_tyndp with:
+use rule build_electricity_demand_base as build_electricity_demand_simplified_tyndp with:
     input:
         unpack(input_elec_demand_base),
         raster=[],
@@ -445,11 +445,23 @@ use rule build_electricity_demand_base as build_electricity_demand_base_tyndp wi
         nuts3=[],
         load=resources("electricity_demand_{horizon}.csv"),
     output:
-        resources("electricity_demand_base_s_{horizon}.nc"),
+        resources("electricity_demand_simplified_{horizon}.nc"),
     log:
-        logs("build_electricity_demand_base_s_{horizon}.log"),
+        logs("build_electricity_demand_simplified_{horizon}.log"),
     benchmark:
-        benchmarks("performances/build_electricity_demand_base_s_{horizon}")
+        benchmarks("performances/build_electricity_demand_simplified_{horizon}")
+
+
+use rule cluster_electricity_demand as cluster_electricity_demand_tyndp with:
+    input:
+        load=resources("electricity_demand_simplified_{horizon}.nc"),
+        busmap=resources("busmap_cluster_network.csv"),
+    output:
+        resources("electricity_demand_clustered_{horizon}.nc"),
+    log:
+        logs("cluster_electricity_demand_{horizon}.log"),
+    benchmark:
+        benchmarks("performances/cluster_electricity_demand_{horizon}")
 
 
 # Build sector
