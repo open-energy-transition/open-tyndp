@@ -878,7 +878,7 @@ rule prepare_references:
     input:
         lambda w: expand(
             resources("cba/networks/reference_{horizon}.nc"),
-            **config["scenario"],
+            horizon=config_provider("cba", "planning_horizons")(w),
             run=config["run"]["name"],
         ),
 
