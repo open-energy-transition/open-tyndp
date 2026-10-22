@@ -12,7 +12,6 @@ import pandas as pd
 from snakemake.logging import logger
 
 from scripts.cba._helpers import filter_projects_by_specs
-from scripts._helpers import fill_wildcards
 from shutil import unpack_archive, copy2
 from snakemake.iocontainers import Wildcards
 
@@ -124,12 +123,6 @@ if config.get("cba", {}).get("cba_scenario_input", {}).get("use_presolved", Fals
 
 # read in transmission and storage projects from excel sheets
 #
-def input_clustered_network(w):
-    scenario = config_provider("scenario")(w)
-    (clusters,) = scenario["clusters"]
-    return fill_wildcards(rules.cluster_network.output.network, clusters=clusters)
-
-
 checkpoint clean_projects:
     input:
         dir=rules.retrieve_tyndp_cba_projects.output.dir,
