@@ -339,7 +339,6 @@ if __name__ == "__main__":
         n,
         solve_opts=solving["options"],
         foresight=snakemake.params.foresight,
-        renewable_carriers=[],
         planning_horizons=planning_horizons,
         co2_sequestration_potential=None,
         limit_max_growth=None,

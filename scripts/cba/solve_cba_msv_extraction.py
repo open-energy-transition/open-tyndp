@@ -79,7 +79,6 @@ if __name__ == "__main__":
         n,
         solve_opts=solve_opts,
         foresight="overnight",
-        renewable_carriers=[],
         planning_horizons=snakemake.wildcards.get("horizon", None),
         co2_sequestration_potential=None,
         limit_max_growth=None,

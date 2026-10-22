@@ -40,12 +40,7 @@ from linopy.remote.oetc import OetcCredentials, OetcHandler, OetcSettings
 from pypsa.descriptors import get_activity_mask
 
 from scripts._benchmark import memory_logger
-from scripts._helpers import (
-    PYPSA_V1,
-    configure_logging,
-    get,
-    set_scenario_config,
-)
+from scripts._helpers import PYPSA_V1, configure_logging, get, set_scenario_config
 from scripts.add_electricity import sanitize_carriers
 from scripts.sb._helpers import get_version
 
@@ -474,7 +469,6 @@ def prepare_network(
     config: dict,
     solve_opts: dict,
     foresight: str,
-    renewable_carriers: list[str],
     planning_horizons: str | None,
     co2_sequestration_potential: dict[str, float] | None,
     limit_max_growth: dict[str, Any] | None = None,
@@ -493,8 +487,6 @@ def prepare_network(
         Dictionary of solving options containing clip_p_max_pu, load_shedding etc.
     foresight : str
         Planning foresight type ('myopic' or 'perfect')
-    renewable_carriers : list[str]
-        List of renewable carriers
     planning_horizons : str or None
         The current planning horizon year or None for perfect foresight
     co2_sequestration_potential : Dict[str, float]
@@ -1731,7 +1723,6 @@ if __name__ == "__main__":
         config=snakemake.config,
         solve_opts=snakemake.params.solving["options"],
         foresight=snakemake.params.foresight,
-        renewable_carriers=snakemake.params.renewable_carriers,
         planning_horizons=planning_horizons,
         co2_sequestration_potential=snakemake.params["co2_sequestration_potential"],
         limit_max_growth=snakemake.params["sector"]["limit_max_growth"],
