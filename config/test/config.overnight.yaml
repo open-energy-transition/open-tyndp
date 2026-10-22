@@ -114,7 +114,7 @@ solving:
   mem_mb: 4000
 
   check_objective:
-    enable: true
+    enable: false  # open-tyndp: custom_costs.csv and include_objective_constant differ from upstream
     expected_value: 570226933.77
 
 plotting:

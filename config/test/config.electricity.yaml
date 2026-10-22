@@ -107,7 +107,7 @@ solving:
     name: highs
     options: highs-default
   check_objective:
-    enable: true
+    enable: false  # open-tyndp: custom_costs.csv and include_objective_constant differ from upstream
     expected_value: 50009078.82
   options:
     transmission_losses: false
