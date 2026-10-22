@@ -48,6 +48,11 @@ if Path("config/config.yaml").exists():
     configfile: "config/config.yaml"
 
 
+if config["foresight"] == "overnight":
+
+    configfile: "config/config.default.overnight.yaml"
+
+
 validated_config = validate_config(config)
 normalize_config(config, validated_config)
 
@@ -148,11 +153,6 @@ if config["tyndp_scenario"]:
     # Include Open-TYNDP specific set of rules for SB and CBA
     include: "rules/cba.smk"
     include: "rules/sb.smk"
-
-
-if config["foresight"] == "overnight":
-
-    configfile: "config/config.default.overnight.yaml"
 
 
 # Define output categories based on foresight mode
