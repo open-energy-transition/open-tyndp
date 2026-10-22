@@ -37,7 +37,6 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "build_renewable_profiles_pecd",
-            clusters="all",
             technology="Wind_Offshore",
         )
     configure_logging(snakemake)
