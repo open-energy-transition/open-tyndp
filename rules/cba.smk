@@ -168,12 +168,7 @@ rule clean_tyndp_indicators:
         scripts("cba/clean_tyndp_indicators.py")
 
 
-def input_sb_network(w, run=None):
-    scenario = config_provider("scenario")(w)
-    (clusters,) = scenario["clusters"]
-    (opts,) = scenario["opts"]
-    (sector_opts,) = scenario["sector_opts"]
-
+def input_sb_network(w):
     if config_provider("cba", "cba_scenario_input", "use_presolved", default=False)(w):
         scenario_name = config_provider("tyndp_scenario")(w)
         if scenario_name != "NT":
@@ -181,11 +176,10 @@ def input_sb_network(w, run=None):
                 "Pre-solved SB networks are only currently available for the NT scenario."
             )
         # Check that options match the pre-solved network naming convention
-        if clusters != "all" or opts != "" or sector_opts != "":
+        if config_provider("clustering", "cluster_network", "n_clusters")(w) != "all":
             raise ValueError(
-                "Pre-solved SB runs require scenario.clusters=['all'], "
-                "scenario.opts=[''], and scenario.sector_opts=[''] to match "
-                "the Zenodo network naming (base_s_all___{planning_horizons}.nc)."
+                "Pre-solved SB runs require clustering.cluster_network.n_clusters='all' "
+                "to match the Zenodo network naming (base_s_all___{planning_horizons}.nc)."
             )
         horizon = _effective_horizon(
             int(w.planning_horizons),
@@ -197,19 +191,11 @@ def input_sb_network(w, run=None):
         )
         return presolved_sb_network_path(w, horizon)
 
-    expanded_wildcards = {
-        "clusters": clusters,
-        "opts": opts,
-        "sector_opts": sector_opts,
-    }
-    if run is not None:
-        expanded_wildcards["run"] = run
-
     match config_provider("foresight")(w):
         case "perfect":
-            expanded_wildcards["planning_horizons"] = "all"
+            horizon = config_provider("planning_horizons")(w)[-1]
         case "myopic":
-            expanded_wildcards["planning_horizons"] = _effective_horizon(
+            horizon = _effective_horizon(
                 int(w.planning_horizons),
                 warn_fn=logger.warning,
                 msg=(
@@ -217,18 +203,10 @@ def input_sb_network(w, run=None):
                     "Using 2040 inputs instead."
                 ),
             )
-            # converts the same value to a string so fill_wildcards() can safely call .replace().
-            expanded_wildcards["planning_horizons"] = str(
-                expanded_wildcards["planning_horizons"]
-            )
         case _:
             raise ValueError('config["foresight"] must be one of "perfect" or "myopic"')
 
-    return fill_wildcards(
-        RESULTS
-        + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",
-        **expanded_wildcards,
-    )
+    return RESULTS + f"networks/solved_{horizon}.nc"
 
 
 # Simplify scenario building network for CBA
