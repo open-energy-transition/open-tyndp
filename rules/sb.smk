@@ -1186,7 +1186,7 @@ if (PRESOLVED_NETWORKS_DATASET := dataset_version("open_tyndp_prelim"))[
         input:
             expand(
                 f"{PRESOLVED_NETWORKS_DATASET['folder']}/base_s_all___{{horizon}}.nc",
-                planning_horizons=config["scenario"]["planning_horizons"],
+                horizon=config["planning_horizons"],
             ),
         output:
             "logs/presolved_explorer_launched.log",
