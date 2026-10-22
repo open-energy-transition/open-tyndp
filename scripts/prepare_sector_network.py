@@ -5568,6 +5568,7 @@ def add_land_transport(
     options,
     investment_year,
     nodes,
+    tyndp_scenario: bool = False,
 ) -> None:
     """
     Add land transport demand and infrastructure to the network.
@@ -5597,6 +5598,9 @@ def add_land_transport(
         Year for which to get the transport shares
     nodes : list-like
         List of spatial nodes to consider
+    tyndp_scenario : bool, optional
+        Whether a TYNDP scenario is modelled, in which case EVs are added by
+        `add_ev_tyndp` instead.
 
     Returns
     -------
@@ -5620,7 +5624,9 @@ def add_land_transport(
     dsm_profile = pd.read_csv(dsm_profile_file, index_col=0, parse_dates=True)
 
     # exogenous share of passenger car type
-    engine_types = ["fuel_cell", "electric", "ice"]
+    engine_types = (
+        ["fuel_cell", "ice"] if tyndp_scenario else ["fuel_cell", "electric", "ice"]
+    )
     shares = pd.Series()
     for engine in engine_types:
         share_key = f"land_transport_{engine}_share"
@@ -5641,7 +5647,9 @@ def add_land_transport(
     )
     temperature = temperature.apply(lambda col: col.fillna(temperature.mean(axis=1)))
 
-    if shares["electric"] > 0:
+    if tyndp_scenario:
+        logger.info("EVs are added from TYNDP data in add_ev_tyndp")
+    elif shares["electric"] > 0:
         add_EVs(
             n,
             avail_profile,
@@ -9810,6 +9818,7 @@ if __name__ == "__main__":
             options=options,
             investment_year=investment_year,
             nodes=spatial.nodes,
+            tyndp_scenario=bool(tyndp_scenario),
         )
 
     if options["heating"]:

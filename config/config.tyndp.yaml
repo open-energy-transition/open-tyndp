@@ -240,16 +240,6 @@ sector:
   agriculture: false
   fossil_fuels: true
 
-  land_transport_fuel_cell_share:  # Not modelled
-    2030: 0
-    2035: 0
-    2040: 0
-    2050: 0
-  land_transport_electric_share:  # EVs modelled explicitly from TYNDP data (add_ev_tyndp)
-    2030: 0
-    2035: 0
-    2040: 0
-    2050: 0
   land_transport_ice_share:  # TODO Improve TYNDP 2024 approximations
     2030: 0.96
     2035: 0.82  # interpolation
