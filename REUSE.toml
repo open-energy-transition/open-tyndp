@@ -42,6 +42,7 @@ path = [
     "envs/*.pin.txt",
     "envs/environment.yaml",
     "config/config.default.yaml",
+    "config/plotting.default.yaml",
     "config/schema.default.json"
 ]
 SPDX-FileCopyrightText = [
@@ -83,7 +84,7 @@ SPDX-FileCopyrightText = "Copyright (c) 2025 Open Energy Transition gGmbH"
 SPDX-License-Identifier = "LicenseRef-AllRightsReserved"
 
 
-# Make sure to keep in sync with: https://open-tyndp.readthedocs.io/en/latest/data-repos.html
+# Make sure to keep in sync with: https://open-tyndp.readthedocs.io/en/latest/data-repos/
 
 [[annotations]]
 path = [

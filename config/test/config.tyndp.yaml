@@ -4,6 +4,11 @@
 #
 # SPDX-License-Identifier: CC0-1.0
 
+planning_horizons:
+- 2030
+- 2035
+- 2040
+
 run:
   name: "test-sector-tyndp"
   disable_progressbar: true
@@ -20,14 +25,6 @@ logging:
 
 launch_explorer: false
 
-scenario:
-  clusters:
-  - all
-  planning_horizons:
-  - 2030
-  - 2035
-  - 2040
-
 countries: ['AL', 'AT', 'BA', 'BE', 'BG', 'CH', 'CZ', 'CY', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'ME', 'MK', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK']
 
 snapshots:
@@ -35,6 +32,8 @@ snapshots:
   end: "2013-03-08"
 
 co2_budget:
+  upper:
+  lower:
 
 electricity:
   base_network: tyndp
@@ -336,6 +335,8 @@ clustering:
   mode: administrative
   administrative:
     level: bz
+  cluster_network:
+    n_clusters: all
   build_bidding_zones:
     remove_islands: true
     aggregate_to_tyndp: true
@@ -343,7 +344,7 @@ clustering:
     remove_stubs: false
   temporal:
     # Important note: The segmentation (SEG) option is currently not supported, for details https://github.com/open-energy-transition/open-tyndp/pull/345
-    resolution_sector: 6H
+    averaging: 6h
 
 adjustments:
   electricity: false

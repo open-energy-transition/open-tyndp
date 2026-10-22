@@ -6,7 +6,7 @@
 """
 Transformers configuration.
 
-See docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#transformers
+See docs in https://open-tyndp.readthedocs.io/en/latest/configuration/#transformers_cf
 """
 
 from pydantic import Field

@@ -6,7 +6,7 @@
 """
 Countries configuration.
 
-See docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#countries
+See docs in https://open-tyndp.readthedocs.io/en/latest/configuration/#countries_cf
 """
 
 from pydantic import Field, RootModel
