@@ -4363,6 +4363,7 @@ def add_h2_topology_tyndp(
     country_z2 = pd.Series(
         buses_h2_z2, index=spatial.h2_tyndp.df.loc[buses_h2_z2].country.values
     )
+    country_z2 = country_z2[~country_z2.index.duplicated()]
     buses_h2_z1_effective = pd.Index(country_z1.combine_first(country_z2))
 
     # add H2 production (Z1: SMR (optional), ATR (optional); Z2: SMR CC (optional), Electrolysis)
