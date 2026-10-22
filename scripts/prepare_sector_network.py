@@ -2839,16 +2839,25 @@ def add_existing_tyndp_capacities(
                 "pyear == @investment_year and carrier.isin(@tyndp_solar_onwind)"
             )
 
-            attach_wind_and_solar(
-                n=n,
-                costs=costs,
-                ppl=ppl,
-                profile_filenames=profiles_pecd,
-                carriers=tyndp_solar_onwind,
-                extendable_carriers=extendable_carriers,
-                trajectories=trajectories_solar_onwind,
-                planning_horizon=investment_year,
-            )
+            if not ppl.empty:
+                attach_wind_and_solar(
+                    n=n,
+                    costs=costs,
+                    profile_filenames=profiles_pecd,
+                    carriers=tyndp_solar_onwind,
+                    extendable_carriers=extendable_carriers,
+                    trajectories=trajectories_solar_onwind,
+                    planning_horizon=investment_year,
+                )
+
+                # Existing capacities from PEMMDB, set on every bin of a bus
+                for car in tyndp_solar_onwind:
+                    gens_i = n.generators.index[n.generators.carrier == car]
+                    caps = ppl.query("carrier == @car").groupby("bus").p_nom.sum()
+                    caps_i = n.generators.loc[gens_i, "bus"].map(caps).fillna(0.0)
+                    n.generators.loc[gens_i, "p_nom"] = caps_i
+                    if trajectories_solar_onwind.empty:
+                        n.generators.loc[gens_i, "p_nom_min"] = caps_i
 
         # Add existing hydro capacities and inflows from PEMMDB
         if [c for c in tyndp_renewable_carriers if c.startswith("hydro")]:
