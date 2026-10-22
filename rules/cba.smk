@@ -12,6 +12,7 @@ import pandas as pd
 from snakemake.logging import logger
 
 from scripts.cba._helpers import filter_projects_by_specs
+from scripts._helpers import get_temporal_resolution
 from shutil import unpack_archive, copy2
 from snakemake.iocontainers import Wildcards
 
@@ -298,8 +299,10 @@ rule build_msv_snapshot_weightings:
 
 def input_msv_snapshot_weightings(w):
     """Return snapshot weightings file only if MSV resolution requires it."""
-    resolution = config_provider("cba", "msv_extraction", "resolution")(w)
-    if resolution and "h" in str(resolution).lower():
+    resolution = get_temporal_resolution(
+        config_provider("cba", "msv_extraction", "resolution")(w)
+    )
+    if resolution and resolution[0] == "averaging":
         return rules.build_msv_snapshot_weightings.output.snapshot_weightings
     return []
 
