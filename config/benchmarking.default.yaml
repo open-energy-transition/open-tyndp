@@ -94,7 +94,18 @@ benchmarking:
       mapping_col: benchmarking_elec_demand
       rfc_sources:
       - dashboard_out
+      - report
       unit: TWh
+      report:
+        sheet_name: "61"
+        index_col: 2
+        header: 2
+        scenario: NT+
+        names:
+          index:
+          - carrier
+          column:
+          - year
 
     methane_demand:
       table_type: scenario_comparison
