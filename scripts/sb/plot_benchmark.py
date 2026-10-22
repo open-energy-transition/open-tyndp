@@ -20,12 +20,11 @@ from matplotlib.ticker import AutoMinorLocator
 from tqdm import tqdm
 
 from scripts._helpers import (
-    add_metadata,
     configure_logging,
-    convert_units,
     get_snapshots,
     set_scenario_config,
 )
+from scripts.sb._helpers import add_metadata, convert_units
 from scripts.sb.make_benchmark import (
     SOURCES_MAP,
     get_bus_col_name,
@@ -566,6 +565,11 @@ def plot_benchmark(
             raise ValueError(f"Unknown table type {table_type}.")
 
 
+def _plot_benchmark_star(args: tuple, **kwargs) -> None:
+    """Call `plot_benchmark` with positional arguments unpacked from a tuple."""
+    return plot_benchmark(*args, **kwargs)
+
+
 def orchestrate_benchmark(
     bus_col_name: str,
     benchmarks_raw: pd.DataFrame,
@@ -610,7 +614,7 @@ def orchestrate_benchmark(
     }
 
     func = partial(
-        plot_benchmark,
+        _plot_benchmark_star,
         output_dir=output_dir_bus_col,
         scenario=scenario,
         snapshots=snapshots,
@@ -620,7 +624,7 @@ def orchestrate_benchmark(
     )
 
     with mp.Pool(processes=threads) as pool:
-        list(tqdm(pool.starmap(func, table_bus_col_df_args), **tqdm_kwargs))
+        list(tqdm(pool.imap(func, table_bus_col_df_args), **tqdm_kwargs))
 
 
 def plot_overview(

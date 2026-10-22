@@ -17,11 +17,11 @@ from pypsa.statistics import get_transmission_carriers
 
 from scripts._helpers import (
     configure_logging,
-    get_version,
     set_scenario_config,
     update_config_from_wildcards,
 )
 from scripts.add_electricity import sanitize_carriers
+from scripts.sb._helpers import get_version
 
 VALID_MAP_STYLES = PydeckPlotter.VALID_MAP_STYLES
 
@@ -207,17 +207,33 @@ if __name__ == "__main__":
     b_missing = n.carriers.query("color == '' or color.isnull()").index
     n.carriers.loc[b_missing, "color"] = missing_color
 
-    transmission_carriers = get_transmission_carriers(n, bus_carrier=carrier).rename(
-        {"name": "carrier"}
-    )
+    if carrier == "co2 stored" and "co2 dense" in n.buses.carrier.unique():
+        co2_carriers = ["co2 stored", "co2 dense"]
+        transmission_carriers = get_transmission_carriers(
+            n, bus_carrier=co2_carriers
+        ).rename({"name": "carrier"})
+
+        eb = n.statistics.energy_balance(
+            bus_carrier=co2_carriers,
+            groupby=["bus", "carrier"],
+        )
+        eb = eb.rename(
+            index=lambda value: value.replace("co2 dense", carrier), level="bus"
+        )
+        eb = eb.groupby(level=["component", "bus", "carrier"]).sum()
+    else:
+        transmission_carriers = get_transmission_carriers(
+            n, bus_carrier=carrier
+        ).rename({"name": "carrier"})
+
+        ### Pie charts
+        eb = n.statistics.energy_balance(
+            bus_carrier=carrier,
+            groupby=["bus", "carrier"],
+        )
+
     components = transmission_carriers.unique("component")
     carriers = transmission_carriers.unique("carrier")
-
-    ### Pie charts
-    eb = n.statistics.energy_balance(
-        bus_carrier=carrier,
-        groupby=["bus", "carrier"],
-    )
 
     # Only carriers that are also in the energy balance
     carriers_in_eb = carriers[carriers.isin(eb.index.get_level_values("carrier"))]
@@ -294,7 +310,7 @@ if __name__ == "__main__":
         .where(
             lambda x: x < voll * 0.98
         )  # Add 2% of numerical tolerance; comment out to incl. load shedding
-        .pipe(lambda x: (weights @ x.fillna(0)) / (weights @ x.notna()))
+        .pipe(lambda x: (weights @ x.fillna(0)) / (weights @ x.notna().astype(float)))
     )
 
     if carrier == "co2 stored" and "CO2Limit" in n.global_constraints.index:
