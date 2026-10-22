@@ -1849,13 +1849,13 @@ rule prepare_sector_network:
             config_provider("tyndp_scenario"),
             resources("ev_fleets_tyndp_{planning_horizons}.csv"),
         ),
-        ev_availability=branch(
+        avail_profile_tyndp=branch(
             config_provider("tyndp_scenario"),
-            resources("ev_availability_tyndp_{planning_horizons}.csv"),
+            resources("avail_profile_tyndp_{planning_horizons}.csv"),
         ),
-        ev_min_soc=branch(
+        dsm_profile_tyndp=branch(
             config_provider("tyndp_scenario"),
-            resources("ev_min_soc_tyndp_{planning_horizons}.csv"),
+            resources("dsm_profile_tyndp_{planning_horizons}.csv"),
         ),
         wheeling_charges=branch(
             lambda w: config_provider("tyndp_scenario")(w)

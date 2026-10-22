@@ -26,9 +26,9 @@ Outputs
 - `resources/ev_fleets_tyndp_{planning_horizons}.csv`: fleet parameters, i.e.
   vehicles, grid side charging and V2G capacity, battery size, efficiencies
   and use of system charge.
-- `resources/ev_availability_tyndp_{planning_horizons}.csv`: share of
+- `resources/avail_profile_tyndp_{planning_horizons}.csv`: share of
   connected vehicles per flexible fleet.
-- `resources/ev_min_soc_tyndp_{planning_horizons}.csv`: minimum state of
+- `resources/dsm_profile_tyndp_{planning_horizons}.csv`: minimum state of
   charge per flexible fleet.
 """
 
@@ -293,7 +293,7 @@ def get_flexible_profiles(
     demand = pd.DataFrame(
         np.outer(driving, flexible["energy"]), index=index, columns=flexible.index
     )
-    availability = pd.DataFrame(
+    avail_profile = pd.DataFrame(
         {
             name: expand_daily_profile(
                 availability_profiles,
@@ -303,7 +303,7 @@ def get_flexible_profiles(
             for name, segment, fleet in flexible[["segment", "fleet"]].itertuples()
         }
     )
-    min_soc = pd.DataFrame(
+    dsm_profile = pd.DataFrame(
         {
             name: expand_daily_profile(
                 min_soc_profiles, f"{segment.upper()} {{day_type}} {pyear} [%]", index
@@ -312,7 +312,7 @@ def get_flexible_profiles(
         }
     )
 
-    return demand, availability, min_soc
+    return demand, avail_profile, dsm_profile
 
 
 if __name__ == "__main__":
@@ -343,12 +343,12 @@ if __name__ == "__main__":
     fleets = get_fleets(fixed_demand, ev_dir, pyear)
     fixed = fleets.index[fleets["fleet"] == "Fixed"]
     flexible = fleets.loc[fleets["fleet"] != "Fixed"]
-    flexible_demand, availability, min_soc = get_flexible_profiles(
+    flexible_demand, avail_profile, dsm_profile = get_flexible_profiles(
         flexible, fixed_demand.index, ev_dir, pyear
     )
     ev_demand = pd.concat([fixed_demand[fixed], flexible_demand], axis=1)
 
     ev_demand.to_csv(snakemake.output.ev_demand, index=True)
     fleets[FLEET_COLUMNS].to_csv(snakemake.output.ev_fleets, index=True)
-    availability.to_csv(snakemake.output.ev_availability, index=True)
-    min_soc.to_csv(snakemake.output.ev_min_soc, index=True)
+    avail_profile.to_csv(snakemake.output.avail_profile, index=True)
+    dsm_profile.to_csv(snakemake.output.dsm_profile, index=True)

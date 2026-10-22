@@ -431,8 +431,8 @@ rule build_tyndp_ev_fleets:
     output:
         ev_demand=resources("ev_demand_tyndp_{planning_horizons}.csv"),
         ev_fleets=resources("ev_fleets_tyndp_{planning_horizons}.csv"),
-        ev_availability=resources("ev_availability_tyndp_{planning_horizons}.csv"),
-        ev_min_soc=resources("ev_min_soc_tyndp_{planning_horizons}.csv"),
+        avail_profile=resources("avail_profile_tyndp_{planning_horizons}.csv"),
+        dsm_profile=resources("dsm_profile_tyndp_{planning_horizons}.csv"),
     log:
         logs("build_tyndp_ev_fleets_{planning_horizons}.log"),
     benchmark:

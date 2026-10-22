@@ -3250,8 +3250,8 @@ def add_ev_tyndp(
     n: pypsa.Network,
     ev_demand_fn: str,
     ev_fleets_fn: str,
-    ev_availability_fn: str,
-    ev_min_soc_fn: str,
+    avail_profile_fn: str,
+    dsm_profile_fn: str,
     dsm: bool,
     v2g: bool,
 ) -> None:
@@ -3266,9 +3266,9 @@ def add_ev_tyndp(
         Path to the driving demand per fleet in MW.
     ev_fleets_fn : str
         Path to the fleet parameters.
-    ev_availability_fn : str
+    avail_profile_fn : str
         Path to the availability per flexible fleet in p.u.
-    ev_min_soc_fn : str
+    dsm_profile_fn : str
         Path to the minimum state of charge per flexible fleet in p.u.
     dsm : bool
         Add the batteries of the flexible fleets as stores for demand-side
@@ -3277,11 +3277,11 @@ def add_ev_tyndp(
         Add V2G discharging of the flexible fleets, only if `dsm` is enabled.
     """
     fleets = pd.read_csv(ev_fleets_fn, index_col=0)
-    demand = pd.read_csv(ev_demand_fn, index_col=0, parse_dates=True)
-    availability = pd.read_csv(ev_availability_fn, index_col=0, parse_dates=True)
-    min_soc = pd.read_csv(ev_min_soc_fn, index_col=0, parse_dates=True)
-    demand, availability, min_soc = (
-        df.reindex(n.snapshots) for df in (demand, availability, min_soc)
+    p_set = pd.read_csv(ev_demand_fn, index_col=0, parse_dates=True)
+    avail_profile = pd.read_csv(avail_profile_fn, index_col=0, parse_dates=True)
+    dsm_profile = pd.read_csv(dsm_profile_fn, index_col=0, parse_dates=True)
+    p_set, avail_profile, dsm_profile = (
+        df.reindex(n.snapshots) for df in (p_set, avail_profile, dsm_profile)
     )
 
     grid_buses = (fleets["node"] + "RETE").where(
@@ -3289,7 +3289,7 @@ def add_ev_tyndp(
     )
     carriers = "EV " + fleets["segment"] + " " + fleets["fleet"]
     flexible = fleets.index[fleets["fleet"] != "Fixed"] if dsm else pd.Index([])
-    availability = availability.reindex(columns=flexible).reindex(
+    avail_profile = avail_profile.reindex(columns=flexible).reindex(
         columns=fleets.index, fill_value=1.0
     )
 
@@ -3302,7 +3302,7 @@ def add_ev_tyndp(
         bus1=fleets.index,
         carrier="BEV charger",
         p_nom=fleets["charge_p_nom"].to_numpy(),
-        p_max_pu=availability.add_suffix(" BEV charger"),
+        p_max_pu=avail_profile.add_suffix(" BEV charger"),
         efficiency=fleets["charge_efficiency"].to_numpy(),
         marginal_cost=fleets["use_of_system_charge"].to_numpy(),
     )
@@ -3311,7 +3311,7 @@ def add_ev_tyndp(
         fleets.index,
         bus=fleets.index,
         carrier=carriers,
-        p_set=demand[fleets.index],
+        p_set=p_set[fleets.index],
     )
 
     if dsm:
@@ -3321,7 +3321,7 @@ def add_ev_tyndp(
             bus=flexible,
             carrier=carriers[flexible],
             e_nom=fleets.loc[flexible, "e_nom"],
-            e_min_pu=min_soc[flexible],
+            e_min_pu=dsm_profile[flexible],
             e_cyclic=True,
         )
 
@@ -3337,7 +3337,7 @@ def add_ev_tyndp(
                 p_nom=v2g_fleets.eval(
                     "discharge_p_nom / discharge_efficiency"
                 ).to_numpy(),
-                p_max_pu=availability[v2g_fleets.index].add_suffix(" V2G"),
+                p_max_pu=avail_profile[v2g_fleets.index].add_suffix(" V2G"),
                 efficiency=v2g_fleets["discharge_efficiency"].to_numpy(),
                 marginal_cost=v2g_fleets.eval(
                     "use_of_system_charge * discharge_efficiency"
@@ -10002,8 +10002,8 @@ if __name__ == "__main__":
             n,
             ev_demand_fn=snakemake.input.ev_demand,
             ev_fleets_fn=snakemake.input.ev_fleets,
-            ev_availability_fn=snakemake.input.ev_availability,
-            ev_min_soc_fn=snakemake.input.ev_min_soc,
+            avail_profile_fn=snakemake.input.avail_profile_tyndp,
+            dsm_profile_fn=snakemake.input.dsm_profile_tyndp,
             dsm=options["bev_dsm"],
             v2g=options["v2g"],
         )
