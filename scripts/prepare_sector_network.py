@@ -9680,11 +9680,9 @@ def main(
     year = int(params["energy_totals_year"])
     heating_efficiencies = pd.read_csv(fn, index_col=[1, 0]).loc[year]
 
-    buses_h2_file = snakemake.input.buses_h2 if options["h2_topology_tyndp"] else None
+    buses_h2_file = inputs.buses_h2 if options["h2_topology_tyndp"] else None
     buses_oh_file = (
-        snakemake.input.offshore_buses
-        if options["offshore_hubs_tyndp"]["enable"]
-        else None
+        inputs.offshore_buses if options["offshore_hubs_tyndp"]["enable"] else None
     )
     spatial = define_spatial(
         pop_layout.index,
@@ -9728,10 +9726,10 @@ def main(
     tyndp_conventional_dict, tyndp_conventional_thermals = (
         get_tyndp_conventional_thermals(
             mapping=tyndp_carrier_mapping,
-            tyndp_conventional_carriers=snakemake.params.tyndp_conventional_carriers,
-            group_conventionals=snakemake.params.electricity[
-                "group_tyndp_conventionals"
+            tyndp_conventional_carriers=params.electricity[
+                "tyndp_conventional_carriers"
             ],
+            group_conventionals=params.electricity["group_tyndp_conventionals"],
             include_h2_fuel_cell=options["hydrogen_fuel_cell"],
             include_h2_turbine=options["hydrogen_turbine"],
         )
@@ -9746,17 +9744,13 @@ def main(
     h2_storage_capacities = None
 
     # Read in PEMMDB data, trajectories and availability profiles
-    enable_pemmdb_caps = snakemake.params.electricity["pemmdb_capacities"]["enable"]
+    enable_pemmdb_caps = params.electricity["pemmdb_capacities"]["enable"]
     if enable_pemmdb_caps:
-        pemmdb_capacities = pd.read_csv(snakemake.input.pemmdb_capacities).set_index(
-            "bus"
-        )
-        pemmdb_profiles = xr.open_dataset(
-            snakemake.input.pemmdb_profiles
-        ).to_dataframe()
-    if tyndp_trajectories_fn := snakemake.input.tyndp_trajectories:
+        pemmdb_capacities = pd.read_csv(inputs.pemmdb_capacities).set_index("bus")
+        pemmdb_profiles = xr.open_dataset(inputs.pemmdb_profiles).to_dataframe()
+    if tyndp_trajectories_fn := inputs.tyndp_trajectories:
         tyndp_trajectories = pd.read_csv(tyndp_trajectories_fn)
-    if tyndp_nuclear_profiles_fn := snakemake.input.tyndp_nuclear_profiles:
+    if tyndp_nuclear_profiles_fn := inputs.tyndp_nuclear_profiles:
         tyndp_nuclear_profiles = pd.read_csv(
             tyndp_nuclear_profiles_fn, index_col=0, parse_dates=True
         )
@@ -9768,7 +9762,7 @@ def main(
     conventional_generation = {
         generator: carrier
         for generator, carrier in options["conventional_generation"].items()
-        if generator in snakemake.params.electricity["conventional_carriers"]
+        if generator in params.electricity["conventional_carriers"]
     }
 
     add_generation(
@@ -9812,7 +9806,7 @@ def main(
         gas_input_nodes=gas_input_nodes,
         spatial=spatial,
         options=options,
-        h2_demand_file=snakemake.input.h2_demand,
+        h2_demand_file=inputs.h2_demand,
     )
 
     # Hydrogen already implemented in add_h2_gas_infrastructure
@@ -9837,8 +9831,8 @@ def main(
     )
 
     if options["h2_topology_tyndp"]:
-        smr_capacities = pd.read_csv(snakemake.input.tyndp_smr, index_col=0)
-        h2_storage_capacities = pd.read_csv(snakemake.input.tyndp_h2_storages)
+        smr_capacities = pd.read_csv(inputs.tyndp_smr, index_col=0)
+        h2_storage_capacities = pd.read_csv(inputs.tyndp_h2_storages)
 
     if enable_pemmdb_caps or options["h2_topology_tyndp"]:
         add_existing_tyndp_capacities(
@@ -9851,39 +9845,37 @@ def main(
             tyndp_renewable_carriers=tyndp_renewable_carriers,
             tyndp_conventional_thermals=tyndp_conventional_thermals,
             h2_topology_tyndp=options["h2_topology_tyndp"],
-            tyndp_stores=snakemake.params.tyndp_stores,
+            tyndp_stores=params.electricity["tyndp_stores"],
             costs=costs,
             profiles_pecd=profiles_pecd,
             nuclear_profiles=tyndp_nuclear_profiles,
-            hydro_inflows_fn=snakemake.input.profile_pemmdb_hydro,
-            extendable_carriers=snakemake.params.electricity["extendable_carriers"],
+            hydro_inflows_fn=inputs.profile_pemmdb_hydro,
+            extendable_carriers=params.electricity["extendable_carriers"],
             investment_year=investment_year,
             enable_pemmdb_caps=enable_pemmdb_caps,
             tyndp_scenario=tyndp_scenario,
-            group_conventionals=snakemake.params.electricity[
-                "group_tyndp_conventionals"
-            ],
+            group_conventionals=params.electricity["group_tyndp_conventionals"],
         )
 
     if options["offshore_hubs_tyndp"]["enable"]:
         add_offshore_hubs_tyndp(
             n=n,
-            pyear=int(snakemake.wildcards.planning_horizons),
-            offshore_generators_fn=snakemake.input.offshore_generators,
-            offshore_electrolysers_fn=snakemake.input.offshore_electrolysers,
-            offshore_grid_fn=snakemake.input.offshore_grid,
+            pyear=investment_year,
+            offshore_generators_fn=inputs.offshore_generators,
+            offshore_electrolysers_fn=inputs.offshore_electrolysers,
+            offshore_grid_fn=inputs.offshore_grid,
             profiles_pecd=profiles_pecd,
             costs=costs,
             spatial=spatial,
             options=options,
             nyears=nyears,
-            offshore_fix_fn=snakemake.input.tyndp_offshore_fix,
+            offshore_fix_fn=inputs.tyndp_offshore_fix,
         )
 
     if options["gas_demand_exogenously"]:
         attach_gas_load(
             n=n,
-            gas_demand_fn=snakemake.input.gas_demand,
+            gas_demand_fn=inputs.gas_demand,
             options=options,
             costs=costs,
             spatial=spatial,
@@ -10069,7 +10061,7 @@ def main(
             options=options,
             spatial=spatial,
             gas_input_nodes=gas_input_nodes,
-            h2_imports_tyndp_fn=snakemake.input.h2_imports_tyndp,
+            h2_imports_tyndp_fn=inputs.h2_imports_tyndp,
             tyndp_scenario=tyndp_scenario,
         )
 
