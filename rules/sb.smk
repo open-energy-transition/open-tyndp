@@ -212,7 +212,7 @@ rule clean_pecd_data:
     input:
         pecd_prebuilt=get_pecd_prebuilt,
         offshore_buses=rules.retrieve_tyndp.output.offshore_nodes,
-        onshore_buses=resources("busmap_base_s_all.csv"),
+        onshore_buses=resources("busmap_cluster_network.csv"),
     output:
         pecd_data_clean=resources("pecd_data_{technology}_{horizon}.csv"),
     log:
@@ -257,11 +257,11 @@ rule build_renewable_profiles_pecd:
     input:
         unpack(input_data_pecd),
     output:
-        profile=resources("profile_pecd_{clusters}_{technology}.nc"),
+        profile=resources("pecd_profile_{technology}.nc"),
     log:
-        logs("build_renewable_profile_pecd_{clusters}_{technology}.log"),
+        logs("build_renewable_profile_pecd_{technology}.log"),
     benchmark:
-        benchmarks("performances/build_renewable_profile_pecd_{clusters}_{technology}")
+        benchmarks("performances/build_renewable_profile_pecd_{technology}")
     wildcard_constraints:
         technology="(?!hydro).*",  # Any technology other than hydro
     threads: 1
@@ -286,7 +286,7 @@ rule build_pemmdb_data:
     input:
         pemmdb_dir=rules.retrieve_tyndp.output.pemmdb,
         carrier_mapping="data/tyndp_technology_map.csv",
-        busmap=resources("busmap_base_s_all.csv"),
+        busmap=resources("busmap_cluster_network.csv"),
     output:
         pemmdb_capacities=resources("pemmdb_capacities_{horizon}.csv"),
         pemmdb_profiles=resources("pemmdb_profiles_{horizon}.nc"),
@@ -363,7 +363,7 @@ rule build_tyndp_trajectories:
 rule clean_tyndp_hydro_inflows:
     input:
         hydro_inflows_dir=rules.retrieve_tyndp.output.hydro_inflows,
-        busmap=resources("busmap_base_s_all.csv"),
+        busmap=resources("busmap_cluster_network.csv"),
     output:
         hydro_inflows_tyndp=resources(
             "hydro_inflows_tyndp_{tech}_{horizon}.csv"
@@ -415,7 +415,7 @@ rule build_tyndp_hydro_profile:
         unpack(input_data_hydro_tyndp),
         carrier_mapping="data/tyndp_technology_map.csv",
     output:
-        profile=resources("profile_pemmdb_hydro.nc"),
+        profile=resources("pemmdb_hydro_profile.nc"),
     log:
         logs("build_tyndp_hydro_profile.log"),
     benchmark:
@@ -687,7 +687,7 @@ if config["foresight"] != "perfect":
             network=resources(
                 "networks/base_s_{clusters}_{opts}_{sector_opts}_{horizon}.nc"
             ),
-            regions_onshore=resources("regions_onshore.geojson"),
+            regions_onshore=resources("onshore_regions.geojson"),
         output:
             map=resources(
                 "maps/base_h2_network_{clusters}_{opts}_{sector_opts}_{horizon}.pdf"
@@ -714,7 +714,7 @@ if config["foresight"] != "perfect":
             network=resources(
                 "networks/base_s_{clusters}_{opts}_{sector_opts}_{horizon}.nc"
             ),
-            regions_offshore=resources("regions_offshore.geojson"),
+            regions_offshore=resources("offshore_regions.geojson"),
         output:
             map=resources(
                 "maps/base_offshore_network_{clusters}_{opts}_{sector_opts}_{horizon}_{carrier}.pdf"
@@ -1004,7 +1004,7 @@ rule clean_pecd_datas:
 rule build_renewable_profiles_pecds:
     input:
         lambda w: expand(
-            resources("profile_pecd_{clusters}_{technology}.nc"),
+            resources("pecd_profile_{technology}.nc"),
             horizon=config["planning_horizons"],
             run=config["run"]["name"],
             technology=config_provider(
