@@ -1732,6 +1732,8 @@ cba:
   cba_scenario_input:
     use_presolved: false
     sb_version: latest
+  sb_scenario:
+  scenarios: []
   projects: []
   area: tyndp
   remove_noisy_costs: true
@@ -1746,7 +1748,10 @@ cba:
     default_lifetime: 25
   constrain_dsr: true
   msv_extraction:
-    resolution: false
+    resolution:
+      averaging: false
+      segmentation: false
+      representative: false
     resample_method: ffill
     solving:
       options: {}

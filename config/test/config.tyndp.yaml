@@ -32,6 +32,7 @@ snapshots:
   end: "2013-03-08"
 
 co2_budget:
+  relative: false
   upper:
   lower:
 
@@ -309,8 +310,6 @@ sector:
     - gas pipeline
   imports:
     enable: true
-    carriers:
-    - H2
   offshore_hubs_tyndp:
     enable: true
     patch_crossborder_with_mm: true
@@ -400,7 +399,7 @@ solving:
       BarConvTol: 1.0e-06
       FeasibilityTol: 1.0e-06
       OptimalityTol: 1.0e-06
-  mem: 4000
+  mem_mb: 4000
 
 data:
   version_files:
@@ -490,8 +489,9 @@ cba:
   # Marginal storage value extraction settings
   msv_extraction:
     # Temporal resolution for extraction solve
-    # Options: false (use native resolution), "24H", "48H", etc.
-    resolution: false
+    # Options: averaging: false (use native resolution), "24h", "48h", etc.
+    resolution:
+      averaging: false
     # Resampling method: ffill (forward fill), interpolate (linear)
     resample_method: ffill
     # Solve options for MSV extraction

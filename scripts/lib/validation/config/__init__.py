@@ -59,7 +59,7 @@ def validate_config(config: dict, extra: str | None = None) -> ConfigSchema:
 
 # Sections not covered by the schema or deliberately accepting arbitrary keys,
 # for which unknown keys are not reported
-UNCHECKED_SECTIONS = {"plotting", "conventional"}
+UNCHECKED_SECTIONS = {"plotting", "conventional", "benchmarking"}
 
 
 def find_invalid_entries(config: dict) -> dict[str, list[str]]:

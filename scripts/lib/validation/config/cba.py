@@ -13,6 +13,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field, field_validator
 
 from scripts.lib.validation.config._base import ConfigModel
+from scripts.lib.validation.config.clustering import _TemporalConfig
 from scripts.lib.validation.config.solving import _SolvingOptionsConfig
 
 
@@ -90,9 +91,9 @@ class _CbaMsvSolvingConfig(ConfigModel):
 class _CbaMsvExtractionConfig(ConfigModel):
     """Configuration for `cba.msv_extraction` settings."""
 
-    resolution: bool | str = Field(
-        default=False,
-        description="Temporal resolution for extraction solve. False uses the native resolution; 'NH' (e.g. '24H') averages over N hours and 'Nsn' (e.g. '2sn') uses every Nth snapshot. Can only coarsen the scenario building resolution, never refine it. Segmentation ('NSEG') is not supported, mirroring `clustering.temporal.resolution_sector`.",
+    resolution: _TemporalConfig = Field(
+        default_factory=_TemporalConfig,
+        description="Temporal resolution for extraction solve, same structure as `clustering.temporal`. All false uses the native resolution; `averaging` (e.g. '24h') averages over the given offset and `representative` uses every Nth snapshot. Can only coarsen the scenario building resolution, never refine it. Segmentation is not supported, mirroring `clustering.temporal`.",
     )
     resample_method: Literal["ffill", "interpolate"] = Field(
         default="ffill",
@@ -102,6 +103,16 @@ class _CbaMsvExtractionConfig(ConfigModel):
         default_factory=_CbaMsvSolvingConfig,
         description="Solver configuration overrides for the MSV extraction solve.",
     )
+
+    @field_validator("resolution")
+    @classmethod
+    def check_no_segmentation(cls, resolution: _TemporalConfig) -> _TemporalConfig:
+        """Reject segmentation, which MSV extraction does not support."""
+        if resolution.segmentation:
+            raise ValueError(
+                "cba.msv_extraction.resolution: segmentation is not supported."
+            )
+        return resolution
 
 
 class _CbaSolvingConfig(ConfigModel):
@@ -174,6 +185,14 @@ class CbaConfig(BaseModel):
     cba_scenario_input: _CbaSbToCbaConfig = Field(
         default_factory=_CbaSbToCbaConfig,
         description="Settings for using pre-solved SB networks as inputs to the CBA workflow.",
+    )
+    sb_scenario: str | None = Field(
+        default=None,
+        description="Scenario building scenario (e.g. 'NT') whose TYNDP results are used as benchmark in the CBA indicators.",
+    )
+    scenarios: list[str] = Field(
+        default_factory=list,
+        description="Child scenarios (e.g. climate years) aggregated by a CBA collection run.",
     )
     projects: list[str] = Field(
         default_factory=list,
