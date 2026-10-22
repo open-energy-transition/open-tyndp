@@ -13,7 +13,21 @@ The workflow evaluates projects using a **rolling horizon** approach where the f
 
 To resolve **myopia**—where the optimizer cannot see beyond the current week and makes suboptimal decisions for seasonal storage (H2, gas, large hydro)—the workflow uses Marginal Storage Values (MSV) derived from a full-year optimization.
 
-![CBA rolling horizon pipeline diagram](img/tyndp/cba-rolling-horizon-pipeline.jpeg)
+The diagram below gives a high-level overview of the CBA workflow. See [CBA rules](cba_rules.md) for rule-level detail.
+
+```mermaid
+flowchart TD
+    SB(["SB solved network"])
+    S1["(1) Create reference grid<br/>fix capacities, align with CBA reference grid"]
+    S2["(2) Price stored energy<br/>full-year solve to get Marginal Storage Values"]
+    S3["(3) Prepare reference network<br/>MSVs become storage marginal costs,<br/>cut year into rolling horizon windows"]
+    S4["(4) Prepare one network per project<br/>TOOT removes it, PINT adds it"]
+    S5["(5) Solve dispatch per rolling horizon window<br/>reference network and every project"]
+    S6["(6) Compare project with reference<br/>B1-B4 indicators"]
+    OUT(["CBA indicators<br/>optionally averaged over climate years"])
+
+    SB --> S1 --> S2 --> S3 --> S4 --> S5 --> S6 --> OUT
+```
 
 ### Network Simplification
 
