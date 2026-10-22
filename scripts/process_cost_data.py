@@ -17,13 +17,13 @@ Preparing the cost data includes:
 Inputs
 ------
 
-- `resources/costs_{planning_horizons}.csv`: Default cost data for specified planning horizon
+- `resources/costs_{horizon}.csv`: Default cost data for specified planning horizon
 - (by default) `data/custom_costs.csv`: Custom cost modifications (can be configured with `costs:custom_costs:file`
 
 Outputs
 -------
 
-- `resources/costs_{planning_horizons}_processed.csv`: Prepared cost data with custom modifications applied
+- `resources/costs_{horizon}_processed.csv`: Prepared cost data with custom modifications applied
 """
 
 import logging
@@ -98,6 +98,7 @@ def overwrite_costs(costs: pd.DataFrame, custom_costs: pd.DataFrame) -> pd.DataF
 def prepare_costs(
     costs: pd.DataFrame,
     config: dict,
+    cost_year: str,
     custom_costs_fn: str,
     max_hours: dict = None,
     nyears: float = 1.0,
@@ -112,6 +113,8 @@ def prepare_costs(
         DataFrame containing extended costs
     config : dict
         Dictionary containing cost-related configuration parameters
+    cost_year : str
+        Year of the cost assumptions, used to select custom cost entries
     custom_costs_fn : str
         Custom cost modifications file path.
     max_hours : dict, optional
@@ -147,7 +150,7 @@ def prepare_costs(
             dtype={"planning_horizon": "str"},
             index_col=["technology", "parameter"],
         ).query(
-            "planning_horizon in [@planning_horizon, 'all'] and scenario in [@custom_cost_scn, 'all']"
+            "planning_horizon in [@cost_year, 'all'] and scenario in [@custom_cost_scn, 'all']"
         )
 
         custom_costs = _convert_to_MW(custom_costs)
@@ -386,13 +389,13 @@ if __name__ == "__main__":
     if "snakemake" not in globals():
         from _helpers import mock_snakemake
 
-        snakemake = mock_snakemake("process_cost_data", planning_horizons=2030)
+        snakemake = mock_snakemake("process_cost_data", horizon=2030)
 
     cost_params = snakemake.params["costs"]
 
     n = pypsa.Network(snakemake.input.network)
     nyears = n.snapshot_weightings.generators.sum() / 8760.0
-    planning_horizon = str(snakemake.wildcards.planning_horizons)
+    cost_year = str(snakemake.params.cost_year)
     custom_cost_scn = snakemake.params.custom_cost_scn
 
     # Retrieve costs assumptions
@@ -402,6 +405,7 @@ if __name__ == "__main__":
     costs_processed = prepare_costs(
         costs,
         cost_params,
+        cost_year,
         snakemake.input.custom_costs,
         snakemake.params.max_hours,
         nyears,

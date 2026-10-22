@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
 # SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
-# SPDX-FileCopyrightText: Open Energy Transition gGmbH
 #
 # SPDX-License-Identifier: MIT
 """
@@ -9,12 +8,11 @@ Build total energy demands per country using JRC IDEES and Eurostat data.
 - Country-specific data is read in `build_idees` and read in from [build_eurostat_balances][] and `build_swiss_energy_balances`.
 - `build_energy_totals` then combines energy data from Eurostat, Swiss, and IDEES data.
 - `build_district_heat_share` calculates the share of district heating for each country from IDEES data.
-- Historical CO2 emissions are calculated in `build_eea_co2` and `build_eurostat_co2` and combined in `build_co2_totals`.
 
 Outputs
 -------
 - ``resources/<run_name>/energy_totals.csv``: Energy totals per country, sector and year.
-- ``resources/<run_name>/transport_data.csv``: Transport data per country and year.
+- ``resources/<run_name>/transport_data_raw.csv``: Transport data per country and year.
 - ``resources/<run_name>/district_heat_share.csv``: District heating share per country and year.
 - ``resources/<run_name>/heating_efficiencies.csv``: Heating efficiencies per country and year.
 """
@@ -1102,47 +1100,9 @@ if __name__ == "__main__":
 
     nprocesses = snakemake.threads
     disable_progress = snakemake.config["run"].get("disable_progressbar", False)
-
-    if len(idees_countries) > 0:
-        idees = build_idees(
-            idees_countries, snakemake.input.idees, nprocesses, disable_progress
-        )
-    else:
-        # e.g. UA and MD
-        logger.info(
-            f"No IDEES data available for {countries} and years 2000-2015. Filling with zeros."
-        )
-        years = range(2000, 2016)
-        idees = pd.DataFrame(
-            index=pd.MultiIndex.from_tuples(
-                [(country, year) for country in countries for year in years]
-            ),
-            columns=[
-                "passenger cars",
-                "passenger car efficiency",
-                "total passenger cars",
-                "total other road passenger",
-                "total light duty road freight",
-                "total two-wheel",
-                "total heavy duty road freight",
-                "electricity passenger cars",
-                "electricity other road passenger",
-                "electricity light duty road freight",
-                "total rail passenger",
-                "total rail freight",
-                "electricity rail passenger",
-                "electricity rail freight",
-                "total domestic aviation passenger",
-                "total domestic aviation freight",
-                "total international aviation passenger",
-                "total international aviation freight",
-                "derived heat residential",
-                "derived heat services",
-                "thermal uses residential",
-                "thermal uses services",
-            ],
-            data=0,
-        )
+    idees = build_idees(
+        idees_countries, snakemake.input.idees, nprocesses, disable_progress
+    )
 
     energy = build_energy_totals(countries, eurostat, swiss, idees)
     update_residential_from_eurostat(energy, snakemake.input.eurostat_households)

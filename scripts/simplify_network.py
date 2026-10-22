@@ -11,25 +11,25 @@ link.
 Outputs
 -------
 
-- `resources/regions_onshore_base.geojson`:
+- `resources/onshore_regions_simplified.geojson`:
 
-    ![](img/regions_onshore_base_s.png)
+    ![](img/onshore_regions_simplified.png)
 
-- `resources/regions_offshore_base.geojson`:
+- `resources/offshore_regions_simplified.geojson`:
 
-    ![](img/regions_offshore_base_s.png)
+    ![](img/offshore_regions_simplified.png)
 
-- `resources/busmap_base_s.csv`: Mapping of buses from `networks/base.nc` to `networks/base_s.nc`;
-- `networks/base.nc`:
+- `resources/busmap_simplify_network.csv`: Mapping of buses from `networks/base.nc` to `networks/simplified.nc`;
+- `networks/simplified.nc`:
 
-    ![](img/base_s.png)
+    ![](img/simplified.png)
 
 Description
 -----------
 
 The rule [simplify_network][] does up to three things:
 
-1. Create an equivalent transmission network in which all voltage levels are mapped to the 380 kV level by the function `simplify_network(...)`.
+1. Create an equivalent transmission network in which all voltage levels are mapped to the 380 kV level by the function `simplify_network_to_380(...)`, unless disabled with `clustering: simplify_network: to_380: false`.
 
 2. DC only sub-networks that are connected at only two buses to the AC network are reduced to a single representative link in the function `simplify_links(...)`.
 
@@ -48,7 +48,11 @@ from pypsa.clustering.spatial import busmap_by_stubs, get_clustering_from_busmap
 from scipy.sparse.csgraph import connected_components, dijkstra
 
 from scripts._helpers import configure_logging, set_scenario_config
-from scripts.cluster_network import busmap_for_admin_regions, cluster_regions
+from scripts.cluster_network import (
+    busmap_for_admin_regions,
+    cluster_regions,
+    sanitize_busmap,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -432,11 +436,13 @@ if __name__ == "__main__":
     params = snakemake.params
 
     n = pypsa.Network(snakemake.input.network)
-    Nyears = n.snapshot_weightings.objective.sum() / 8760
     buses_prev, lines_prev, links_prev = len(n.buses), len(n.lines), len(n.links)
 
-    linetype_380 = snakemake.config["lines"]["types"][380]
-    n, trafo_map = simplify_network_to_380(n, linetype_380)
+    if params.simplify_network["to_380"]:
+        linetype_380 = snakemake.config["lines"]["types"][380]
+        n, trafo_map = simplify_network_to_380(n, linetype_380)
+    else:
+        trafo_map = n.buses.index.to_series()
     busmaps = [trafo_map]
 
     n, converter_map = remove_converters(n)
@@ -497,9 +503,10 @@ if __name__ == "__main__":
         busmaps.append(busmap_hac)
 
     busmap_s = reduce(lambda x, y: x.map(y), busmaps[1:], busmaps[0])
+    busmap_s = sanitize_busmap(busmap_s)
     busmap_s.to_csv(snakemake.output.busmap)
 
-    for which in ["regions_onshore", "regions_offshore"]:
+    for which in ["onshore_regions", "offshore_regions"]:
         regions = gpd.read_file(snakemake.input[which])
         clustered_regions = cluster_regions(busmaps, regions, with_country=True)
         clustered_regions.to_file(snakemake.output[which])

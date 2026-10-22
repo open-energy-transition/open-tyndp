@@ -6,7 +6,7 @@
 """
 Foresight configuration.
 
-See docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#foresight
+See docs in https://open-tyndp.readthedocs.io/en/latest/configuration/#foresight_cf
 """
 
 from typing import Literal
