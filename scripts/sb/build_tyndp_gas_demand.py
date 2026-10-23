@@ -6,23 +6,16 @@ Builds TYNDP Scenario Building gas demand for Open-TYNDP.
 
 This script processes methane (gas) demand data from TYNDP 2024 Supply Tool,
 extracting both final energy demand (direct gas consumption) and heat-related
-gas demand. The data is filtered and interpolated based on the selected
-scenario (Distributed Energy, Global Ambition, or National Trends) and
-planning horizon.
+gas demand. The data is filtered and interpolated based on the planning horizon.
 
-Data Availability by Scenario
-------------------------------
+Data Availability
+-----------------
 
-The input data has different temporal coverage depending on scenario:
-
-**National Trends (NT)**:
+The input data covers the National Trends (NT) scenario:
   - Available for 2030 and 2040
   - Includes final gas demand (incl. heat demand) from NT+ data collection
   - Heat demand processed with distribution shares and efficiency factors
   - Special handling for Italian demand
-
-**Distributed Energy (DE) and Global Ambition (GA)**:
-  - Processing not yet implemented
 
 Processing
 ----------
@@ -61,9 +54,7 @@ logger = logging.getLogger(__name__)
 cc = coco.CountryConverter()
 
 
-def read_fed_data(
-    fn: str, scenario: str, planning_horizon: int
-) -> tuple[pd.Series, pd.Series]:
+def read_fed_data(fn: str, planning_horizon: int) -> tuple[pd.Series, pd.Series]:
     """
     Read and process final gas demand data and final heat demand data from Supply Tool for a specific year.
     """
@@ -103,7 +94,7 @@ def read_fed_data(
 
     except Exception as e:
         logger.warning(
-            f"Failed to read final gas demand for scenario {scenario} and planning_horizon {planning_horizon}: "
+            f"Failed to read final gas demand for planning_horizon {planning_horizon}: "
             f"{type(e).__name__}: {e}"
         )
         demand_fed = pd.Series()
@@ -160,9 +151,7 @@ def read_it_gas_prod(fn: str, planning_horizon: int) -> float:
     )  # MWh
 
 
-def read_heat_data(
-    heat_fed: pd.Series, fn: str, scenario: str, planning_horizon: int
-) -> pd.Series:
+def read_heat_data(heat_fed: pd.Series, fn: str, planning_horizon: int) -> pd.Series:
     """Read and process heat-related gas demand data from Supply Tool for a specific year."""
     try:
         shares = read_heat_frame(fn, planning_horizon, "distribution")
@@ -187,7 +176,7 @@ def read_heat_data(
 
     except Exception as e:
         logger.warning(
-            f"Failed to read heat demand data for scenario {scenario} and planning_horizon {planning_horizon}: "
+            f"Failed to read heat demand data for planning_horizon {planning_horizon}: "
             f"{type(e).__name__}: {e}"
         )
         demand = pd.Series()
@@ -195,10 +184,10 @@ def read_heat_data(
     return demand
 
 
-def read_supply_tool(fn: str, scenario: str, planning_horizon: int) -> pd.Series:
+def read_supply_tool(fn: str, planning_horizon: int) -> pd.Series:
     """Read and process both final gas demand and heat demand data from Supply Tool for a specific year."""
-    demand_fed, heat_fed = read_fed_data(fn, scenario, planning_horizon)
-    demand_heat = read_heat_data(heat_fed, fn, scenario, planning_horizon)
+    demand_fed, heat_fed = read_fed_data(fn, planning_horizon)
+    demand_heat = read_heat_data(heat_fed, fn, planning_horizon)
 
     demand = pd.concat([demand_fed, demand_heat], axis=1).sum(axis=1)
     demand.name = "p_nom"
@@ -206,20 +195,9 @@ def read_supply_tool(fn: str, scenario: str, planning_horizon: int) -> pd.Series
     return demand
 
 
-def load_single_year(fn: str, scenario: str, planning_horizon: int) -> pd.Series:
-    """Load demand data for a single planning year."""
-    if scenario == "NT":
-        demand = read_supply_tool(fn, scenario, planning_horizon)
-    elif scenario in ["DE", "GA"]:
-        # TODO Implement processing for DE/GA
-        demand = pd.Series()
-
-    return demand
-
-
-def load_gas_demand(fn: str, scenario: str, planning_horizon: int) -> pd.Series:
+def load_gas_demand(fn: str, planning_horizon: int) -> pd.Series:
     """
-    Load gas demand data for a specific scenario and planning year.
+    Load gas demand data for a specific planning year.
 
     This function retrieves gas demand data from a file, either by loading
     the exact year if available or by performing linear interpolation between
@@ -229,15 +207,13 @@ def load_gas_demand(fn: str, scenario: str, planning_horizon: int) -> pd.Series:
     ----------
     fn : str
         Filepath to the gas demand data file.
-    scenario : str
-        Name of the scenario to load.
     planning_horizon : int
         Planning year for which to retrieve gas demand data.
 
     Returns
     -------
     pd.Series
-        Series containing gas demand data for the specified scenario and planning year.
+        Series containing gas demand data for the specified planning year.
     """
 
     available_years = [2030, 2040]
@@ -247,15 +223,14 @@ def load_gas_demand(fn: str, scenario: str, planning_horizon: int) -> pd.Series:
         logger.debug(
             f"Year {planning_horizon} found in available data. Loading directly."
         )
-        return load_single_year(fn, scenario, planning_horizon)
+        return read_supply_tool(fn, planning_horizon)
 
     # Target year not available, do linear interpolation
     return interpolate_demand(
         available_years=available_years,
         planning_horizon=planning_horizon,
-        load_single_year_func=load_single_year,
+        load_single_year_func=read_supply_tool,
         fn=fn,
-        scenario=scenario,
     )
 
 
@@ -274,18 +249,12 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     # Parameters
-    scenario = snakemake.params["scenario"]
     fn = snakemake.input.supply_tool
     planning_horizon = int(snakemake.wildcards.planning_horizons)
 
-    if scenario != "NT":
-        # TODO Remove the fallback once DE/GA are implemented
-        logger.warning(f"Gas demand processing is not supported yet for {scenario}.")
-        scenario = "NT"
-
     # Load demand with interpolation
-    logger.info(f"Processing gas demand for scenario: {scenario}")
-    demand = load_gas_demand(fn, scenario, planning_horizon)
+    logger.info("Processing gas demand")
+    demand = load_gas_demand(fn, planning_horizon)
 
     # Export to CSV
     demand.to_csv(snakemake.output.gas_demand, index=True)

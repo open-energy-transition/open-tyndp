@@ -9,7 +9,6 @@ and headers are then assigned. The data structure is subsequently converted to a
 Finally, the units are converted to standard units: MW for power units and MWh for energy units.
 """
 
-import datetime
 import logging
 import multiprocessing as mp
 from functools import partial
@@ -25,14 +24,6 @@ from scripts._helpers import (
 )
 
 logger = logging.getLogger(__name__)
-
-
-def _safe_sheet(sn: str | dict, scenario: str) -> str:
-    if not sn:
-        return False
-    elif isinstance(sn, dict):
-        return sn.get(scenario, "")
-    return sn
 
 
 def _process_index(
@@ -126,7 +117,7 @@ def _add_identifier(s: str) -> str:
     """
     if s.startswith("TYNDP") or s.startswith("EC"):
         return s
-    elif any(i in s for i in ["DE", "GA", "NT"]):
+    elif "NT" in s:
         return "TYNDP " + s
     elif any(i in s for i in ["IA", "S3"]):
         return "EC IA S3"
@@ -242,7 +233,7 @@ def clean_data_for_benchmarking(
 
 
 def load_benchmark(
-    benchmarks_raw: dict[str, pd.DataFrame], table: str, scenario: str, options: dict
+    benchmarks_raw: dict[str, pd.DataFrame], table: str, options: dict
 ) -> pd.DataFrame:
     """
     Load and process benchmark data from TYNDP Excel sheets.
@@ -253,8 +244,6 @@ def load_benchmark(
         Dictionary of pandas DataFrames from Excel sheets, keyed by sheet name.
     table : str
         Name of table to load.
-    scenario: str
-        Name of scenario to load.
     options : dict
         Full benchmarking configuration.
 
@@ -272,26 +261,10 @@ def load_benchmark(
         return pd.DataFrame()
 
     # Parameters
-    sheet_name = _safe_sheet(opt["report"]["sheet_name"], scenario)
-    if sheet_name == "":
-        logger.warning(f"No sheet name found for {table} in {scenario}")
-        return pd.DataFrame()
-    df = benchmarks_raw[sheet_name]
+    df = benchmarks_raw[opt["report"]["sheet_name"]]
     nrows = opt["report"].get("nrows", None)
     ncolumns = opt["report"].get("ncolumns", None)
     names = opt["report"]["names"]
-
-    # Fix temporal labeling - source data uses 00:00 as end-of-period (previous day's last hour);
-    # convert to beginning-of-period (current day's first hour)
-    if table == "generation_profiles":
-        time_col = df.iloc[
-            5:, 0
-        ]  # Start reading from row 6 where actual snapshot data begins
-        datetime_series = pd.to_datetime(time_col)
-        midnight_mask = datetime_series.dt.time == datetime.time(0, 0)
-        df.loc[time_col.index[midnight_mask], df.columns[0]] = datetime_series[
-            midnight_mask
-        ] + pd.Timedelta(days=1)
 
     index_col = opt["report"]["index_col"]
     if isinstance(index_col, int):
@@ -322,12 +295,6 @@ def load_benchmark(
     # Add table identifier
     df_converted["table"] = table
 
-    # Apply exceptions
-    if table == "generation_profiles":
-        # TODO Validate planning year assumption
-        df_converted["year"] = 2040
-        df_converted["scenario"] = scenario
-
     # Clean data
     if "scenario" in df_converted.columns:
         df_converted["scenario"] = (
@@ -357,7 +324,6 @@ if __name__ == "__main__":
 
     # Parameters
     options = snakemake.params["benchmarking"]
-    scenario = snakemake.params["scenario"]
 
     # Map TYNDP report carrier names to benchmarking carrier names
     add_report_carrier_mappings(snakemake.input.carrier_mapping, options["tables"])
@@ -365,9 +331,9 @@ if __name__ == "__main__":
     # Read benchmarks
     logger.info("Reading raw benchmark data")
     sheet_names = [
-        _safe_sheet(j["report"]["sheet_name"], scenario)
-        for i, j in options["tables"].items()
-        if _safe_sheet(j.get("report", {}).get("sheet_name"), scenario)
+        j["report"]["sheet_name"]
+        for j in options["tables"].values()
+        if j.get("report", {}).get("sheet_name")
     ]
     benchmarks_raw = pd.read_excel(
         snakemake.input.scenarios_figures, sheet_name=sheet_names, header=None
@@ -384,7 +350,6 @@ if __name__ == "__main__":
     func = partial(
         load_benchmark,
         benchmarks_raw,
-        scenario=scenario,
         options=options,
     )
 
