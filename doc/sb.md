@@ -148,10 +148,10 @@ and Open-TYNDP configuration options.
   the scenario/climate-year identifier (e.g. `NT-ws2009`).
   * `launch_explorer`: Whether to launch the [PyPSA Explorer](https://github.com/open-energy-transition/pypsa-explorer) after the model solve within the workflow. Default is `True`.
 
-### Climate Years
+### Weather Scenarios
 
-Each scenario run is tied to a specific historical climate year, which determines the
-renewable generation and hydro inflow profiles used from PECD 4.2:
+Each planning horizon is tied to a TYNDP 2026 weather scenario, which determines the
+renewable generation, demand, and hydro inflow profiles used:
 
 * `snapshots`: Defines the modelling time window, e.g.:
 
@@ -161,6 +161,8 @@ renewable generation and hydro inflow profiles used from PECD 4.2:
     end:   "2010-01-01"
     inclusive: "left"
   ```
+
+* `wscenarios_tyndp`: Weather scenarios per planning horizon, e.g. `2030: [3, 21, 29]`.
 
 * `atlite.default_cutout`: ERA5 reanalysis cutout used to compute PECD-compatible
   capacity factor profiles (e.g. `europe-2009-era5`).
