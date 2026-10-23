@@ -558,7 +558,7 @@ def extract_custom_buses(
     custom_buses = custom_buses[mask_null]
     if not mask_null.all():
         logger.warning(
-            f"Removed {(~mask_null).sum()} buses due to missing required fields."
+            f"Removed {(~mask_null).sum()} custom buses due to missing required fields."
         )
 
     # Add validation for co-ordinates,
@@ -568,7 +568,7 @@ def extract_custom_buses(
 
     if not valid_coords.all():
         logger.warning(
-            f"Removed {(~valid_coords).sum()} buses due to invalid coordinates."
+            f"Removed {(~valid_coords).sum()} custom buses due to invalid coordinates."
         )
 
     custom_buses = custom_buses[valid_coords]
@@ -576,7 +576,7 @@ def extract_custom_buses(
     # Round of coordinates to 4 decimal places to avoid duplicates due to precision issues
     custom_buses = custom_buses.round({"lat": 4, "lon": 4})
 
-    # TODO: check if coordinates are within the bounds of the country,
+    # TODO: check if coordinates are within the bounds of the EU/country?  
 
     # Drop duplicate subsets of bus_name and coordinates, keeping the first occurrence - this is to avoid issues with duplicate bus coordinates in the custom buses file
     mask_duplicates_coords = custom_buses.duplicated(
@@ -584,7 +584,7 @@ def extract_custom_buses(
     )
     if mask_duplicates_coords.any():
         logger.warning(
-            f"Removed {mask_duplicates_coords.sum()} duplicate buses based on coordinates. "
+            f"Removed {mask_duplicates_coords.sum()} duplicate custom bus(es) based on coordinates, bus_name mapped to the same project. "
             "Only the first occurrence of each coordinate is kept."
         )
     custom_buses = custom_buses.drop_duplicates(
@@ -597,8 +597,8 @@ def extract_custom_buses(
 
     if not mask_link_bus_exists.all():
         logger.warning(
-            f"{(~mask_link_bus_exists).sum()} custom buses have a `link_bus` that does not exist in the existing buses. "
-            "These buses will be ignored. Ensure that a UK bus is named using GB convention."
+            f"{(~mask_link_bus_exists).sum()} custom bus(es) have a `link_bus` that does not exist in the existing buses. "
+            f"These buses will be ignored. Ensure that the `link_bus` is one of the following buses {existing_buses}"
         )
     custom_buses = custom_buses[mask_link_bus_exists]
 
@@ -607,7 +607,7 @@ def extract_custom_buses(
     if mask_project_type.any():
         invalid_ids = custom_buses.project_id[mask_project_type].unique().tolist()
         logger.warning(
-            f"{mask_project_type.sum()} custom generator(s) with a malformed project project_type have been dropped. "
+            f"{mask_project_type.sum()} custom bus(es) with a malformed project_type have been dropped. "
             f"Expected the project_type to be 's' or 't', Invalid Project IDs: {invalid_ids}"
         )
     custom_buses = custom_buses[~mask_project_type]
@@ -616,7 +616,7 @@ def extract_custom_buses(
     mask_capacity = custom_buses["link_capacity"] > 0
     if not mask_capacity.all():
         logger.warning(
-            f"Removed {(~mask_capacity).sum()} buses with a zero link capacity."
+            f"Removed {(~mask_capacity).sum()} custom buses with a zero link capacity."
         )
     custom_buses = custom_buses[mask_capacity]
 
