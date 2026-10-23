@@ -473,7 +473,7 @@ if config["sector"]["h2_topology_tyndp"]:
             drop_leap_day=config_provider("enable", "drop_leap_day"),
         script:
             scripts("sb/build_tyndp_h2_imports.py")
-    
+
     rule build_tyndp_sres_profiles:
         input:
             sres_dir=rules.retrieve_tyndp_2026.output.sres_profiles,

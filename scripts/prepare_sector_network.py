@@ -2285,11 +2285,11 @@ def _add_h2_sres_capacities(
 
     # Add SRES electrolyser profiles
     electrolyser_i = electrolyser_i.intersection(n.links.index)
-    p_pu = (
-        sres_profiles.rename(columns=lambda x: f"{x} SRES Electrolysis")[electrolyser_i]
-        .div(n.links.loc[electrolyser_i, "p_nom"])
-    )
+    p_pu = sres_profiles.rename(columns=lambda x: f"{x} SRES Electrolysis")[
+        electrolyser_i
+    ].div(n.links.loc[electrolyser_i, "p_nom"])
     _add_pu_profiles(n.links_t, p_min_pu=p_pu, p_max_pu=p_pu)
+
 
 def _extract_inflows(
     inflows_t: xr.Dataset,
@@ -9686,7 +9686,9 @@ if __name__ == "__main__":
     if options["h2_topology_tyndp"]:
         smr_capacities = pd.read_csv(snakemake.input.tyndp_smr, index_col=0)
         h2_storage_capacities = pd.read_csv(snakemake.input.tyndp_h2_storages)
-        sres_profiles = pd.read_csv(snakemake.input.sres_profiles, index_col=0, parse_dates=True)
+        sres_profiles = pd.read_csv(
+            snakemake.input.sres_profiles, index_col=0, parse_dates=True
+        )
 
     if enable_pemmdb_caps or options["h2_topology_tyndp"]:
         add_existing_tyndp_capacities(

@@ -53,8 +53,7 @@ if __name__ == "__main__":
     for fn in Path(snakemake.input.sres_dir, planning_horizon).glob("*_SumGenH2.csv"):
         sres = pd.read_csv(fn, skiprows=10, usecols=["Date", "Hour", wscenario])
         datetime_idx = pd.to_datetime(
-            f"{year}."
-            + sres["Date"].str.cat((sres["Hour"] - 1).astype(str), sep=" "),
+            f"{year}." + sres["Date"].str.cat((sres["Hour"] - 1).astype(str), sep=" "),
             format="%Y.%d.%m. %H",
         )
         node = fn.name.split("_")[1].replace("h2", "00")
