@@ -2280,7 +2280,7 @@ def _add_h2_sres_capacities(
         component_types={"Link"},
     )
 
-    # Fix SRES dispatch profiles to electrolyser (capped at electrolyser capacity), with 
+    # Fix SRES dispatch profiles to electrolyser (capped at electrolyser capacity), with
     # surplus going to the e-market node.
     electrolyser_i = electrolyser_i.intersection(n.links.index)
     gens = n.generators.loc[gens_i]
