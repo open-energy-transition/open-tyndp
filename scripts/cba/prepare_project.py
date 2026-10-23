@@ -631,14 +631,25 @@ def prepare_custom_buses(
             )
             logger.info(f"Added custom bus {custom_bus_name} for project {prefix_pid}")
 
-            if bus["p_link"]:
+            if bus["link_capacity"] > 0 and bus["link_bus"] in n.buses.index:
                 n.add(
                     "Link",
                     f"{custom_bus_name} link",
                     bus0=custom_bus_name,
-                    bus1=bus["p_link"],
-                    p_nom=bus["p_link_capacity"],
-                    p_min_pu=-1,  # Allow reverse flow
+                    bus1=bus["link_bus"],
+                    p_nom=bus["link_capacity"],
+                    p_min_pu=0,  # Allow reverse flow
+                    p_max_pu=1, 
+                    carrier="DC",
+                    marginal_cost=0,  # TODO: What should be the marginal cost for the link? Set to 0 for now.
+                )
+                n.add(
+                    "Link",
+                    f"{custom_bus_name} reverse link",
+                    bus0=bus["link_bus"],
+                    bus1=custom_bus_name,
+                    p_nom=bus["link_capacity"],
+                    p_min_pu=0,  # Allow reverse flow
                     p_max_pu=1, 
                     carrier="DC",
                     marginal_cost=0,  # TODO: What should be the marginal cost for the link? Set to 0 for now.
