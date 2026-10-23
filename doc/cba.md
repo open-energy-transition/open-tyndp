@@ -174,7 +174,7 @@ $ pixi run tyndp-cba --config run='{"name":"NT-cy2009"}'
 
 ## Evaluation of custom projects
 
-Custom projects can be evaluated with the CBA workflow, either as **transmission** projects, or as **buses** and **generators** grouped with such a project.
+Custom projects can be evaluated with the CBA workflow, as **transmission** projects. Adding custom **buses** and **generators** grouped with such a project is also possible.
 
 Custom buses and generators are never assessed on their own: each one is grouped with a transmission or storage project and added alongside it in the same project network. The grouping is expressed by two columns, `project_type` (`t` for transmission, `s` for storage) and `project_id` (the ID of that project, without the project type, e.g. `project_type = t` and `project_id = 1500` for project `t1500`), and the bus or generator inherits the assessment method of the project it is grouped with. Entries whose `project_type` is neither `s` nor `t`, or that do not define a `project_id`, are dropped with a warning. Custom buses of a project are added before its custom generators.
 
