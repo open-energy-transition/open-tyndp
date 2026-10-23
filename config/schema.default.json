@@ -2780,30 +2780,30 @@
             }
           }
         },
-        "pemmdb_hydro_profiles": {
-          "description": "Configuration for `electricity.pemmdb_hydro_profiles` settings.",
+        "pecd_hydro_profiles": {
+          "description": "Configuration for `electricity.pecd_hydro_profiles` settings.",
           "properties": {
             "enable": {
               "default": false,
-              "description": "Activate PEMMDB hydro inflow profiles from 2024 TYNDP instead of default hydro profiles.",
+              "description": "Activate PECD v4.2 hydro inflow profiles from TYNDP 2026 instead of default hydro profiles.",
               "type": "boolean"
             },
             "available_years": {
-              "description": "List of years for which PEMMDB hydro inflows data is available.",
+              "description": "List of years for which PECD hydro inflows data is available.",
               "items": {
                 "type": "integer"
               },
               "type": "array"
             },
             "technologies": {
-              "description": "The hydro technologies for which PEMMDB hydro inflows data is used.",
+              "description": "The hydro technologies for which PECD hydro inflows data is used, as PECD codes: HRR (run of river), HPI (pondage), HRI (reservoir), HOL (open-loop pumped storage), HCL (closed-loop pumped storage).",
               "items": {
                 "enum": [
-                  "Run_of_River",
-                  "Pondage",
-                  "Reservoir",
-                  "PS_Open",
-                  "PS_Closed"
+                  "HRR",
+                  "HPI",
+                  "HRI",
+                  "HOL",
+                  "HCL"
                 ],
                 "type": "string"
               },
@@ -8250,6 +8250,37 @@
         }
       }
     },
+    "_PecdHydroProfilesConfig": {
+      "description": "Configuration for `electricity.pecd_hydro_profiles` settings.",
+      "properties": {
+        "enable": {
+          "default": false,
+          "description": "Activate PECD v4.2 hydro inflow profiles from TYNDP 2026 instead of default hydro profiles.",
+          "type": "boolean"
+        },
+        "available_years": {
+          "description": "List of years for which PECD hydro inflows data is available.",
+          "items": {
+            "type": "integer"
+          },
+          "type": "array"
+        },
+        "technologies": {
+          "description": "The hydro technologies for which PECD hydro inflows data is used, as PECD codes: HRR (run of river), HPI (pondage), HRI (reservoir), HOL (open-loop pumped storage), HCL (closed-loop pumped storage).",
+          "items": {
+            "enum": [
+              "HRR",
+              "HPI",
+              "HRI",
+              "HOL",
+              "HCL"
+            ],
+            "type": "string"
+          },
+          "type": "array"
+        }
+      }
+    },
     "_PecdPreBuiltConfig": {
       "description": "Configuration for `electricity.pecd_renewable_profiles.pre_built` settings.",
       "properties": {
@@ -8350,37 +8381,6 @@
               "Electrolyser",
               "Battery",
               "DSR"
-            ],
-            "type": "string"
-          },
-          "type": "array"
-        }
-      }
-    },
-    "_PemmdbHydroProfilesConfig": {
-      "description": "Configuration for `electricity.pemmdb_hydro_profiles` settings.",
-      "properties": {
-        "enable": {
-          "default": false,
-          "description": "Activate PEMMDB hydro inflow profiles from 2024 TYNDP instead of default hydro profiles.",
-          "type": "boolean"
-        },
-        "available_years": {
-          "description": "List of years for which PEMMDB hydro inflows data is available.",
-          "items": {
-            "type": "integer"
-          },
-          "type": "array"
-        },
-        "technologies": {
-          "description": "The hydro technologies for which PEMMDB hydro inflows data is used.",
-          "items": {
-            "enum": [
-              "Run_of_River",
-              "Pondage",
-              "Reservoir",
-              "PS_Open",
-              "PS_Closed"
             ],
             "type": "string"
           },
@@ -9939,30 +9939,30 @@
             }
           }
         },
-        "pemmdb_hydro_profiles": {
-          "description": "Configuration for `electricity.pemmdb_hydro_profiles` settings.",
+        "pecd_hydro_profiles": {
+          "description": "Configuration for `electricity.pecd_hydro_profiles` settings.",
           "properties": {
             "enable": {
               "default": false,
-              "description": "Activate PEMMDB hydro inflow profiles from 2024 TYNDP instead of default hydro profiles.",
+              "description": "Activate PECD v4.2 hydro inflow profiles from TYNDP 2026 instead of default hydro profiles.",
               "type": "boolean"
             },
             "available_years": {
-              "description": "List of years for which PEMMDB hydro inflows data is available.",
+              "description": "List of years for which PECD hydro inflows data is available.",
               "items": {
                 "type": "integer"
               },
               "type": "array"
             },
             "technologies": {
-              "description": "The hydro technologies for which PEMMDB hydro inflows data is used.",
+              "description": "The hydro technologies for which PECD hydro inflows data is used, as PECD codes: HRR (run of river), HPI (pondage), HRI (reservoir), HOL (open-loop pumped storage), HCL (closed-loop pumped storage).",
               "items": {
                 "enum": [
-                  "Run_of_River",
-                  "Pondage",
-                  "Reservoir",
-                  "PS_Open",
-                  "PS_Closed"
+                  "HRR",
+                  "HPI",
+                  "HRI",
+                  "HOL",
+                  "HCL"
                 ],
                 "type": "string"
               },

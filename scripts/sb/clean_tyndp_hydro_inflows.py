@@ -35,14 +35,6 @@ from scripts._helpers import (
 
 logger = logging.getLogger(__name__)
 
-HYDRO_TECH_CODES = {
-    "Run of River": "HRR",
-    "Pondage": "HPI",
-    "Reservoir": "HRI",
-    "PS Open": "HOL",
-    "PS Closed": "HCL",
-}
-
 
 def read_hydro_inflows_file(
     node: str,
@@ -57,7 +49,7 @@ def read_hydro_inflows_file(
         hydro_inflows_dir,
         "Hydro Inflows",
         str(planning_horizon),
-        f"{node.replace('GB', 'UK')}_Hydro_Inflows_{HYDRO_TECH_CODES[hydro_tech]}_{planning_horizon}.csv",
+        f"{node.replace('GB', 'UK')}_Hydro_Inflows_{hydro_tech}_{planning_horizon}.csv",
     )
 
     if not os.path.isfile(fn):
@@ -91,7 +83,7 @@ if __name__ == "__main__":
             "clean_tyndp_hydro_inflows",
             clusters="all",
             planning_horizons=2030,
-            tech="Run_of_River",
+            tech="HRR",
             run="NT",
             configfiles="config/config.tyndp.yaml",
         )
@@ -132,7 +124,7 @@ if __name__ == "__main__":
     onshore_buses = pd.read_csv(snakemake.input.busmap, index_col=0)
     nodes = onshore_buses.index
     hydro_inflows_dir = snakemake.input.hydro_inflows_dir
-    hydro_tech = str(snakemake.wildcards.tech).replace("_", " ")
+    hydro_tech = snakemake.wildcards.tech
 
     # Load and prep inflow data
     tqdm_kwargs = {

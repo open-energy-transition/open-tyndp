@@ -7,7 +7,7 @@ Builds hydroelectric inflow time-series for each country based on PECD v4.2 hydr
 Outputs
 -------
 
-- `resources/profile_pemmdb_hydro.nc`:
+- `resources/profile_pecd_hydro.nc`:
 
     | Field  | Dimensions                      | Description                                                              |
     | ------ | ------------------------------- | ------------------------------------------------------------------------ |
@@ -46,10 +46,10 @@ if __name__ == "__main__":
 
     tech_map = (
         pd.read_csv(snakemake.input.carrier_mapping)[
-            ["pemmdb_hydro_inflows", "open_tyndp_carrier"]
+            ["pecd_hydro_inflows", "open_tyndp_carrier"]
         ]
         .dropna()
-        .set_index("pemmdb_hydro_inflows")
+        .set_index("pecd_hydro_inflows")
         .drop_duplicates()
         .open_tyndp_carrier
     )
@@ -63,7 +63,7 @@ if __name__ == "__main__":
         year = safe_planning_horizon(
             int(year),
             available_years=snakemake.params.available_years,
-            source="PEMMDB hydro inflow",
+            source="PECD hydro inflow",
         )
 
         inflow = (
