@@ -84,8 +84,7 @@ if __name__ == "__main__":
             clusters="all",
             planning_horizons=2030,
             tech="HRR",
-            run="NT",
-            configfiles="config/config.tyndp.yaml",
+            configfiles="config/test/config.tyndp.yaml",
         )
     configure_logging(snakemake)
     set_scenario_config(snakemake)
@@ -114,7 +113,7 @@ if __name__ == "__main__":
     planning_horizon = safe_planning_horizon(
         snakemake.wildcards.planning_horizons,
         available_years=snakemake.params.available_years,
-        source="Hydro inflows",
+        source="PECD hydro inflow",
     )
 
     # Weather scenario
