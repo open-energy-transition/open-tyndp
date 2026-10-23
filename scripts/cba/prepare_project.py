@@ -613,9 +613,8 @@ def prepare_custom_buses(
         return
 
     if method == "toot":
-        logger.warning(
-            f"Custom buses are not removed for TOOT projects. Project {prefix_pid} will keep its custom buses."
-        )
+        logger.warning("Custom buses are not applicable for TOOT projects.")
+        return
     elif method == "pint":
         for _, bus in custom_buses_project.iterrows():
             # Add a suffix to the bus name to avoid conflicts with existing buses in the network
@@ -631,29 +630,34 @@ def prepare_custom_buses(
             )
             logger.info(f"Added custom bus {custom_bus_name} for project {prefix_pid}")
 
-            if bus["link_capacity"] > 0 and bus["link_bus"] in n.buses.index:
-                n.add(
-                    "Link",
-                    f"{custom_bus_name} link",
-                    bus0=custom_bus_name,
-                    bus1=bus["link_bus"],
-                    p_nom=bus["link_capacity"],
-                    p_min_pu=0,  # Allow reverse flow
-                    p_max_pu=1, 
-                    carrier="DC",
-                    marginal_cost=0,  # TODO: What should be the marginal cost for the link? Set to 0 for now.
-                )
-                n.add(
-                    "Link",
-                    f"{custom_bus_name} reverse link",
-                    bus0=bus["link_bus"],
-                    bus1=custom_bus_name,
-                    p_nom=bus["link_capacity"],
-                    p_min_pu=0,  # Allow reverse flow
-                    p_max_pu=1, 
-                    carrier="DC",
-                    marginal_cost=0,  # TODO: What should be the marginal cost for the link? Set to 0 for now.
-                )
+            n.add(
+                "Link",
+                f"{custom_bus_name} link",
+                bus0=custom_bus_name,
+                bus1=bus["link_bus"],
+                p_nom=bus["link_capacity"],
+                p_min_pu=0,
+                p_max_pu=1,
+                carrier="DC",
+                marginal_cost=0,  # TODO: What should be the marginal cost for the link? Set to 0 for now.
+            )
+            n.add(
+                "Link",
+                f"{custom_bus_name} reverse link",
+                bus0=bus["link_bus"],
+                bus1=custom_bus_name,
+                p_nom=bus["link_capacity"],
+                p_min_pu=0,
+                p_max_pu=1,
+                carrier="DC",
+                marginal_cost=0,  # TODO: What should be the marginal cost for the link? Set to 0 for now.
+            )
+
+            # Consistency check to ensure that the bus and links are correctly added
+            n.consistency_check()
+            logger.info(
+                f"Added links between custom bus {custom_bus_name} and existing bus {bus['link_bus']} for project {prefix_pid}"
+            )
     else:
         raise ValueError(f"Unknown method {method} for project {prefix_pid}")
 

@@ -89,6 +89,7 @@ import logging
 from pathlib import Path
 
 import country_converter as coco
+import numpy as np
 import pandas as pd
 
 from scripts._helpers import configure_logging, set_scenario_config
@@ -541,6 +542,11 @@ def extract_custom_buses(
         logger.debug("No custom buses found.")
         return custom_buses
 
+    # Convert `link_capacity` to numeric
+    custom_buses["link_capacity"] = np.abs(
+        pd.to_numeric(custom_buses["link_capacity"], errors="coerce")
+    )
+
     # Remove projects without bus name, coordinates, associated project, p_link and p_link_capacity
     mask_null = (
         custom_buses[
@@ -550,7 +556,7 @@ def extract_custom_buses(
         .all(axis=1)
     )
     custom_buses = custom_buses[mask_null]
-    if mask_null.any():
+    if not mask_null.all():
         logger.warning(
             f"Removed {(~mask_null).sum()} buses due to missing required fields."
         )
@@ -560,7 +566,7 @@ def extract_custom_buses(
     valid_lon = custom_buses["lon"].between(-180, 180)
     valid_coords = valid_lat & valid_lon
 
-    if not valid_coords.any():
+    if not valid_coords.all():
         logger.warning(
             f"Removed {(~valid_coords).sum()} buses due to invalid coordinates."
         )
@@ -571,34 +577,48 @@ def extract_custom_buses(
     custom_buses = custom_buses.round({"lat": 4, "lon": 4})
 
     # TODO: check if coordinates are within the bounds of the country,
-    # TODO: Check if coordinates have duplicates
 
-    # Add validation for bus names, check if they are unique and not duplicates of existing buses
-    # Check if this is required as custom bus suffix is added to the bus name to avoid duplicates with existing buses
-    mask_duplicate = custom_buses.bus_name.isin(existing_buses)
-    custom_buses = custom_buses[~mask_duplicate]
-
-    if mask_duplicate.any():
+    # Drop duplicate subsets of bus_name and coordinates, keeping the first occurrence - this is to avoid issues with duplicate bus coordinates in the custom buses file
+    mask_duplicates_coords = custom_buses.duplicated(
+        subset=["project_type", "project_id", "bus_name", "lat", "lon"], keep="first"
+    )
+    if mask_duplicates_coords.any():
         logger.warning(
-            f"Dropped {(~mask_duplicate).sum()} buses due to duplicate bus names with existing buses, "
+            f"Removed {mask_duplicates_coords.sum()} duplicate buses based on coordinates. "
+            "Only the first occurrence of each coordinate is kept."
         )
+    custom_buses = custom_buses.drop_duplicates(
+        subset=["project_type", "project_id", "bus_name", "lat", "lon"], keep="first"
+    )
 
-    # Drop duplicate bus names, keeping the first occurrence - this is to avoid issues with duplicate bus names in the custom buses file
-    custom_buses = custom_buses.drop_duplicates(subset=["bus_name"])
-
-    # Check if `p_link` bus exists in the existing buses
+    # Check if `link_bus` exists in the existing buses
     # Connecting a new bus to an existing bus is allowed, but connecting two new buses is not allowed
+    mask_link_bus_exists = custom_buses["link_bus"].isin(existing_buses)
 
-    # Replace "UK" with "GB" in the `p_link` column to match existing bus names, if UK is used in the custom buses filepi
-    custom_buses["link_bus"] = custom_buses["link_bus"].replace({"UK": "GB"}, regex=True)
-    mask_p_link_exists = custom_buses["link_bus"].isin(existing_buses)
-
-    if not mask_p_link_exists.all():
+    if not mask_link_bus_exists.all():
         logger.warning(
-            f"{(~mask_p_link_exists).sum()} custom buses have a `p_link` bus that does not exist in the existing buses. "
-            "These buses will be ignored."
+            f"{(~mask_link_bus_exists).sum()} custom buses have a `link_bus` that does not exist in the existing buses. "
+            "These buses will be ignored. Ensure that a UK bus is named using GB convention."
         )
-    custom_buses = custom_buses[mask_p_link_exists]
+    custom_buses = custom_buses[mask_link_bus_exists]
+
+    # Remove projects whose project_type is not a `storage` or `transmission` (i.e. not `s` or `t`)
+    mask_project_type = ~custom_buses.project_type.isin(["s", "t"])
+    if mask_project_type.any():
+        invalid_ids = custom_buses.project_id[mask_project_type].unique().tolist()
+        logger.warning(
+            f"{mask_project_type.sum()} custom generator(s) with a malformed project project_type have been dropped. "
+            f"Expected the project_type to be 's' or 't', Invalid Project IDs: {invalid_ids}"
+        )
+    custom_buses = custom_buses[~mask_project_type]
+
+    # Remove rows where link capacity is zero
+    mask_capacity = custom_buses["link_capacity"] > 0
+    if not mask_capacity.all():
+        logger.warning(
+            f"Removed {(~mask_capacity).sum()} buses with a zero link capacity."
+        )
+    custom_buses = custom_buses[mask_capacity]
 
     logger.info(f"Extracted {len(custom_buses)} custom buses after cleaning. ")
 

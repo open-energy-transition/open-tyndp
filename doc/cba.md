@@ -203,9 +203,9 @@ Each bus is defined in `data/cba/custom_projects/buses.csv`, with one row per bu
 - `link_capacity`: capacity of that connection in MW.
 - `category`: `onshore` or `offshore`.
 
-Entries are dropped with a warning when `bus_name`, `lat`, `lon`, `p_link` or `p_link_capacity` is missing, when the coordinates are outside their valid range, when `bus_name` matches an existing bus, or when `p_link` is not an existing bus. Coordinates are rounded to four decimals, and duplicate `bus_name` entries within the file are reduced to the first occurrence.
+Entries are dropped with a warning when `bus_name`, `lat`, `lon`, `link_bus` or `link_capacity` is missing, when the coordinates are outside their valid range, when `bus_name` matches an existing bus, or when `link_bus` is not an existing bus. Coordinates are rounded to four decimals, and duplicate `bus_name` entries within the file are reduced to the first occurrence.
 
-When applied, the bus is added to the project network as an AC `Bus`, together with a bidirectional `Link` named `<bus_name> custom bus link` connecting it to `p_link` with `p_nom` set to `p_link_capacity`.
+When applied, the bus is added to the project network as an AC `Bus`, together with a bidirectional `Link` named `<bus_name> custom bus link` connecting it to `link_bus` with `p_nom` set to `link_capacity`.
 
 ### Custom generators
 
