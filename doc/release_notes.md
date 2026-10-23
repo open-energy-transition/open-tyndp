@@ -69,6 +69,10 @@
 
 * Add a workflow that closes linked issues when a PR is merged into `tyndp-2026` ([#1040](https://github.com/open-energy-transition/open-tyndp/pull/1040)).
 
+**Breaking Changes**
+
+* Align hydro inflows to use TYNDP 2026 data ([#1059](https://github.com/open-energy-transition/open-tyndp/pull/1059)). The config section `electricity.pemmdb_hydro_profiles` is renamed to `electricity.pecd_hydro_profiles`, and its `technologies` now use the PECD codes `HRR`, `HPI`, `HRI`, `HOL` and `HCL`. Therefore, old config names and technology acronyms no longer work.
+
 **2024**
 
 **Features**
@@ -112,6 +116,7 @@
 * Update the maintainer issue templates to ensure compliance with ISO certification ([#924](https://github.com/open-energy-transition/open-tyndp/pull/924)). The risk-level scale gains a `Very High` option and drops `N/A`.
 
 * Run CodeQL on `tyndp-*` branches, so the CodeQL status check required by the branch ruleset is reported and no longer blocks PRs targeting these branches ([#922](https://github.com/open-energy-transition/open-tyndp/pull/922)).
+
 
 ## Upcoming PyPSA-Eur Release
 
