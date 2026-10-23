@@ -11,8 +11,6 @@
 
 **Features**
 
-* feat: align hydro inflows to use TYNDP 2026 data. The config section `electricity.pemmdb_hydro_profiles` is renamed to `electricity.pecd_hydro_profiles`, and its `technologies` now use the PECD codes `HRR`, `HPI`, `HRI`, `HOL` and `HCL` ([#1059](https://github.com/open-energy-transition/open-tyndp/pull/1059)).
-
 * feat: align snapshots to full year (8760 for hourly modeling) ([#1065](https://github.com/open-energy-transition/open-tyndp/pull/1065)).
 
 * feat: switch TYNDP electricity demand to TYNDP 2026 data for three demand types: market, prosumer and prosumer behind-the-meter (BTM) ([#944](https://github.com/open-energy-transition/open-tyndp/pull/944)).
@@ -68,6 +66,10 @@
 * ci: run the TYNDP Scenario Building and CBA test workflows past `prepare_sector_network` again, covering the solve and benchmark steps ([#1044](https://github.com/open-energy-transition/open-tyndp/pull/1044)). These steps were skipped in CI since [#865](https://github.com/open-energy-transition/open-tyndp/pull/865) and run through again since [#920](https://github.com/open-energy-transition/open-tyndp/pull/920).
 
 * Add a workflow that closes linked issues when a PR is merged into `tyndp-2026` ([#1040](https://github.com/open-energy-transition/open-tyndp/pull/1040)).
+
+**Breaking Changes**
+
+* Align hydro inflows to use TYNDP 2026 data ([#1059](https://github.com/open-energy-transition/open-tyndp/pull/1059)). The config section `electricity.pemmdb_hydro_profiles` is renamed to `electricity.pecd_hydro_profiles`, and its `technologies` now use the PECD codes `HRR`, `HPI`, `HRI`, `HOL` and `HCL`. Therefore, old config names and technology acronyms no longer work.
 
 **2024**
 
