@@ -13,7 +13,7 @@ Input data for TYNDP 2026 comes from PECD v4.2.
 Outputs
 -------
 Cleaned csv file with hourly hydro inflow time series in MW per region.
-If no inflow data exists for a technology, the output is an empty time series CSV.
+If no inflow data exists for a technology, the output contains zero inflows for all nodes.
 """
 
 import logging
