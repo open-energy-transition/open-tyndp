@@ -628,9 +628,6 @@ def prepare_custom_buses(
                 y=bus["lat"],
                 x=bus["lon"],
                 category=bus["category"],
-                v_nom=380
-                if not bus["low voltage"]
-                else 1,  # Use 380 kV for high voltage, 1 kV for low voltage
             )
             logger.info(f"Added custom bus {custom_bus_name} for project {prefix_pid}")
 
@@ -642,9 +639,9 @@ def prepare_custom_buses(
                     bus1=bus["p_link"],
                     p_nom=bus["p_link_capacity"],
                     p_min_pu=-1,  # Allow reverse flow
-                    p_max_pu=1,  # Allow forward flow
+                    p_max_pu=1, 
                     carrier="DC",
-                    marginal_cost=0,  # Chk: Assuming no marginal cost for the link
+                    marginal_cost=0,  # TODO: What should be the marginal cost for the link? Set to 0 for now.
                 )
     else:
         raise ValueError(f"Unknown method {method} for project {prefix_pid}")

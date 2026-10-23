@@ -199,7 +199,6 @@ Each bus is defined in `data/cba/custom_projects/buses.csv`, with one row per bu
 - `bus_name`: name of the new bus. The suffix ` custom bus` is appended when it is added to the network, so `new_bus` becomes `new_bus custom bus`.
 - `country`: country code of the bus.
 - `lat`, `lon`: coordinates of the bus, used as the `y` and `x` attributes.
-- `low voltage`: `TRUE` sets `v_nom` to 1 kV, `FALSE` to 380 kV.
 - `p_link`: existing bus the new bus is connected to. Connecting two custom buses to each other is not supported.
 - `p_link_capacity`: capacity of that connection in MW.
 - `category`: `onshore` or `offshore`.
