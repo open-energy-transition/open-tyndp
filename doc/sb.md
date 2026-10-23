@@ -46,6 +46,13 @@ from ERA5 reanalysis data. Profiles are provided per weather scenario and TYNDP 
 
 Daily or weekly inflow time series from PECD 4.2 for run-of-river, pondage, reservoir and pumped storage hydro plants,
 used to constrain hydro dispatch across planning horizons. Profiles are provided per weather scenario and TYNDP bidding zone.
+Technologies are identified by PECD codes, see the [Copernicus documentation for inflows and acronyms](https://confluence.ecmwf.int/spaces/CKB/pages/540941752/Climate+and+energy+related+variables+from+the+Pan-European+Climate+Database+derived+from+reanalysis+and+climate+projections+v4.2+Product+user+guide+PUG#ClimateandenergyrelatedvariablesfromthePanEuropeanClimateDatabasederivedfromreanalysisandclimateprojectionsv4.2:Productuserguide(PUG)-AcronymsandabbreviationsAcronyms). The technology codes are:
+- `HRR`: run-of-river
+- `HPI`: pondage
+- `HRI`: reservoir
+- `HOL`: open-loop pumped storage
+- `HCL`: closed-loop pumped storage
+
 
 **[Demand Profiles](https://2026-data.entsos-tyndp-scenarios.eu/input/model-input/national-trends/Demand.zip)**
 
