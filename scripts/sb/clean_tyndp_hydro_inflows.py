@@ -25,6 +25,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from scripts._helpers import (
+    check_snapshot_year,
     configure_logging,
     get_snapshots,
     get_wscenario,
@@ -99,6 +100,7 @@ if __name__ == "__main__":
 
     sns = get_snapshots(snakemake.params.snapshots, snakemake.params.drop_leap_day)
     year = sns[0].year
+    check_snapshot_year(year, snakemake.params.drop_leap_day, data_type="hydro inflow")
     date_index = {
         "w": pd.date_range(
             start=f"{year}-01-01",
