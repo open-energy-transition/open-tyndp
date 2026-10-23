@@ -515,6 +515,24 @@ def extract_custom_transmission_projects(
     return custom_transmission_projects
 
 
+def _drop_invalid(
+    df: pd.DataFrame, keep: pd.Series, reason: str, context: str = "entries"
+) -> pd.DataFrame:
+    """
+        Drop rows where keep is False
+    """
+    if not keep.all():
+        logger.warning("Dropped %d %s: %s", (~keep).sum(), context, reason)
+    return df[keep]
+
+def _validate_project_reference(df: pd.DataFrame, context: str) -> pd.DataFrame:
+    """
+        Validate the (project_type, project_id) that a custom bus or generator is grouped with.
+    """
+    df = _drop_invalid(df, df.project_id.notnull(), "missing project_id", context)
+    df = _drop_invalid(df, df.project_type.isin(["s", "t"]), "project_type is neither 's' nor 't'", context)
+    return df.astype({"project_id": int})
+
 def extract_custom_buses(
     custom_buses_path: str,
     existing_buses: pd.Index,
@@ -548,30 +566,28 @@ def extract_custom_buses(
     )
 
     # Remove projects without bus name, coordinates, associated project, p_link and p_link_capacity
-    mask_null = (
+    mask_not_null = (
         custom_buses[
             ["bus_name", "lat", "lon", "project_id", "link_bus", "link_capacity"]
         ]
         .notnull()
         .all(axis=1)
     )
-    custom_buses = custom_buses[mask_null]
-    if not mask_null.all():
-        logger.warning(
-            f"Removed {(~mask_null).sum()} custom buses due to missing required fields."
-        )
+    custom_buses = _drop_invalid(
+        custom_buses,
+        mask_not_null,
+        "one of `bus_name`, `lat`, `lon`, `project_id`, `link_bus` or `link_capacity` is missing",
+        "custom bus(es)",
+    )
 
     # Add validation for co-ordinates,
     valid_lat = custom_buses["lat"].between(-90, 90)
     valid_lon = custom_buses["lon"].between(-180, 180)
     valid_coords = valid_lat & valid_lon
 
-    if not valid_coords.all():
-        logger.warning(
-            f"Removed {(~valid_coords).sum()} custom buses due to invalid coordinates."
-        )
-
-    custom_buses = custom_buses[valid_coords]
+    custom_buses = _drop_invalid(
+        custom_buses, valid_coords, "coordinates outside their valid range", "custom bus(es)"
+    )
 
     # Round of coordinates to 4 decimal places to avoid duplicates due to precision issues
     custom_buses = custom_buses.round({"lat": 4, "lon": 4})
@@ -579,46 +595,37 @@ def extract_custom_buses(
     # TODO: check if coordinates are within the bounds of the EU/country?  
 
     # Drop duplicate subsets of bus_name and coordinates, keeping the first occurrence - this is to avoid issues with duplicate bus coordinates in the custom buses file
-    mask_duplicates_coords = custom_buses.duplicated(
+    mask_unique = ~custom_buses.duplicated(
         subset=["project_type", "project_id", "bus_name", "lat", "lon"], keep="first"
     )
-    if mask_duplicates_coords.any():
-        logger.warning(
-            f"Removed {mask_duplicates_coords.sum()} duplicate custom bus(es) based on coordinates, bus_name mapped to the same project. "
-            "Only the first occurrence of each coordinate is kept."
-        )
-    custom_buses = custom_buses.drop_duplicates(
-        subset=["project_type", "project_id", "bus_name", "lat", "lon"], keep="first"
+    custom_buses = _drop_invalid(
+        custom_buses,
+        mask_unique,
+        "same bus_name and coordinates within one project; only the first occurrence is kept",
+        "custom bus(es)",
     )
 
     # Check if `link_bus` exists in the existing buses
     # Connecting a new bus to an existing bus is allowed, but connecting two new buses is not allowed
     mask_link_bus_exists = custom_buses["link_bus"].isin(existing_buses)
-
-    if not mask_link_bus_exists.all():
-        logger.warning(
-            f"{(~mask_link_bus_exists).sum()} custom bus(es) have a `link_bus` that does not exist in the existing buses. "
-            f"These buses will be ignored. Ensure that the `link_bus` is one of the following buses {existing_buses}"
-        )
-    custom_buses = custom_buses[mask_link_bus_exists]
+    missing_link_buses = custom_buses.link_bus[~mask_link_bus_exists].unique().tolist()
+    custom_buses = _drop_invalid(
+        custom_buses,
+        mask_link_bus_exists,
+        f"`link_bus` is not an existing bus: {missing_link_buses}. Ensure that the `link_bus` in one of the following buses: {existing_buses}",
+        "custom bus(es)",
+    )
 
     # Remove projects whose project_type is not a `storage` or `transmission` (i.e. not `s` or `t`)
-    mask_project_type = ~custom_buses.project_type.isin(["s", "t"])
-    if mask_project_type.any():
-        invalid_ids = custom_buses.project_id[mask_project_type].unique().tolist()
-        logger.warning(
-            f"{mask_project_type.sum()} custom bus(es) with a malformed project_type have been dropped. "
-            f"Expected the project_type to be 's' or 't', Invalid Project IDs: {invalid_ids}"
-        )
-    custom_buses = custom_buses[~mask_project_type]
+    custom_buses = _validate_project_reference(custom_buses, "custom bus(es)")
 
     # Remove rows where link capacity is zero
-    mask_capacity = custom_buses["link_capacity"] > 0
-    if not mask_capacity.all():
-        logger.warning(
-            f"Removed {(~mask_capacity).sum()} custom buses with a zero link capacity."
-        )
-    custom_buses = custom_buses[mask_capacity]
+    custom_buses = _drop_invalid(
+        custom_buses,
+        custom_buses["link_capacity"] > 0,
+        "link capacity is zero",
+        "custom bus(es)",
+    )
 
     logger.info(f"Extracted {len(custom_buses)} custom buses after cleaning. ")
 
@@ -709,14 +716,7 @@ def extract_custom_generators(
     custom_gens_static = custom_gens_static[~mask_name_null]
 
     # Remove projects whose project_type is not a `storage` or `transmission` (i.e. not `s` or `t`)
-    mask_project_type = ~custom_gens_static.project_type.isin(["s", "t"])
-    if mask_project_type.any():
-        invalid_ids = custom_gens_static.project_id[mask_project_type].unique().tolist()
-        logger.warning(
-            f"{mask_project_type.sum()} custom generator(s) with a malformed project project_type have been dropped. "
-            f"Expected the project_type to be 's' or 't', Invalid Project IDs: {invalid_ids}"
-        )
-    custom_gens_static = custom_gens_static[~mask_project_type]
+    custom_gens_static = _validate_project_reference(custom_gens_static, "custom generator(s) - expected the project_type to be 's' or 't'")
 
     custom_gens_static["mapping_id"] = (
         custom_gens_static["project_type"]
