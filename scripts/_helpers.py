@@ -1907,7 +1907,6 @@ def remove_zero_capacity_non_extendable(
 def remove_disconnected_storage_buses(
     n: "pypsa.Network",
     carriers: list[str],
-    verbose: bool = True,
 ) -> None:
     """
     Remove storage buses whose carrier is in *carriers* but that no longer
@@ -1919,16 +1918,14 @@ def remove_disconnected_storage_buses(
         The network to modify in place.
     carriers : list[str]
         Bus carriers to check (e.g. ``["hydro-phs", "hydro-phs-pure"]``).
-    verbose : bool, optional
-        Whether to activate verbose logging. Default is True.
     """
     remaining_stores = n.stores[n.stores.carrier.isin(carriers)].bus.unique()
     idx = n.buses.loc[
         n.buses.carrier.isin(carriers) & ~n.buses.index.isin(remaining_stores)
     ].index
     gen_i = n.generators.index[n.generators.bus.isin(idx)]
-    if verbose and not gen_i.empty:
-        logger.warning(
+    if not gen_i.empty:
+        logger.info(
             f"Removing generators attached to disconnected storage buses: {gen_i.tolist()}"
         )
     n.remove("Generator", gen_i)
