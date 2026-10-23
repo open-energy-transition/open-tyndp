@@ -44,7 +44,7 @@ def read_hydro_inflows_file(
     hydro_tech: str,
     sns: pd.DatetimeIndex,
     date_index: dict,
-) -> pd.Series:
+) -> pd.Series | None:
     fn = Path(
         hydro_inflows_dir,
         "Hydro Inflows",
