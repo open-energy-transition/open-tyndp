@@ -199,8 +199,8 @@ Each bus is defined in `data/cba/custom_projects/buses.csv`, with one row per bu
 - `bus_name`: name of the new bus. The suffix ` custom bus` is appended when it is added to the network, so `new_bus` becomes `new_bus custom bus`.
 - `country`: country code of the bus.
 - `lat`, `lon`: coordinates of the bus, used as the `y` and `x` attributes.
-- `p_link`: existing bus the new bus is connected to. Connecting two custom buses to each other is not supported.
-- `p_link_capacity`: capacity of that connection in MW.
+- `link_bus`: existing bus the new bus is connected to. Connecting two custom buses to each other is not supported.
+- `link_capacity`: capacity of that connection in MW.
 - `category`: `onshore` or `offshore`.
 
 Entries are dropped with a warning when `bus_name`, `lat`, `lon`, `p_link` or `p_link_capacity` is missing, when the coordinates are outside their valid range, when `bus_name` matches an existing bus, or when `p_link` is not an existing bus. Coordinates are rounded to four decimals, and duplicate `bus_name` entries within the file are reduced to the first occurrence.

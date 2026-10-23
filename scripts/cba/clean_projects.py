@@ -544,7 +544,7 @@ def extract_custom_buses(
     # Remove projects without bus name, coordinates, associated project, p_link and p_link_capacity
     mask_null = (
         custom_buses[
-            ["bus_name", "lat", "lon", "project_id", "p_link", "p_link_capacity"]
+            ["bus_name", "lat", "lon", "project_id", "link_bus", "link_capacity"]
         ]
         .notnull()
         .all(axis=1)
@@ -590,8 +590,8 @@ def extract_custom_buses(
     # Connecting a new bus to an existing bus is allowed, but connecting two new buses is not allowed
 
     # Replace "UK" with "GB" in the `p_link` column to match existing bus names, if UK is used in the custom buses filepi
-    custom_buses["p_link"] = custom_buses["p_link"].replace({"UK": "GB"}, regex=True)
-    mask_p_link_exists = custom_buses["p_link"].isin(existing_buses)
+    custom_buses["link_bus"] = custom_buses["link_bus"].replace({"UK": "GB"}, regex=True)
+    mask_p_link_exists = custom_buses["link_bus"].isin(existing_buses)
 
     if not mask_p_link_exists.all():
         logger.warning(
