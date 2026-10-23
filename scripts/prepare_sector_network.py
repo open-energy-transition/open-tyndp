@@ -2228,7 +2228,6 @@ def _add_h2_sres_capacities(
     n: pypsa.Network,
     pemmdb_capacities: pd.DataFrame,
     sres_carriers: list[str],
-    sres_profiles: pd.DataFrame,
 ) -> None:
     """
     Connect SRES generators to the SRES bus of their node and add existing SRES electrolyser capacities from PEMMDB.
@@ -2241,8 +2240,6 @@ def _add_h2_sres_capacities(
         All PEMMDB capacities.
     sres_carriers : list[str]
         TYNDP SRES generator carriers.
-    sres_profiles : pd.DataFrame
-        SRES electricity profiles to electrolyser
 
     Returns
     -------
@@ -2283,11 +2280,19 @@ def _add_h2_sres_capacities(
         component_types={"Link"},
     )
 
-    # Add SRES electrolyser profiles
+    # Fix SRES dispatch profiles to electrolyser (capped at electrolyser capacity), with 
+    # surplus going to the e-market node.
     electrolyser_i = electrolyser_i.intersection(n.links.index)
-    p_pu = sres_profiles.rename(columns=lambda x: f"{x} SRES Electrolysis")[
-        electrolyser_i
-    ].div(n.links.loc[electrolyser_i, "p_nom"])
+    gens = n.generators.loc[gens_i]
+    p_pu = (
+        n.generators_t.p_max_pu[gens_i]
+        .mul(gens.p_nom)
+        .T.groupby(gens.bus)
+        .sum()
+        .T.rename(columns=lambda x: x + " Electrolysis")[electrolyser_i]
+        .div(n.links.loc[electrolyser_i, "p_nom"])
+        .clip(upper=1.0)
+    )
     _add_pu_profiles(n.links_t, p_min_pu=p_pu, p_max_pu=p_pu)
 
 
@@ -2958,7 +2963,6 @@ def add_existing_tyndp_capacities(
     tyndp_stores: list[str],
     costs: pd.DataFrame,
     profiles_pecd: dict[str, str],
-    sres_profiles: pd.DataFrame,
     nuclear_profiles: pd.DataFrame,
     hydro_inflows_fn: str,
     extendable_carriers: list | set,
@@ -3006,8 +3010,6 @@ def add_existing_tyndp_capacities(
         DataFrame containing the cost data.
     profiles_pecd : dict[str, str]
         Dictionary containing the paths to the PECD renewable profiles.
-    sres_profiles: pd.DataFrame
-        SRES electricity input profiles to electrolyser in MW_e
     nuclear_profiles : pd.DataFrame
         DataFrame containing the availability profiles of nuclear power plants.
     hydro_inflows_fn : str,
@@ -3094,7 +3096,6 @@ def add_existing_tyndp_capacities(
                 n=n,
                 pemmdb_capacities=pemmdb_capacities,
                 sres_carriers=[c for c in tyndp_renewable_carriers if "-sres" in c],
-                sres_profiles=sres_profiles,
             )
             _add_electrolyzer_capacities(
                 n=n,
@@ -9585,7 +9586,6 @@ if __name__ == "__main__":
     tyndp_nuclear_profiles = None
     smr_capacities = None
     h2_storage_capacities = None
-    sres_profiles = None
 
     # Read in PEMMDB data and availability profiles
     enable_pemmdb_caps = snakemake.params.electricity["pemmdb_capacities"]["enable"]
@@ -9686,9 +9686,6 @@ if __name__ == "__main__":
     if options["h2_topology_tyndp"]:
         smr_capacities = pd.read_csv(snakemake.input.tyndp_smr, index_col=0)
         h2_storage_capacities = pd.read_csv(snakemake.input.tyndp_h2_storages)
-        sres_profiles = pd.read_csv(
-            snakemake.input.sres_profiles, index_col=0, parse_dates=True
-        )
 
     if enable_pemmdb_caps or options["h2_topology_tyndp"]:
         add_existing_tyndp_capacities(
@@ -9704,7 +9701,6 @@ if __name__ == "__main__":
             tyndp_stores=snakemake.params.tyndp_stores,
             costs=costs,
             profiles_pecd=profiles_pecd,
-            sres_profiles=sres_profiles,
             nuclear_profiles=tyndp_nuclear_profiles,
             hydro_inflows_fn=snakemake.input.profile_pemmdb_hydro,
             extendable_carriers=snakemake.params.electricity["extendable_carriers"],

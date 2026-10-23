@@ -62,10 +62,6 @@ and wheeling charges. Electricity and H₂ line data are provided for 2030, 2035
 Hydrogen storage parameters, steam methane reforming (SMR and SMR+CCS) capacities, synthetic fuel generator properties,
 and import pipeline assumptions.
 
-**[SRES](https://2026-data.entsos-tyndp-scenarios.eu/input/model-input/national-trends/SRES.zip)**
-
-Shared RES profiles for electricity generation going to electrolyser for Hydrogen Zone 2, and residual electricity profiles (wind and solar) to e-market.
-
 **[Supply Tool](https://2026-data.entsos-tyndp-scenarios.eu/output/Supply-Tool.zip)**
 
 Methane demand and biomass potentials for energy carriers modelled in Open-TYNDP. This is

@@ -474,27 +474,6 @@ if config["sector"]["h2_topology_tyndp"]:
         script:
             scripts("sb/build_tyndp_h2_imports.py")
 
-    rule build_tyndp_sres_profiles:
-        input:
-            sres_dir=rules.retrieve_tyndp_2026.output.sres_profiles,
-        output:
-            sres_profiles=resources("sres_profiles_{planning_horizons}.csv"),
-        log:
-            logs("build_tyndp_sres_profiles_{planning_horizons}.log"),
-        benchmark:
-            benchmarks("performances/build_tyndp_sres_profiles_{planning_horizons}")
-        conda:
-            "../envs/environment.yaml"
-        threads: 1
-        resources:
-            mem_mb=4000,
-        params:
-            snapshots=config_provider("snapshots"),
-            drop_leap_day=config_provider("enable", "drop_leap_day"),
-            wscenario=get_wscenario_tyndp,
-        script:
-            scripts("sb/build_tyndp_sres_profiles.py")
-
     rule clean_tyndp_smr:
         input:
             smr=rules.retrieve_tyndp_2026.output.smr,
