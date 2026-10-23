@@ -1879,6 +1879,10 @@ rule prepare_sector_network:
             != int(w.planning_horizons),
             resources("tyndp_electricity_ntc_{planning_horizons}.csv"),
         ),
+        sres_profiles=branch(
+            config_provider("sector", "h2_topology_tyndp"),
+            resources("sres_profiles_{planning_horizons}.csv"),
+        ),
     output:
         resources(
             "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}_h.nc"
