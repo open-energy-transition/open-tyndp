@@ -639,7 +639,7 @@ def prepare_custom_buses(
                     bus1=bus["p_link"],
                     p_nom=bus["p_link_capacity"],
                     p_min_pu=-1,  # Allow reverse flow
-                    p_max_pu=1, 
+                    p_max_pu=1,
                     carrier="DC",
                     marginal_cost=0,  # TODO: What should be the marginal cost for the link? Set to 0 for now.
                 )
