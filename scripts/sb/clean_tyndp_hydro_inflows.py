@@ -156,7 +156,6 @@ if __name__ == "__main__":
         inflows = list(tqdm(pool.imap(func, nodes), **tqdm_kwargs))
 
     inflows_df = (
-        # start with empty dataframe so workflow will not crash if no inflows are found (e.g. for PS Closed)
         pd.concat([pd.DataFrame(index=sns), *inflows], axis=1)
         .reindex(
             nodes,
