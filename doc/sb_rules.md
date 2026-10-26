@@ -103,7 +103,7 @@ per-country load time series from the TYNDP electricity demand prepared by
 
 ::: build_tyndp_hydro_profile
 
-### Rule `build_electricity_demand_simplified_tyndp`
+### Rule `build_electricity_demand_base_tyndp`
 
 Extends the upstream [`build_electricity_demand_base`](preparation.md#rule-build_electricity_demand_base) rule with TYNDP-specific load data. Builds
 the electricity demand for the simplified network from the TYNDP electricity demand prepared by

@@ -432,7 +432,7 @@ rule build_tyndp_hydro_profile:
         scripts("sb/build_tyndp_hydro_profile.py")
 
 
-use rule build_electricity_demand_base as build_electricity_demand_simplified_tyndp with:
+use rule build_electricity_demand_base as build_electricity_demand_base_tyndp with:
     input:
         unpack(input_elec_demand_base),
         raster=[],
