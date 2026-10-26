@@ -38,7 +38,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from scripts._helpers import configure_logging, set_scenario_config
+from scripts._helpers import configure_logging, get_snapshots, set_scenario_config
 
 logger = logging.getLogger(__name__)
 
@@ -152,7 +152,7 @@ def expand_daily_profile(
     """
     weekday = profiles[column.format(day_type="WEEKDAY")].to_numpy()[index.hour]
     weekend = profiles[column.format(day_type="WEEKEND")].to_numpy()[index.hour]
-    is_weekend = (index.dayofyear - 1) % 7 >= 5
+    is_weekend = np.arange(len(index)) // 24 % 7 >= 5
     return pd.Series(np.where(is_weekend, weekend, weekday), index=index)
 
 
@@ -286,19 +286,25 @@ def get_flexible_profiles(
         engine="calamine",
     )
 
-    driving_column = "PASSENGER {day_type} [%]"
-    year = pd.date_range(str(index.year[0]), periods=8760, freq="h")
-    driving = expand_daily_profile(driving_profiles, driving_column, index)
-    driving /= expand_daily_profile(driving_profiles, driving_column, year).sum()
+    year = index[0].year
+    year_index = get_snapshots(
+        {"start": f"{year}-01-01", "end": f"{year + 1}-01-01", "inclusive": "left"},
+        drop_leap_day=True,
+    )
+    driving = expand_daily_profile(
+        driving_profiles, "PASSENGER {day_type} [%]", year_index
+    )
     demand = pd.DataFrame(
-        np.outer(driving, flexible["energy"]), index=index, columns=flexible.index
+        np.outer(driving / driving.sum(), flexible["energy"]),
+        index=year_index,
+        columns=flexible.index,
     )
     avail_profile = pd.DataFrame(
         {
             name: expand_daily_profile(
                 availability_profiles,
                 f"{segment.upper()} {FLEXIBLE_FLEETS[fleet]} {{day_type}} [%]",
-                index,
+                year_index,
             )
             for name, segment, fleet in flexible[["segment", "fleet"]].itertuples()
         }
@@ -306,13 +312,15 @@ def get_flexible_profiles(
     dsm_profile = pd.DataFrame(
         {
             name: expand_daily_profile(
-                min_soc_profiles, f"{segment.upper()} {{day_type}} {pyear} [%]", index
+                min_soc_profiles,
+                f"{segment.upper()} {{day_type}} {pyear} [%]",
+                year_index,
             )
             for name, segment in flexible["segment"].items()
         }
     )
 
-    return demand, avail_profile, dsm_profile
+    return tuple(df.reindex(index) for df in (demand, avail_profile, dsm_profile))
 
 
 if __name__ == "__main__":
