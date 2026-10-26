@@ -15,7 +15,7 @@ All configuration is now driven by config sections rather than wildcards.
 from scripts.sb._helpers import safe_pyear
 
 
-def gated(condition, **paths):
+def gated_inputs(condition, **paths):
     """Keep input keys present, blanking their paths when the feature is off."""
     return {k: v if condition else [] for k, v in paths.items()}
 
@@ -80,7 +80,7 @@ def get_tyndp_compose_inputs(w):
         ),
     }
 
-    inputs |= gated(
+    inputs |= gated_inputs(
         h2_tyndp,
         h2_grid_tyndp=resources(f"h2_reference_grid_tyndp_{horizon}.csv"),
         interzonal_prepped=resources(f"h2_interzonal_tyndp_{horizon}.csv"),
@@ -106,7 +106,7 @@ def get_tyndp_compose_inputs(w):
             f"pemmdb_profiles_{pemmdb_year}{grouped}.nc"
         )
 
-    inputs |= gated(
+    inputs |= gated_inputs(
         sector["offshore_hubs_tyndp"]["enable"],
         offshore_buses=resources("offshore_buses.csv"),
         offshore_grid=resources("offshore_grid.csv"),
