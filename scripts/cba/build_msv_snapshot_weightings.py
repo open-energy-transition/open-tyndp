@@ -13,6 +13,8 @@ for the supported `cba.msv_extraction.resolution` methods:
   (handled directly by `set_temporal_aggregation`)
 - `averaging`: Resampling at a pandas offset (e.g., "24h", "48h"), outputs resampled weightings
 
+Segmentation is not supported and is rejected by the config schema validator.
+
 **Inputs**
 
 - `resources/cba/networks/reference_{horizon}.nc`: Reference network
