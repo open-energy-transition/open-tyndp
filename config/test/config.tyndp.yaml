@@ -224,6 +224,7 @@ existing_capacities:
   uniform_renewable_profiles: true
 
 sector:
+  enabled: true
   transport: true
   heating: false
   biomass: true
