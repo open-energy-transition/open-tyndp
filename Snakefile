@@ -284,14 +284,12 @@ def input_all_tyndp(w):
             expand(
                 rules.plot_benchmark.output.kpis_by_bus,
                 run=config["run"]["name"],
-                horizon=config["planning_horizons"],
             )
         )
         files.extend(
             expand(
                 rules.plot_benchmark.output.kpis_by_country,
                 run=config["run"]["name"],
-                horizon=config["planning_horizons"],
             )
         )
 
@@ -300,7 +298,6 @@ def input_all_tyndp(w):
             expand(
                 RESULTS + "logs/explorer_launched.log",
                 run=config["run"]["name"],
-                horizon=config["planning_horizons"],
             )
         )
 

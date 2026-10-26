@@ -969,7 +969,6 @@ rule build_renewable_profiles_pecds:
     input:
         lambda w: expand(
             resources("pecd_profile_{technology}.nc"),
-            horizon=config["planning_horizons"],
             run=config["run"]["name"],
             technology=config_provider(
                 "electricity", "pecd_renewable_profiles", "technologies"
@@ -998,12 +997,10 @@ rule make_benchmarks:
     input:
         kpis_by_bus=expand(
             rules.make_benchmark.output.kpis_by_bus,
-            horizon=config["planning_horizons"],
             run=config["run"]["name"],
         ),
         kpis_by_country=expand(
             rules.make_benchmark.output.kpis_by_country,
-            horizon=config["planning_horizons"],
             run=config["run"]["name"],
         ),
 
@@ -1012,12 +1009,10 @@ rule plot_benchmarks:
     input:
         kpis_by_bus=expand(
             rules.plot_benchmark.output.kpis_by_bus,
-            horizon=config["planning_horizons"],
             run=config["run"]["name"],
         ),
         kpis_by_country=expand(
             rules.plot_benchmark.output.kpis_by_country,
-            horizon=config["planning_horizons"],
             run=config["run"]["name"],
         ),
 
