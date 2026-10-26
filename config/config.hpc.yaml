@@ -26,7 +26,7 @@ remote:
 # Remote runs usually can't launch the explorer
 launch_explorer: false
 
-# Use 1H for high-resolution SB results
+# Deactivate temporal clustering to use 1h for high-resolution SB results
 clustering:
   temporal:
     averaging: false
