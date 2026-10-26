@@ -206,10 +206,7 @@ def get_compose_inputs(w):
             ),
             gas_input_nodes_simplified=(
                 rules.build_gas_input_locations.output.gas_input_nodes_simplified
-                if sector["gas_network"]
-                or {"gas", "H2"}
-                & set(import_carriers)
-                - ({"H2"} if sector["h2_topology_tyndp"] else set())
+                if sector["gas_network"] or {"gas", "H2"} & set(import_carriers)
                 else []
             ),
             pop_weighted_energy_totals=resources("pop_weighted_energy_totals.csv"),
