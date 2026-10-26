@@ -37,6 +37,8 @@ resources:
 set-resources:
   build_shapes:
     mem_mb: 4000
+  build_biomass_potentials:
+    mem_mb: 4000
   build_eurostat_balances:
     mem_mb: 8000
   build_industrial_production_per_country:
