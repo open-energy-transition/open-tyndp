@@ -11,6 +11,8 @@
 
 **Features**
 
+* feat: remove DE and GA scenarios from TYNDP 2026; add in HEV and LEV as scenarios and config entries ([#1066](https://github.com/open-energy-transition/open-tyndp/pull/1066)). HEV and LEV currently differ from NT+ only in fuel and CO2 prices. Demand adjustments (electricity market, prosumer demand, EV, H2, thermal energy demand), hydrogen import prices, and benchmarking are not yet included.
+
 * feat: align snapshots to full year (8760 for hourly modeling) ([#1065](https://github.com/open-energy-transition/open-tyndp/pull/1065)).
 
 * feat: switch TYNDP electricity demand to TYNDP 2026 data for three demand types: market, prosumer and prosumer behind-the-meter (BTM) ([#944](https://github.com/open-energy-transition/open-tyndp/pull/944)).
@@ -38,6 +40,8 @@
 * feat: align H2 imports with TYNDP 2026 ([#939](https://github.com/open-energy-transition/open-tyndp/pull/939)). `clean_tyndp_h2_imports` is merged into `build_tyndp_h2_imports`, which reads the TYNDP 2026 import corridor capacities, offer prices and hourly profiles. The corridors are added as low/high price band generators at the external import nodes of the H2 reference grid, which connect them to the H2 zones. The separate import links are removed, and a warning flags import nodes whose outgoing pipeline capacity is smaller than their import capacity. The unused `retrieve_countries_centroids` rule is removed.
 
 * feat: align TYNDP 2026 H2 storage and SMR components with the TYNDP 2026 ([#931](https://github.com/open-energy-transition/open-tyndp/pull/931)). H2 storages are modelled per flexibility class (`Storage_Daily` for tanks, `Storage_Monthly` for caverns), and the store types to add are selected via `electricity: tyndp_stores:` (`H2 tank-storage`, `H2 cavern-storage`). A new `sector: smr_ramp_limits_tyndp:` option adds the TYNDP ramp limits to SMR and SMR CCS assets. The TYNDP initial SoC of H2 storages is processed but not yet applied to the stores. The stores remain cyclic, meaning their state of charge at the end of the modelled period must equal the state of charge at the start, while the initial level itself is chosen by the optimisation rather than fixed to the TYNDP value. SMR, SMR CCS and H2 storage components are added only for the assets listed in the TYNDP input data. SMR and SMR CCS efficiencies and VOM, and H2 storage charge and discharge efficiencies, are taken per asset directly from that data instead of `custom_costs.csv`.
+
+* feat: align the battery technologies with the TYNDP 2026 ([#892](https://github.com/open-energy-transition/open-tyndp/pull/892)). The TYNDP 2026 cycle differentiates between utility and residential batteries, with residential batteries being attached to the prosumer node, and utility batteries to the e-market node. Batteries are now non-extendable.
 
 **Changes**
 

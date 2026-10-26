@@ -61,7 +61,7 @@ spatial = SimpleNamespace()
 logger = logging.getLogger(__name__)
 
 
-def define_spatial(nodes, options, buses_h2_file=None, tyndp_scenario=None):
+def define_spatial(nodes, options, buses_h2_file=None):
     """
     Namespace for spatial.
 
@@ -81,8 +81,6 @@ def define_spatial(nodes, options, buses_h2_file=None, tyndp_scenario=None):
         - regional_coal_demand : bool
     buses_h2_file : str, optional
         Path to the file containing TYNDP H2 buses information. Default is None.
-    tyndp_scenario : str, optional
-        TYNDP scenario name. Default is None.
     """
 
     spatial.nodes = nodes
@@ -2076,7 +2074,6 @@ def _add_conventional_thermal_capacities(
             .reindex(tech_i, axis=1, fill_value=0.0)
         )
         # For nuclear, take the minimum of p_min_pu and nuclear_profiles to account for outages
-        # TODO Improve assumption for DE / GA
         if tech == "nuclear":
             common_cols = p_min_pu.columns.intersection(nuclear_profiles.columns)
             if not common_cols.empty:
@@ -2090,7 +2087,6 @@ def _add_conventional_thermal_capacities(
             .reindex(tech_i, axis=1, fill_value=1.0)
         )
         # For nuclear, take the minimum of p_max_pu and nuclear_profiles to account for outages
-        # TODO Improve assumption for DE / GA
         if tech == "nuclear":
             common_cols = p_max_pu.columns.intersection(nuclear_profiles.columns)
             if not common_cols.empty:
@@ -2859,7 +2855,6 @@ def _add_other_res_capacities(
 def _add_battery_capacities(
     n: pypsa.Network,
     pemmdb_capacities: pd.DataFrame,
-    tyndp_scenario: str,
 ) -> None:
     """
     Add PEMMDB capacities for battery storages to existing assets in the network.
@@ -2870,8 +2865,6 @@ def _add_battery_capacities(
         The PyPSA network container object.
     pemmdb_capacities : pd.DataFrame
         All PEMMDB capacities.
-    tyndp_scenario : str
-        TYNDP scenario to model.
 
     Returns
     -------
@@ -2881,34 +2874,38 @@ def _add_battery_capacities(
 
     logger.info("Adding PEMMDB capacities to battery storage assets.")
 
-    # Add Store capacities
-    tech = "battery"
-    stores_i = n.stores.query("carrier == @tech").index
-    caps = pemmdb_capacities.query(f"`index_carrier` == '{tech}'")
-    caps = caps.set_index(caps.index + " " + caps["index_carrier"])
-    n.stores.loc[stores_i, "e_nom"] = caps.e_nom.reindex(stores_i, fill_value=0.0)
-    if tyndp_scenario == "NT":
-        n.components.stores.static.loc[stores_i, "e_nom_extendable"] = False
+    for carrier in ["battery", "home battery"]:
+        stores_i = n.stores.query("carrier == @carrier").index
+        if stores_i.empty:
+            continue
 
-    # Add links capacities
-    for tech in ["battery charger", "battery discharger"]:
-        links_i = n.links.query("carrier == @tech").index
-        caps = pemmdb_capacities.query(f"`index_carrier` == '{tech}'")
-        caps = caps.set_index(caps.index + " " + caps["index_carrier"])
+        # All battery capacities
+        battery_caps = pemmdb_capacities.query("carrier == @carrier")
 
-        # Adjust efficiencies with PEMMDB values
-        n.links.loc[links_i, "efficiency"] = (
-            caps.efficiency.reindex(links_i, fill_value=0.0) ** 0.5
-        )
+        # Add store capacities
+        caps = battery_caps.query("unit == 'MWh'")
+        caps = caps.set_index(caps.index + " " + carrier)
+        n.stores.loc[stores_i, "e_nom"] = caps.e_nom.reindex(stores_i, fill_value=0.0)
+        n.stores.loc[stores_i, "e_nom_extendable"] = False
 
-        # Set capacities
-        p_nom = caps.p_nom.reindex(links_i, fill_value=0.0)
-        if tech == "battery discharger":
-            p_nom = p_nom.div(n.links.loc[links_i, "efficiency"]).fillna(0.0)
-        n.links.loc[links_i, "p_nom"] = p_nom
+        # Add links capacities
+        for suffix in ["charger", "discharger"]:
+            tech = f"{carrier} {suffix}"
+            links_i = n.links.query("carrier == @tech").index
+            caps = battery_caps[battery_caps.index_carrier.str.endswith(f" {suffix}")]
+            caps = caps.set_index(caps.index + " " + tech)
 
-        # Set p_nom_extendable False for NT scenario
-        if tyndp_scenario == "NT":
+            # Adjust efficiencies with PEMMDB values
+            n.links.loc[links_i, "efficiency"] = (
+                caps.efficiency.reindex(links_i, fill_value=0.0) ** 0.5
+            )
+
+            # Set capacities
+            p_nom = caps.p_nom.reindex(links_i, fill_value=0.0)
+            if suffix == "discharger":
+                p_nom = p_nom.div(n.links.loc[links_i, "efficiency"]).fillna(0.0)
+            n.links.loc[links_i, "p_nom"] = p_nom
+
             n.links.loc[links_i, "p_nom_extendable"] = False
 
     remove_zero_capacity_non_extendable(
@@ -2917,13 +2914,19 @@ def _add_battery_capacities(
             "battery",
             "battery charger",
             "battery discharger",
+            "home battery",
+            "home battery charger",
+            "home battery discharger",
         ],
         component_types={"Store", "Link"},
     )
     # Drop Storage buses that do not have a store connected to it anymore
-    remaining_stores = n.stores[n.stores.carrier == "battery"].bus.unique()
+    remaining_stores = n.stores[
+        n.stores.carrier.isin(["battery", "home battery"])
+    ].bus.unique()
     idx = n.buses.loc[
-        (n.buses.carrier == "battery") & ~n.buses.index.isin(remaining_stores)
+        (n.buses.carrier.isin(["battery", "home battery"]))
+        & ~n.buses.index.isin(remaining_stores)
     ].index
     n.remove("Bus", idx)
 
@@ -2946,7 +2949,6 @@ def add_existing_tyndp_capacities(
     extendable_carriers: list | set,
     investment_year: int,
     enable_pemmdb_caps: bool,
-    tyndp_scenario: str,
     group_conventionals: bool,
 ) -> None:
     """
@@ -2999,8 +3001,6 @@ def add_existing_tyndp_capacities(
         Year for which to add capacities and profiles.
     enable_pemmdb_caps : bool
         Whether to include PEMMDB capacities.
-    tyndp_scenario : str
-        TYNDP scenario to model.
     group_conventionals : bool
         Whether TYNDP conventional carriers are aggregated into higher level groups.
 
@@ -3060,11 +3060,10 @@ def add_existing_tyndp_capacities(
         )
 
         # Add existing battery capacities from PEMMDB to already attached storage components
-        if "battery" in tyndp_stores:
+        if {"battery", "home battery"} & set(tyndp_stores):
             _add_battery_capacities(
                 n=n,
                 pemmdb_capacities=pemmdb_capacities,
-                tyndp_scenario=tyndp_scenario,
             )
 
         # Add existing electrolyzer capacities from PEMMDB to already attached electrolyzer components
@@ -3480,6 +3479,16 @@ def insert_electricity_distribution_grid(
         (n.generators.carrier == "solar") & n.generators.bus.isin(nodes)
     ]
     n.generators.loc[solar, "capital_cost"] = costs.at["solar-utility", "capital_cost"]
+
+    homeb_chargers = n.links.index[
+        (n.links.carrier == "home battery charger") & n.links.bus0.isin(nodes)
+    ]
+    n.links.loc[homeb_chargers, "bus0"] += lv_suffix
+
+    homeb_dischargers = n.links.index[
+        (n.links.carrier == "home battery discharger") & n.links.bus1.isin(nodes)
+    ]
+    n.links.loc[homeb_dischargers, "bus1"] += lv_suffix
 
     fn = solar_rooftop_potentials_fn
     if len(fn) > 0:
@@ -7438,7 +7447,6 @@ def add_industry(
     spatial: SimpleNamespace,
     cf_industry: dict,
     investment_year: int,
-    tyndp_scenario: str,
 ):
     """
     Add industry and their corresponding carrier buses to the network.
@@ -7471,8 +7479,6 @@ def add_industry(
         Industry-specific configuration parameters
     investment_year : int
         Year for which investment costs should be considered
-    tyndp_scenario : str
-        TYNDP scenario name for scenario-specific adjustments
 
     Returns
     -------
@@ -9506,7 +9512,6 @@ if __name__ == "__main__":
         pop_layout.index,
         options,
         buses_h2_file=buses_h2_file,
-        tyndp_scenario=tyndp_scenario,
     )
 
     if snakemake.params.foresight in ["overnight", "myopic", "perfect"]:
@@ -9678,7 +9683,6 @@ if __name__ == "__main__":
             extendable_carriers=snakemake.params.electricity["extendable_carriers"],
             investment_year=investment_year,
             enable_pemmdb_caps=enable_pemmdb_caps,
-            tyndp_scenario=tyndp_scenario,
             group_conventionals=snakemake.params.electricity[
                 "group_tyndp_conventionals"
             ],
@@ -9780,7 +9784,6 @@ if __name__ == "__main__":
             spatial=spatial,
             cf_industry=cf_industry,
             investment_year=investment_year,
-            tyndp_scenario=tyndp_scenario,
         )
 
     if options["shipping"]:

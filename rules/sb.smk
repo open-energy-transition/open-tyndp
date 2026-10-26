@@ -292,7 +292,6 @@ rule build_tyndp_pemmdb_data:
         available_years=config_provider(
             "electricity", "pemmdb_capacities", "available_years"
         ),
-        tyndp_scenario=config_provider("tyndp_scenario"),
     script:
         scripts("sb/build_tyndp_pemmdb_data.py")
 
@@ -409,7 +408,6 @@ rule build_tyndp_gas_demand:
     resources:
         mem_mb=1000,
     params:
-        scenario=config_provider("tyndp_scenario"),
         planning_horizons=config_provider("scenario", "planning_horizons"),
     script:
         scripts("sb/build_tyndp_gas_demand.py")
@@ -489,8 +487,6 @@ if config["sector"]["h2_topology_tyndp"]:
         threads: 1
         resources:
             mem_mb=4000,
-        params:
-            tyndp_scenario=config_provider("tyndp_scenario"),
         script:
             scripts("sb/clean_tyndp_smr.py")
 
@@ -508,8 +504,6 @@ if config["sector"]["h2_topology_tyndp"]:
         threads: 1
         resources:
             mem_mb=4000,
-        params:
-            tyndp_scenario=config_provider("tyndp_scenario"),
         script:
             scripts("sb/clean_tyndp_h2_storages.py")
 
@@ -583,7 +577,6 @@ if config["benchmarking"]["enable"]:
 
     rule clean_tyndp_output_benchmark:
         input:
-            # TODO Generalize hardcoded climate year CY2009 for DE / GA
             tyndp_output_file=lambda w: getattr(
                 rules.retrieve_tyndp.output,
                 f"market_outputs_{w.scenario}{w.planning_horizons}_CY2009",
@@ -633,7 +626,6 @@ if config["benchmarking"]["enable"]:
             mem_mb=8000,
         params:
             benchmarking=config_provider("benchmarking"),
-            scenario=config_provider("tyndp_scenario"),
             snapshots=config_provider("snapshots"),
         script:
             scripts("sb/clean_tyndp_report_benchmark.py")
