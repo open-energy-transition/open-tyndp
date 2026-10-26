@@ -710,7 +710,7 @@ def cba_scenarios(w):
         scn = scenario_config(run)
     except KeyError:
         return [run] if run else []
-    return scn.get("cba", {}).get("scenarios", [run] if run else [])
+    return scn["cba"]["scenarios"] or ([run] if run else [])
 
 
 def cba_projects_run(w):
