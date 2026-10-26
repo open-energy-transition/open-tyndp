@@ -100,6 +100,8 @@ GJ_DEMAND_TYPES = {"thermal_h2", "thermal_ch4"}
 # 1 MWh = 3.6 GJ.
 GJ_TO_MWH = 1 / 3.6
 
+THERMAL_NODE_PATTERN = r"-([A-Z0-9]{4})_H(?:CH4|H2)-"
+
 
 def multiindex_to_datetimeindex(df: pd.DataFrame, year: int) -> pd.DataFrame:
     """
@@ -260,6 +262,23 @@ def drop_zero_demand_columns(demand: pd.DataFrame) -> pd.DataFrame:
     return demand
 
 
+def extract_thermal_nodes(columns: pd.Index) -> pd.Index:
+    """
+    Extract node names from thermal demand sheet names.
+
+    Parameters
+    ----------
+    columns : pd.Index
+        Sheet names.
+
+    Returns
+    -------
+    pd.Index
+        Node names.
+    """
+    return pd.Index(columns.str.extract(THERMAL_NODE_PATTERN, expand=False))
+
+
 def read_demand_excel(
     demand_fn: str, wscenario: int, year: int, demand_type: str
 ) -> pd.DataFrame:
@@ -304,6 +323,7 @@ def read_demand_excel(
         demand = deduplicate_corrected_columns(demand)
         if demand_type in GJ_DEMAND_TYPES:
             demand = demand * GJ_TO_MWH
+            demand.columns = extract_thermal_nodes(demand.columns)
         # Rename UK in GB
         demand.columns = demand.columns.str.replace("UK", "GB")
         demand.columns.name = "Bus"
