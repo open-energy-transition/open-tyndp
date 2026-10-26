@@ -4,9 +4,8 @@
 """
 This script computes accuracy indicators for comparing workflow results against reference data from TYNDP 2024.
 
-Benchmarks are computed only for planning years available in the TYNDP 2024 Scenarios data:
-- NT (National Trends): 2030, 2040
-- DE (Distributed Energy) and GA (Global Ambition): 2040, 2050
+Benchmarks are computed only for planning years available in the TYNDP 2024 Scenarios data
+for NT (National Trends): 2030, 2040
 
 This module implements a methodology introduced by Wen et al. (2022) for evaluating performance of energy system
 models using multiple accuracy indicators.
@@ -551,7 +550,6 @@ def get_bus_col_name(s: str, table: str):
 def compare_sources(
     table: str,
     benchmarks_raw: pd.DataFrame,
-    scenario: str,
     snapshots: dict[str, str],
     options: dict,
     model_col: str = "Open-TYNDP",
@@ -568,8 +566,6 @@ def compare_sources(
         Benchmark metric to compute.
     benchmarks_raw : pd.DataFrame
         Combined DataFrame containing both Open-TYNDP and TYNDP 2024 data.
-    scenario : str
-        Name of scenario to compare.
     snapshots : dict[str, str]
         Dictionary defining the temporal range with 'start' and 'end' keys.
     options : dict
@@ -640,22 +636,7 @@ def compare_sources(
 
     # Check if at least two sources are available to compare
     if len(df.columns) != 2:
-        # Generation profiles only available in TYNDP 2024 for climate year 2009 and DE/GA scenarios
-        show_warning = True
-        if table == "generation_profiles":
-            wscenario = int(
-                pd.DatetimeIndex(df.index.get_level_values("snapshot")).year[0]
-            )
-            show_warning = scenario in ["TYNDP DE", "TYNDP GA"] and wscenario == 2009
-
-        if show_warning:
-            logger.warning(
-                f"Skipping table {table}, need exactly two sources to compare."
-            )
-        else:
-            logger.info(
-                f"Skipping table {table} for scenario {scenario} and weather scenario {wscenario}, generation profiles only available in TYNDP 2024 for climate year 2009 and DE/GA scenarios."
-            )
+        logger.warning(f"Skipping table {table}, need exactly two sources to compare.")
         return pd.DataFrame(), pd.DataFrame(
             [["NA", "NA"]],
             index=[table],
@@ -739,7 +720,6 @@ def compute_overall_accuracy(
 def orchestrate_benchmark(
     bus_col_name: str,
     benchmarks_raw: pd.DataFrame,
-    scenario: str,
     snapshots: dict[str, str],
     options: dict,
     output_dir: str,
@@ -765,7 +745,6 @@ def orchestrate_benchmark(
     func = partial(
         compare_sources,
         benchmarks_raw=benchmarks_raw,
-        scenario=scenario,
         snapshots=snapshots,
         options=options,
         bus_col_name=bus_col_name,
@@ -845,7 +824,6 @@ if __name__ == "__main__":
             orchestrate_benchmark(
                 bus_col_name=bus_col_name,
                 benchmarks_raw=benchmarks_raw,
-                scenario=scenario,
                 snapshots=snapshots,
                 options=options,
                 output_dir=output_dir,

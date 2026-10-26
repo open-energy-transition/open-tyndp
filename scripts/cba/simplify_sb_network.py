@@ -228,9 +228,6 @@ if __name__ == "__main__":
     n.links.loc[n.links.carrier == "DC", "marginal_cost"] = hurdle_costs
     logger.info(f"Applied hurdle costs of {hurdle_costs} EUR/MWh to DC links")
 
-    # TODO: for DE/GA add merging of the two H2 zones
-    # TODO: for DE/GA add EV electricity consumption from SB as fixed demand
-
     # merge low voltage to market node
     move_bus_carrier_and_cleanup(n, from_carrier="low voltage")
 
