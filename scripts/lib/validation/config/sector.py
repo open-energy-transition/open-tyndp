@@ -378,7 +378,7 @@ class _ImportsConfig(BaseModel):
     limit_sense: str = Field("<=", description="Sense of the limit.")
     carriers: list[str] | None = Field(
         None,
-        description="Carriers to import. Defaults to all carriers in `price`.",
+        description="Carriers to import. Defaults to all carriers in `price`. Passing an empty list has the same fallback.",
     )
     price: dict[str, float] = Field(
         default_factory=lambda: {

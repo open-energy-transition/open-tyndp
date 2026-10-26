@@ -93,7 +93,7 @@ class _CbaMsvExtractionConfig(ConfigModel):
 
     resolution: _TemporalConfig = Field(
         default_factory=_TemporalConfig,
-        description="Temporal resolution for extraction solve, same structure as `clustering.temporal`. All false uses the native resolution; `averaging` (e.g. '24h') averages over the given offset and `representative` uses every Nth snapshot. Can only coarsen the scenario building resolution, never refine it. Segmentation is not supported, mirroring `clustering.temporal`.",
+        description="Temporal resolution for extraction solve, same structure as `clustering.temporal`. All false uses the native resolution; `averaging` (e.g. '24h') averages over the given offset and `representative` uses every Nth snapshot. Can only coarsen the scenario building resolution, never refine it. Segmentation is not supported.",
     )
     resample_method: Literal["ffill", "interpolate"] = Field(
         default="ffill",

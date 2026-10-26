@@ -217,6 +217,7 @@ existing_capacities:
   uniform_renewable_profiles: true
 
 sector:
+  enabled: true
   transport: true
   heating: false
   biomass: true
@@ -338,7 +339,7 @@ clustering:
     n_clusters: all
   temporal:
     # Important note: The segmentation (SEG) option is currently not supported, for details https://github.com/open-energy-transition/open-tyndp/pull/345
-    averaging: 168h  # Use 1H for high resolution results in SB (requires commercial solver)
+    averaging: 168h  # Set to false for 1h high-resolution SB results (requires commercial solver)
 
 adjustments:
   electricity: false

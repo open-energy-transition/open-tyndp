@@ -57,8 +57,8 @@ def add_brownfield(
         Whether to enable offshore hubs. Default is False.
     h2_topology_tyndp : bool, optional
         Whether to enable TYNDP Hydrogen topology. Default is False.
-    carriers_tyndp : list[str]
-        List of TYNDP carriers included in the model.
+    carriers_tyndp : list[str], optional
+        List of TYNDP carriers included in the model. Default is empty tuple.
     """
     logger.info(f"Preparing brownfield for the year {year}")
 

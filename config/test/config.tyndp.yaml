@@ -4,11 +4,6 @@
 #
 # SPDX-License-Identifier: CC0-1.0
 
-planning_horizons:
-- 2030
-- 2035
-- 2040
-
 run:
   name: "test-sector-tyndp"
   disable_progressbar: true
@@ -24,6 +19,11 @@ logging:
   level: INFO
 
 launch_explorer: false
+
+planning_horizons:
+- 2030
+- 2035
+- 2040
 
 countries: ['AL', 'AT', 'BA', 'BE', 'BG', 'CH', 'CZ', 'CY', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'ME', 'MK', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK']
 
@@ -224,6 +224,7 @@ existing_capacities:
   uniform_renewable_profiles: true
 
 sector:
+  enabled: true
   transport: true
   heating: false
   biomass: true

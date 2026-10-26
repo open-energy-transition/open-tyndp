@@ -1461,12 +1461,9 @@ rule build_existing_heating_distribution:
 rule time_aggregation:
     input:
         network=resources("networks/clustered.nc"),
-        # segmentation + load.source "tyndp" is unsupported (time_aggregation.py
-        # reads this input unconditionally); open-tyndp uses averaging
-        electricity_demand=lambda w: (
-            resources("electricity_demand.nc")
-            if config_provider("load", "source")(w) != "tyndp"
-            else []
+        electricity_demand=branch(
+            lambda w: config_provider("load", "source")(w) != "tyndp",
+            resources("electricity_demand.nc"),
         ),
         profiles=lambda w: [
             resources(f"profile_{tech}.nc")

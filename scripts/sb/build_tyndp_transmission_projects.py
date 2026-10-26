@@ -23,10 +23,10 @@ Inputs
 
 Outputs
 -------
-- `resources/tyndp/new_links_{planning_horizons}.csv`: Processed electricity transmission projects with bus
+- `resources/tyndp/new_links_{horizon}.csv`: Processed electricity transmission projects with bus
   connections, capacities (p_nom), lengths, and geometry attributes ready for
   network integration.
-- `resources/tyndp/new_links_h2_{planning_horizons}.csv`: Processed hydrogen transmission projects with bus
+- `resources/tyndp/new_links_h2_{horizon}.csv`: Processed hydrogen transmission projects with bus
   connections and capacities (p_nom) attributes ready for network integration.
 """
 

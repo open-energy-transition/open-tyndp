@@ -47,8 +47,6 @@ set-resources:
     mem_mb: 10000
   build_solar_thermal_profiles:
     mem_mb: 32000
-  compose_network:
-    mem_mb: 4000
   solve_network:
     solver_license: 1
   solve_cba_msv_extraction:

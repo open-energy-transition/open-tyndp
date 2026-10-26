@@ -92,7 +92,7 @@ def resample_msv_to_target(
     Parameters
     ----------
     msv : pd.DataFrame
-        MSV data from extraction (e.g., 24H resolution).
+        MSV data from extraction (e.g., 24h resolution).
     target_snapshots : pd.DatetimeIndex
         Target snapshots (e.g., 3H resolution).
     method : str, optional

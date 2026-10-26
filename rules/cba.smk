@@ -177,8 +177,9 @@ def input_sb_network(w):
         # Check that options match the pre-solved network naming convention
         if config_provider("clustering", "cluster_network", "n_clusters")(w) != "all":
             raise ValueError(
-                "Pre-solved SB runs require clustering.cluster_network.n_clusters='all' "
-                "to match the Zenodo network naming (base_s_all___{horizon}.nc)."
+                "Pre-solved SB runs from releases < v0.10 require "
+                "clustering.cluster_network.n_clusters='all' to match their Zenodo "
+                "network naming (base_s_all___{horizon}.nc)."
             )
         horizon = _effective_horizon(
             int(w.horizon),
@@ -709,7 +710,7 @@ def cba_scenarios(w):
         scn = scenario_config(run)
     except KeyError:
         return [run] if run else []
-    return scn.get("cba", {}).get("scenarios", [run] if run else [])
+    return scn["cba"]["scenarios"] or ([run] if run else [])
 
 
 def cba_projects_run(w):
