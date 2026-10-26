@@ -110,7 +110,7 @@ The structure of these outputs can be validated in the published preliminary ben
 
 ### Outputs
 
-Example of indicators extracted from `power_generation_cy2009_s_all___all_years.csv` by countries
+Example of indicators extracted from `power_generation_cy2009_all_years.csv` by countries
 for the NT scenario with hourly resolution:
 
 | Carrier | sMPE | sMAPE | sMdAPE | RMSLE | Growth Error | Missing countries | reference | version |
@@ -153,7 +153,7 @@ Example of figure created for the generation profiles for the DE scenario in 204
 
 ![](img/tyndp/benchmarking_gen_profiles_DE_2040.png)
 
-Example of summary indicators extracted from `kpis_s_all__all_years_by_country.csv` for the NT
+Example of summary indicators extracted from `kpis_all_years_by_country.csv` for the NT
 scenario with hourly resolution:
 
 | Metric | sMPE | sMAPE | sMdAPE | RMSLE | Growth Error | Missing carriers | Missing countries | reference | version |
