@@ -34,6 +34,8 @@ from scripts.lib.validation.config import (
 configfile: "config/config.default.yaml"
 configfile: "config/plotting.default.yaml"
 configfile: "config/benchmarking.default.yaml"
+configfile: "config/config.tyndp.yaml"
+configfile: "config/config.hpc.yaml"
 
 
 if (tag := config["data_config"]) is not None and Path(
