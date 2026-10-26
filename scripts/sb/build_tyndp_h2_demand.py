@@ -45,7 +45,7 @@ Inputs
 Outputs
 -------
 
-- `resources/h2_demand_tyndp_{planning_horizons}.csv`: Processed hydrogen
+- `resources/h2_demand_tyndp_{horizon}.csv`: Processed hydrogen
   demand time series for the specified planning horizon
 """
 

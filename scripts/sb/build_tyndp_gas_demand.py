@@ -46,7 +46,7 @@ Inputs
 Outputs
 -------
 
-- `gas_demand_tyndp_{planning_horizons}.csv`: Processed gas demand data (MWh) by country/bus
+- `gas_demand_tyndp_{horizon}.csv`: Processed gas demand data (MWh) by country/bus
   for the specified planning horizon
 """
 
