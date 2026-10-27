@@ -11,8 +11,7 @@ PEMMDB capacities and profiles carry the range of weather scenarios they apply
 to (``ws_start`` to ``ws_end``, labeled ``WSxxx``), and only the entries
 covering the modeled scenario are kept. Which scenario that is comes from
 `wscenarios_tyndp` and is resolved for the planning year the data is read
-from, the same way as for demand (see
-:py:func:`scripts._helpers.get_wscenario`).
+from, the same way as for demand (see `get_wscenario` in `scripts/sb/_helpers.py`).
 
 Outputs
 -------

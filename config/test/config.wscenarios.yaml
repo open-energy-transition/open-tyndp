@@ -477,7 +477,7 @@ cba:
   projects:
   - t225 # PINT
   - t339 # TOOT
-  - t1106 # TOOT, offshore
+  # TODO: Add back t1106 Bornholm project once CBA bus naming convention is fixed for 2026
   - s1001 # PHS
   - s1013 # CAES
   - s1035 # battery

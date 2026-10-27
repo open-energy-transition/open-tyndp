@@ -9225,7 +9225,7 @@ def add_import_options(
     options : dict
         Options from snakemake.params["sector"].
     spatial : SimpleNamespace
-        Configuration options containing spatial information on methanol, oil, gas and ammonia nodes
+        Configuration options containing spatial information on methanol, oil, gas, ammonia and h2_tyndp nodes
     gas_input_nodes : pd.DataFrame
         Locations of gas input nodes split by LNG and pipeline.
     h2_imports_tyndp_fn : str
