@@ -11,7 +11,7 @@
 
 **Features**
 
-* feat: remove DE and GA scenarios from TYNDP 2026; add in HEV and LEV as scenarios and config entries ([#1066](https://github.com/open-energy-transition/open-tyndp/pull/1066)). HEV and LEV currently differ from NT+ only in fuel and CO2 prices. Demand adjustments (electricity market, prosumer demand, EV, H2, thermal energy demand), hydrogen import prices, and benchmarking are not yet included.
+* feat: remove DE and GA scenarios from TYNDP 2026; add in HEV and LEV as scenarios and config entries ([#1066](https://github.com/open-energy-transition/open-tyndp/pull/1066) and [#1092](https://github.com/open-energy-transition/open-tyndp/pull/1092)). HEV and LEV currently differ from NT+ only in fuel and CO2 prices. Demand adjustments (electricity market, prosumer demand, EV, H2, thermal energy demand), hydrogen import prices, and benchmarking are not yet included.
 
 * feat: align snapshots to full year (8760 for hourly modeling) ([#1065](https://github.com/open-energy-transition/open-tyndp/pull/1065)).
 
