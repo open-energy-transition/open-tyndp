@@ -2280,12 +2280,14 @@ def _add_h2_sres_capacities(
         component_types={"Link"},
     )
 
-    # Fix SRES dispatch profiles to electrolyser (capped at electrolyser capacity), with
-    # surplus going to the e-market node.
+    # Add SRES profiles to electrolyser (capped at electrolyser capacity p_nom),
+    # with surplus being available to e-market node.
     electrolyser_i = electrolyser_i.intersection(n.links.index)
     gens = n.generators.loc[gens_i]
-    p_pu = (
-        n.generators_t.p_max_pu[gens_i]
+
+    p_max_pu = n.generators_t.p_max_pu[gens_i]
+    profiles_pu = (
+        p_max_pu.where(p_max_pu > 0.01, 0.0)
         .mul(gens.p_nom)
         .T.groupby(gens.bus)
         .sum()
@@ -2293,7 +2295,7 @@ def _add_h2_sres_capacities(
         .div(n.links.loc[electrolyser_i, "p_nom"])
         .clip(upper=1.0)
     )
-    _add_pu_profiles(n.links_t, p_min_pu=p_pu, p_max_pu=p_pu)
+    _add_pu_profiles(n.links_t, p_min_pu=profiles_pu, p_max_pu=profiles_pu)
 
 
 def _extract_inflows(
