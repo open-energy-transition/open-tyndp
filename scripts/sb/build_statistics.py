@@ -150,7 +150,7 @@ def compute_benchmark(
     """
     opt = options["tables"][table]
     mapping = opt.get("mapping", {})
-    elec_bus_carrier = ["AC"] + (["low voltage"] if low_voltage else [])
+    elec_bus_carrier = ["AC", "AC_SRES"] + (["low voltage"] if low_voltage else [])
     supply_comps = ["Generator", "Link"]
     demand_comps = ["Link", "Load"]
     eu27_idx = n.buses[n.buses.country.isin(eu27)].index
@@ -246,7 +246,12 @@ def compute_benchmark(
         ).loc[lambda df: ~df.index.get_level_values("carrier").isin(exclusions)]
     elif table == "power_capacity":
         grouper = ["carrier"]
-        exclusions = ["electricity distribution grid", "DC", "load"]
+        exclusions = [
+            "electricity distribution grid",
+            "DC",
+            "SRES grid connection",
+            "load",
+        ]
         df = (
             n.statistics.optimal_capacity(
                 bus_carrier=elec_bus_carrier,
@@ -280,6 +285,7 @@ def compute_benchmark(
         grouper = ["carrier"]
         exclusions = [
             "DC",
+            "SRES grid connection",
             "electricity distribution grid",
             "battery discharger",
             "battery charger",
@@ -467,38 +473,6 @@ def compute_benchmark(
         ).loc[lambda s: ~s.index.isin(df_countries.index)]
 
         df = pd.concat([df_countries, df_eu])
-    elif table == "generation_profiles":
-        if n.snapshots.year[0] == 2009:
-            grouper = ["carrier"]
-            df = (
-                n.statistics.supply(
-                    bus_carrier=elec_bus_carrier,
-                    groupby=["bus"] + grouper,
-                    aggregate_across_components=True,
-                    groupby_time=False,
-                )
-                .reindex(eu27_idx, level="bus")
-                .groupby(by=grouper)
-                .sum()
-                .drop(
-                    index=[
-                        "DC",
-                        "electricity distribution grid",
-                        "H2 Electrolysis",
-                        "battery charger",
-                        "home battery charger",
-                        "methanolisation",
-                        "electricity",
-                    ],
-                    errors="ignore",
-                )
-                .melt(ignore_index=False)
-                .reset_index()
-                .set_index(["snapshot", "carrier"])["value"]
-            )
-        else:
-            logger.warning(f"Unknown climate year for table: {table}")
-            df = pd.DataFrame(columns=["carrier"])
     elif table in ["electricity_price", "hydrogen_price"]:
         carrier = "AC" if "electricity" in table else "H2"
 

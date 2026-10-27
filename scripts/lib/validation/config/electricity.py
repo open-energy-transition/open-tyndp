@@ -11,7 +11,7 @@ See docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#elect
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from scripts.lib.validation.config._base import ConfigModel
 
@@ -222,28 +222,20 @@ class _PecdRenewableProfilesConfig(BaseModel):
     )
 
 
-class _PemmdbHydroProfilesConfig(BaseModel):
-    """Configuration for `electricity.pemmdb_hydro_profiles` settings."""
+class _PecdHydroProfilesConfig(BaseModel):
+    """Configuration for `electricity.pecd_hydro_profiles` settings."""
 
     enable: bool = Field(
         False,
-        description="Activate PEMMDB hydro inflow profiles from 2024 TYNDP instead of default hydro profiles.",
+        description="Activate PECD v4.2 hydro inflow profiles from TYNDP 2026 instead of default hydro profiles.",
     )
     available_years: list[int] = Field(
-        default_factory=lambda: [2030, 2040, 2050],
-        description="List of years for which PEMMDB hydro inflows data is available.",
+        default_factory=lambda: [2030, 2035, 2040, 2050],
+        description="List of years for which PECD hydro inflows data is available.",
     )
-    technologies: list[
-        Literal["Run_of_River", "Pondage", "Reservoir", "PS_Open", "PS_Closed"]
-    ] = Field(
-        default_factory=lambda: [
-            "Run_of_River",
-            "Pondage",
-            "Reservoir",
-            "PS_Open",
-            "PS_Closed",
-        ],
-        description="The hydro technologies for which PEMMDB hydro inflows data is used.",
+    technologies: list[Literal["HRR", "HPI", "HRI", "HOL", "HCL"]] = Field(
+        default_factory=lambda: ["HRR", "HPI", "HRI", "HOL", "HCL"],
+        description="The hydro technologies for which PECD hydro inflows data is used, as PECD codes: HRR (run of river), HPI (pondage), HRI (reservoir), HOL (open-loop pumped storage), HCL (closed-loop pumped storage).",
     )
 
 
@@ -412,15 +404,17 @@ class ElectricityConfig(BaseModel):
             "solar-pv",
             "solar-pv-utility",
             "solar-pv-rooftop",
+            "solar-pv-utility-sres",
+            "solar-pv-utility-dres",
             "onwind",
-            "offwind-ac-fb-r",
-            "offwind-ac-fl-r",
-            "offwind-dc-fb-r",
-            "offwind-dc-fl-r",
-            "offwind-dc-fb-oh",
-            "offwind-dc-fl-oh",
-            "offwind-h2-fb-oh",
-            "offwind-h2-fl-oh",
+            "onwind-sres",
+            "onwind-dres",
+            "offwind-r",
+            "offwind-oh",
+            "offwind-dres-r",
+            "offwind-dres-oh",
+            "offwind-sres-r",
+            "offwind-sres-oh",
             "other-res",
             "hydro-ror",
             "hydro-reservoir",
@@ -432,7 +426,9 @@ class ElectricityConfig(BaseModel):
         default_factory=list,
         description="List of TYNDP renewable generators to include in the model. Technologies covered by specified TYNDP renewable carriers need to be removed from `estimate_renewable_carriers` technology list.",
     )
-    tyndp_stores: list[Literal["battery", "h2_cavern", "h2_tank"]] = Field(
+    tyndp_stores: list[
+        Literal["battery", "H2 cavern-storage", "H2 tank-storage", "home battery"]
+    ] = Field(
         default_factory=list,
         description="List of TYNDP storage units (battery and/or hydrogen).",
     )
@@ -440,9 +436,9 @@ class ElectricityConfig(BaseModel):
         default_factory=_PecdRenewableProfilesConfig,
         description="PECD (Pan-European Climate Database) renewable profiles configuration.",
     )
-    pemmdb_hydro_profiles: _PemmdbHydroProfilesConfig = Field(
-        default_factory=_PemmdbHydroProfilesConfig,
-        description="PEMMDB hydro profiles configuration.",
+    pecd_hydro_profiles: _PecdHydroProfilesConfig = Field(
+        default_factory=_PecdHydroProfilesConfig,
+        description="PECD hydro inflow profiles configuration.",
     )
     pemmdb_capacities: _PemmdbCapacitiesConfig = Field(
         default_factory=_PemmdbCapacitiesConfig,
@@ -469,3 +465,19 @@ class ElectricityConfig(BaseModel):
         description="Toggles specific dispatch constraints for DSR units within the SB workflow.",
     )
     model_config = ConfigDict(populate_by_name=True)
+
+    @model_validator(mode="after")
+    def check_tyndp_batteries_not_extendable(self) -> "ElectricityConfig":
+        """Validate that TYNDP batteries are not also listed as extendable stores."""
+        overlap = (
+            {"battery", "home battery"}
+            & set(self.tyndp_stores)
+            & set(self.extendable_carriers.Store)
+        )
+        if overlap:
+            raise ValueError(
+                f"{sorted(overlap)} must not be listed in both "
+                "'electricity:tyndp_stores' and 'electricity:extendable_carriers:Store'. "
+                "TYNDP batteries are added with fixed PEMMDB capacities."
+            )
+        return self

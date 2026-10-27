@@ -210,24 +210,6 @@ benchmarking:
           - scenario
           - year
 
-    generation_profiles:
-      table_type: time_series
-      mapping_col: benchmarking_generation_profiles
-      rfc_sources:
-      - report
-      unit: GW
-      report:
-        sheet_name:
-          DE: 30a
-          GA: 30b
-        index_col: 1
-        header: 4
-        names:
-          index:
-          - snapshot
-          column:
-          - carrier
-
     electricity_price:
       table_type: prices
       mapping_col: benchmarking_prices

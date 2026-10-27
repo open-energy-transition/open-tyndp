@@ -40,8 +40,6 @@ logger = logging.getLogger(__name__)
 REGION_COLS = ["geometry", "name", "x", "y", "country"]
 
 SCENARIO_DICT = {
-    "Distributed Energy": "DE",
-    "Global Ambition": "GA",
     r"National Trends\s*\+": "NT",
     r"NT\s*\+": "NT",
     "National Trends": "NT",
@@ -962,6 +960,40 @@ def get_snapshots(
     return time
 
 
+def check_snapshot_year(
+    year: int, drop_leap_day: bool, data_type: str = "demand"
+) -> None:
+    """
+    Ensure a leap `year` doesn't leave 29 February in `snapshots`.
+
+    TYNDP 2026 time series always span 365 days, so data built directly
+    against a leap `year` would be missing that day. Therefore,
+    `drop_leap_day` needs to be enabled to strip February 29th from `snapshots`.
+
+    Parameters
+    ----------
+    year : int
+        Snapshot year.
+    drop_leap_day : bool
+        Whether 29 February is dropped from `snapshots`.
+    data_type : str
+        Name of the checked TYNDP data, used in the error message.
+
+    Raises
+    ------
+    ValueError
+        If `year` is a leap year and `drop_leap_day` is False.
+    """
+    is_leap_year = pd.Timestamp(year=year, month=1, day=1).is_leap_year
+    if is_leap_year and not drop_leap_day:
+        raise ValueError(
+            f"Snapshot year {year} is a leap year but `enable.drop_leap_day` "
+            f"is disabled. TYNDP 2026 {data_type} data always spans 365 days (no "
+            "29 February). Enable `enable.drop_leap_day` or configure a "
+            "non-leap `snapshots` year."
+        )
+
+
 def sanitize_custom_columns(n: pypsa.Network):
     """
     Sanitize non-standard columns used throughout the workflow.
@@ -1627,16 +1659,14 @@ def convert_units(
     return df
 
 
-def check_wscenario(wscenario: int, scenario: str) -> int:
+def check_wscenario(wscenario: int) -> int:
     """
-    Check if the weather scenario is valid for the given scenario.
+    Check if the weather scenario is valid for the TYNDP data.
 
     Parameters
     ----------
     wscenario : int
         Weather scenario to validate.
-    scenario : str
-        TYNDP scenario name.
 
     Returns
     -------
@@ -1644,13 +1674,7 @@ def check_wscenario(wscenario: int, scenario: str) -> int:
         Valid weather scenario, falling back to 2009 if the input is not available.
     """
 
-    valid_years = {
-        "NT": [1995, 2008, 2009],
-        "DE": [1995, 2008, 2009],
-        "GA": [1995, 2008, 2009],
-    }
-
-    if wscenario not in valid_years[scenario]:
+    if wscenario not in [1995, 2008, 2009]:
         logger.warning(
             f"Snapshot year {wscenario} doesn't match available TYNDP data. Falling back to 2009."
         )
@@ -1876,7 +1900,7 @@ def remove_disconnected_storage_buses(
 ) -> None:
     """
     Remove storage buses whose carrier is in *carriers* but that no longer
-    have a Store connected to them.
+    have a Store connected to them as well as any generators connected to those buses.
 
     Parameters
     ----------
@@ -1889,6 +1913,12 @@ def remove_disconnected_storage_buses(
     idx = n.buses.loc[
         n.buses.carrier.isin(carriers) & ~n.buses.index.isin(remaining_stores)
     ].index
+    gen_i = n.generators.index[n.generators.bus.isin(idx)]
+    if not gen_i.empty:
+        logger.info(
+            f"Removing generators attached to disconnected storage buses: {gen_i.tolist()}"
+        )
+    n.remove("Generator", gen_i)
     n.remove("Bus", idx)
 
 

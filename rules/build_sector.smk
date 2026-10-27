@@ -1650,15 +1650,6 @@ def input_gas_network(w):
     return inputs
 
 
-def include_tyndp_trajectories(w):
-    if config_provider("electricity", "tyndp_renewable_carriers")(w):
-        return True
-    elif "uranium" in config_provider("electricity", "tyndp_conventional_carriers")(w):
-        return True
-    else:
-        return False
-
-
 rule prepare_sector_network:
     input:
         unpack(input_profile_offwind),
@@ -1828,13 +1819,14 @@ rule prepare_sector_network:
             config_provider("sector", "h2_topology_tyndp"),
             resources("h2_import_potentials_{planning_horizons}.csv"),
         ),
-        profile_pemmdb_hydro=branch(
-            config_provider("electricity", "pemmdb_hydro_profiles", "enable"),
-            resources("profile_pemmdb_hydro.nc"),
+        h2_import_profiles_tyndp=branch(
+            config_provider("sector", "h2_topology_tyndp"),
+            resources("h2_import_profiles_{planning_horizons}.csv"),
+            [],
         ),
-        tyndp_trajectories=branch(
-            include_tyndp_trajectories,
-            resources("tyndp_trajectories.csv"),
+        profile_pecd_hydro=branch(
+            config_provider("electricity", "pecd_hydro_profiles", "enable"),
+            resources("profile_pecd_hydro.nc"),
         ),
         carrier_mapping="data/tyndp_technology_map.csv",
         gas_demand=branch(

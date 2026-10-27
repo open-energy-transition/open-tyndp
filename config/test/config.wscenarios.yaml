@@ -82,20 +82,23 @@ electricity:
   - hydro-phs
   - hydro-phs-pure
   - onwind
+  - onwind-sres
+  - onwind-dres
   - solar-pv-utility
   - solar-pv-rooftop
-  - offwind-ac-fb-r
-  - offwind-ac-fl-r
-  - offwind-dc-fb-r
-  - offwind-dc-fl-r
-  - offwind-dc-fb-oh
-  - offwind-dc-fl-oh
-  - offwind-h2-fb-oh
-  - offwind-h2-fl-oh
+  - solar-pv-utility-dres
+  - solar-pv-utility-sres
+  - offwind-r
+  - offwind-oh
+  - offwind-dres-r
+  - offwind-dres-oh
+  - offwind-sres-r
+  - offwind-sres-oh
   tyndp_stores:
   - battery
-  - h2_cavern
-  - h2_tank
+  - H2 cavern-storage
+  - H2 tank-storage
+  - home battery
   estimate_renewable_capacities:
     enable: false
 
@@ -129,18 +132,19 @@ electricity:
     - Solar PV Utility
     - Wind_Onshore
 
-  pemmdb_hydro_profiles:
+  pecd_hydro_profiles:
     enable: true
     available_years:
     - 2030
+    - 2035
     - 2040
     - 2050
     technologies:
-    - Run_of_River
-    - Pondage
-    - Reservoir
-    - PS_Open
-    - PS_Closed
+    - HRR
+    - HPI
+    - HRI
+    - HOL
+    - HCL
 
   pemmdb_capacities:
     enable: true
@@ -470,6 +474,7 @@ cba:
     # marginal storage value and have cyclicity disabled
     cyclic_carriers:
     - battery
+    - home battery
     # Carriers whose state of charge is fixed at window boundaries
     # from perfect foresight (applies to StorageUnit components only)
     soc_boundary_carriers:
