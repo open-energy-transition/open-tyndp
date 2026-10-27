@@ -46,7 +46,7 @@ to form the two economic variants are defined in `config/scenarios.tyndp.yaml`.
 | `countries` | Lists modeled countries/regions. |
 | `snapshots` | Time span for simulation (2009 calendar year). |
 | `co2_budget` | Placeholder (empty). |
-| `electricity` | Core electricity settings—network base, extendable/conventional/renewable carriers, TYNDP mappings, storage types, renewable capacity estimation toggle, PECD profiles (years/techs), PEMMDB hydro profiles and capacities (years/techs), transmission limit version. |
+| `electricity` | Core electricity settings—network base, extendable/conventional/renewable carriers, TYNDP mappings, storage types, renewable capacity estimation toggle, PECD profiles (years/techs), PECD hydro profiles, PEMMDB capacities (years/techs), transmission limit version. |
 | `atlite` | Cutout configuration for weather data (extent, resolution, time). |
 | `links` | Default link power limits (`p_max_pu`/`p_min_pu`). |
 | `transmission_projects` | Enables projects; all source sets disabled. |

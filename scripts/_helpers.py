@@ -1900,7 +1900,7 @@ def remove_disconnected_storage_buses(
 ) -> None:
     """
     Remove storage buses whose carrier is in *carriers* but that no longer
-    have a Store connected to them.
+    have a Store connected to them as well as any generators connected to those buses.
 
     Parameters
     ----------
@@ -1913,6 +1913,12 @@ def remove_disconnected_storage_buses(
     idx = n.buses.loc[
         n.buses.carrier.isin(carriers) & ~n.buses.index.isin(remaining_stores)
     ].index
+    gen_i = n.generators.index[n.generators.bus.isin(idx)]
+    if not gen_i.empty:
+        logger.info(
+            f"Removing generators attached to disconnected storage buses: {gen_i.tolist()}"
+        )
+    n.remove("Generator", gen_i)
     n.remove("Bus", idx)
 
 

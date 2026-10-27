@@ -184,7 +184,7 @@ To align naming conventions across data sources, Open-TYNDP uses a mapping table
 
 * **pemmdb_carrier**: Higher level carrier names as listed in the PEMMDB v2.4 dataset.
 * **pemmdb_type**: Specific carrier technology type as listed in the PEMMDB v2.4 dataset.
-* **pemmdb_hydro_inflows**: Carrier names as listed in the PEMMDB v2.4 hydro inflows dataset.
+* **pecd_hydro_inflows**: Hydro technology codes as listed in the PECD v4.2 hydro inflows dataset.
 * **pecd_carrier**: Carrier names as listed in the PECD v3.1 dataset.
 * **tyndp_output_carrier**: Carrier names as listed in the TYNDP 2024 Market Model output files.
 * **tyndp_report_carrier**: Carrier names as listed in the TYNDP 2024 Scenarios Report.

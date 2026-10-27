@@ -43,6 +43,8 @@
 
 * feat: align the battery technologies with the TYNDP 2026 ([#892](https://github.com/open-energy-transition/open-tyndp/pull/892)). The TYNDP 2026 cycle differentiates between utility and residential batteries, with residential batteries being attached to the prosumer node, and utility batteries to the e-market node. Batteries are now non-extendable.
 
+* Align hydro inflows to use TYNDP 2026 data and new PECD technology codes `HRR`, `HPI`, `HRI`, `HOL` and `HCL` ([#1059](https://github.com/open-energy-transition/open-tyndp/pull/1059)).
+
 **Changes**
 
 * feat: align CO2 prices with TYNDP 2026 NT+ (97.47 / 197.51 / 297.54 / 502.74 €/t for 2030 / 2035 / 2040 / 2050) ([#1038](https://github.com/open-energy-transition/open-tyndp/pull/1038)). The interpolated 2045 value is dropped.
@@ -70,6 +72,10 @@
 * ci: run the TYNDP Scenario Building and CBA test workflows past `prepare_sector_network` again, covering the solve and benchmark steps ([#1044](https://github.com/open-energy-transition/open-tyndp/pull/1044)). These steps were skipped in CI since [#865](https://github.com/open-energy-transition/open-tyndp/pull/865) and run through again since [#920](https://github.com/open-energy-transition/open-tyndp/pull/920).
 
 * Add a workflow that closes linked issues when a PR is merged into `tyndp-2026` ([#1040](https://github.com/open-energy-transition/open-tyndp/pull/1040)).
+
+**Breaking Changes**
+
+* Renamed config section `electricity.pemmdb_hydro_profiles` to `electricity.pecd_hydro_profiles`, and its `technologies` now use the PECD codes `HRR`, `HPI`, `HRI`, `HOL` and `HCL` ([#1059](https://github.com/open-energy-transition/open-tyndp/pull/1059)). Therefore, old config names and technology acronyms no longer work.
 
 **2024**
 
@@ -114,6 +120,7 @@
 * Update the maintainer issue templates to ensure compliance with ISO certification ([#924](https://github.com/open-energy-transition/open-tyndp/pull/924)). The risk-level scale gains a `Very High` option and drops `N/A`.
 
 * Run CodeQL on `tyndp-*` branches, so the CodeQL status check required by the branch ruleset is reported and no longer blocks PRs targeting these branches ([#922](https://github.com/open-energy-transition/open-tyndp/pull/922)).
+
 
 ## Upcoming PyPSA-Eur Release
 
