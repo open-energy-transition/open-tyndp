@@ -20,7 +20,7 @@ SCENARIO_DICT = {
     r"NT\s*\+": "NT",
     "National Trends": "NT",
 }
-ENERGY_UNITS = {"TWh", "GWh", "MWh", "kWh"}
+ENERGY_UNITS = {"TWh", "GWh", "MWh", "kWh", "TJ"}
 POWER_UNITS = {"GW", "MW", "kW"}
 PRICE_UNITS = {"EUR/MWh", "EUR/MWh_e", "EUR/MWh_H2"}
 
@@ -36,6 +36,7 @@ AVAILABLE_WSCENARIOS = {
 # List of sheets from TYNDP Dashboards (market model outputs)
 ELECTRICITY_SHEETS = ["E-Market", "Prosumer", "Offshore"]
 H2_SHEETS = ["H2 Zone 1", "H2 Zone 2"]
+HEAT_SHEETS = ["Heat CH4", "Heat H2"]
 EXCHANGES_SHEET = "Exchanges"
 CAPACITY_SHEET = "Installed Capacity"
 # Header rows of the timeseries sheets and the yearly aggregates in their first rows
@@ -411,7 +412,7 @@ def convert_units(
     Convert values to standardized units based on unit type.
 
     Energy values are converted to MWh, power values to MW:
-    - Energy units (TWh, GWh, MWh, kWh) → MWh
+    - Energy units (TWh, GWh, MWh, kWh, TJ) → MWh
     - Power units (GW, MW, kW) → MW
 
     When invert=False (default):
@@ -448,6 +449,7 @@ def convert_units(
         "TWh": 1000000,
         "GWh": 1000,
         "MWh": 1,
+        "TJ": 1000 / 3.6,
         "GW": 1000,
         "MW": 1,
         "kW": 0.001,

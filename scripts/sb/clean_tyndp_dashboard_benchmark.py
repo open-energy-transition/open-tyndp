@@ -40,6 +40,7 @@ from scripts.sb._helpers import (
     ELECTRICITY_SHEETS,
     EXCHANGES_SHEET,
     H2_SHEETS,
+    HEAT_SHEETS,
     NROWS_HEADER,
     STATS,
     convert_units,
@@ -60,7 +61,12 @@ LOOKUP_TABLES: dict[str, dict] = {
     # E-Market and Prosumer demand share one benchmark carrier in current build_statistics
     "electricity_demand": {
         "sheet": ELECTRICITY_SHEETS,
-        "category": ["Native Demand", "Fixed Demand"],
+        "category": [
+            "Native Demand",
+            "Fixed Demand",
+            "CH4 Heat Pump (load)",
+            "H2 Heat Pump (load)",
+        ],
         "stats": "sum",
     },
     "electricity_prosumer_demand": {
@@ -80,6 +86,11 @@ LOOKUP_TABLES: dict[str, dict] = {
         "stats": "sum",
     },
     "hydrogen_supply": {"sheet": H2_SHEETS, "stats": "sum"},
+    "hybrid_heating": {
+        "sheet": HEAT_SHEETS,
+        "category": ["CH4 Heat Pump", "CH4 Boiler", "H2 Heat Pump", "H2 Boiler"],
+        "stats": "sum",
+    },
     "ev_charging": {
         "sheet": ["E-Market", "Prosumer"],
         "category": ["EV charge (load)", "EV discharge (gen.)"],
@@ -158,9 +169,9 @@ def _load_dashboard_carrier_mapping(
 
 def rename_prosumer_nodes(buses: pd.Series) -> pd.Series:
     """
-    Rename prosumer nodes to match Open-TYNDP bus names
+    Rename prosumer and hybrid heating nodes to match Open-TYNDP bus names
     """
-    return format_bz_names(buses).str.removesuffix("RETE")
+    return format_bz_names(buses).str.replace(r"(RETE| HCH4| HH2)$", "", regex=True)
 
 
 def parse_dashboard_sheet(df: pd.DataFrame, sheet_name: str) -> pd.DataFrame:
@@ -191,7 +202,8 @@ def parse_dashboard_sheet(df: pd.DataFrame, sheet_name: str) -> pd.DataFrame:
         )
         .assign(sheet=sheet_name)
     )
-    df["unit"] = df.unit.where(df.stats != "sum", "GWh")
+    sum_unit = "TJ" if sheet_name in HEAT_SHEETS else "GWh"
+    df["unit"] = df.unit.where(df.stats != "sum", sum_unit)
     df["value"] = pd.to_numeric(df["value"], errors="coerce")
 
     return df
@@ -213,7 +225,7 @@ def read_dashboard(
     tuple[pd.DataFrame, pd.DataFrame]
         Yearly aggregates of all timeseries sheets and installed capacities.
     """
-    sheet_names = ELECTRICITY_SHEETS + H2_SHEETS + [EXCHANGES_SHEET]
+    sheet_names = ELECTRICITY_SHEETS + H2_SHEETS + HEAT_SHEETS + [EXCHANGES_SHEET]
 
     # Some nodes are missing sheets
     with pd.ExcelFile(filepath, engine="calamine") as file:
