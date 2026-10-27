@@ -16,6 +16,14 @@ linopy = "0d"
 pypsa = "0d"
 atlite = "0d"
 
+# added to pull brotli 1.2.1
+brotli = "0d"
+brotli-bin = "0d"
+brotli-python = "0d"
+libbrotlicommon = "0d"
+libbrotlidec = "0d"
+libbrotlienc = "0d"
+
 [target.win-64.activation.env]
 
 # Local snakemake jobs often fail with status code 120, due to stdout/stderr interleaving
