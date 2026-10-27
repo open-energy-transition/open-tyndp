@@ -42,10 +42,17 @@ Provides efficiency and variable O&M parameters for conventional thermal generat
 Hourly capacity factor time series for wind (onshore and offshore) and solar PV, derived
 from ERA5 reanalysis data. Profiles are provided per weather scenario and TYNDP bidding zone.
 
-**[Hydro Inflows](https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/Hydro-Inflows.zip)**
+**[Hydro Inflows](https://2026-data.entsos-tyndp-scenarios.eu/input/model-input/national-trends/Hydro-Inflow.zip)**
 
-Hourly inflow profiles for reservoir and run-of-river hydro plants, used to constrain
-hydro dispatch across planning horizons. Profiles are provided per climate year and TYNDP bidding zone.
+Daily or weekly inflow time series from PECD 4.2 for run-of-river, pondage, reservoir and pumped storage hydro plants,
+used to constrain hydro dispatch across planning horizons. Profiles are provided per weather scenario and TYNDP bidding zone.
+Technologies are identified by PECD codes, see the [Copernicus documentation for inflows and acronyms](https://confluence.ecmwf.int/spaces/CKB/pages/540941752/Climate+and+energy+related+variables+from+the+Pan-European+Climate+Database+derived+from+reanalysis+and+climate+projections+v4.2+Product+user+guide+PUG#ClimateandenergyrelatedvariablesfromthePanEuropeanClimateDatabasederivedfromreanalysisandclimateprojectionsv4.2:Productuserguide(PUG)-AcronymsandabbreviationsAcronyms). The technology codes are:
+- `HRR`: run-of-river
+- `HPI`: pondage
+- `HRI`: reservoir
+- `HOL`: open-loop pumped storage
+- `HCL`: closed-loop pumped storage
+
 
 **[Demand Profiles](https://2026-data.entsos-tyndp-scenarios.eu/input/model-input/national-trends/Demand.zip)**
 
@@ -78,7 +85,7 @@ workbook per scenario (NT+, HEV and LEV); Open-TYNDP uses the NT+ variant.
 
 The SB workflow transforms raw ENTSO-E input datasets into a solved, sector-coupled PyPSA
 network. The key stages are: integrating public input data, constructing the sector-coupled
-network, applying TYNDP-specific constraints, solving the capacity expansion optimisation, visualising results, and running the Open-TYNDP [benchmarking framework](benchmarking.md). An overview of the SB rules is documented at [SB rules](sb_rules.md).
+network, applying TYNDP-specific constraints, solving the dispatch optimisation, visualising results, and running the Open-TYNDP [benchmarking framework](benchmarking.md). An overview of the SB rules is documented at [SB rules](sb_rules.md).
 
 ### Network Construction
 
@@ -87,15 +94,12 @@ sectors respectively. Buses represent national-level aggregations; AC lines and 
 cross-border interconnectors with capacities and impedances taken from the TYNDP Line Data.
 
 Generator and storage components are attached to country buses using PEMMDB 2.5 capacity data.
-Which carriers are **extendable** varies by scenario and planning horizon.
 
 ### Sector Coupling
 
-Open-TYNDP models the electricity and hydrogen sectors as fully coupled. For the Distributed
-Energy (DE) and Global Ambition (GA) scenarios, heating sector links are included in addition (see [Open-TYNDP scenarios](scenarios.md)). Cross-sector components include:
+Open-TYNDP models the electricity and hydrogen sectors as fully coupled. Cross-sector components include:
 
-* **Electrolysers:** Convert electricity to hydrogen; capacity is either fixed per PEMMDB 2.5
-  or left extendable depending on the scenario.
+* **Electrolysers:** Convert electricity to hydrogen; capacity is fixed per PEMMDB 2.5.
 * **Fuel cells and back-pressure plants:** Reconvert hydrogen or gas to electricity.
 * **Hydrogen network:** Dedicated H₂ pipelines between country buses are included for planning
   horizons from 2030 onward, using TYNDP Line Data. Zones with split H₂ grids (e.g. the
@@ -105,12 +109,12 @@ Energy (DE) and Global Ambition (GA) scenarios, heating sector links are include
 * **Demand-side electrification:** Where the scenario specifies it, electricity demand
   incorporates direct electrification of heat and transport end-uses.
 
-### Capacity and Dispatch Optimisation
+### Dispatch Optimisation
 
-The SB optimisation minimises **total annualised system cost** (variable operating cost, plus investment cost where capacity expansion is enabled) subject to:
+The SB optimisation minimises **total system operating cost** subject to:
 
 * Hourly supply-demand balance for each carrier at every bus.
-* Transmission capacity constraints, with optional extendability for candidate lines.
+* Transmission capacity constraints.
 * CO₂ emission budgets derived from the TYNDP 2024 scenario pathway.
 * Minimum and maximum generation constraints from PEMMDB, including must-run levels and
   scheduled maintenance outages.
@@ -133,18 +137,18 @@ and Open-TYNDP configuration options.
 
 ### Scenarios and Planning Horizons
 
-* `scenario`: Selects the TYNDP 2024 scenario. Supported values are `NT`
-  (National Trends), `GA` (Global Ambition) and `DE` (Distributed Energy).
+* `tyndp_scenario`: Selects the TYNDP scenario. Supported values are `NT`
+  (National Trends +), `HEV` (High Economic Variant) and `LEV` (Low Economic Variant).
 * `planning_horizons`: List of target years to solve (e.g. `[2030, 2035, 2040, 2050]`). Each
   horizon is solved as an independent optimisation.
 * `run.name`: Identifies the run and determines the output directory; typically set to
   the scenario/climate-year identifier (e.g. `NT-ws2009`).
   * `launch_explorer`: Whether to launch the [PyPSA Explorer](https://github.com/open-energy-transition/pypsa-explorer) after the model solve within the workflow. Default is `True`.
 
-### Climate Years
+### Weather Scenarios
 
-Each scenario run is tied to a specific historical climate year, which determines the
-renewable generation and hydro inflow profiles used from PECD 3.1 and Hydro Inflows:
+Each planning horizon is tied to a TYNDP 2026 weather scenario, which determines the
+renewable generation, demand, and hydro inflow profiles used:
 
 * `snapshots`: Defines the modelling time window, e.g.:
 
@@ -154,6 +158,8 @@ renewable generation and hydro inflow profiles used from PECD 3.1 and Hydro Infl
     end:   "2010-01-01"
     inclusive: "left"
   ```
+
+* `wscenarios_tyndp`: Weather scenarios per planning horizon, e.g. `2030: [3, 21, 29]`.
 
 * `atlite.default_cutout`: ERA5 reanalysis cutout used to compute PECD-compatible
   capacity factor profiles (e.g. `europe-2009-era5`).
