@@ -48,6 +48,7 @@ logger = logging.getLogger(__name__)
 # List of sheets for both electricity and hydrogen timeseries
 ELECTRICITY_SHEETS = ["E-Market", "Prosumer", "Offshore"]
 H2_SHEETS = ["H2 Zone 1", "H2 Zone 2"]
+HEAT_SHEETS = ["Heat CH4", "Heat H2"]
 EXCHANGES_SHEET = "Exchanges"
 CAPACITY_SHEET = "Installed Capacity"
 
@@ -57,7 +58,12 @@ LOOKUP_TABLES: dict[str, dict] = {
     # E-Market and Prosumer demand share one benchmark carrier in current build_statistics
     "electricity_demand": {
         "sheet": ELECTRICITY_SHEETS,
-        "category": ["Native Demand", "Fixed Demand"],
+        "category": [
+            "Native Demand",
+            "Fixed Demand",
+            "CH4 Heat Pump (load)",
+            "H2 Heat Pump (load)",
+        ],
         "stats": "sum",
     },
     "electricity_prosumer_demand": {
@@ -77,6 +83,11 @@ LOOKUP_TABLES: dict[str, dict] = {
         "stats": "sum",
     },
     "hydrogen_supply": {"sheet": H2_SHEETS, "stats": "sum"},
+    "hybrid_heating": {
+        "sheet": HEAT_SHEETS,
+        "category": ["CH4 Heat Pump", "CH4 Boiler", "H2 Heat Pump", "H2 Boiler"],
+        "stats": "sum",
+    },
     # TODO: For shedding hours, TYNDP 2026 does not give a direct value, so it can be derived
     # where "Energy Not Served" is above 0.
     # "electricity_demand_shedding_hours": [
@@ -163,9 +174,9 @@ def split_unit_from_category(category_labels: pd.Series) -> tuple[pd.Series, pd.
 
 def rename_prosumer_nodes(buses: pd.Series) -> pd.Series:
     """
-    Rename prosumer nodes to match Open-TYNDP bus names
+    Rename prosumer and hybrid heating nodes to match Open-TYNDP bus names
     """
-    return format_bz_names(buses).str.removesuffix("RETE")
+    return format_bz_names(buses).str.replace(r"(RETE| HCH4| HH2)$", "", regex=True)
 
 
 def parse_dashboard_sheet(df: pd.DataFrame, sheet_name: str) -> pd.DataFrame:
@@ -217,7 +228,8 @@ def parse_dashboard_sheet(df: pd.DataFrame, sheet_name: str) -> pd.DataFrame:
         )
         .assign(sheet=sheet_name)
     )
-    df["unit"] = df.unit.where(df.stats != "sum", "GWh")
+    sum_unit = "TJ" if sheet_name in HEAT_SHEETS else "GWh"
+    df["unit"] = df.unit.where(df.stats != "sum", sum_unit)
     df["value"] = pd.to_numeric(df["value"], errors="coerce")
 
     return df
@@ -272,7 +284,7 @@ def read_dashboard(
     tuple[pd.DataFrame, pd.DataFrame]
         Yearly aggregates of all timeseries sheets and installed capacities.
     """
-    sheet_names = ELECTRICITY_SHEETS + H2_SHEETS + [EXCHANGES_SHEET]
+    sheet_names = ELECTRICITY_SHEETS + H2_SHEETS + HEAT_SHEETS + [EXCHANGES_SHEET]
     nrows_header = 9
 
     # Some nodes are missing sheets

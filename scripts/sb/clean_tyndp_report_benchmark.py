@@ -202,7 +202,7 @@ def clean_data_for_benchmarking(
     """
     # Keep aggregated electricity demand - Input data for Open-TYNDP is provided in aggregated form
     if table == "electricity_demand":
-        df = df[df.carrier == "native demand"]
+        df = df[df.carrier.isin(["native demand", "for hhps"])]
 
     # Drop total for Methane demand
     elif table == "methane_demand":

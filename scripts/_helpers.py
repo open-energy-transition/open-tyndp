@@ -47,7 +47,7 @@ SCENARIO_DICT = {
     "National Trends": "NT",
 }
 
-ENERGY_UNITS = {"TWh", "GWh", "MWh", "kWh"}
+ENERGY_UNITS = {"TWh", "GWh", "MWh", "kWh", "TJ"}
 POWER_UNITS = {"GW", "MW", "kW"}
 PRICE_UNITS = {"EUR/MWh", "EUR/MWh_e", "EUR/MWh_H2"}
 
@@ -1602,7 +1602,7 @@ def convert_units(
     Convert values to standardized units based on unit type.
 
     Energy values are converted to MWh, power values to MW:
-    - Energy units (TWh, GWh, MWh, kWh) → MWh
+    - Energy units (TWh, GWh, MWh, kWh, TJ) → MWh
     - Power units (GW, MW, kW) → MW
 
     When invert=False (default):
@@ -1639,6 +1639,7 @@ def convert_units(
         "TWh": 1000000,
         "GWh": 1000,
         "MWh": 1,
+        "TJ": 1000 / 3.6,
         "GW": 1000,
         "MW": 1,
         "kW": 0.001,

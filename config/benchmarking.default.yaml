@@ -124,6 +124,13 @@ benchmarking:
           column:
           - year
 
+    hybrid_heating:
+      table_type: scenario_comparison
+      mapping_col: open_tyndp_carrier
+      rfc_sources:
+      - dashboard_out
+      unit: TWh
+
     methane_supply:
       table_type: scenario_comparison
       mapping_col: benchmarking_ch4_supply
