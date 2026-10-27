@@ -4,11 +4,6 @@
 #
 # SPDX-License-Identifier: CC0-1.0
 
-planning_horizons:
-- 2030
-- 2035
-- 2040
-
 run:
   name: "test-sector-tyndp"
   disable_progressbar: true
@@ -25,6 +20,11 @@ logging:
 
 launch_explorer: false
 
+planning_horizons:
+- 2030
+- 2035
+- 2040
+
 countries: ['AL', 'AT', 'BA', 'BE', 'BG', 'CH', 'CZ', 'CY', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'ME', 'MK', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK']
 
 snapshots:
@@ -32,6 +32,7 @@ snapshots:
   end: "2013-03-08"
 
 co2_budget:
+  relative: false
   upper:
   lower:
 
@@ -223,6 +224,7 @@ existing_capacities:
   uniform_renewable_profiles: true
 
 sector:
+  enabled: true
   transport: true
   heating: false
   biomass: true
@@ -400,7 +402,7 @@ solving:
       BarConvTol: 1.0e-06
       FeasibilityTol: 1.0e-06
       OptimalityTol: 1.0e-06
-  mem: 4000
+  mem_mb: 4000
 
 data:
   version_files:
@@ -490,8 +492,9 @@ cba:
   # Marginal storage value extraction settings
   msv_extraction:
     # Temporal resolution for extraction solve
-    # Options: false (use native resolution), "24H", "48H", etc.
-    resolution: false
+    # Options: averaging: false (use native resolution), "24h", "48h", etc.
+    resolution:
+      averaging: false
     # Resampling method: ffill (forward fill), interpolate (linear)
     resample_method: ffill
     # Solve options for MSV extraction

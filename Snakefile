@@ -48,6 +48,11 @@ if Path("config/config.yaml").exists():
     configfile: "config/config.yaml"
 
 
+if config["foresight"] == "overnight":
+
+    configfile: "config/config.default.overnight.yaml"
+
+
 validated_config = validate_config(config)
 normalize_config(config, validated_config)
 
@@ -148,11 +153,6 @@ if config["tyndp_scenario"]:
     # Include Open-TYNDP specific set of rules for SB and CBA
     include: "rules/cba.smk"
     include: "rules/sb.smk"
-
-
-if config["foresight"] == "overnight":
-
-    configfile: "config/config.default.overnight.yaml"
 
 
 # Define output categories based on foresight mode
@@ -257,36 +257,25 @@ def input_all_tyndp(w):
     ):
         files.extend(
             expand(
-                (
-                    resources(
-                        "maps/base_h2_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}.pdf"
-                    )
-                ),
+                (resources("maps/base_h2_network_{horizon}.pdf")),
                 run=config["run"]["name"],
-                **config["scenario"],
+                horizon=config["planning_horizons"],
             )
         )
     if config_provider("sector", "offshore_hubs_tyndp", "enable")(w):
         files.extend(
             expand(
-                (
-                    resources(
-                        "maps/base_offshore_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}_{carrier}.pdf"
-                    )
-                ),
+                (resources("maps/base_offshore_network_{horizon}_{carrier}.pdf")),
                 run=config["run"]["name"],
-                **config["scenario"],
+                horizon=config["planning_horizons"],
                 carrier=config_provider("plotting", "offshore_maps", "bus_carriers")(w),
             )
         )
         files.extend(
             expand(
-                (
-                    RESULTS
-                    + "maps/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}-offshore_network_{carrier}.pdf"
-                ),
+                (RESULTS + "maps/static/offshore_network_{carrier}_{horizon}.pdf"),
                 run=config["run"]["name"],
-                **config["scenario"],
+                horizon=config["planning_horizons"],
                 carrier=config_provider("plotting", "offshore_maps", "bus_carriers")(w),
             )
         )
@@ -295,14 +284,12 @@ def input_all_tyndp(w):
             expand(
                 rules.plot_benchmark.output.kpis_by_bus,
                 run=config["run"]["name"],
-                **config["scenario"],
             )
         )
         files.extend(
             expand(
                 rules.plot_benchmark.output.kpis_by_country,
                 run=config["run"]["name"],
-                **config["scenario"],
             )
         )
 
@@ -311,7 +298,6 @@ def input_all_tyndp(w):
             expand(
                 RESULTS + "logs/explorer_launched.log",
                 run=config["run"]["name"],
-                **config["scenario"],
             )
         )
 

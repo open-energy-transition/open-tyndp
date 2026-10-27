@@ -189,7 +189,7 @@ if __name__ == "__main__":
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    planning_horizon = snakemake.wildcards.get("planning_horizons")
+    planning_horizon = snakemake.wildcards.get("horizon")
 
     # Collect all indicators into a single CSV
     average_indicators_csv(

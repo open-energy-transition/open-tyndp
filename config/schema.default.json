@@ -496,6 +496,25 @@
             }
           }
         },
+        "sb_scenario": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Scenario building scenario (e.g. 'NT') whose TYNDP results are used as benchmark in the CBA indicators."
+        },
+        "scenarios": {
+          "description": "Child scenarios (e.g. climate years) aggregated by a CBA collection run.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "projects": {
           "description": "List of project identifiers to evaluate (e.g., 't1-t35').",
           "items": {
@@ -565,16 +584,48 @@
           "description": "Configuration for `cba.msv_extraction` settings.",
           "properties": {
             "resolution": {
-              "anyOf": [
-                {
-                  "type": "boolean"
+              "description": "Configuration for `clustering.temporal` settings (at most one may be set).",
+              "properties": {
+                "averaging": {
+                  "anyOf": [
+                    {
+                      "const": false,
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "default": false,
+                  "description": "Average the time series over the given pandas offset, e.g. `3h` or `1d`."
                 },
-                {
-                  "type": "string"
+                "segmentation": {
+                  "anyOf": [
+                    {
+                      "const": false,
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ],
+                  "default": false,
+                  "description": "Aggregate the time series into `n` representative segments using `tsam`."
+                },
+                "representative": {
+                  "anyOf": [
+                    {
+                      "const": false,
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ],
+                  "default": false,
+                  "description": "Use every `n`-th snapshot as representative."
                 }
-              ],
-              "default": false,
-              "description": "Temporal resolution for extraction solve. False uses the native resolution; 'NH' (e.g. '24H') averages over N hours and 'Nsn' (e.g. '2sn') uses every Nth snapshot. Can only coarsen the scenario building resolution, never refine it. Segmentation ('NSEG') is not supported, mirroring `clustering.temporal.resolution_sector`."
+              }
             },
             "resample_method": {
               "default": "ffill",
@@ -6660,6 +6711,21 @@
               "description": "Sense of the limit.",
               "type": "string"
             },
+            "carriers": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Carriers to import. Defaults to all carriers in `price`. Passing an empty list has the same fallback."
+            },
             "price": {
               "additionalProperties": {
                 "type": "number"
@@ -8052,16 +8118,48 @@
       "description": "Configuration for `cba.msv_extraction` settings.",
       "properties": {
         "resolution": {
-          "anyOf": [
-            {
-              "type": "boolean"
+          "description": "Configuration for `clustering.temporal` settings (at most one may be set).",
+          "properties": {
+            "averaging": {
+              "anyOf": [
+                {
+                  "const": false,
+                  "type": "boolean"
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "default": false,
+              "description": "Average the time series over the given pandas offset, e.g. `3h` or `1d`."
             },
-            {
-              "type": "string"
+            "segmentation": {
+              "anyOf": [
+                {
+                  "const": false,
+                  "type": "boolean"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "default": false,
+              "description": "Aggregate the time series into `n` representative segments using `tsam`."
+            },
+            "representative": {
+              "anyOf": [
+                {
+                  "const": false,
+                  "type": "boolean"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "default": false,
+              "description": "Use every `n`-th snapshot as representative."
             }
-          ],
-          "default": false,
-          "description": "Temporal resolution for extraction solve. False uses the native resolution; 'NH' (e.g. '24H') averages over N hours and 'Nsn' (e.g. '2sn') uses every Nth snapshot. Can only coarsen the scenario building resolution, never refine it. Segmentation ('NSEG') is not supported, mirroring `clustering.temporal.resolution_sector`."
+          }
         },
         "resample_method": {
           "default": "ffill",
@@ -9288,6 +9386,21 @@
           "default": "<=",
           "description": "Sense of the limit.",
           "type": "string"
+        },
+        "carriers": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Carriers to import. Defaults to all carriers in `price`. Passing an empty list has the same fallback."
         },
         "price": {
           "additionalProperties": {
@@ -15040,6 +15153,21 @@
               "description": "Sense of the limit.",
               "type": "string"
             },
+            "carriers": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Carriers to import. Defaults to all carriers in `price`. Passing an empty list has the same fallback."
+            },
             "price": {
               "additionalProperties": {
                 "type": "number"
@@ -17743,6 +17871,25 @@
             }
           }
         },
+        "sb_scenario": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Scenario building scenario (e.g. 'NT') whose TYNDP results are used as benchmark in the CBA indicators."
+        },
+        "scenarios": {
+          "description": "Child scenarios (e.g. climate years) aggregated by a CBA collection run.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "projects": {
           "description": "List of project identifiers to evaluate (e.g., 't1-t35').",
           "items": {
@@ -17812,16 +17959,48 @@
           "description": "Configuration for `cba.msv_extraction` settings.",
           "properties": {
             "resolution": {
-              "anyOf": [
-                {
-                  "type": "boolean"
+              "description": "Configuration for `clustering.temporal` settings (at most one may be set).",
+              "properties": {
+                "averaging": {
+                  "anyOf": [
+                    {
+                      "const": false,
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "default": false,
+                  "description": "Average the time series over the given pandas offset, e.g. `3h` or `1d`."
                 },
-                {
-                  "type": "string"
+                "segmentation": {
+                  "anyOf": [
+                    {
+                      "const": false,
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ],
+                  "default": false,
+                  "description": "Aggregate the time series into `n` representative segments using `tsam`."
+                },
+                "representative": {
+                  "anyOf": [
+                    {
+                      "const": false,
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ],
+                  "default": false,
+                  "description": "Use every `n`-th snapshot as representative."
                 }
-              ],
-              "default": false,
-              "description": "Temporal resolution for extraction solve. False uses the native resolution; 'NH' (e.g. '24H') averages over N hours and 'Nsn' (e.g. '2sn') uses every Nth snapshot. Can only coarsen the scenario building resolution, never refine it. Segmentation ('NSEG') is not supported, mirroring `clustering.temporal.resolution_sector`."
+              }
             },
             "resample_method": {
               "default": "ffill",

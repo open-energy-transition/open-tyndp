@@ -59,7 +59,6 @@ if __name__ == "__main__":
         config=snakemake.config,
         solve_opts=cf_solving,
         foresight=snakemake.params.foresight,
-        renewable_carriers=snakemake.params.renewable_carriers,
         planning_horizons=planning_horizons,
         co2_sequestration_potential=snakemake.params["co2_sequestration_potential"],
         limit_max_growth=snakemake.params["sector"]["limit_max_growth"],

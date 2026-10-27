@@ -116,7 +116,7 @@ solving:
     options: highs-default
   mem_mb: 4000
   check_objective:
-    enable: true
+    enable: false  # open-tyndp: custom_costs.csv and include_objective_constant differ from upstream
     expected_value:
       2030: 578061829.69
       2040: 413904094.45

@@ -862,7 +862,7 @@ rule cluster_electricity_demand:
     log:
         logs("cluster_electricity_demand.log"),
     benchmark:
-        benchmarks("cluster_electricity_demand")
+        benchmarks("performances/cluster_electricity_demand")
     resources:
         mem_mb=3000,
     message:

@@ -14,6 +14,8 @@
 
 **Changes**
 
+* Adapt Open-TYNDP to the configuration and wildcard restructuring, as a follow-up to the [upstream changes](migration.md) ([#1084](https://github.com/open-energy-transition/open-tyndp/pull/1084)). `cba.msv_extraction.resolution` now follows the structure of `clustering.temporal` (e.g. `resolution: {averaging: 24h}` instead of `24H`).
+
 
 **Bugfixes and Compatibility**
 

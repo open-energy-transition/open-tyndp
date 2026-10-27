@@ -1461,7 +1461,10 @@ rule build_existing_heating_distribution:
 rule time_aggregation:
     input:
         network=resources("networks/clustered.nc"),
-        electricity_demand=resources("electricity_demand.nc"),
+        electricity_demand=branch(
+            lambda w: config_provider("load", "source")(w) != "tyndp",
+            resources("electricity_demand.nc"),
+        ),
         profiles=lambda w: [
             resources(f"profile_{tech}.nc")
             for tech in config_provider("electricity", "renewable_carriers")(w)
