@@ -23,10 +23,10 @@ Inputs
 
 Outputs
 -------
-- `resources/tyndp/new_links_{planning_horizons}.csv`: Processed electricity transmission projects with bus
+- `resources/tyndp/new_links_{horizon}.csv`: Processed electricity transmission projects with bus
   connections, capacities (p_nom), lengths, and geometry attributes ready for
   network integration.
-- `resources/tyndp/new_links_h2_{planning_horizons}.csv`: Processed hydrogen transmission projects with bus
+- `resources/tyndp/new_links_h2_{horizon}.csv`: Processed hydrogen transmission projects with bus
   connections and capacities (p_nom) attributes ready for network integration.
 """
 
@@ -157,9 +157,7 @@ if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
 
-        snakemake = mock_snakemake(
-            "build_tyndp_transmission_projects", planning_horizons="2040"
-        )
+        snakemake = mock_snakemake("build_tyndp_transmission_projects", horizon="2040")
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 

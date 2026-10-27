@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
 # SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
-# SPDX-FileCopyrightText: Open Energy Transition gGmbH
 #
 # SPDX-License-Identifier: MIT
 """
@@ -69,14 +68,7 @@ def build_nodal_industrial_production():
         buses = keys.index[keys.country == country]
         mapping = sector_mapping.get(sector, "population")
 
-        try:
-            key = keys.loc[buses, mapping].fillna(0)
-        except KeyError:
-            logger.info(
-                f"No industrial production available for {mapping}. Filling with zeros."
-            )
-            keys[mapping] = 0
-            key = keys.loc[buses, mapping].fillna(0)
+        key = keys.loc[buses, mapping]
         nodal_production.loc[buses, sector] = (
             industrial_production.at[country, sector] * key
         )
@@ -88,7 +80,7 @@ if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
 
-        snakemake = mock_snakemake("build_industrial_production_per_node", clusters=48)
+        snakemake = mock_snakemake("build_industrial_production_per_node", horizon=2030)
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 

@@ -10,7 +10,7 @@ Description
 -------
 
 This rule maps the industrial energy demand per country `industrial_energy_demand_per_country_today.csv` to each bus region.
-The energy demand per country is multiplied by the mapping value from the file `industrial_distribution_key_base_s_{clusters}.csv` between 0 and 1 to get the industrial energy demand per bus.
+The energy demand per country is multiplied by the mapping value from the file `industrial_distribution_key.csv` between 0 and 1 to get the industrial energy demand per bus.
 
 The unit of the energy demand is TWh/a.
 """
@@ -66,15 +66,7 @@ def build_nodal_industrial_energy_demand():
         buses = keys.index[keys.country == country]
         mapping = sector_mapping.get(sector, "population")
 
-        try:
-            key = keys.loc[buses, mapping].fillna(0)
-        except KeyError:
-            logger.info(
-                f"No industrial demand available for {mapping}. Filling with zeros."
-            )
-            keys[mapping] = 0
-            key = keys.loc[buses, mapping].fillna(0)
-
+        key = keys.loc[buses, mapping]
         demand = industrial_demand[country, sector]
 
         outer = pd.DataFrame(
@@ -92,10 +84,7 @@ if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
 
-        snakemake = mock_snakemake(
-            "build_industrial_energy_demand_per_node_today",
-            clusters=48,
-        )
+        snakemake = mock_snakemake("build_industrial_energy_demand_per_node_today")
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 

@@ -51,7 +51,7 @@ jobs:
     - name: Setup Pixi
       uses: prefix-dev/setup-pixi@v0.11.2
       with:
-        pixi-version: v0.68.1
+        pixi-version: v0.71.0
         cache: true
         cache-write: false
         environments: open-tyndp

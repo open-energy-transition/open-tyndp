@@ -45,7 +45,7 @@ Inputs
 Outputs
 -------
 
-- `resources/h2_demand_tyndp_{planning_horizons}.csv`: Processed hydrogen
+- `resources/h2_demand_tyndp_{horizon}.csv`: Processed hydrogen
   demand time series for the specified planning horizon
 """
 
@@ -252,8 +252,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "build_tyndp_h2_demand",
-            planning_horizons="2040",
-            clusters="all",
+            horizon="2040",
             configfiles="config/test/config.tyndp.yaml",
         )
 
@@ -262,7 +261,7 @@ if __name__ == "__main__":
 
     # Parameters
     scenario = snakemake.params["scenario"]
-    pyear = int(snakemake.wildcards.planning_horizons)
+    pyear = int(snakemake.wildcards.horizon)
     snapshots = get_snapshots(
         snakemake.params.snapshots, snakemake.params.drop_leap_day
     )

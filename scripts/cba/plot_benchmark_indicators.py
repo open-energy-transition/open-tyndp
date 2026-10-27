@@ -592,7 +592,7 @@ if __name__ == "__main__":
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    planning_horizon = snakemake.wildcards.get("planning_horizons")
+    planning_horizon = snakemake.wildcards.get("horizon")
     area = snakemake.params.area
 
     if "cba_project" in snakemake.wildcards.keys():

@@ -89,7 +89,7 @@ and Open-TYNDP configuration options.
 
 * `storage.cyclic_carriers`: Carriers that remain cyclic within each weekly window.
 * `storage.soc_boundary_carriers`: Carriers pinned at window boundaries.
-* `msv_extraction.resolution`: Controls temporal resolution for the MSV solve (e.g., `24H`).
+* `msv_extraction.resolution`: Controls temporal resolution for the MSV solve, with the same structure as `clustering.temporal` (e.g., `resolution: {averaging: 24h}`).
 
 ## Running Single vs Multiple Climate Years
 
