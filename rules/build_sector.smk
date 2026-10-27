@@ -1745,8 +1745,9 @@ rule prepare_sector_network:
         temp_soil_total=resources("temp_soil_total_base_s_{clusters}.nc"),
         temp_air_total=resources("temp_air_total_base_s_{clusters}.nc"),
         cop_profiles=branch(
-            config_provider("sector", "heating"),
-            resources("cop_profiles_base_s_{clusters}_{planning_horizons}.nc"),
+            lambda w: config_provider("sector", "heating")(w)
+            or config_provider("tyndp_scenario")(w),
+            input_cop_profiles,
         ),
         ptes_e_max_pu_profiles=lambda w: (
             resources(
@@ -1840,6 +1841,18 @@ rule prepare_sector_network:
         h2_demand_z2=branch(
             config_provider("tyndp_scenario"),
             resources("demand_tyndp_h2_z2_{planning_horizons}.csv"),
+        ),
+        thermal_demand_ch4=branch(
+            config_provider("tyndp_scenario"),
+            resources("demand_tyndp_thermal_ch4_{planning_horizons}.csv"),
+        ),
+        thermal_demand_h2=branch(
+            config_provider("tyndp_scenario"),
+            resources("demand_tyndp_thermal_h2_{planning_horizons}.csv"),
+        ),
+        hybrid_heating_tyndp=branch(
+            config_provider("tyndp_scenario"),
+            lambda w: rules.retrieve_tyndp_2026.output.hybrid_hp_modelling,
         ),
         wheeling_charges=branch(
             lambda w: config_provider("tyndp_scenario")(w)

@@ -241,6 +241,12 @@ def solved_previous_horizon(w):
     )
 
 
+def input_cop_profiles(w):
+    if config_provider("tyndp_scenario")(w):
+        return resources("cop_profiles_tyndp_{planning_horizons}.nc")
+    return resources("cop_profiles_base_s_{clusters}_{planning_horizons}.nc")
+
+
 def input_cutout(wildcards, cutout_names="default"):
 
     cutouts_path = dataset_version("cutout")["folder"]
