@@ -169,6 +169,26 @@ rule build_tyndp_demand:
         scripts("sb/build_tyndp_demand.py")
 
 
+rule build_tyndp_cop_profiles:
+    input:
+        heat=rules.retrieve_tyndp_2026.output.hybrid_hp_modelling,
+    output:
+        cop_profiles=resources("cop_profiles_tyndp_{planning_horizons}.nc"),
+    log:
+        logs("build_tyndp_cop_profiles_{planning_horizons}.log"),
+    benchmark:
+        benchmarks("performances/build_tyndp_cop_profiles_{planning_horizons}")
+    threads: 1
+    resources:
+        mem_mb=4000,
+    params:
+        snapshots=config_provider("snapshots"),
+        drop_leap_day=config_provider("enable", "drop_leap_day"),
+        wscenarios=config_provider("wscenarios_tyndp"),
+    script:
+        scripts("sb/build_tyndp_cop_profiles.py")
+
+
 def get_pecd_prebuilt(w):
     if "pre-built" in PECD_DATASET["version"]:
         return rules.retrieve_tyndp_pecd.output.dir
