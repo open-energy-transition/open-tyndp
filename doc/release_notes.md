@@ -11,6 +11,8 @@
 
 **Features**
 
+* feat: remove DE and GA scenarios from TYNDP 2026; add in HEV and LEV as scenarios and config entries ([#1066](https://github.com/open-energy-transition/open-tyndp/pull/1066)). HEV and LEV currently differ from NT+ only in fuel and CO2 prices. Demand adjustments (electricity market, prosumer demand, EV, H2, thermal energy demand), hydrogen import prices, and benchmarking are not yet included.
+
 * feat: align snapshots to full year (8760 for hourly modeling) ([#1065](https://github.com/open-energy-transition/open-tyndp/pull/1065)).
 
 * feat: switch TYNDP electricity demand to TYNDP 2026 data for three demand types: market, prosumer and prosumer behind-the-meter (BTM) ([#944](https://github.com/open-energy-transition/open-tyndp/pull/944)).
@@ -41,6 +43,8 @@
 
 * feat: align the battery technologies with the TYNDP 2026 ([#892](https://github.com/open-energy-transition/open-tyndp/pull/892)). The TYNDP 2026 cycle differentiates between utility and residential batteries, with residential batteries being attached to the prosumer node, and utility batteries to the e-market node. Batteries are now non-extendable.
 
+* Align hydro inflows to use TYNDP 2026 data and new PECD technology codes `HRR`, `HPI`, `HRI`, `HOL` and `HCL` ([#1059](https://github.com/open-energy-transition/open-tyndp/pull/1059)).
+
 * feat: add Shared RES generation profiles for electrolyser link to hydrogen node (H2Z2) ([#1083](https://github.com/open-energy-transition/open-tyndp/pull/1083)). The TYNDP 2026 cycle adds SRES nodes which are connected to the e-market node and to the H2Z2 node via electrolysers. The generation from the SRES generators are used as input for the electrolysers first, and any extra generation above the electrolyser capacity is residual electricity made available to the e-market node.
 
 **Changes**
@@ -70,6 +74,10 @@
 * ci: run the TYNDP Scenario Building and CBA test workflows past `prepare_sector_network` again, covering the solve and benchmark steps ([#1044](https://github.com/open-energy-transition/open-tyndp/pull/1044)). These steps were skipped in CI since [#865](https://github.com/open-energy-transition/open-tyndp/pull/865) and run through again since [#920](https://github.com/open-energy-transition/open-tyndp/pull/920).
 
 * Add a workflow that closes linked issues when a PR is merged into `tyndp-2026` ([#1040](https://github.com/open-energy-transition/open-tyndp/pull/1040)).
+
+**Breaking Changes**
+
+* Renamed config section `electricity.pemmdb_hydro_profiles` to `electricity.pecd_hydro_profiles`, and its `technologies` now use the PECD codes `HRR`, `HPI`, `HRI`, `HOL` and `HCL` ([#1059](https://github.com/open-energy-transition/open-tyndp/pull/1059)). Therefore, old config names and technology acronyms no longer work.
 
 **2024**
 
@@ -114,6 +122,7 @@
 * Update the maintainer issue templates to ensure compliance with ISO certification ([#924](https://github.com/open-energy-transition/open-tyndp/pull/924)). The risk-level scale gains a `Very High` option and drops `N/A`.
 
 * Run CodeQL on `tyndp-*` branches, so the CodeQL status check required by the branch ruleset is reported and no longer blocks PRs targeting these branches ([#922](https://github.com/open-energy-transition/open-tyndp/pull/922)).
+
 
 ## Upcoming PyPSA-Eur Release
 

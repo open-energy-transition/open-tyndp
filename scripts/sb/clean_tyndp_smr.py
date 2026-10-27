@@ -10,16 +10,12 @@ import logging
 import numpy as np
 import pandas as pd
 
-from scripts._helpers import (
-    configure_logging,
-    format_bz_names,
-    set_scenario_config,
-)
+from scripts._helpers import configure_logging, format_bz_names, set_scenario_config
 
 logger = logging.getLogger(__name__)
 
 
-def load_smr_data(fn: str, planning_horizon: int, scenario: str) -> pd.DataFrame:
+def load_smr_data(fn: str, planning_horizon: int) -> pd.DataFrame:
     """
     Load and clean TYNDP SMR capacity and CCS information.
 
@@ -29,8 +25,6 @@ def load_smr_data(fn: str, planning_horizon: int, scenario: str) -> pd.DataFrame
         Path to Excel file containing TYNDP SMR data.
     planning_horizon : int
         Planning horizon to read SMR data for.
-    scenario : str
-        TYNDP scenario to filter for.
 
     Returns
     -------
@@ -62,9 +56,7 @@ def load_smr_data(fn: str, planning_horizon: int, scenario: str) -> pd.DataFrame
         pd.read_excel(fn, sheet_name="TEMPLATE")
         .rename(columns=column_dict)
         .replace(replace_dict)
-        .query(
-            "year == @planning_horizon and (scenario == @scenario or scenario == 'all') and p_nom > 0"
-        )
+        .query("year == @planning_horizon and p_nom > 0")
     )
 
     if (invalid := ~(smr.heat_rate > 0)).any():
@@ -117,13 +109,11 @@ if __name__ == "__main__":
     # Parameters
     planning_horizon = int(snakemake.wildcards.planning_horizons)
     smr_fn = snakemake.input.smr
-    scenario = snakemake.params.tyndp_scenario
 
     # Load and prep SMR data
     smr = load_smr_data(
         fn=smr_fn,
         planning_horizon=planning_horizon,
-        scenario=scenario,
     )
 
     # Save clean H2 SMR data

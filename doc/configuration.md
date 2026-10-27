@@ -44,8 +44,8 @@ with each layer overriding the ones listed before it:
   and planning horizons.
 - **`config/scenarios.tyndp.yaml`**: The per-scenario overrides, applied on top of the
   run-level configuration. `config.tyndp.yaml` points to this file through `run.scenarios.file`
-  and switches it on with `run.scenarios.enable: true`. Each named scenario (e.g. `NT`, `DE`,
-  `GA`, or a climate-year collection) supplies only the settings that differ from the run-level
+  and switches it on with `run.scenarios.enable: true`. Each named scenario (e.g. `NT`, `HEV`,
+  `LEV`, or a climate-year collection) supplies only the settings that differ from the run-level
   configuration and is selected through the `{run}` wildcard. See
   [Scenario Building](sb.md#configuration) and
   [Cost-Benefit Analysis](cba.md#running-single-vs-multiple-climate-years) for how each
@@ -186,10 +186,10 @@ Configuration for `foresight` settings.
 
 Configuration for `tyndp_scenario` settings.
 
-- **Type:** enum (`NT`, `DE`, `GA`, `false`)
+- **Type:** enum (`NT`, `HEV`, `LEV`, `false`)
 - **Default:** `false`
 
-Scenario configuration of the TYNDP data, which is one of `NT`, `DE` or `GA`. `false` disables the TYNDP-specific rules.
+Scenario configuration of the TYNDP data, which is one of `NT` (National Trends +), `HEV` (High Economic Variant) or `LEV` (Low Economic Variant). `false` disables the TYNDP-specific rules.
 
 **YAML Syntax**
 
