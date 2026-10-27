@@ -1278,7 +1278,6 @@ if (TYNDP_DATASET := dataset_version("tyndp"))["source"] in [
         rule retrieve_tyndp:
             input:
                 nodes=storage(TYNDP_DATASET["url"] + "/Nodes.zip"),
-                hydro_inflows=storage(TYNDP_DATASET["url"] + "/Hydro-Inflows.zip"),
                 supply_tool=storage(
                     TYNDP_DATASET["url"] + "/20240518-Supply-Tool.xlsm.zip"
                 ),
@@ -1297,8 +1296,6 @@ if (TYNDP_DATASET := dataset_version("tyndp"))["source"] in [
             output:
                 nodes_zip=f"{TYNDP_DATASET['folder']}/Nodes.zip",
                 nodes=f"{TYNDP_DATASET['folder']}/Nodes/LIST OF NODES.xlsx",
-                hydro_inflows_zip=f"{TYNDP_DATASET['folder']}/Hydro-Inflows.zip",
-                hydro_inflows=directory(f"{TYNDP_DATASET['folder']}/Hydro Inflows"),
                 supply_tool_zip=f"{TYNDP_DATASET['folder']}/20240518-Supply-Tool.xlsm.zip",
                 supply_tool=f"{TYNDP_DATASET['folder']}/20240518-Supply-Tool.xlsm",
                 benchmark_zip=f"{TYNDP_DATASET['folder']}/TYNDP-2024-Scenarios-Package-20250128.zip",

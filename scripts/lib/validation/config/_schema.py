@@ -120,9 +120,9 @@ class ConfigSchema(BaseModel):
         default_factory=ForesightConfig,
         description="Foresight mode for the optimization. See Foresight Options for detailed explanations.",
     )
-    tyndp_scenario: Literal["NT", "DE", "GA", False] = Field(
+    tyndp_scenario: Literal["NT", "HEV", "LEV", False] = Field(
         False,
-        description="Scenario configuration of the TYNDP data, which is one of NT, DE or GA. False disables the TYNDP-specific rules. Only NT is fully implemented and benchmarked in TYNDP 2024; DE and GA are incomplete, unsupported, and not planned to be supported, and the workflow might fail for them.",
+        description="Scenario configuration of the TYNDP data, which is one of NT (National Trends +), HEV (High Economic Variant) or LEV (Low Economic Variant). False disables the TYNDP-specific rules.",
     )
     hurdle_costs: float = Field(
         0.01,

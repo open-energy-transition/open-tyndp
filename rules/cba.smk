@@ -799,6 +799,9 @@ def collect_cba_scenario_inputs(w):
             run=cba_scenarios(w),
         )
     )
+    if not config_provider("benchmarking", "enable")(w):
+        return inputs
+
     inputs.extend(
         expand(
             rules.plot_cba_benchmark.output.plot_file,
