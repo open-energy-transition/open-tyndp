@@ -639,7 +639,7 @@ def prepare_custom_buses(
                 p_min_pu=0,
                 p_max_pu=1,
                 carrier="DC",
-                marginal_cost=0,  # TODO: What should be the marginal cost for the link? Set to 0 for now.
+                marginal_cost=bus["link_marginal_cost"],
             )
             n.add(
                 "Link",
@@ -650,7 +650,7 @@ def prepare_custom_buses(
                 p_min_pu=0,
                 p_max_pu=1,
                 carrier="DC",
-                marginal_cost=0,  # TODO: What should be the marginal cost for the link? Set to 0 for now.
+                marginal_cost=bus["link_marginal_cost"],
             )
 
             # Consistency check to ensure that the bus and links are correctly added

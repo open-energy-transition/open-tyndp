@@ -1,2 +1,2 @@
-project_name,project_type,project_id,bus_name,country,lat,lon,link_bus,link_capacity,category,source,further description
-Example for custom buses,t,153,new_bus,GB,51.089748,9.246651,GB00,400,onshore,,
+project_name,project_type,project_id,bus_name,country,lat,lon,link_bus,link_capacity,link_marginal_cost,category,source,further description
+Example for custom buses,t,153,new_bus,GB,51.089748,9.246651,GB00,400,0.01,onshore,,

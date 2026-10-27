@@ -201,6 +201,7 @@ Each bus is defined in `data/cba/custom_projects/buses.csv`, with one row per bu
 - `lat`, `lon`: coordinates of the bus, used as the `y` and `x` attributes.
 - `link_bus`: existing bus the new bus is connected to. Connecting two custom buses to each other is not supported.
 - `link_capacity`: capacity of that connection in MW.
+- `link_marginal_cost`: Marginal cost of the link in Eur/MWh.
 - `category`: `onshore` or `offshore`.
 
 Entries are dropped with a warning when `bus_name`, `lat`, `lon`, `link_bus` or `link_capacity` is missing, when the coordinates are outside their valid range, when `bus_name` matches an existing bus, or when `link_bus` is not an existing bus. Coordinates are rounded to four decimals, and duplicate `bus_name` entries within the file are reduced to the first occurrence.
