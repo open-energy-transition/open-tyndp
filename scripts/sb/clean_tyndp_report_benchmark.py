@@ -26,14 +26,6 @@ from scripts._helpers import (
 logger = logging.getLogger(__name__)
 
 
-def _safe_sheet(sn: str | dict, scenario: str) -> str:
-    if not sn:
-        return False
-    elif isinstance(sn, dict):
-        return sn.get(scenario, "")
-    return sn
-
-
 def _process_index(
     df: pd.DataFrame, index_col: list[int], names: list[str], nrows: int = None
 ) -> pd.DataFrame:
@@ -125,7 +117,7 @@ def _add_identifier(s: str) -> str:
     """
     if s.startswith("TYNDP") or s.startswith("EC"):
         return s
-    elif any(i in s for i in ["DE", "GA", "NT"]):
+    elif "NT" in s:
         return "TYNDP " + s
     elif any(i in s for i in ["IA", "S3"]):
         return "EC IA S3"
@@ -240,7 +232,7 @@ def clean_data_for_benchmarking(
 
 
 def load_benchmark(
-    benchmarks_raw: dict[str, pd.DataFrame], table: str, scenario: str, options: dict
+    benchmarks_raw: dict[str, pd.DataFrame], table: str, options: dict
 ) -> pd.DataFrame:
     """
     Load and process benchmark data from TYNDP Excel sheets.
@@ -256,8 +248,6 @@ def load_benchmark(
         Dictionary of pandas DataFrames from Excel sheets, keyed by sheet name.
     table : str
         Name of table to load.
-    scenario: str
-        Name of scenario to load.
     options : dict
         Full benchmarking configuration.
 
@@ -276,11 +266,7 @@ def load_benchmark(
         return pd.DataFrame()
 
     # Parameters
-    sheet_name = _safe_sheet(opt["report"]["sheet_name"], scenario)
-    if sheet_name == "":
-        logger.warning(f"No sheet name found for {table} in {scenario}")
-        return pd.DataFrame()
-    df = benchmarks_raw[sheet_name]
+    df = benchmarks_raw[opt["report"]["sheet_name"]]
     df = df.mask(df.map(lambda x: isinstance(x, str) and not x.strip()))
     nrows = opt["report"].get("nrows", None)
     ncolumns = opt["report"].get("ncolumns", None)
@@ -350,7 +336,6 @@ if __name__ == "__main__":
 
     # Parameters
     options = snakemake.params["benchmarking"]
-    scenario = snakemake.params["scenario"]
 
     # Map TYNDP report carrier names to benchmarking carrier names
     add_report_carrier_mappings(snakemake.input.carrier_mapping, options["tables"])
@@ -358,9 +343,9 @@ if __name__ == "__main__":
     # Read benchmarks
     logger.info("Reading raw benchmark data")
     sheet_names = [
-        _safe_sheet(j["report"]["sheet_name"], scenario)
-        for i, j in options["tables"].items()
-        if _safe_sheet(j.get("report", {}).get("sheet_name"), scenario)
+        j["report"]["sheet_name"]
+        for j in options["tables"].values()
+        if j.get("report", {}).get("sheet_name")
     ]
     benchmarks_raw = pd.read_excel(
         snakemake.input.scenarios_figures,
@@ -380,7 +365,6 @@ if __name__ == "__main__":
     func = partial(
         load_benchmark,
         benchmarks_raw,
-        scenario=scenario,
         options=options,
     )
 

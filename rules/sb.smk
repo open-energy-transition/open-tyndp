@@ -274,14 +274,13 @@ rule build_tyndp_pemmdb_data:
         available_years=config_provider(
             "electricity", "pemmdb_capacities", "available_years"
         ),
-        tyndp_scenario=config_provider("tyndp_scenario"),
     script:
         scripts("sb/build_tyndp_pemmdb_data.py")
 
 
 rule clean_tyndp_hydro_inflows:
     input:
-        hydro_inflows_dir=rules.retrieve_tyndp.output.hydro_inflows,
+        hydro_inflows_dir=rules.retrieve_tyndp_2026.output.hydro_inflows,
         busmap=resources("busmap_base_s_all.csv"),
     output:
         hydro_inflows_tyndp=resources(
@@ -297,28 +296,29 @@ rule clean_tyndp_hydro_inflows:
         snapshots=config_provider("snapshots"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
         available_years=config_provider(
-            "electricity", "pemmdb_hydro_profiles", "available_years"
+            "electricity", "pecd_hydro_profiles", "available_years"
         ),
+        wscenarios=config_provider("wscenarios_tyndp"),
     script:
         scripts("sb/clean_tyndp_hydro_inflows.py")
 
 
 def input_data_hydro_tyndp(w):
     available_years = config_provider(
-        "electricity", "pemmdb_hydro_profiles", "available_years"
+        "electricity", "pecd_hydro_profiles", "available_years"
     )(w)
     planning_horizons = config_provider("scenario", "planning_horizons")(w)
     safe_planning_horizons = set(
         safe_planning_horizon(
             year,
             available_years,
-            "PEMMDB hydro",
+            "PECD hydro",
             verbose=False,
         )
         for year in planning_horizons
     )
     technologies = config_provider(
-        "electricity", "pemmdb_hydro_profiles", "technologies"
+        "electricity", "pecd_hydro_profiles", "technologies"
     )(w)
     return {
         f"hydro_inflow_tyndp_{tech}_{planning_horizon}": resources(
@@ -334,7 +334,7 @@ rule build_tyndp_hydro_profile:
         unpack(input_data_hydro_tyndp),
         carrier_mapping="data/tyndp_technology_map.csv",
     output:
-        profile=resources("profile_pemmdb_hydro.nc"),
+        profile=resources("profile_pecd_hydro.nc"),
     log:
         logs("build_tyndp_hydro_profile.log"),
     benchmark:
@@ -346,10 +346,10 @@ rule build_tyndp_hydro_profile:
         drop_leap_day=config_provider("enable", "drop_leap_day"),
         planning_horizons=config_provider("scenario", "planning_horizons"),
         available_years=config_provider(
-            "electricity", "pemmdb_hydro_profiles", "available_years"
+            "electricity", "pecd_hydro_profiles", "available_years"
         ),
         technologies=config_provider(
-            "electricity", "pemmdb_hydro_profiles", "technologies"
+            "electricity", "pecd_hydro_profiles", "technologies"
         ),
     script:
         scripts("sb/build_tyndp_hydro_profile.py")
@@ -390,7 +390,6 @@ rule build_tyndp_gas_demand:
     resources:
         mem_mb=1000,
     params:
-        scenario=config_provider("tyndp_scenario"),
         planning_horizons=config_provider("scenario", "planning_horizons"),
     script:
         scripts("sb/build_tyndp_gas_demand.py")
@@ -470,8 +469,6 @@ if config["sector"]["h2_topology_tyndp"]:
         threads: 1
         resources:
             mem_mb=4000,
-        params:
-            tyndp_scenario=config_provider("tyndp_scenario"),
         script:
             scripts("sb/clean_tyndp_smr.py")
 
@@ -489,8 +486,6 @@ if config["sector"]["h2_topology_tyndp"]:
         threads: 1
         resources:
             mem_mb=4000,
-        params:
-            tyndp_scenario=config_provider("tyndp_scenario"),
         script:
             scripts("sb/clean_tyndp_h2_storages.py")
 
@@ -603,7 +598,6 @@ if config["benchmarking"]["enable"]:
             mem_mb=8000,
         params:
             benchmarking=config_provider("benchmarking"),
-            scenario=config_provider("tyndp_scenario"),
         script:
             scripts("sb/clean_tyndp_report_benchmark.py")
 
