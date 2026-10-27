@@ -537,7 +537,6 @@ def get_bus_col_name(s: str, table: str):
 def compare_sources(
     table: str,
     benchmarks_raw: pd.DataFrame,
-    scenario: str,
     snapshots: dict[str, str],
     options: dict,
     model_col: str = "Open-TYNDP",
@@ -554,8 +553,6 @@ def compare_sources(
         Benchmark metric to compute.
     benchmarks_raw : pd.DataFrame
         Combined DataFrame containing both Open-TYNDP and TYNDP reference data.
-    scenario : str
-        Name of scenario to compare.
     snapshots : dict[str, str]
         Dictionary defining the temporal range with 'start' and 'end' keys.
     options : dict
@@ -710,7 +707,6 @@ def compute_overall_accuracy(
 def orchestrate_benchmark(
     bus_col_name: str,
     benchmarks_raw: pd.DataFrame,
-    scenario: str,
     snapshots: dict[str, str],
     options: dict,
     output_dir: str,
@@ -736,7 +732,6 @@ def orchestrate_benchmark(
     func = partial(
         compare_sources,
         benchmarks_raw=benchmarks_raw,
-        scenario=scenario,
         snapshots=snapshots,
         options=options,
         bus_col_name=bus_col_name,
@@ -816,7 +811,6 @@ if __name__ == "__main__":
             orchestrate_benchmark(
                 bus_col_name=bus_col_name,
                 benchmarks_raw=benchmarks_raw,
-                scenario=scenario,
                 snapshots=snapshots,
                 options=options,
                 output_dir=output_dir,
