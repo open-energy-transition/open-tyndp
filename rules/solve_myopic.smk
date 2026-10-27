@@ -18,7 +18,7 @@ rule add_existing_baseyear:
         costs=lambda w: resources(
             f"costs_{config_provider('scenario', 'planning_horizons',0)(w)}_processed.csv"
         ),
-        cop_profiles=resources("cop_profiles_base_s_{clusters}_{planning_horizons}.nc"),
+        cop_profiles=input_cop_profiles,
         existing_heating_distribution=resources(
             "existing_heating_distribution_base_s_{clusters}_{planning_horizons}.csv"
         ),
