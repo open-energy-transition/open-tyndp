@@ -17,8 +17,6 @@ from matplotlib import pyplot as plt
 logger = logging.getLogger(__name__)
 
 SCENARIO_DICT = {
-    "Distributed Energy": "DE",
-    "Global Ambition": "GA",
     r"National Trends\s*\+": "NT",
     r"NT\s*\+": "NT",
     "National Trends": "NT",
@@ -464,16 +462,14 @@ def convert_units(
     return df
 
 
-def check_wscenario(wscenario: int, scenario: str) -> int:
+def check_wscenario(wscenario: int) -> int:
     """
-    Check if the weather scenario is valid for the given scenario.
+    Check if the weather scenario is valid for the TYNDP data.
 
     Parameters
     ----------
     wscenario : int
         Weather scenario to validate.
-    scenario : str
-        TYNDP scenario name.
 
     Returns
     -------
@@ -481,13 +477,7 @@ def check_wscenario(wscenario: int, scenario: str) -> int:
         Valid weather scenario, falling back to 2009 if the input is not available.
     """
 
-    valid_years = {
-        "NT": [1995, 2008, 2009],
-        "DE": [1995, 2008, 2009],
-        "GA": [1995, 2008, 2009],
-    }
-
-    if wscenario not in valid_years[scenario]:
+    if wscenario not in [1995, 2008, 2009]:
         logger.warning(
             f"Snapshot year {wscenario} doesn't match available TYNDP data. Falling back to 2009."
         )
@@ -713,7 +703,7 @@ def remove_disconnected_storage_buses(
 ) -> None:
     """
     Remove storage buses whose carrier is in *carriers* but that no longer
-    have a Store connected to them.
+    have a Store connected to them as well as any generators connected to those buses.
 
     Parameters
     ----------
@@ -726,6 +716,12 @@ def remove_disconnected_storage_buses(
     idx = n.buses.loc[
         n.buses.carrier.isin(carriers) & ~n.buses.index.isin(remaining_stores)
     ].index
+    gen_i = n.generators.index[n.generators.bus.isin(idx)]
+    if not gen_i.empty:
+        logger.info(
+            f"Removing generators attached to disconnected storage buses: {gen_i.tolist()}"
+        )
+    n.remove("Generator", gen_i)
     n.remove("Bus", idx)
 
 
