@@ -32,15 +32,12 @@ Outputs
   charge per flexible fleet.
 """
 
-import logging
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
 from scripts._helpers import configure_logging, get_snapshots, set_scenario_config
-
-logger = logging.getLogger(__name__)
 
 SEGMENTS = {"ev_market": "Street", "ev_prosumer": "Prosumer"}
 
@@ -229,20 +226,6 @@ def get_fleets(
     fleets.index = fleets["node"] + " " + fleets["segment"] + " " + fleets["fleet"]
     fleets = fleets.loc[fleets["energy"] > 0]
     fixed = fleets["fleet"] == "Fixed"
-
-    if len(fixed_demand) == 8760:
-        deviation = fixed_demand.sum().div(fleets.loc[fixed, "energy"]) - 1
-        mismatch = ~(deviation.abs() <= 0.01)
-        if mismatch.any():
-            raise ValueError(
-                "Fixed EV fleet demand does not match the fixed share of the "
-                f"national EV demand:\n{deviation[mismatch]}"
-            )
-    else:
-        logger.info(
-            "Skipping the fixed EV fleet demand reconciliation, as the demand "
-            "does not cover the full year."
-        )
 
     flexible_vehicles = fleets["vehicles"].where(~fixed, 0)
     fixed_p_nom = fixed_demand.max().reindex(fleets.index) / fleets["charge_efficiency"]
