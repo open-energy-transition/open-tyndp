@@ -227,7 +227,6 @@ biomass:
     2030: 0
     2035: 0
     2040: 0
-    2045: 0
     2050: 0
   share_sustainable_potential_available:
     2020: 1
@@ -235,7 +234,6 @@ biomass:
     2030: 1
     2035: 1
     2040: 1
-    2045: 1
     2050: 1
 
 existing_capacities:
@@ -251,42 +249,26 @@ sector:
   agriculture: false
   fossil_fuels: true
 
-  land_transport_fuel_cell_share:  # Not modelled
-    2030: 0
-    2035: 0
-    2040: 0
-    2045: 0
-    2050: 0
-  land_transport_electric_share:  # included in exogenous demand
-    2030: 0
-    2035: 0
-    2040: 0
-    2045: 0
-    2050: 0
-  land_transport_ice_share:  # TODO Improve TYNDP 2024 approximations
-    2030: 0.96
-    2035: 0.82  # interpolation
-    2040: 0.68
-    2045: 0.42  # interpolation
-    2050: 0.16
+  land_transport_ice_share:  # default demand scaled to TYNDP 2026 NT+ EU27 road and rail liquids demand (Supply Tool)
+    2030: 0.900
+    2035: 0.670
+    2040: 0.483
+    2050: 0.186
   shipping_hydrogen_share:  # included in exogenous demand  # TODO Validate assumption
     2030: 0
     2035: 0
     2040: 0
-    2045: 0
     2050: 0
   shipping_methanol_share:  # included in exogenous demand  # TODO Validate assumption
     2030: 0
     2035: 0
     2040: 0
-    2045: 0
     2050: 0
   shipping_oil_share:  # TYNDP 2026 Supply Tool NT+, FuelEU Maritime-compliant fuel split (not raw ETM demand)
     2030: 0.875
     2035: 0.751
     2040: 0.547
     2050: 0.138
-  bev_charge_efficiency: 0.94 # p.96 of Methodology Report TYNDP 2024
   oil_boilers: false
   biomass_boiler: false
   solar_thermal: false
