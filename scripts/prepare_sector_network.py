@@ -3286,6 +3286,8 @@ def add_ev_tyndp(
     grid_buses = (fleets["node"] + "RETE").where(
         fleets["segment"] == "Prosumer", fleets["node"]
     )
+    in_network = grid_buses.isin(n.buses.index)
+    fleets, grid_buses = fleets[in_network], grid_buses[in_network]
     carriers = "EV " + fleets["segment"] + " " + fleets["fleet"]
     flexible = fleets.index[fleets["fleet"] != "Fixed"] if dsm else pd.Index([])
     avail_profile = avail_profile.reindex(columns=flexible).reindex(
