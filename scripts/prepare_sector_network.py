@@ -5584,7 +5584,7 @@ def add_land_transport(
     options,
     investment_year,
     nodes,
-    tyndp_scenario: bool = False,
+    tyndp_scenario: str | bool = False,
 ) -> None:
     """
     Add land transport demand and infrastructure to the network.
@@ -5614,7 +5614,7 @@ def add_land_transport(
         Year for which to get the transport shares
     nodes : list-like
         List of spatial nodes to consider
-    tyndp_scenario : bool, optional
+    tyndp_scenario : str | bool, optional
         Whether a TYNDP scenario is modelled, in which case EVs are added by
         `add_ev_tyndp` instead.
 
@@ -9829,7 +9829,7 @@ if __name__ == "__main__":
             options=options,
             investment_year=investment_year,
             nodes=spatial.nodes,
-            tyndp_scenario=bool(tyndp_scenario),
+            tyndp_scenario=tyndp_scenario,
         )
 
     if options["heating"]:
