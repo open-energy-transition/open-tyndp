@@ -5004,7 +5004,6 @@ def attach_gas_load(
     options: dict,
     costs: pd.DataFrame,
     spatial: SimpleNamespace,
-    nhours: int = 8760,
 ):
     """
     Attach exogenous gas demand to the network as Load with CO2 emissions tracking.
@@ -5025,11 +5024,11 @@ def attach_gas_load(
         Technology costs assumptions.
     spatial : SimpleNamespace
         Object containing spatial information about nodes and their locations.
-    nhours : int, optional
-        Number of hours over which the annual gas demand is divided. Default is 8760.
     """
+    nhours = n.snapshot_weightings.generators.sum()
+    nyears = nhours / 8760
 
-    gas_demand = pd.read_csv(gas_demand_fn, index_col=0) / nhours
+    gas_demand = pd.read_csv(gas_demand_fn, index_col=0) * nyears / nhours
 
     if options["gas_network"]:
         spatial_gas_demand = gas_demand.rename(
@@ -9860,7 +9859,6 @@ if __name__ == "__main__":
             options=options,
             costs=costs,
             spatial=spatial,
-            nhours=nhours,
         )
 
     if tyndp_scenario:
