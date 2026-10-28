@@ -1588,9 +1588,6 @@ data:
   tyndp_pecd:
     source: archive
     version: latest
-  tyndp_vis_plfm:
-    source: archive
-    version: latest
   tyndp_cba_projects:
     source: archive
     version: latest
