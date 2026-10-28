@@ -416,16 +416,8 @@ rule build_tyndp_wheeling_charges:
 
 rule build_tyndp_ev_fleets:
     input:
-        ev_market=expand(
-            rules.build_tyndp_demand.output.demand,
-            demand_type="ev_market",
-            allow_missing=True,
-        )[0],
-        ev_prosumer=expand(
-            rules.build_tyndp_demand.output.demand,
-            demand_type="ev_prosumer",
-            allow_missing=True,
-        )[0],
+        ev_market=resources("demand_tyndp_ev_market_{planning_horizons}.csv"),
+        ev_prosumer=resources("demand_tyndp_ev_prosumer_{planning_horizons}.csv"),
         ev_modelling=rules.retrieve_tyndp_2026.output.ev_modelling,
     output:
         ev_demand=resources("ev_demand_tyndp_{planning_horizons}.csv"),
