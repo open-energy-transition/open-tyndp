@@ -1858,18 +1858,15 @@ rule prepare_sector_network:
             resources("dsm_profile_tyndp_{planning_horizons}.csv"),
         ),
         wheeling_charges=branch(
-            lambda w: config_provider("tyndp_scenario")(w)
-            and config_provider("sector", "electricity_distribution_grid")(w),
+            config_provider("tyndp_scenario"),
             resources("wheeling_charges_tyndp.csv"),
         ),
         elec_demand_prosumer_tyndp=branch(
-            lambda w: config_provider("tyndp_scenario")(w)
-            and config_provider("sector", "electricity_distribution_grid")(w),
+            config_provider("tyndp_scenario"),
             resources("demand_tyndp_electricity_prosumer_{planning_horizons}.csv"),
         ),
         elec_demand_prosumer_btm_tyndp=branch(
-            lambda w: config_provider("tyndp_scenario")(w)
-            and config_provider("sector", "electricity_distribution_grid")(w),
+            config_provider("tyndp_scenario"),
             resources("demand_tyndp_electricity_prosumer_btm_{planning_horizons}.csv"),
         ),
         tyndp_nuclear_profiles=branch(
