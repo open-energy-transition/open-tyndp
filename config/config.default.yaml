@@ -1614,9 +1614,6 @@ data:
   open_tyndp_prelim:
     source: archive
     version: latest
-  countries_centroids:
-    source: primary
-    version: latest
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#overpass_api
 overpass_api:

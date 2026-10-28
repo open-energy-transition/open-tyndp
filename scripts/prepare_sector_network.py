@@ -4359,6 +4359,7 @@ def add_h2_topology_tyndp(
     country_z2 = pd.Series(
         buses_h2_z2, index=spatial.h2_tyndp.df.loc[buses_h2_z2].country.values
     )
+    country_z2 = country_z2[~country_z2.index.duplicated()]
     buses_h2_z1_effective = pd.Index(country_z1.combine_first(country_z2))
 
     # add H2 production (Z1: SMR (optional), ATR (optional); Z2: SMR CC (optional), Electrolysis)
@@ -9224,7 +9225,7 @@ def add_import_options(
     options : dict
         Options from snakemake.params["sector"].
     spatial : SimpleNamespace
-        Configuration options containing spatial information on methanol, oil, gas and ammonia nodes
+        Configuration options containing spatial information on methanol, oil, gas, ammonia and h2_tyndp nodes
     gas_input_nodes : pd.DataFrame
         Locations of gas input nodes split by LNG and pipeline.
     h2_imports_tyndp_fn : str

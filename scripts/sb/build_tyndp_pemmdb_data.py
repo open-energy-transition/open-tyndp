@@ -11,8 +11,7 @@ PEMMDB capacities and profiles carry the range of weather scenarios they apply
 to (``ws_start`` to ``ws_end``, labeled ``WSxxx``), and only the entries
 covering the modeled scenario are kept. Which scenario that is comes from
 `wscenarios_tyndp` and is resolved for the planning year the data is read
-from, the same way as for demand (see
-:py:func:`scripts._helpers.get_wscenario`).
+from, the same way as for demand (see `get_wscenario` in `scripts/sb/_helpers.py`).
 
 Outputs
 -------
@@ -224,9 +223,12 @@ def _extract_price_band_type(df: pd.DataFrame) -> str:
         return (
             df.pemmdb_type.str.split("/").str[1:].str.join("-").str.replace(" ", "-")
             + "-"
-            + df.purpose.astype(str)
+            + df.purpose.astype(str).fillna("nan")
             + "-"
-            + pd.to_numeric(df.price, errors="coerce").round(2).astype(str)
+            + pd.to_numeric(df.price, errors="coerce")
+            .round(2)
+            .astype(str)
+            .fillna("nan")
             + "eur"
         )
     elif "hours" in df.columns:
@@ -237,7 +239,7 @@ def _extract_price_band_type(df: pd.DataFrame) -> str:
         logger.debug(
             "No purpose or hours column in Dataframe to extract for price band type."
         )
-        return df.price.astype("str") + "eur"
+        return df.price.astype(str).fillna("nan") + "eur"
 
 
 def _process_thermal_hydrogen_capacities(
@@ -291,6 +293,7 @@ def _process_other_nonres_capacities(
         .iloc[1:]
         .dropna(how="all")
         .filter(like="Price Band")
+        .dropna(how="all", axis="columns")
     )
 
     if df.empty:
