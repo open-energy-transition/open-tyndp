@@ -5041,6 +5041,13 @@
           "description": "The share of vehicles that uses internal combustion engines (ICE) in a given year. What is not EV or FCEV is oil-fuelled ICE.",
           "type": "object"
         },
+        "land_transport_oil_demand_tyndp": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "description": "EU27 land transport (road and rail) liquids demand in TWh per planning horizon. For TYNDP scenarios, it is added as a flat demand instead of the PyPSA-Eur land transport.",
+          "type": "object"
+        },
         "transport_electric_efficiency": {
           "default": 53.19,
           "description": "The conversion efficiencies of electric vehicles in transport.",
@@ -12203,6 +12210,13 @@
             "type": "number"
           },
           "description": "The share of vehicles that uses internal combustion engines (ICE) in a given year. What is not EV or FCEV is oil-fuelled ICE.",
+          "type": "object"
+        },
+        "land_transport_oil_demand_tyndp": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "description": "EU27 land transport (road and rail) liquids demand in TWh per planning horizon. For TYNDP scenarios, it is added as a flat demand instead of the PyPSA-Eur land transport.",
           "type": "object"
         },
         "transport_electric_efficiency": {

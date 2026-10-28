@@ -254,6 +254,11 @@ sector:
     2035: 0.670
     2040: 0.483
     2050: 0.186
+  land_transport_oil_demand_tyndp:  # TWh, TYNDP 2026 NT+ EU27 transport liquids (Scenario Report fig. 19) minus international aviation (Supply Tool) and domestic aviation and navigation (Eurostat 2023)
+    2030: 2530
+    2035: 1885
+    2040: 1357
+    2050: 524
   shipping_hydrogen_share:  # included in exogenous demand  # TODO Validate assumption
     2030: 0
     2035: 0

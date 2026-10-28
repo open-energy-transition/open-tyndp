@@ -647,6 +647,7 @@ Only used for sector-coupling studies.
     | `land_transport_fuel_cell_share` | dict (str -> number) |  | The share of vehicles that uses fuel cells in a given year. |
     | `land_transport_electric_share` | dict (str -> number) |  | The share of vehicles that uses electric vehicles (EV) in a given year. Ignored for TYNDP scenarios, where EVs are added from TYNDP data. |
     | `land_transport_ice_share` | dict (str -> number) |  | The share of vehicles that uses internal combustion engines (ICE) in a given year. What is not EV or FCEV is oil-fuelled ICE. |
+    | `land_transport_oil_demand_tyndp` | dict (str -> number) |  | EU27 land transport (road and rail) liquids demand in TWh per planning horizon. For TYNDP scenarios, it is added as a flat demand instead of the PyPSA-Eur land transport. |
     | `transport_electric_efficiency` | number | `53.19` | The conversion efficiencies of electric vehicles in transport. |
     | `transport_fuel_cell_efficiency` | number | `30.003` | The H2 conversion efficiencies of fuel cells in transport. |
     | `transport_ice_efficiency` | number | `16.0712` | The oil conversion efficiencies of internal combustion engine (ICE) in transport. |
