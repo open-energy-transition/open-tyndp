@@ -77,7 +77,7 @@ FLEET_COLUMNS = [
 
 
 def read_parameters(
-    fn: Path, pyear: int, year_column: str, index_column: str
+    fn: Path, planning_horizon: int, year_column: str, index_column: str
 ) -> pd.DataFrame:
     """
     Read the EV parameters of a planning horizon from a TYNDP EV Excel file.
@@ -86,7 +86,7 @@ def read_parameters(
     ----------
     fn : Path
         Path to the Excel file.
-    pyear : int
+    planning_horizon : int
         Planning horizon.
     year_column : str
         Column holding the planning horizon.
@@ -99,11 +99,11 @@ def read_parameters(
         Parameters indexed by `index_column`.
     """
     df = pd.read_excel(fn, engine="calamine")
-    df = df.loc[df[year_column] == pyear]
+    df = df.loc[df[year_column] == planning_horizon]
     return df.set_index(index_column, verify_integrity=True)
 
 
-def get_charging_stations(fn: Path, pyear: int) -> pd.DataFrame:
+def get_charging_stations(fn: Path, planning_horizon: int) -> pd.DataFrame:
     """
     Get the EU-wide EV charging station parameters for a planning horizon.
 
@@ -111,7 +111,7 @@ def get_charging_stations(fn: Path, pyear: int) -> pd.DataFrame:
     ----------
     fn : Path
         Path to ``EV_CHARGING STATIONS.xlsx``.
-    pyear : int
+    planning_horizon : int
         Planning horizon.
 
     Returns
@@ -120,7 +120,7 @@ def get_charging_stations(fn: Path, pyear: int) -> pd.DataFrame:
         Charging station parameters indexed by segment, with rates in MW per
         station and efficiencies in p.u.
     """
-    stations = read_parameters(fn, pyear, "YEAR", "PROSUMER/STREET/FAST")
+    stations = read_parameters(fn, planning_horizon, "YEAR", "PROSUMER/STREET/FAST")
     stations = stations.rename(columns=CHARGING_STATIONS_COLUMNS)[
         list(CHARGING_STATIONS_COLUMNS.values())
     ]
@@ -156,7 +156,9 @@ def expand_daily_profile(
     return pd.Series(np.where(is_weekend, weekend, weekday), index=index)
 
 
-def get_fleets(fixed_demand: pd.DataFrame, ev_dir: Path, pyear: int) -> pd.DataFrame:
+def get_fleets(
+    fixed_demand: pd.DataFrame, ev_dir: Path, planning_horizon: int
+) -> pd.DataFrame:
     """
     Get the parameters of the fixed and flexible EV fleets.
 
@@ -166,7 +168,7 @@ def get_fleets(fixed_demand: pd.DataFrame, ev_dir: Path, pyear: int) -> pd.DataF
         Fixed fleet demand in MW.
     ev_dir : Path
         Path to the TYNDP 2026 EV modelling inputs.
-    pyear : int
+    planning_horizon : int
         Planning horizon.
 
     Returns
@@ -175,42 +177,50 @@ def get_fleets(fixed_demand: pd.DataFrame, ev_dir: Path, pyear: int) -> pd.DataF
         Fleet parameters indexed by fleet, with the annual driving demand in
         MWh as ``energy``.
     """
-    etm = read_parameters(ev_dir / "EV_ETM_DATA.xlsx", pyear, "YEAR", "COUNTRY")
-    flex = read_parameters(ev_dir / "EV_FLEX_SHARE.xlsx", pyear, "YEAR", "Node")
+    etm = read_parameters(
+        ev_dir / "EV_ETM_DATA.xlsx", planning_horizon, "YEAR", "COUNTRY"
+    )
+    flex = read_parameters(
+        ev_dir / "EV_FLEX_SHARE.xlsx", planning_horizon, "YEAR", "Node"
+    )
     zone_shares = read_parameters(
-        ev_dir / "EV_MARKET_ZONE_SHARES.xlsx", pyear, "year", "market_zone"
+        ev_dir / "EV_MARKET_ZONE_SHARES.xlsx", planning_horizon, "year", "market_zone"
     )["split_factor"]
     misc = read_parameters(
-        ev_dir / "EV_MISC_PARAMETERS.xlsx", pyear, "Year", "Year"
-    ).loc[pyear]
-    stations = get_charging_stations(ev_dir / "EV_CHARGING STATIONS.xlsx", pyear)
+        ev_dir / "EV_MISC_PARAMETERS.xlsx", planning_horizon, "Year", "Year"
+    ).loc[planning_horizon]
+    stations = get_charging_stations(
+        ev_dir / "EV_CHARGING STATIONS.xlsx", planning_horizon
+    )
 
     nodes = fixed_demand.columns.str.split(" ").str[0].unique()
-    base = pd.MultiIndex.from_product(
+    fleet_base = pd.MultiIndex.from_product(
         [nodes, SEGMENTS.values()], names=["node", "segment"]
     ).to_frame(index=False)
-    countries = base["node"].str[:2]
-    share = base["segment"].map(SEGMENT_SHARES).map(misc) / 100
-    share *= zone_shares.reindex(base["node"], fill_value=1).to_numpy()
-    flex_share = flex.loc[base["node"], "EV_flex_share"].to_numpy() / 100
-    base["v2g_share"] = [
+    countries = fleet_base["node"].str[:2]
+    share = fleet_base["segment"].map(SEGMENT_SHARES).map(misc) / 100
+    share *= zone_shares.reindex(fleet_base["node"], fill_value=1).to_numpy()
+    flex_share = flex.loc[fleet_base["node"], "EV_flex_share"].to_numpy() / 100
+    fleet_base["v2g_share"] = [
         flex.at[node, V2G_SHARES[segment]] / 100
-        for node, segment in zip(base["node"], base["segment"])
+        for node, segment in zip(fleet_base["node"], fleet_base["segment"])
     ]
-    base["vehicles"] = etm.loc[countries, "UNITS [#]"].to_numpy() * share
-    base["energy"] = etm.loc[countries, "ELECTRITY DEMAND [TWh]"].to_numpy() * share
-    base["energy"] *= 1e6
-    base = base.join(stations, on="segment")
+    fleet_base["vehicles"] = etm.loc[countries, "UNITS [#]"].to_numpy() * share
+    fleet_base["energy"] = (
+        etm.loc[countries, "ELECTRITY DEMAND [TWh]"].to_numpy() * share
+    )
+    fleet_base["energy"] *= 1e6
+    fleet_base = fleet_base.join(stations, on="segment")
 
     fleet_shares = {"Fixed": 1 - flex_share} | dict.fromkeys(
         FLEXIBLE_FLEETS, flex_share / 2
     )
     fleets = pd.concat(
         [
-            base.assign(
+            fleet_base.assign(
                 fleet=fleet,
-                vehicles=base["vehicles"] * fleet_share,
-                energy=base["energy"] * fleet_share,
+                vehicles=fleet_base["vehicles"] * fleet_share,
+                energy=fleet_base["energy"] * fleet_share,
             )
             for fleet, fleet_share in fleet_shares.items()
         ],
@@ -251,7 +261,7 @@ def get_fleets(fixed_demand: pd.DataFrame, ev_dir: Path, pyear: int) -> pd.DataF
 
 
 def get_flexible_profiles(
-    flexible: pd.DataFrame, index: pd.DatetimeIndex, ev_dir: Path, pyear: int
+    flexible: pd.DataFrame, index: pd.DatetimeIndex, ev_dir: Path, planning_horizon: int
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     Get the driving demand, availability and minimum state of charge of the
@@ -265,7 +275,7 @@ def get_flexible_profiles(
         Snapshots.
     ev_dir : Path
         Path to the TYNDP 2026 EV modelling inputs.
-    pyear : int
+    planning_horizon : int
         Planning horizon.
 
     Returns
@@ -313,7 +323,7 @@ def get_flexible_profiles(
         {
             name: expand_daily_profile(
                 min_soc_profiles,
-                f"{segment.upper()} {{day_type}} {pyear} [%]",
+                f"{segment.upper()} {{day_type}} {planning_horizon} [%]",
                 year_index,
             )
             for name, segment in flexible["segment"].items()
@@ -336,7 +346,7 @@ if __name__ == "__main__":
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    pyear = int(snakemake.wildcards.planning_horizons)
+    planning_horizon = int(snakemake.wildcards.planning_horizons)
     ev_dir = Path(snakemake.input.ev_modelling)
 
     fixed_demand = pd.concat(
@@ -348,11 +358,11 @@ if __name__ == "__main__":
         ],
         axis=1,
     )
-    fleets = get_fleets(fixed_demand, ev_dir, pyear)
+    fleets = get_fleets(fixed_demand, ev_dir, planning_horizon)
     fixed = fleets.index[fleets["fleet"] == "Fixed"]
     flexible = fleets.loc[fleets["fleet"] != "Fixed"]
     flexible_demand, avail_profile, dsm_profile = get_flexible_profiles(
-        flexible, fixed_demand.index, ev_dir, pyear
+        flexible, fixed_demand.index, ev_dir, planning_horizon
     )
     ev_demand = pd.concat([fixed_demand[fixed], flexible_demand], axis=1)
 
