@@ -5031,7 +5031,7 @@
           "additionalProperties": {
             "type": "number"
           },
-          "description": "The share of vehicles that uses electric vehicles (EV) in a given year. Ignored for TYNDP scenarios, where EVs are added from TYNDP data.",
+          "description": "The share of vehicles that uses electric vehicles (EV) in a given year.",
           "type": "object"
         },
         "land_transport_ice_share": {
@@ -12202,7 +12202,7 @@
           "additionalProperties": {
             "type": "number"
           },
-          "description": "The share of vehicles that uses electric vehicles (EV) in a given year. Ignored for TYNDP scenarios, where EVs are added from TYNDP data.",
+          "description": "The share of vehicles that uses electric vehicles (EV) in a given year.",
           "type": "object"
         },
         "land_transport_ice_share": {

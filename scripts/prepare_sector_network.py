@@ -3357,6 +3357,71 @@ def add_ev_tyndp(
     )
 
 
+def add_land_transport_oil_tyndp(
+    n: pypsa.Network,
+    costs: pd.DataFrame,
+    spatial: SimpleNamespace,
+    options: dict,
+    cf_industry: dict,
+    demand: float,
+) -> None:
+    """
+    Add the TYNDP EU27 land transport oil demand as a flat load with its CO2
+    emissions.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        Network to modify.
+    costs : pd.DataFrame
+        Technology costs, including the CO2 intensity of oil.
+    spatial : SimpleNamespace
+        Namespace with the oil supply nodes.
+    options : dict
+        Sector options.
+    cf_industry : dict
+        Industry configuration, used to add the oil carrier buses.
+    demand : float
+        Annual land transport oil demand in TWh.
+    """
+    add_carrier_buses(
+        n=n,
+        carrier="oil",
+        costs=costs,
+        spatial=spatial,
+        options=options,
+        cf_industry=cf_industry,
+    )
+
+    nhours = n.snapshot_weightings.generators.sum()
+    nyears = nhours / 8760
+
+    n.add(
+        "Bus",
+        "EU land transport oil",
+        location="EU",
+        carrier="land transport oil",
+        unit="land transport",
+    )
+    n.add(
+        "Load",
+        "EU land transport oil",
+        bus="EU land transport oil",
+        carrier="land transport oil",
+        p_set=demand * 1e6 * nyears / nhours,
+    )
+    n.add(
+        "Link",
+        "EU land transport oil",
+        bus0=spatial.oil.nodes[0],
+        bus1="EU land transport oil",
+        bus2="co2 atmosphere",
+        carrier="land transport oil",
+        efficiency2=costs.at["oil", "CO2 intensity"],
+        p_nom_extendable=True,
+    )
+
+
 def insert_electricity_distribution_grid(
     n: pypsa.Network,
     costs: pd.DataFrame,
@@ -5586,7 +5651,6 @@ def add_land_transport(
     options,
     investment_year,
     nodes,
-    tyndp_scenario: str | bool = False,
 ) -> None:
     """
     Add land transport demand and infrastructure to the network.
@@ -5616,9 +5680,6 @@ def add_land_transport(
         Year for which to get the transport shares
     nodes : list-like
         List of spatial nodes to consider
-    tyndp_scenario : str | bool, optional
-        Whether a TYNDP scenario is modelled, in which case EVs are added by
-        `add_ev_tyndp` instead.
 
     Returns
     -------
@@ -5642,9 +5703,7 @@ def add_land_transport(
     dsm_profile = pd.read_csv(dsm_profile_file, index_col=0, parse_dates=True)
 
     # exogenous share of passenger car type
-    engine_types = (
-        ["fuel_cell", "ice"] if tyndp_scenario else ["fuel_cell", "electric", "ice"]
-    )
+    engine_types = ["fuel_cell", "electric", "ice"]
     shares = pd.Series()
     for engine in engine_types:
         share_key = f"land_transport_{engine}_share"
@@ -5665,9 +5724,7 @@ def add_land_transport(
     )
     temperature = temperature.apply(lambda col: col.fillna(temperature.mean(axis=1)))
 
-    if tyndp_scenario:
-        logger.info("EVs are added from TYNDP data in add_ev_tyndp")
-    elif shares["electric"] > 0:
+    if shares["electric"] > 0:
         add_EVs(
             n,
             avail_profile,
@@ -9818,7 +9875,16 @@ if __name__ == "__main__":
             nhours=nhours,
         )
 
-    if options["transport"]:
+    if options["transport"] and tyndp_scenario:
+        add_land_transport_oil_tyndp(
+            n=n,
+            costs=costs,
+            spatial=spatial,
+            options=options,
+            cf_industry=cf_industry,
+            demand=options["land_transport_oil_demand_tyndp"][investment_year],
+        )
+    elif options["transport"]:
         add_land_transport(
             n=n,
             costs=costs,
@@ -9831,7 +9897,6 @@ if __name__ == "__main__":
             options=options,
             investment_year=investment_year,
             nodes=spatial.nodes,
-            tyndp_scenario=tyndp_scenario,
         )
 
     if options["heating"]:

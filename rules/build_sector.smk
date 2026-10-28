@@ -1692,10 +1692,22 @@ rule prepare_sector_network:
             resources("pop_weighted_heat_totals_s_{clusters}.csv"),
         ),
         shipping_demand=resources("shipping_demand_s_{clusters}.csv"),
-        transport_demand=resources("transport_demand_s_{clusters}.csv"),
-        transport_data=resources("transport_data_s_{clusters}.csv"),
-        avail_profile=resources("avail_profile_s_{clusters}.csv"),
-        dsm_profile=resources("dsm_profile_s_{clusters}.csv"),
+        transport_demand=branch(
+            lambda w: not config_provider("tyndp_scenario")(w),
+            resources("transport_demand_s_{clusters}.csv"),
+        ),
+        transport_data=branch(
+            lambda w: not config_provider("tyndp_scenario")(w),
+            resources("transport_data_s_{clusters}.csv"),
+        ),
+        avail_profile=branch(
+            lambda w: not config_provider("tyndp_scenario")(w),
+            resources("avail_profile_s_{clusters}.csv"),
+        ),
+        dsm_profile=branch(
+            lambda w: not config_provider("tyndp_scenario")(w),
+            resources("dsm_profile_s_{clusters}.csv"),
+        ),
         heat_dsm_profile=branch(
             config_provider("sector", "residential_heat", "dsm", "enable"),
             resources("residential_heat_dsm_profile_total_base_s_{clusters}.csv"),
@@ -1743,7 +1755,10 @@ rule prepare_sector_network:
         ),
         heating_efficiencies=resources("heating_efficiencies.csv"),
         temp_soil_total=resources("temp_soil_total_base_s_{clusters}.nc"),
-        temp_air_total=resources("temp_air_total_base_s_{clusters}.nc"),
+        temp_air_total=branch(
+            lambda w: not config_provider("tyndp_scenario")(w),
+            resources("temp_air_total_base_s_{clusters}.nc"),
+        ),
         cop_profiles=branch(
             config_provider("sector", "heating"),
             resources("cop_profiles_base_s_{clusters}_{planning_horizons}.nc"),

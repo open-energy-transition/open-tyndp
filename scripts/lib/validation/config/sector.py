@@ -498,7 +498,7 @@ class SectorConfig(BaseModel):
             2045: 0.85,
             2050: 1,
         },
-        description="The share of vehicles that uses electric vehicles (EV) in a given year. Ignored for TYNDP scenarios, where EVs are added from TYNDP data.",
+        description="The share of vehicles that uses electric vehicles (EV) in a given year.",
     )
     land_transport_ice_share: dict[int, float] = Field(
         default_factory=lambda: {

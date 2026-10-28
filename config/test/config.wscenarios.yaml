@@ -249,11 +249,6 @@ sector:
   agriculture: false
   fossil_fuels: true
 
-  land_transport_ice_share:  # default demand scaled to TYNDP 2026 NT+ EU27 road and rail liquids demand (Supply Tool)
-    2030: 0.900
-    2035: 0.670
-    2040: 0.483
-    2050: 0.186
   land_transport_oil_demand_tyndp:  # TWh, TYNDP 2026 NT+ EU27 transport liquids (Scenario Report fig. 19) minus international aviation (Supply Tool) and domestic aviation and navigation (Eurostat 2023)
     2030: 2530
     2035: 1885

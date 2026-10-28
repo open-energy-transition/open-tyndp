@@ -645,7 +645,7 @@ Only used for sector-coupling studies.
     | `bev_avail_mean` | number | `0.8` | The average share plugged-in availability for passenger electric vehicles. |
     | `v2g` | boolean | `true` | Allows feed-in to grid from EV battery. This is only enabled if BEV demand-side management is enabled, and the share of vehicles participating is V2G is given by `bev_dsm_availability`. |
     | `land_transport_fuel_cell_share` | dict (str -> number) |  | The share of vehicles that uses fuel cells in a given year. |
-    | `land_transport_electric_share` | dict (str -> number) |  | The share of vehicles that uses electric vehicles (EV) in a given year. Ignored for TYNDP scenarios, where EVs are added from TYNDP data. |
+    | `land_transport_electric_share` | dict (str -> number) |  | The share of vehicles that uses electric vehicles (EV) in a given year. |
     | `land_transport_ice_share` | dict (str -> number) |  | The share of vehicles that uses internal combustion engines (ICE) in a given year. What is not EV or FCEV is oil-fuelled ICE. |
     | `land_transport_oil_demand_tyndp` | dict (str -> number) |  | EU27 land transport (road and rail) liquids demand in TWh per planning horizon. For TYNDP scenarios, it is added as a flat demand instead of the PyPSA-Eur land transport. |
     | `transport_electric_efficiency` | number | `53.19` | The conversion efficiencies of electric vehicles in transport. |
