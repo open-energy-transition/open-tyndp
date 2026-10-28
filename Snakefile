@@ -203,8 +203,12 @@ rule all:
             **config["scenario"],
         ),
         # COP profiles plots
-        expand(
-            RESULTS + "graphs/cop_profiles_s_{clusters}_{planning_horizons}.html",
+        lambda w: expand(
+            (
+                RESULTS + "graphs/cop_profiles_s_{clusters}_{planning_horizons}.html"
+                if not config_provider("tyndp_scenario")(w)
+                else []
+            ),
             run=config["run"]["name"],
             **config["scenario"],
         ),
