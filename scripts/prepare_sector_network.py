@@ -3293,7 +3293,14 @@ def add_ev_tyndp(
     )
 
     n.add("Carrier", carriers.unique().tolist() + ["BEV charger"])
-    n.add("Bus", fleets.index, location=fleets["node"], carrier=carriers, unit="MWh_el")
+    n.add(
+        "Bus",
+        fleets.index,
+        location=fleets["node"],
+        country=fleets["node"].map(n.buses.country),
+        carrier=carriers,
+        unit="MWh_el",
+    )
     n.add(
         "Link",
         fleets.index + " BEV charger",
