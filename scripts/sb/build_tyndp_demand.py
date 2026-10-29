@@ -16,7 +16,7 @@ Each planning horizon Excel file contains 30 climate year columns (labeled
 for the corresponding planning horizon (the rest are zero-filled placeholders).
 Which 3 are populated is dependent on data package and identical across
 demand types for a given planning horizon. The availability is recorded in
-`AVAILABLE_WSCENARIOS` in `scripts/_helpers.py`.
+`AVAILABLE_WSCENARIOS` in `scripts/sb/_helpers.py`.
 
 Current implementation selects first weather scenario of a planning horizon,
 This needs to be revisit once we have implemented the full weather scenario
@@ -50,12 +50,14 @@ from pathlib import Path
 import pandas as pd
 
 from scripts._helpers import (
-    align_demand_to_snapshots,
-    check_snapshot_year,
     configure_logging,
     get_snapshots,
-    get_wscenario,
     set_scenario_config,
+)
+from scripts.sb._helpers import (
+    align_demand_to_snapshots,
+    check_snapshot_year,
+    get_wscenario,
 )
 
 logger = logging.getLogger(__name__)

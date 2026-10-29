@@ -4,7 +4,7 @@
 
 
 from scripts.sb.build_tyndp_demand import DEMAND_TYPE_MAP
-from scripts._helpers import safe_planning_horizon, find_free_port
+from scripts.sb._helpers import safe_planning_horizon, find_free_port
 from shutil import unpack_archive, copy2
 
 # Retrieve
@@ -95,7 +95,6 @@ if (PRESOLVED_NETWORKS_DATASET := dataset_version("open_tyndp_prelim"))[
                 out_path.parent.mkdir(parents=True, exist_ok=True)
                 with zf.open(matches[0]) as src, out_path.open("wb") as dst:
                     copyfileobj(src, dst)
-
 
 
 # Development
@@ -925,7 +924,6 @@ rule launch_explorer:
 
         output_log = str(output[0])
         input_files = list(input)
-
         # Define command line executable
         cmd = [
             sys.executable,
@@ -933,29 +931,23 @@ rule launch_explorer:
             output_log,
             str(params.port),
         ] + input_files
-
         print(params.launch_msg)
-
         # Open logfile before Popen so the log exists when the subprocess validates its path
         popen_kwargs = {
             "stdout": open(output_log, "w"),
             "stderr": subprocess.STDOUT,
         }
-
         # Use creationflags for Windows and start_new_session for Linux/Unix
         if platform.system() == "Windows":
             popen_kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
         else:
             popen_kwargs["start_new_session"] = True
-
         process = subprocess.Popen(cmd, **popen_kwargs)
-
         print(f"Explorer subprocess started with PID: {process.pid}")
         print(f"PyPSA-Explorer is running at http://127.0.0.1:{params.port}.")
         print(
             f"Your browser should open automatically. If not, click the link above."
         )
-
 
 
 rule close_explorers:
@@ -964,7 +956,6 @@ rule close_explorers:
 
         print("Closing all explorer instances...")
         killed_count = 0
-
         for proc in psutil.process_iter(["pid", "name", "cmdline"]):
             try:
                 cmdline = proc.info.get("cmdline", [])
@@ -974,7 +965,6 @@ rule close_explorers:
                     killed_count += 1
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 pass
-
         if killed_count == 0:
             print("No explorer processes found running.")
         else:

@@ -18,7 +18,7 @@ HEV:
     custom_cost_scn: HEV
     emission_prices:
       co2:
-        # NT values x 1.1 
+        # NT values x 1.1
         2030: 107.22
         2035: 217.26
         2040: 327.29

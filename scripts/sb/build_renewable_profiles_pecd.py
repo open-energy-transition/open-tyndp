@@ -23,11 +23,8 @@ import logging
 import pandas as pd
 import xarray as xr
 
-from scripts._helpers import (
-    configure_logging,
-    safe_planning_horizon,
-    set_scenario_config,
-)
+from scripts._helpers import configure_logging, set_scenario_config
+from scripts.sb._helpers import safe_planning_horizon
 
 logger = logging.getLogger(__name__)
 

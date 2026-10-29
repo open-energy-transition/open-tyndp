@@ -1,3 +1,4 @@
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
 # SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: MIT
@@ -68,7 +69,11 @@ class RemoteConfig(ConfigModel):
     )
     sync_file: dict[str, list[str]] = Field(
         default_factory=dict,
-        description="Files to pull from the remote cluster with the `sync_file` rule, keyed by top-level directory (`results`, `resources`, or `logs`). Each value is a list of paths behind `<dir>/<rdir>/<run-name>/`, e.g. `cba/indicators_2030.csv`. Every listed file is fetched for every configured run name.",
+        description="Files to pull from the remote cluster with the `sync_file` and `sync_file_dry` rules, keyed by top-level directory (`results`, `resources` or `logs`). Each value is a list of rsync include patterns relative to `<dir>/<prefix>/<run-name>/`. Each pattern applies to every configured run name. `*` matches within one path level (e.g. `cba/networks/project_t335_*.nc`), `**` matches across levels, and `***` matches the directory and everything below it (e.g. `cba/***`). Patterns without a match are skipped silently. `sync_exclude` does not apply to these rules.",
+    )
+    sync_exclude: list[str] = Field(
+        default_factory=list,
+        description="Patterns to skip when pulling the `results` and `resources` directories with the `sync` and `sync_dry` rules. Passed to `rsync --exclude`. Use unanchored patterns (e.g. `cba/networks`), which match at any depth, or use a leading `/` to anchor the pattern relative to the transfer root (e.g. `/results/tyndp/NT/cba/networks`, assuming the prefix is `tyndp` and the run name is `NT`).",
     )
 
 
@@ -89,7 +94,7 @@ class ConfigSchema(BaseModel):
     )
 
     # Top-level fields (from TopLevelConfig)
-    version: str = Field("v0.8", description="Version of Open-TYNDP. Descriptive only.")
+    version: str = Field("v0.9", description="Version of Open-TYNDP. Descriptive only.")
     tutorial: bool = Field(
         False,
         description="Switch to retrieve the tutorial data set instead of the full data set.",
@@ -125,7 +130,7 @@ class ConfigSchema(BaseModel):
     )
     wscenarios_tyndp: dict[int, list[int]] = Field(
         default_factory=dict,
-        description="Mapping of planning horizons to the weather scenarios (climate year column indices, e.g. 3 for `WS003`) to model in the TYNDP 2026 data. Only the first entry per horizon is currently used, falling back to the first entry of `AVAILABLE_WSCENARIOS` in `scripts/_helpers.py` if unavailable (see `get_wscenario`); to be revisited once Scenario Building supports modelling multiple weather years at once.",
+        description="Mapping of planning horizons to the weather scenarios (climate year column indices, e.g. 3 for `WS003`) to model in the TYNDP 2026 data. Only the first entry per horizon is currently used, falling back to the first entry of `AVAILABLE_WSCENARIOS` in `scripts/sb/_helpers.py` if unavailable (see `get_wscenario`); to be revisited once Scenario Building supports modelling multiple weather years at once.",
     )
     launch_explorer: bool = Field(
         False,

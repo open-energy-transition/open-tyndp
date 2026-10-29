@@ -25,13 +25,11 @@ from pathlib import Path
 import pandas as pd
 from tqdm import tqdm
 
-from scripts._helpers import (
+from scripts._helpers import configure_logging, get_snapshots, set_scenario_config
+from scripts.sb._helpers import (
     check_snapshot_year,
-    configure_logging,
-    get_snapshots,
     get_wscenario,
     safe_planning_horizon,
-    set_scenario_config,
 )
 
 logger = logging.getLogger(__name__)

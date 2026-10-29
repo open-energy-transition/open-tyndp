@@ -1,0 +1,5 @@
+project_name,project_id,is_crossborder,p_nom 0->1,p_nom 1->0,bus0,bus1,length_km,capex_meur,underwater_fraction,source,further description
+2nd interconnector Belgium - Germany,225,,3000,3000,BE00,DE00,,,,,Modifies an existing PINT project: only the capacities are overwritten and the empty fields keep the values of the CBA export
+Example new interconnector,9001,True,1000,1000,ES00,PT00,150,300,0,,Adds a new PINT project: the project_id is not used by any CBA project
+Example for variant project 1,9998,TRUE,2500,2500,DE00,BE00,150,300,0,,"New PINT project: Identical to project 9999, exists as separate projects to test custom generator variants as independent CBA projects"
+Example for variant project 2,9999,TRUE,2500,2500,DE00,BE00,150,300,0,,Duplicate of PINT project 9998 to test custom generator variants
