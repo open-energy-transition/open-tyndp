@@ -158,18 +158,22 @@ def input_all_tyndp(w):
                 **config["scenario"],
             )
         )
-    if config_provider("benchmarking", "enable")(w):
+    run_names = config["run"]["name"]
+    for run_name in run_names if isinstance(run_names, list) else [run_names]:
+        scen = scenario_config(run_name) if run_name in scenarios else config
+        if not get_config(scen, ("benchmarking", "enable")):
+            continue
         files.extend(
             expand(
                 rules.plot_benchmark.output.kpis_by_bus,
-                run=config["run"]["name"],
+                run=run_name,
                 **config["scenario"],
             )
         )
         files.extend(
             expand(
                 rules.plot_benchmark.output.kpis_by_country,
-                run=config["run"]["name"],
+                run=run_name,
                 **config["scenario"],
             )
         )

@@ -1825,9 +1825,9 @@ rule prepare_sector_network:
             resources("h2_import_profiles_{planning_horizons}.csv"),
             [],
         ),
-        profile_pemmdb_hydro=branch(
-            config_provider("electricity", "pemmdb_hydro_profiles", "enable"),
-            resources("profile_pemmdb_hydro.nc"),
+        profile_pecd_hydro=branch(
+            config_provider("electricity", "pecd_hydro_profiles", "enable"),
+            resources("profile_pecd_hydro.nc"),
         ),
         carrier_mapping="data/tyndp_technology_map.csv",
         gas_demand=branch(

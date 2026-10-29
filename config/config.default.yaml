@@ -218,18 +218,19 @@ electricity:
     - Solar PV Utility
     - Wind_Onshore
     - CSP_noStorage_0h_dispatched
-  pemmdb_hydro_profiles:
+  pecd_hydro_profiles:
     enable: false
     available_years:
     - 2030
+    - 2035
     - 2040
     - 2050
     technologies:
-    - Run_of_River
-    - Pondage
-    - Reservoir
-    - PS_Open
-    - PS_Closed
+    - HRR
+    - HPI
+    - HRI
+    - HOL
+    - HCL
   pemmdb_capacities:
     enable: false
     nprocesses: 4

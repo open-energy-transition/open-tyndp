@@ -302,6 +302,35 @@ def read_dashboard(
     return stats, parse_installed_capacity(capacity)
 
 
+def drop_single_zone_duplicates(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Drop the cross-border flows reported by a country as a single zone.
+
+    In the TYNDP 2026 dashboard outputs for 2050, Italy reports its exchanges
+    as a single zone `IT`, e.g. `AT00-IT`, while its neighbours report the
+    same flows with the Italian zones, e.g. `AT00-ITN1`, which match the
+    model borders.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Cross-border flows with the reporting zone as `bus` and the border as
+        `border`.
+
+    Returns
+    -------
+    pd.DataFrame
+        Cross-border flows without the single zone duplicates.
+    """
+    single_zones = {
+        bus
+        for bus in df.loc[df.carrier.eq("electricity"), "bus"].unique()
+        if bus == extract_country(bus)
+    }
+    ends = df.border.str.split("-")
+    return df[~ends.map(lambda x: bool(single_zones.intersection(x)))]
+
+
 def load_crossborder(
     df: pd.DataFrame,
     stats: list[str] = ["min", "max", "avg", "sum"],
@@ -330,6 +359,7 @@ def load_crossborder(
             border=lambda x: format_bz_names(x.element),
         )
         .dropna(subset=["carrier"])
+        .pipe(drop_single_zone_duplicates)
         .drop_duplicates(["border", "stats"])
         .pivot(index=["carrier", "bus", "border"], columns="stats", values="value")
         .reset_index(["carrier", "bus"])

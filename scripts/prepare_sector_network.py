@@ -62,7 +62,7 @@ spatial = SimpleNamespace()
 logger = logging.getLogger(__name__)
 
 
-def define_spatial(nodes, options, buses_h2_file=None, tyndp_scenario=None):
+def define_spatial(nodes, options, buses_h2_file=None):
     """
     Namespace for spatial.
 
@@ -82,8 +82,6 @@ def define_spatial(nodes, options, buses_h2_file=None, tyndp_scenario=None):
         - regional_coal_demand : bool
     buses_h2_file : str, optional
         Path to the file containing TYNDP H2 buses information. Default is None.
-    tyndp_scenario : str, optional
-        TYNDP scenario name. Default is None.
     """
 
     spatial.nodes = nodes
@@ -2077,7 +2075,6 @@ def _add_conventional_thermal_capacities(
             .reindex(tech_i, axis=1, fill_value=0.0)
         )
         # For nuclear, take the minimum of p_min_pu and nuclear_profiles to account for outages
-        # TODO Improve assumption for DE / GA
         if tech == "nuclear":
             common_cols = p_min_pu.columns.intersection(nuclear_profiles.columns)
             if not common_cols.empty:
@@ -2091,7 +2088,6 @@ def _add_conventional_thermal_capacities(
             .reindex(tech_i, axis=1, fill_value=1.0)
         )
         # For nuclear, take the minimum of p_max_pu and nuclear_profiles to account for outages
-        # TODO Improve assumption for DE / GA
         if tech == "nuclear":
             common_cols = p_max_pu.columns.intersection(nuclear_profiles.columns)
             if not common_cols.empty:
@@ -7607,7 +7603,6 @@ def add_industry(
     spatial: SimpleNamespace,
     cf_industry: dict,
     investment_year: int,
-    tyndp_scenario: str,
 ):
     """
     Add industry and their corresponding carrier buses to the network.
@@ -7640,8 +7635,6 @@ def add_industry(
         Industry-specific configuration parameters
     investment_year : int
         Year for which investment costs should be considered
-    tyndp_scenario : str
-        TYNDP scenario name for scenario-specific adjustments
 
     Returns
     -------
@@ -9675,7 +9668,6 @@ if __name__ == "__main__":
         pop_layout.index,
         options,
         buses_h2_file=buses_h2_file,
-        tyndp_scenario=tyndp_scenario,
     )
 
     if snakemake.params.foresight in ["overnight", "myopic", "perfect"]:
@@ -9843,7 +9835,7 @@ if __name__ == "__main__":
             costs=costs,
             profiles_pecd=profiles_pecd,
             nuclear_profiles=tyndp_nuclear_profiles,
-            hydro_inflows_fn=snakemake.input.profile_pemmdb_hydro,
+            hydro_inflows_fn=snakemake.input.profile_pecd_hydro,
             extendable_carriers=snakemake.params.electricity["extendable_carriers"],
             investment_year=investment_year,
             enable_pemmdb_caps=enable_pemmdb_caps,
@@ -9961,7 +9953,6 @@ if __name__ == "__main__":
             spatial=spatial,
             cf_industry=cf_industry,
             investment_year=investment_year,
-            tyndp_scenario=tyndp_scenario,
         )
 
     if options["shipping"]:
