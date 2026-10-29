@@ -214,6 +214,36 @@ benchmarking:
           column:
           - year
 
+    synfuel_supply:
+      table_type: scenario_comparison
+      mapping_col: benchmarking_synfuel_supply
+      rfc_sources:
+      - dashboard_out
+      - report
+      unit: TWh  # H2 equivalent (TWh_H2)
+      report:
+        sheet_name: "79"
+        index_col: 3
+        header: 4
+        scenario: NT+
+        names:
+          index:
+          - carrier
+          column:
+          - year
+      synfuel_efficiency:
+        # Values from TYNDP 2026 Supply Tool NT+ SCN 2026, Conversion factors (NCV); also defined in data/custom_costs.csv
+        e-liquids:
+          2030: 0.72003
+          2035: 0.72071
+          2040: 0.72156
+          2050: 0.72071
+        sng:
+          2030: 0.78776
+          2035: 0.78776
+          2040: 0.78776
+          2050: 0.78776
+
     electricity_price:
       table_type: prices
       mapping_col: benchmarking_prices

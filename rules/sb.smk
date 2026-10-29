@@ -660,6 +660,7 @@ if config["benchmarking"]["enable"]:
             group_tyndp_conventionals=config_provider(
                 "electricity", "group_tyndp_conventionals"
             ),
+            synfuels=config_provider("sector", "synfuels_tyndp", "carriers"),
         script:
             scripts("sb/build_statistics.py")
 

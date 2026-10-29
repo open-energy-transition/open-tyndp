@@ -7,6 +7,8 @@ This script cleans the raw TYNDP 2026 Scenarios Report Data that will be used fo
 It reads and processes all the tables defined in the configuration file. The correct indexes
 and headers are then assigned. The data structure is subsequently converted to a long format.
 Finally, the units are converted to standard units: MW for power units and MWh for energy units.
+The synthetic fuel supply is converted from fuel energy to H2 equivalent with the configured
+efficiencies.
 """
 
 import logging
@@ -171,11 +173,17 @@ def add_report_carrier_mappings(carrier_mapping_fn: str, tables: dict) -> None:
 
 
 def clean_data_for_benchmarking(
-    table: str, df: pd.DataFrame, mapping: dict = {}
+    table: str,
+    df: pd.DataFrame,
+    mapping: dict = {},
+    synfuel_efficiency: dict[str, dict[int, float]] | None = None,
 ) -> pd.DataFrame:
     """
     Clean report data by removing non-modelled carriers, renaming and grouping
     the remaining ones together according to the specified mapping.
+
+    The synthetic fuel supply is reported in fuel energy and converted to H2
+    equivalent to match the model and the dashboard.
 
     Parameters
     ----------
@@ -186,6 +194,9 @@ def clean_data_for_benchmarking(
     mapping : dict, optional
         Carrier mapping from report carrier names to benchmarking carrier names.
         Default is {} (no renaming applied).
+    synfuel_efficiency : dict[str, dict[int, float]], optional
+        Efficiencies from H2 equivalent to fuel energy per synthetic fuel and year.
+        Required for the synthetic fuel supply table.
 
     Returns
     -------
@@ -227,6 +238,10 @@ def clean_data_for_benchmarking(
         )
     df.loc[:, "carrier"] = df.loc[:, "carrier"].map(lambda x: mapping.get(x, x))
     df = df.groupby([c for c in df.columns if c != "value"]).sum().reset_index()
+
+    if table == "synfuel_supply":
+        fuel = df.carrier.str.split(" (", regex=False).str[0]
+        df["value"] /= [synfuel_efficiency[f][y] for f, y in zip(fuel, df.year)]
 
     return df
 
@@ -319,7 +334,10 @@ def load_benchmark(
     df_converted["carrier"] = df_converted["carrier"].str.lower().str.rstrip("* ")
 
     df_clean = clean_data_for_benchmarking(
-        table, df_converted, mapping=opt.get("mapping", {})
+        table,
+        df_converted,
+        mapping=opt.get("mapping", {}),
+        synfuel_efficiency=opt.get("synfuel_efficiency"),
     )
 
     return df_clean

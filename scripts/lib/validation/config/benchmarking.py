@@ -71,6 +71,10 @@ class _BenchmarkingTableConfig(ConfigModel):
         None,
         description="Efficiency to convert biomass to biomethane. Dictionary with planning horizons as keys. Only used for biomass supply table benchmarking.",
     )
+    synfuel_efficiency: dict[str, dict[int, float]] | None = Field(
+        None,
+        description="Efficiency to convert each synthetic fuel from H2 equivalent to fuel energy. Dictionary with synthetic fuels and planning horizons as keys. Only used for synthetic fuel supply table benchmarking.",
+    )
 
 
 class BenchmarkingConfig(BaseModel):
