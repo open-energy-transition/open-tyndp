@@ -45,6 +45,8 @@
 
 * Align hydro inflows to use TYNDP 2026 data and new PECD technology codes `HRR`, `HPI`, `HRI`, `HOL` and `HCL` ([#1059](https://github.com/open-energy-transition/open-tyndp/pull/1059)).
 
+* feat: implement the TYNDP 2026 synthetic fuels methodology with domestic production and import of e-liquids and SNG (synthetic natural gas) ([#XXXX](https://github.com/open-energy-transition/open-tyndp/pull/XXXX)). The feature is enabled with the new `sector: synfuels_tyndp: enable` option. The TYNDP biogenic CO2 potential caps the domestic production.
+
 **Changes**
 
 * feat: align CO2 prices with TYNDP 2026 NT+ (97.47 / 197.51 / 297.54 / 502.74 €/t for 2030 / 2035 / 2040 / 2050) ([#1038](https://github.com/open-energy-transition/open-tyndp/pull/1038)). The interpolated 2045 value is dropped.
