@@ -295,11 +295,11 @@ sector:
   regional_co2_sequestration_potential:
     enable: false
   co2_sequestration_potential:
-    # Values from TYNDP 2026 Supply Tool NT+ (CCS sheet, "Total CCS")
-    2030: 44
-    2035: 111
-    2040: 142
-    2050: 179
+    # Values from TYNDP 2026 Supply Tool NT+ (Carbon budget sheet, captured CO2 minus CCU); 2050 excludes the "not specified" CCS
+    2030: 35.24
+    2035: 87.41
+    2040: 106.07
+    2050: 99.74
   co2_spatial: false
   co2_network: false
   methanol:
@@ -308,11 +308,17 @@ sector:
     biomass_to_methanol: false
   ammonia: false
   h2_topology_tyndp: true
+  synfuels_tyndp:
+    enable: true
+    carriers:
+      "e-liquids": oil
+      sng: gas
   gas_network: false
   gas_demand_exogenously: true
   biomass_spatial: false
   biomass_to_liquid: true
   biomass_to_liquid_cc: true
+  biogas_upgrading_cc: true
   force_biomass_potential: true
   force_biogas_potential: true
   biomass_final_demand: # in TWh and for 8760h, TYNDP 2026 Supply Tool NT+: ETM final energy demand + for heat production + for biogas not upgraded to biomethane
@@ -328,6 +334,8 @@ sector:
     enable: true
     carriers:
     - H2
+    - e-liquids
+    - sng
 
 costs:
   custom_cost_scn: NT

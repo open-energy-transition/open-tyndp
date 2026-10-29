@@ -2632,6 +2632,54 @@ def _add_smr_capacities(
     )
 
 
+def _add_synfuel_capacities(
+    n: pypsa.Network,
+    synfuel_capacities: pd.DataFrame,
+    carriers: dict[str, str],
+) -> None:
+    """
+    Add H2 to synthetic fuel production capacities.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object.
+    synfuel_capacities : pd.DataFrame
+        H2 to synthetic fuel link capacities.
+    carriers : dict[str, str]
+        Fossil carrier substituted by each synthetic fuel.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding the synthetic fuel capacities.
+    """
+    logger.info("Adding H2 to synthetic fuel capacities.")
+
+    production_carriers = [f"H2 to {fuel}" for fuel in carriers]
+    synfuel_i = n.links.index[n.links.carrier.isin(production_carriers)]
+
+    # Only consider capacities of synthetic fuels with a demand, i.e. with links in the network
+    synfuel_capacities = synfuel_capacities[
+        ("H2 to " + synfuel_capacities.fuel).isin(n.links.loc[synfuel_i, "carrier"])
+    ]
+    missing = synfuel_capacities.index.difference(synfuel_i)
+    if not missing.empty:
+        raise ValueError(
+            f"Synthetic fuel capacities for components not in the network: {missing.tolist()}"
+        )
+
+    n.links.loc[synfuel_i, "p_nom"] = synfuel_capacities.p_nom.reindex(
+        synfuel_i, fill_value=0.0
+    )
+
+    remove_zero_capacity_non_extendable(
+        n,
+        carriers=production_carriers,
+        component_types={"Link"},
+    )
+
+
 def _add_h2_storage_capacities(
     n: pypsa.Network,
     h2_storage_capacities: pd.DataFrame,
@@ -2937,6 +2985,8 @@ def add_existing_tyndp_capacities(
     pemmdb_profiles: pd.DataFrame,
     smr_capacities: pd.DataFrame,
     h2_storage_capacities: pd.DataFrame,
+    synfuel_capacities: pd.DataFrame | None,
+    synfuel_carriers: dict[str, str],
     tyndp_renewable_carriers: list[str],
     tyndp_conventional_thermals: list[str],
     h2_topology_tyndp: bool,
@@ -2964,6 +3014,7 @@ def add_existing_tyndp_capacities(
       - other RES and other Non-RES
       - battery storages
       - SMR and SMR CC
+      - H2 to synthetic fuel links
 
     Parameters
     ----------
@@ -2977,6 +3028,10 @@ def add_existing_tyndp_capacities(
         DataFrame containing existing SMR capacities.
     h2_storage_capacities : pd.DataFrame
         DataFrame containing existing H2 storage capacities.
+    synfuel_capacities : pd.DataFrame | None
+        DataFrame containing H2 to synthetic fuel capacities.
+    synfuel_carriers : dict[str, str]
+        Fossil carrier substituted by each synthetic fuel.
     tyndp_renewable_carriers : list[str]
         List of TYNDP renewable carriers.
     tyndp_conventional_thermals : list[str]
@@ -3091,7 +3146,7 @@ def add_existing_tyndp_capacities(
                 pemmdb_profiles=pemmdb_profiles,
             )
 
-    # Add existing SMR and H2 storage capacities from SB inputs to already attached components
+    # Add existing SMR, H2 storage and synthetic fuel capacities from SB inputs to already attached components
     if h2_topology_tyndp:
         logger.info("Adding SMR, SMR CC and H2 storage capacities.")
         _add_smr_capacities(
@@ -3103,6 +3158,12 @@ def add_existing_tyndp_capacities(
             n=n,
             h2_storage_capacities=h2_storage_capacities,
         )
+        if synfuel_capacities is not None:
+            _add_synfuel_capacities(
+                n=n,
+                synfuel_capacities=synfuel_capacities,
+                carriers=synfuel_carriers,
+            )
 
 
 def add_ammonia(
@@ -4368,6 +4429,89 @@ def add_h2_demand_tyndp(
     )
 
 
+def add_synfuels_tyndp(
+    n: pypsa.Network,
+    costs: pd.DataFrame,
+    demand: pd.DataFrame,
+    generators: pd.DataFrame,
+    carriers: dict[str, str],
+    spatial: SimpleNamespace,
+    nyears: float,
+) -> None:
+    """
+    Add TYNDP synthetic fuel production and supply to the oil and gas buses.
+
+    Each synthetic fuel with a demand gets an EU bus (MWh_H2), production
+    links from every H2 Zone 2 node and a conversion link that supplies the
+    demand to the substituted fossil carrier bus.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object.
+    costs : pd.DataFrame
+        Technology cost assumptions.
+    demand : pd.DataFrame
+        Synthetic fuel demand time series (MW_H2).
+    generators : pd.DataFrame
+        Synthetic fuel generator properties, including the biogenic CO2 potential (t_CO2).
+    carriers : dict[str, str]
+        Fossil carrier substituted by each synthetic fuel.
+    spatial : SimpleNamespace
+        Spatial resolution information.
+    nyears : float
+        Fraction of the year covered by the snapshots, used to scale the CO2 limit.
+    """
+    logger.info("Adding TYNDP synthetic fuels.")
+
+    # TODO: this does currently only work for no oil, gas and co2 spatial
+    demand = demand.loc[:, demand.sum() > 0]
+    synfuels = demand.columns
+    fossils = pd.Series(carriers).loc[synfuels]
+    conversion = synfuels + " to " + fossils.values
+    fossil_buses = fossils.map(
+        {"oil": spatial.oil.nodes[0], "gas": spatial.gas.nodes[0]}
+    )
+
+    n.add("Bus", "EU " + synfuels, location="EU", carrier=synfuels, unit="MWh_H2")
+
+    for fuel in synfuels:
+        n.add(
+            "Link",
+            spatial.buses_h2_z2,
+            suffix=f" H2 to {fuel}",
+            bus0=spatial.buses_h2_z2,
+            bus1=f"EU {fuel}",
+            bus2=spatial.co2.nodes,
+            carrier=f"H2 to {fuel}",
+            efficiency=1.0,
+            efficiency2=-costs.at[f"H2 to {fuel}", "carbondioxide-input"],
+            p_nom_extendable=False,
+        )
+
+    p_set = demand.set_axis(conversion, axis=1)
+    p_nom = p_set.max()
+    n.add(
+        "Link",
+        conversion,
+        bus0="EU " + synfuels,
+        bus1=fossil_buses.values,
+        carrier=conversion,
+        efficiency=costs.loc[conversion, "efficiency"].values,
+        p_nom=p_nom.values,
+        p_min_pu=p_set / p_nom,
+        p_max_pu=p_set / p_nom,
+    )
+
+    n.add(
+        "GlobalConstraint",
+        "co2_synfuels_limit",
+        type="co2_synfuels",
+        sense="<=",
+        constant=generators.at["CO2-Synfuels", "e_sum_max"] * nyears,
+    )
+
+
 def add_h2_production(n, nodes, options, spatial, costs):
     """
     Adds base H2 production technologies.
@@ -4999,7 +5143,6 @@ def attach_gas_load(
     options: dict,
     costs: pd.DataFrame,
     spatial: SimpleNamespace,
-    nhours: int = 8760,
 ):
     """
     Attach exogenous gas demand to the network as Load with CO2 emissions tracking.
@@ -5020,11 +5163,9 @@ def attach_gas_load(
         Technology costs assumptions.
     spatial : SimpleNamespace
         Object containing spatial information about nodes and their locations.
-    nhours : int, optional
-        Number of hours over which the annual gas demand is divided. Default is 8760.
     """
 
-    gas_demand = pd.read_csv(gas_demand_fn, index_col=0) / nhours
+    gas_demand = pd.read_csv(gas_demand_fn, index_col=0) / 8760
 
     if options["gas_network"]:
         spatial_gas_demand = gas_demand.rename(
@@ -9096,6 +9237,7 @@ def add_import_options(
     gas_input_nodes: pd.DataFrame,
     h2_imports_tyndp_fn: str,
     h2_import_profiles_tyndp_fn: str,
+    synfuel_generators: pd.DataFrame | None,
     spatial: SimpleNamespace,
 ):
     """
@@ -9115,6 +9257,9 @@ def add_import_options(
     h2_import_profiles_tyndp_fn : str
         Path to file containing hourly ``p_max_pu`` for the subset of H2
         import corridors with a TYNDP 2026 time-series capacity profile.
+    synfuel_generators : pd.DataFrame | None
+        DataFrame with synthetic fuel generator properties, including the import
+        offer price.
     spatial : SimpleNamespace
         Namespace object with spatial nodes for different carriers such as `h2_tyndp`.
     """
@@ -9252,6 +9397,44 @@ def add_import_options(
                 p_nom=p_nom,
                 marginal_cost=import_options["H2"],
             )
+
+    synfuels = options["synfuels_tyndp"]["carriers"]
+    synfuel_imports = pd.Index(list(synfuels)).intersection(import_config["carriers"])
+    if not (skipped := synfuel_imports.difference(n.buses.carrier)).empty:
+        logger.warning(
+            f"Skipping synthetic fuel imports without a synthetic fuel bus: {skipped.tolist()}"
+        )
+    for fuel in synfuel_imports.intersection(n.buses.carrier):
+        bus = f"EU {fuel}"
+        n.add(
+            "Bus",
+            f"{bus} import",
+            location="EU",
+            carrier=f"{fuel} import",
+            unit="MWh_H2",
+        )
+        n.add(
+            "Generator",
+            f"{bus} import",
+            bus=f"{bus} import",
+            carrier=fuel,
+            p_nom=1e7,
+        )
+        n.add(
+            "Link",
+            f"{bus} import",
+            bus0=f"{bus} import",
+            bus1=bus,
+            bus2="co2 atmosphere",
+            carrier=f"{fuel} import",
+            efficiency=1.0,
+            efficiency2=-(
+                costs.at[f"{fuel} to {synfuels[fuel]}", "efficiency"]
+                * costs.at[synfuels[fuel], "CO2 intensity"]
+            ),
+            marginal_cost=synfuel_generators.at[fuel, "marginal_cost"],
+            p_nom=1e7,
+        )
 
 
 def _add_phs(n, carrier, nodes, costs, inflows=False):
@@ -9563,6 +9746,8 @@ if __name__ == "__main__":
     tyndp_nuclear_profiles = None
     smr_capacities = None
     h2_storage_capacities = None
+    synfuel_capacities = None
+    synfuel_generators = None
 
     # Read in PEMMDB data and availability profiles
     enable_pemmdb_caps = snakemake.params.electricity["pemmdb_capacities"]["enable"]
@@ -9638,6 +9823,23 @@ if __name__ == "__main__":
         tyndp_stores=snakemake.params.tyndp_stores,
     )
 
+    if synfuel_generators_fn := snakemake.input.get("synfuel_generators_tyndp"):
+        synfuel_generators = pd.read_csv(synfuel_generators_fn, index_col=0)
+
+    if options["h2_topology_tyndp"] and options["synfuels_tyndp"]["enable"]:
+        synfuel_demand = pd.read_csv(
+            snakemake.input.synfuel_demand_tyndp, index_col=0, parse_dates=True
+        ).reindex(n.snapshots)
+        add_synfuels_tyndp(
+            n=n,
+            costs=costs,
+            demand=synfuel_demand,
+            generators=synfuel_generators,
+            carriers=options["synfuels_tyndp"]["carriers"],
+            spatial=spatial,
+            nyears=nyears,
+        )
+
     # Hydrogen already implemented in add_h2_gas_infrastructure
     extendable_storageunits = list(set(ext_carriers.get("StorageUnit", [])) - {"H2"})
     extendable_stores = list(set(ext_carriers.get("Store", [])) - {"H2"})
@@ -9663,6 +9865,8 @@ if __name__ == "__main__":
     if options["h2_topology_tyndp"]:
         smr_capacities = pd.read_csv(snakemake.input.tyndp_smr, index_col=0)
         h2_storage_capacities = pd.read_csv(snakemake.input.tyndp_h2_storages)
+        if synfuel_links_fn := snakemake.input.get("synfuel_links_tyndp"):
+            synfuel_capacities = pd.read_csv(synfuel_links_fn, index_col=0)
 
     if enable_pemmdb_caps or options["h2_topology_tyndp"]:
         add_existing_tyndp_capacities(
@@ -9671,6 +9875,8 @@ if __name__ == "__main__":
             pemmdb_profiles=pemmdb_profiles,
             smr_capacities=smr_capacities,
             h2_storage_capacities=h2_storage_capacities,
+            synfuel_capacities=synfuel_capacities,
+            synfuel_carriers=options["synfuels_tyndp"]["carriers"],
             tyndp_renewable_carriers=tyndp_renewable_carriers,
             tyndp_conventional_thermals=tyndp_conventional_thermals,
             h2_topology_tyndp=options["h2_topology_tyndp"],
@@ -9695,7 +9901,6 @@ if __name__ == "__main__":
             options=options,
             costs=costs,
             spatial=spatial,
-            nhours=nhours,
         )
 
     if options["transport"]:
@@ -9920,6 +10125,7 @@ if __name__ == "__main__":
             gas_input_nodes=gas_input_nodes,
             h2_imports_tyndp_fn=snakemake.input.h2_imports_tyndp,
             h2_import_profiles_tyndp_fn=snakemake.input.h2_import_profiles_tyndp,
+            synfuel_generators=synfuel_generators,
             spatial=spatial,
         )
 

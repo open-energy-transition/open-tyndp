@@ -5559,6 +5559,27 @@
           "description": "Add TYNDP ramp limits to SMR and SMR CCS links. Only used with `h2_topology_tyndp`.",
           "type": "boolean"
         },
+        "synfuels_tyndp": {
+          "description": "Configuration for `sector.synfuels_tyndp` settings.",
+          "properties": {
+            "enable": {
+              "default": false,
+              "description": "Add TYNDP 2026 synthetic fuels. Requires `h2_topology_tyndp`.",
+              "type": "boolean"
+            },
+            "carriers": {
+              "additionalProperties": {
+                "enum": [
+                  "oil",
+                  "gas"
+                ],
+                "type": "string"
+              },
+              "description": "Synthetic fuels and the fossil carrier that each fuel replaces.",
+              "type": "object"
+            }
+          }
+        },
         "gas_network": {
           "default": true,
           "description": "Add existing natural gas infrastructure, incl. LNG terminals, production and entry-points. The existing gas network is added with a lossless transport model. A length-weighted `k-edge augmentation algorithm <https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.connectivity.edge_augmentation.k_edge_augmentation.html#networkx.algorithms.connectivity.edge_augmentation.k_edge_augmentation>`_ can be run to add new candidate gas pipelines such that all regions of the model can be connected to the gas network. When activated, all the gas demands are regionally disaggregated as well.",
@@ -9063,6 +9084,27 @@
               "type": "string"
             }
           }
+        }
+      }
+    },
+    "_SynfuelsTyndpConfig": {
+      "description": "Configuration for `sector.synfuels_tyndp` settings.",
+      "properties": {
+        "enable": {
+          "default": false,
+          "description": "Add TYNDP 2026 synthetic fuels. Requires `h2_topology_tyndp`.",
+          "type": "boolean"
+        },
+        "carriers": {
+          "additionalProperties": {
+            "enum": [
+              "oil",
+              "gas"
+            ],
+            "type": "string"
+          },
+          "description": "Synthetic fuels and the fossil carrier that each fuel replaces.",
+          "type": "object"
         }
       }
     },
@@ -12722,6 +12764,27 @@
           "default": false,
           "description": "Add TYNDP ramp limits to SMR and SMR CCS links. Only used with `h2_topology_tyndp`.",
           "type": "boolean"
+        },
+        "synfuels_tyndp": {
+          "description": "Configuration for `sector.synfuels_tyndp` settings.",
+          "properties": {
+            "enable": {
+              "default": false,
+              "description": "Add TYNDP 2026 synthetic fuels. Requires `h2_topology_tyndp`.",
+              "type": "boolean"
+            },
+            "carriers": {
+              "additionalProperties": {
+                "enum": [
+                  "oil",
+                  "gas"
+                ],
+                "type": "string"
+              },
+              "description": "Synthetic fuels and the fossil carrier that each fuel replaces.",
+              "type": "object"
+            }
+          }
         },
         "gas_network": {
           "default": true,

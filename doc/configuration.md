@@ -738,6 +738,9 @@ Only used for sector-coupling studies.
     |   `gas pipeline` | dict (str -> number) |  | Gas pipeline transmission efficiency. |
     |   `electricity distribution grid` | dict (str -> number) |  | Electricity distribution grid efficiency. |
     | `H2_network` | boolean | `true` | Add option for new hydrogen pipelines. |
+    | `synfuels_tyndp` | any |  | Configuration for `sector.synfuels_tyndp` settings. |
+    |   `enable` | boolean | `false` | Add TYNDP 2026 synthetic fuels. Requires `h2_topology_tyndp`. |
+    |   `carriers` | dict (str -> string) |  | Synthetic fuels and the fossil carrier that each fuel replaces. |
     | `gas_network` | boolean | `true` | Add existing natural gas infrastructure, incl. LNG terminals, production and entry-points. The existing gas network is added with a lossless transport model. A length-weighted [k-edge augmentation algorithm ](https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.connectivity.edge_augmentation.k_edge_augmentation.html#networkx.algorithms.connectivity.edge_augmentation.k_edge_augmentation) can be run to add new candidate gas pipelines such that all regions of the model can be connected to the gas network. When activated, all the gas demands are regionally disaggregated as well. |
     | `H2_retrofit` | boolean | `false` | Add option for retrofiting existing pipelines to transport hydrogen. |
     | `H2_retrofit_capacity_per_CH4` | number | `0.6` | The ratio for H2 capacity per original CH4 capacity of retrofitted pipelines. The [European Hydrogen Backbone (April, 2020) p.15 ](https://gasforclimate2050.eu/wp-content/uploads/2020/07/2020_European-Hydrogen-Backbone_Report.pdf) 60% of original natural gas capacity could be used in cost-optimal case as H2 capacity. |

@@ -9,6 +9,7 @@ per planning horizon and weather scenario
 - "Installed Capacity" sheet for installed capacities per market zone
 - Nodal sheets for aggregates of hourly generation, load, prices, curtailment and unserved energy
 - "Exchanges" sheet for cross-border electricity and hydrogen flows
+- "Synfuels_EU27" sheet for the EU27 synthetic fuel supply
 
 Each file is read once and the files are processed in parallel.
 
@@ -20,6 +21,9 @@ The benchmark tables are defined in ``LOOKUP_TABLES`` as ``{table: options}`` wi
   are kept if omitted.
 - ``carrier`` (optional): Benchmark carrier assigned to all values. If omitted, carriers
   are mapped with the ``mapping_col`` of the table in ``tyndp_technology_map.csv``.
+- ``mapping_key`` (optional): Dashboard column to map, "carrier" (the category) by default.
+- ``eu27`` (optional): If True, the sheet reports EU27 totals, which are identical in
+  every file. They are read once and assigned to the bus "EU27".
 
 Note: Currently, only NT scenario processing is supported.
 """
@@ -49,6 +53,7 @@ logger = logging.getLogger(__name__)
 ELECTRICITY_SHEETS = ["E-Market", "Prosumer", "Offshore"]
 H2_SHEETS = ["H2 Zone 1", "H2 Zone 2"]
 EXCHANGES_SHEET = "Exchanges"
+SYNFUELS_SHEET = "Synfuels_EU27"
 CAPACITY_SHEET = "Installed Capacity"
 
 LOOKUP_TABLES: dict[str, dict] = {
@@ -77,6 +82,13 @@ LOOKUP_TABLES: dict[str, dict] = {
         "stats": "sum",
     },
     "hydrogen_supply": {"sheet": H2_SHEETS, "stats": "sum"},
+    "synfuel_supply": {
+        "sheet": [SYNFUELS_SHEET],
+        "category": ["Domestic Production", "Imports"],
+        "stats": "sum",
+        "mapping_key": "element",
+        "eu27": True,
+    },
     # TODO: For shedding hours, TYNDP 2026 does not give a direct value, so it can be derived
     # where "Energy Not Served" is above 0.
     # "electricity_demand_shedding_hours": [
@@ -272,7 +284,7 @@ def read_dashboard(
     tuple[pd.DataFrame, pd.DataFrame]
         Yearly aggregates of all timeseries sheets and installed capacities.
     """
-    sheet_names = ELECTRICITY_SHEETS + H2_SHEETS + [EXCHANGES_SHEET]
+    sheet_names = ELECTRICITY_SHEETS + H2_SHEETS + [SYNFUELS_SHEET, EXCHANGES_SHEET]
     nrows_header = 9
 
     # Some nodes are missing sheets
@@ -364,6 +376,40 @@ def load_crossborder(
     return df.sort_index()
 
 
+def load_eu27_table(df: pd.DataFrame, table_name: str) -> pd.DataFrame:
+    """
+    Build a benchmarking table from a Dashboard sheet that reports EU27 totals.
+
+    Such a sheet is repeated in every TimeSeries Dashboard file, so each element is kept once.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Mapped Dashboard data of the table in long format, from all files.
+    table_name : str
+        Name of the table from LOOKUP_TABLES.
+
+    Returns
+    -------
+    pd.DataFrame
+        EU27 data in long format with columns [carrier, unit, value, bus, table].
+    """
+    keys = ["bus", "element"]
+    if (df.groupby(keys).value.nunique() > 1).any():
+        raise ValueError(
+            f"TYNDP Dashboard files report different EU27 values for table '{table_name}'."
+        )
+
+    df = (
+        df.drop_duplicates(keys)
+        .groupby(["carrier", "unit"], as_index=False)
+        .value.sum()
+        .assign(bus="EU27", table=table_name)
+    )
+
+    return convert_units(df)
+
+
 def load_dashboard_table(
     table_name: str,
     stats: pd.DataFrame,
@@ -408,14 +454,18 @@ def load_dashboard_table(
     if carrier := opt.get("carrier"):
         df = df.assign(carrier=carrier)
     else:
-        carriers = df.carrier.map(mapping[table_name])
-        if unmapped := sorted(df.carrier[carriers.isna()].unique()):
+        labels = df[opt.get("mapping_key", "carrier")]
+        carriers = labels.map(mapping[table_name])
+        if unmapped := sorted(labels[carriers.isna()].unique()):
             logger.warning(
                 f"No carrier mappings for table '{table_name}' for: {unmapped}. They will be excluded from the benchmarking for this table."
             )
         df = df.assign(carrier=carriers).dropna(subset=["carrier"])
 
     df = set_load_sign(df, table_name)
+
+    if opt.get("eu27"):
+        return load_eu27_table(df, table_name)
 
     # Rename and filter column names (buses)
     df = df.assign(bus=lambda x: rename_prosumer_nodes(x.bus.astype(str)))

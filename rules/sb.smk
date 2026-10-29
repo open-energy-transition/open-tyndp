@@ -165,6 +165,7 @@ rule build_tyndp_demand:
         snapshots=config_provider("snapshots"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
         wscenarios=config_provider("wscenarios_tyndp"),
+        synfuels=config_provider("sector", "synfuels_tyndp", "carriers"),
     script:
         scripts("sb/build_tyndp_demand.py")
 
@@ -490,6 +491,35 @@ if config["sector"]["h2_topology_tyndp"]:
             scripts("sb/clean_tyndp_h2_storages.py")
 
 
+if (
+    config["sector"]["h2_topology_tyndp"]
+    and config["sector"]["synfuels_tyndp"]["enable"]
+):
+
+    rule build_tyndp_synfuels:
+        input:
+            synfuel_lines=rules.retrieve_tyndp_2026.output.synfuel_lines,
+            synfuel_generators=rules.retrieve_tyndp_2026.output.synfuel_generators,
+        output:
+            synfuel_links=resources("synfuel_links_tyndp_{planning_horizons}.csv"),
+            synfuel_generators=resources(
+                "synfuel_generators_tyndp_{planning_horizons}.csv"
+            ),
+        log:
+            logs("build_tyndp_synfuels_{planning_horizons}.log"),
+        benchmark:
+            benchmarks("performances/build_tyndp_synfuels_{planning_horizons}")
+        conda:
+            "../envs/environment.yaml"
+        threads: 1
+        resources:
+            mem_mb=1000,
+        params:
+            synfuels=config_provider("sector", "synfuels_tyndp", "carriers"),
+        script:
+            scripts("sb/build_tyndp_synfuels.py")
+
+
 rule group_tyndp_conventionals:
     input:
         pemmdb_capacities=resources("pemmdb_capacities_{planning_horizon}.csv"),
@@ -630,6 +660,7 @@ if config["benchmarking"]["enable"]:
             group_tyndp_conventionals=config_provider(
                 "electricity", "group_tyndp_conventionals"
             ),
+            synfuels=config_provider("sector", "synfuels_tyndp", "carriers"),
         script:
             scripts("sb/build_statistics.py")
 

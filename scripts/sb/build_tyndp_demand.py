@@ -390,6 +390,10 @@ if __name__ == "__main__":
 
     wscenario = get_wscenario(wscenarios, planning_horizon)
     demand = load_demand(fn, planning_horizon, demand_type, wscenario, year)
+    if demand_type == "synthetic_fuels":
+        demand = demand.rename(
+            columns={fuel.replace("-", "_"): fuel for fuel in snakemake.params.synfuels}
+        )
     demand = align_demand_to_snapshots(demand, snapshots)
 
     # Export to CSV

@@ -173,6 +173,50 @@ def get_h2_imports(n: pypsa.Network) -> pd.Series:
     return balance.groupby([balance.index.get_level_values("bus"), carrier]).sum()
 
 
+def get_synfuel_supply(
+    n: pypsa.Network, synfuels: dict[str, str], fuel_energy: bool = False
+) -> pd.Series:
+    """
+    Extract the domestic production and imports of the TYNDP synthetic fuels.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        Optimised network.
+    synfuels : dict[str, str]
+        Fossil carrier substituted by each synthetic fuel.
+    fuel_energy : bool, default False
+        Whether to convert the supply from MWh_H2 (True) to MWh (False) of synthetic fuel.
+
+    Returns
+    -------
+    pd.Series
+        Supplied energy indexed by fuel and carrier of the production and import links.
+    """
+    fuels = pd.Index(list(synfuels)).intersection(n.buses.carrier)
+    if fuels.empty:
+        return pd.Series(
+            dtype=float,
+            index=pd.MultiIndex.from_tuples([], names=["fuel", "carrier"]),
+        )
+
+    supply = n.statistics.supply(
+        comps="Link",
+        bus_carrier=fuels.tolist(),
+        groupby=["bus_carrier", "carrier"],
+        aggregate_across_components=True,
+    ).rename_axis(index={"bus_carrier": "fuel"})
+
+    if fuel_energy:
+        efficiencies = n.links.set_index("carrier").efficiency
+        efficiency = efficiencies.loc[fuels + " to " + fuels.map(synfuels)].set_axis(
+            fuels
+        )
+        supply = supply.mul(efficiency, level="fuel")
+
+    return supply
+
+
 def compute_benchmark(
     n: pypsa.Network,
     table: str,
@@ -181,6 +225,7 @@ def compute_benchmark(
     planning_horizons: int,
     load_shedding: dict[str, int],
     low_voltage: bool,
+    synfuels: dict[str, str],
 ) -> pd.DataFrame:
     """
     Compute benchmark metrics from optimized network.
@@ -201,6 +246,8 @@ def compute_benchmark(
         Value of lost load per carrier.
     low_voltage: bool
         If True, include low voltage buses in the electricity bus carrier list.
+    synfuels : dict[str, str]
+        Fossil carrier substituted by each TYNDP synthetic fuel.
 
     Returns
     -------
@@ -429,7 +476,20 @@ def compute_benchmark(
             aggregate_across_components=True,
         ).loc[lambda s: ~s.index.get_level_values("carrier").isin(df_countries.index)]
 
-        df = pd.concat([df_countries, df_eu])
+        # Synthetic methane by origin in fuel energy instead of its conversion to gas
+        synthetic_methane = [
+            fuel for fuel, fossil in synfuels.items() if fossil == "gas"
+        ]
+        df_synfuels = (
+            get_synfuel_supply(n, synfuels, fuel_energy=True)
+            .loc[lambda s: s.index.get_level_values("fuel").isin(synthetic_methane)]
+            .droplevel("fuel")
+        )
+        df_eu = df_eu.drop(
+            [f"{fuel} to gas" for fuel in synthetic_methane], errors="ignore"
+        )
+
+        df = pd.concat([df_countries, df_eu, df_synfuels])
     elif table == "hydrogen_supply":
         grouper = ["carrier"]
         exclusions = [
@@ -487,9 +547,17 @@ def compute_benchmark(
         # TODO Account for domestic production of gas and liquid fossil fuels
         # TODO No biomass import is assumed
         grouper = ["carrier"]
-        df_countries = (
+
+        # Hydrogen and synthetic fuel imports
+        df_h2 = (
             get_h2_imports(n).reindex(eu27_idx, level="bus").groupby(by=grouper).sum()
         )
+        df_synfuels = (
+            get_synfuel_supply(n, synfuels, fuel_energy=True)
+            .droplevel("fuel")
+            .loc[lambda s: s.index.isin([f"{fuel} import" for fuel in synfuels])]
+        )
+        df_imports = pd.concat([df_h2, df_synfuels])
 
         # Add EU level demands
         df_eu = n.statistics.supply(
@@ -497,9 +565,20 @@ def compute_benchmark(
             bus_carrier=["oil primary", "gas"],
             groupby=grouper,
             aggregate_across_components=True,
-        ).loc[lambda s: ~s.index.isin(df_countries.index)]
+        ).loc[lambda s: ~s.index.isin(df_imports.index)]
 
-        df = pd.concat([df_countries, df_eu])
+        df = pd.concat([df_imports, df_eu])
+    elif table == "synfuel_supply":
+        # The report is converted to H2 equivalent with the configured efficiencies
+        eff_n = n.links.set_index("carrier").efficiency
+        for fuel, eff_config in opt.get("synfuel_efficiency", {}).items():
+            conversion = f"{fuel} to {synfuels[fuel]}"
+            if not np.isclose(eff_n[conversion], eff_config[planning_horizons]):
+                raise ValueError(
+                    f"Configured efficiency {eff_config[planning_horizons]} of '{conversion}' "
+                    f"does not match the model efficiency {eff_n[conversion]}."
+                )
+        df = get_synfuel_supply(n, synfuels).droplevel("fuel")
     elif table in ["electricity_price", "hydrogen_price"]:
         carrier = "AC" if "electricity" in table else "H2"
 
@@ -664,6 +743,7 @@ if __name__ == "__main__":
     load_shedding = snakemake.params["load_shedding"]
     low_voltage = snakemake.params["low_voltage"]
     group_tyndp_conventionals = snakemake.params["group_tyndp_conventionals"]
+    synfuels = snakemake.params["synfuels"]
     cc = coco.CountryConverter()
     eu27 = cc.EU27as("ISO2").ISO2.tolist()
     planning_horizons = int(snakemake.wildcards.planning_horizons)
@@ -705,6 +785,7 @@ if __name__ == "__main__":
             planning_horizons=planning_horizons,
             load_shedding=load_shedding,
             low_voltage=low_voltage,
+            synfuels=synfuels,
         )
         benchmarks.append(df)
 
