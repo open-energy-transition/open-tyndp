@@ -854,6 +854,7 @@ sector:
     2040: 0.3
     2045: 0.15
     2050: 0
+  land_transport_oil_demand_tyndp: {}
   transport_electric_efficiency: 53.19
   transport_fuel_cell_efficiency: 30.003
   transport_ice_efficiency: 16.0712

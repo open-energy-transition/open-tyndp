@@ -1692,10 +1692,22 @@ rule prepare_sector_network:
             resources("pop_weighted_heat_totals_s_{clusters}.csv"),
         ),
         shipping_demand=resources("shipping_demand_s_{clusters}.csv"),
-        transport_demand=resources("transport_demand_s_{clusters}.csv"),
-        transport_data=resources("transport_data_s_{clusters}.csv"),
-        avail_profile=resources("avail_profile_s_{clusters}.csv"),
-        dsm_profile=resources("dsm_profile_s_{clusters}.csv"),
+        transport_demand=branch(
+            lambda w: not config_provider("tyndp_scenario")(w),
+            resources("transport_demand_s_{clusters}.csv"),
+        ),
+        transport_data=branch(
+            lambda w: not config_provider("tyndp_scenario")(w),
+            resources("transport_data_s_{clusters}.csv"),
+        ),
+        avail_profile=branch(
+            lambda w: not config_provider("tyndp_scenario")(w),
+            resources("avail_profile_s_{clusters}.csv"),
+        ),
+        dsm_profile=branch(
+            lambda w: not config_provider("tyndp_scenario")(w),
+            resources("dsm_profile_s_{clusters}.csv"),
+        ),
         heat_dsm_profile=branch(
             config_provider("sector", "residential_heat", "dsm", "enable"),
             resources("residential_heat_dsm_profile_total_base_s_{clusters}.csv"),
@@ -1743,7 +1755,10 @@ rule prepare_sector_network:
         ),
         heating_efficiencies=resources("heating_efficiencies.csv"),
         temp_soil_total=resources("temp_soil_total_base_s_{clusters}.nc"),
-        temp_air_total=resources("temp_air_total_base_s_{clusters}.nc"),
+        temp_air_total=branch(
+            lambda w: not config_provider("tyndp_scenario")(w),
+            resources("temp_air_total_base_s_{clusters}.nc"),
+        ),
         cop_profiles=branch(
             config_provider("sector", "heating"),
             resources("cop_profiles_base_s_{clusters}_{planning_horizons}.nc"),
@@ -1841,19 +1856,32 @@ rule prepare_sector_network:
             config_provider("tyndp_scenario"),
             resources("demand_tyndp_h2_z2_{planning_horizons}.csv"),
         ),
+        ev_demand=branch(
+            config_provider("tyndp_scenario"),
+            resources("ev_demand_tyndp_{planning_horizons}.csv"),
+        ),
+        ev_fleets=branch(
+            config_provider("tyndp_scenario"),
+            resources("ev_fleets_tyndp_{planning_horizons}.csv"),
+        ),
+        avail_profile_tyndp=branch(
+            config_provider("tyndp_scenario"),
+            resources("avail_profile_tyndp_{planning_horizons}.csv"),
+        ),
+        dsm_profile_tyndp=branch(
+            config_provider("tyndp_scenario"),
+            resources("dsm_profile_tyndp_{planning_horizons}.csv"),
+        ),
         wheeling_charges=branch(
-            lambda w: config_provider("tyndp_scenario")(w)
-            and config_provider("sector", "electricity_distribution_grid")(w),
+            config_provider("tyndp_scenario"),
             resources("wheeling_charges_tyndp.csv"),
         ),
         elec_demand_prosumer_tyndp=branch(
-            lambda w: config_provider("tyndp_scenario")(w)
-            and config_provider("sector", "electricity_distribution_grid")(w),
+            config_provider("tyndp_scenario"),
             resources("demand_tyndp_electricity_prosumer_{planning_horizons}.csv"),
         ),
         elec_demand_prosumer_btm_tyndp=branch(
-            lambda w: config_provider("tyndp_scenario")(w)
-            and config_provider("sector", "electricity_distribution_grid")(w),
+            config_provider("tyndp_scenario"),
             resources("demand_tyndp_electricity_prosumer_btm_{planning_horizons}.csv"),
         ),
         tyndp_nuclear_profiles=branch(
