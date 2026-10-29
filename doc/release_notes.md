@@ -45,7 +45,7 @@
 
 * Align hydro inflows to use TYNDP 2026 data and new PECD technology codes `HRR`, `HPI`, `HRI`, `HOL` and `HCL` ([#1059](https://github.com/open-energy-transition/open-tyndp/pull/1059)).
 
-* feat: implement the TYNDP 2026 synthetic fuels methodology with domestic production and import of e-liquids and SNG (synthetic natural gas) ([#XXXX](https://github.com/open-energy-transition/open-tyndp/pull/XXXX)). The feature is enabled with the new `sector: synfuels_tyndp: enable` option. The TYNDP biogenic CO2 potential caps the domestic production.
+* feat: implement the TYNDP 2026 synthetic fuels methodology with domestic production and import of e-liquids and SNG (synthetic natural gas) ([#1098](https://github.com/open-energy-transition/open-tyndp/pull/1098)). The feature is enabled with the new `sector: synfuels_tyndp: enable` option. The TYNDP biogenic CO2 potential caps the domestic production.
 
 **Changes**
 
