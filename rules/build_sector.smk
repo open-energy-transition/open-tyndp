@@ -1873,6 +1873,21 @@ rule prepare_sector_network:
             config_provider("sector", "h2_topology_tyndp"),
             resources("h2_storages_prepped_{planning_horizons}.csv"),
         ),
+        synfuel_demand_tyndp=branch(
+            lambda w: config_provider("sector", "h2_topology_tyndp")(w)
+            and config_provider("sector", "synfuels_tyndp", "enable")(w),
+            resources("demand_tyndp_synthetic_fuels_{planning_horizons}.csv"),
+        ),
+        synfuel_links_tyndp=branch(
+            lambda w: config_provider("sector", "h2_topology_tyndp")(w)
+            and config_provider("sector", "synfuels_tyndp", "enable")(w),
+            resources("synfuel_links_tyndp_{planning_horizons}.csv"),
+        ),
+        synfuel_generators_tyndp=branch(
+            lambda w: config_provider("sector", "h2_topology_tyndp")(w)
+            and config_provider("sector", "synfuels_tyndp", "enable")(w),
+            resources("synfuel_generators_tyndp_{planning_horizons}.csv"),
+        ),
         tyndp_electricity_ntc=branch(
             lambda w: config_provider("electricity", "base_network")(w) == "tyndp"
             and config_provider("electricity", "tyndp_reference_year")(w)

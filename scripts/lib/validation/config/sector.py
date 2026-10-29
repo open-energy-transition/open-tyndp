@@ -9,9 +9,9 @@ Sector configuration.
 See docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#sector
 """
 
-from typing import Any
+from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from scripts.lib.validation.config._base import ConfigModel
 
@@ -222,6 +222,19 @@ class _MethanolConfig(BaseModel):
     biomass_to_methanol: bool = Field(True, description="Add biomass to methanol.")
     biomass_to_methanol_cc: bool = Field(
         False, description="Add biomass to methanol with carbon capture."
+    )
+
+
+class _SynfuelsTyndpConfig(BaseModel):
+    """Configuration for `sector.synfuels_tyndp` settings."""
+
+    enable: bool = Field(
+        False,
+        description="Add TYNDP 2026 synthetic fuels. Requires `h2_topology_tyndp`.",
+    )
+    carriers: dict[str, Literal["oil", "gas"]] = Field(
+        default_factory=lambda: {"e-liquids": "oil", "sng": "gas"},
+        description="Synthetic fuels and the fossil carrier that each fuel replaces.",
     )
 
 
@@ -852,6 +865,10 @@ class SectorConfig(BaseModel):
         False,
         description="Add TYNDP ramp limits to SMR and SMR CCS links. Only used with `h2_topology_tyndp`.",
     )
+    synfuels_tyndp: _SynfuelsTyndpConfig = Field(
+        default_factory=_SynfuelsTyndpConfig,
+        description="TYNDP 2026 synthetic fuels configuration.",
+    )
     gas_network: bool = Field(
         True,
         description="Add existing natural gas infrastructure, incl. LNG terminals, production and entry-points. The existing gas network is added with a lossless transport model. A length-weighted `k-edge augmentation algorithm <https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.connectivity.edge_augmentation.k_edge_augmentation.html#networkx.algorithms.connectivity.edge_augmentation.k_edge_augmentation>`_ can be run to add new candidate gas pipelines such that all regions of the model can be connected to the gas network. When activated, all the gas demands are regionally disaggregated as well.",
@@ -953,3 +970,10 @@ class SectorConfig(BaseModel):
     imports: _ImportsConfig = Field(
         default_factory=_ImportsConfig, description="Imports configuration."
     )
+
+    @model_validator(mode="after")
+    def check_synfuels_tyndp_requires_h2_topology(self) -> "SectorConfig":
+        """Validate that TYNDP synthetic fuels are used with the TYNDP H2 topology."""
+        if self.synfuels_tyndp.enable and not self.h2_topology_tyndp:
+            raise ValueError("`synfuels_tyndp: enable` requires `h2_topology_tyndp`.")
+        return self

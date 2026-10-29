@@ -198,3 +198,19 @@ all,2030,BtL,efficiency,0.6,per unit,"TYNDP 2026 Supply Tool NT+ SCN 2026, Conve
 all,2035,BtL,efficiency,0.63,per unit,"TYNDP 2026 Supply Tool NT+ SCN 2026, Conversion factors",NCV
 all,2040,BtL,efficiency,0.66,per unit,"TYNDP 2026 Supply Tool NT+ SCN 2026, Conversion factors",NCV
 all,2050,BtL,efficiency,0.7,per unit,"TYNDP 2026 Supply Tool NT+ SCN 2026, Conversion factors",NCV
+all,2030,H2 to e-liquids,carbondioxide-input,0.18417,tCO2/MWh_H2,"TYNDP 2026 Hydrogen/CO2 SYNTHETIC FUEL RATIOS.xlsx, TEMPLATE sheet, CO2 - H2 RATIO",Converted from kg/MWh to t/MWh with factor 0.001
+all,2035,H2 to e-liquids,carbondioxide-input,0.18421,tCO2/MWh_H2,"TYNDP 2026 Hydrogen/CO2 SYNTHETIC FUEL RATIOS.xlsx, TEMPLATE sheet, CO2 - H2 RATIO",Converted from kg/MWh to t/MWh with factor 0.001
+all,2040,H2 to e-liquids,carbondioxide-input,0.18437,tCO2/MWh_H2,"TYNDP 2026 Hydrogen/CO2 SYNTHETIC FUEL RATIOS.xlsx, TEMPLATE sheet, CO2 - H2 RATIO",Converted from kg/MWh to t/MWh with factor 0.001
+all,2050,H2 to e-liquids,carbondioxide-input,0.18461,tCO2/MWh_H2,"TYNDP 2026 Hydrogen/CO2 SYNTHETIC FUEL RATIOS.xlsx, TEMPLATE sheet, CO2 - H2 RATIO",Converted from kg/MWh to t/MWh with factor 0.001
+all,2030,H2 to sng,carbondioxide-input,0.15562,tCO2/MWh_H2,"TYNDP 2026 Hydrogen/CO2 SYNTHETIC FUEL RATIOS.xlsx, TEMPLATE sheet, CO2 - H2 RATIO",Converted from kg/MWh to t/MWh with factor 0.001
+all,2035,H2 to sng,carbondioxide-input,0.15562,tCO2/MWh_H2,"TYNDP 2026 Hydrogen/CO2 SYNTHETIC FUEL RATIOS.xlsx, TEMPLATE sheet, CO2 - H2 RATIO",Converted from kg/MWh to t/MWh with factor 0.001
+all,2040,H2 to sng,carbondioxide-input,0.15562,tCO2/MWh_H2,"TYNDP 2026 Hydrogen/CO2 SYNTHETIC FUEL RATIOS.xlsx, TEMPLATE sheet, CO2 - H2 RATIO",Converted from kg/MWh to t/MWh with factor 0.001
+all,2050,H2 to sng,carbondioxide-input,0.15562,tCO2/MWh_H2,"TYNDP 2026 Hydrogen/CO2 SYNTHETIC FUEL RATIOS.xlsx, TEMPLATE sheet, CO2 - H2 RATIO",Converted from kg/MWh to t/MWh with factor 0.001
+all,2030,e-liquids to oil,efficiency,0.72003,per unit,"TYNDP 2026 Supply Tool NT+ SCN 2026, Conversion factors",NCV
+all,2035,e-liquids to oil,efficiency,0.72071,per unit,"TYNDP 2026 Supply Tool NT+ SCN 2026, Conversion factors",NCV
+all,2040,e-liquids to oil,efficiency,0.72156,per unit,"TYNDP 2026 Supply Tool NT+ SCN 2026, Conversion factors",NCV
+all,2050,e-liquids to oil,efficiency,0.72071,per unit,"TYNDP 2026 Supply Tool NT+ SCN 2026, Conversion factors",NCV
+all,2030,sng to gas,efficiency,0.78776,per unit,"TYNDP 2026 Supply Tool NT+ SCN 2026, Conversion factors",NCV
+all,2035,sng to gas,efficiency,0.78776,per unit,"TYNDP 2026 Supply Tool NT+ SCN 2026, Conversion factors",NCV
+all,2040,sng to gas,efficiency,0.78776,per unit,"TYNDP 2026 Supply Tool NT+ SCN 2026, Conversion factors",NCV
+all,2050,sng to gas,efficiency,0.78776,per unit,"TYNDP 2026 Supply Tool NT+ SCN 2026, Conversion factors",NCV

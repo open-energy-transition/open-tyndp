@@ -490,6 +490,12 @@ if config["sector"]["h2_topology_tyndp"]:
         script:
             scripts("sb/clean_tyndp_h2_storages.py")
 
+
+if (
+    config["sector"]["h2_topology_tyndp"]
+    and config["sector"]["synfuels_tyndp"]["enable"]
+):
+
     rule build_tyndp_synfuels:
         input:
             synfuel_lines=rules.retrieve_tyndp_2026.output.synfuel_lines,
