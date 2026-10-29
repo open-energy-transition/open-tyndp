@@ -1244,6 +1244,32 @@ def add_import_limit_constraint(n: pypsa.Network, sns: pd.DatetimeIndex):
     n.model.add_constraints(lhs, limit_sense, rhs, name="import_limit")
 
 
+def add_co2_synfuels_constraint(n: pypsa.Network, snapshots: pd.DatetimeIndex) -> None:
+    """
+    Limit the CO2 used by domestic synthetic fuel production.
+
+    The limit is the TYNDP biogenic CO2 (BECCS) potential, stored as the
+    ``co2_synfuels_limit`` global constraint.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network instance, with the configuration attached as
+        ``n.config``.
+    snapshots : pd.DatetimeIndex
+        Simulation timesteps.
+    """
+    fuels = n.config["sector"]["synfuels_tyndp"]["carriers"]
+    production = [f"H2 to {fuel}" for fuel in fuels]
+    links = n.links.index[n.links.carrier.isin(production)]
+    co2_input = -n.links.loc[links, "efficiency2"]
+    weightings = n.snapshot_weightings.generators.loc[snapshots]
+    p = n.model["Link-p"].loc[snapshots, links]
+    lhs = (p * co2_input * weightings).sum()
+    rhs = n.global_constraints.at["co2_synfuels_limit", "constant"]
+    n.model.add_constraints(lhs <= rhs, name="GlobalConstraint-co2_synfuels_limit")
+
+
 def add_co2_atmosphere_constraint(n, snapshots):
     glcs = n.global_constraints[n.global_constraints.type == "co2_atmosphere"]
 
@@ -1392,6 +1418,9 @@ def extra_functionality(
         add_retrofit_gas_boiler_constraint(n, snapshots)
     else:
         add_co2_atmosphere_constraint(n, snapshots)
+
+    if "co2_synfuels_limit" in n.global_constraints.index:
+        add_co2_synfuels_constraint(n, snapshots)
 
     if config["sector"]["enhanced_geothermal"]["enable"]:
         add_flexible_egs_constraint(n)
