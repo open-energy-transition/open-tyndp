@@ -650,6 +650,18 @@ def extract_custom_buses(
         "custom bus(es)",
     )
 
+    # Setting link_capital_cost to zero if no entry exists
+    custom_buses["link_capital_cost"] = pd.to_numeric(
+        custom_buses["link_capital_cost"], errors="coerce"
+    ).fillna(0)
+
+    custom_buses = _drop_invalid(
+        custom_buses,
+        custom_buses["link_capital_cost"] >= 0,
+        "link capital cost is negative",
+        "custom bus(es)",
+    )
+
     logger.info(f"Extracted {len(custom_buses)} custom buses after cleaning. ")
 
     return custom_buses

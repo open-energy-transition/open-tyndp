@@ -201,12 +201,13 @@ Each bus is defined in `data/cba/custom_projects/buses.csv`, with one row per bu
 - `lat`, `lon`: coordinates of the bus, used as the `y` and `x` attributes.
 - `link_bus`: existing bus the new bus is connected to. Connecting two custom buses to each other is not supported.
 - `link_capacity`: capacity of that connection in MW.
-- `link_marginal_cost`: Marginal cost of the link in Eur/MWh.
+- `link_marginal_cost`: Marginal cost of the link in Eur/MWh. Left empty it defaults to 0.
+- `link_capital_cost`: Annualised capital cost of the connection in Eur/MW/year. Left empty it defaults to 0, in which case the connection is free in the cost comparison.
 - `category`: `onshore` or `offshore`.
 
-Entries are dropped with a warning when `bus_name`, `lat`, `lon`, `link_bus` or `link_capacity` is missing, when the coordinates are outside their valid range, when `bus_name` matches an existing bus, or when `link_bus` is not an existing bus. Coordinates are rounded to four decimals, and duplicate `bus_name` entries within the file are reduced to the first occurrence.
+Entries are dropped with a warning when `bus_name`, `lat`, `lon`, `project_id`, `link_bus` or `link_capacity` is missing, when the coordinates are outside their valid range, when `link_bus` is not an existing bus, when `project_type` is neither `s` nor `t`, when the link capacity is zero, or when the marginal or capital cost of the link is negative. Coordinates are rounded to four decimals, and rows repeating the same `bus_name` and coordinates within one project are reduced to the first occurrence.
 
-When applied, the bus is added to the project network as an AC `Bus`, together with a bidirectional `Link` named `<bus_name> custom bus link` connecting it to `link_bus` with `p_nom` set to `link_capacity`.
+When applied, the bus is added to the project network as an AC `Bus`, together with a bidirectional `Link` named `<bus_name> custom bus link` connecting it to `link_bus` with `p_nom` set to `link_capacity` and `marginal_cost` to `link_marginal_cost`. The connection is modelled as a forward and a reverse link, and since both represent one physical asset, `link_capital_cost` is applied to the forward link only.
 
 ### Custom generators
 

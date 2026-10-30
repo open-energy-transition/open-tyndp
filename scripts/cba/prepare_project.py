@@ -630,6 +630,8 @@ def prepare_custom_buses(
             )
             logger.info(f"Added custom bus {custom_bus_name} for project {prefix_pid}")
 
+            # The two links represent one physical connection, so the annualised
+            # capital cost is split equally between both the links
             n.add(
                 "Link",
                 f"{custom_bus_name} link",
@@ -640,6 +642,7 @@ def prepare_custom_buses(
                 p_max_pu=1,
                 carrier="DC",
                 marginal_cost=bus["link_marginal_cost"],
+                capital_cost=bus["link_capital_cost"]/2, 
             )
             n.add(
                 "Link",
@@ -651,6 +654,7 @@ def prepare_custom_buses(
                 p_max_pu=1,
                 carrier="DC",
                 marginal_cost=bus["link_marginal_cost"],
+                capital_cost=bus["link_capital_cost"]/2,
             )
 
             # Consistency check to ensure that the bus and links are correctly added
