@@ -89,6 +89,7 @@ import logging
 from pathlib import Path
 
 import country_converter as coco
+import numpy as np
 import pandas as pd
 
 from scripts._helpers import configure_logging, set_scenario_config
@@ -514,6 +515,158 @@ def extract_custom_transmission_projects(
     return custom_transmission_projects
 
 
+def _drop_invalid(
+    df: pd.DataFrame, keep: pd.Series, reason: str, context: str = "entries"
+) -> pd.DataFrame:
+    """
+    Drop rows where keep is False
+    """
+    if not keep.all():
+        logger.warning("Dropped %d %s: %s", (~keep).sum(), context, reason)
+    return df[keep]
+
+
+def _validate_project_reference(df: pd.DataFrame, context: str) -> pd.DataFrame:
+    """
+    Validate the (project_type, project_id) that a custom bus or generator is grouped with.
+    """
+    df = _drop_invalid(df, df.project_id.notnull(), "missing project_id", context)
+    df = _drop_invalid(
+        df,
+        df.project_type.isin(["s", "t"]),
+        "project_type is neither 's' nor 't'",
+        context,
+    )
+    return df.astype({"project_id": int})
+
+
+def extract_custom_buses(
+    custom_buses_path: str,
+    existing_buses: pd.Index,
+) -> pd.DataFrame:
+    """
+    Extract and prepare custom buses data.
+
+    Parameters
+    ----------
+    custom_buses_path: str
+        Filepath for custom buses
+    existing_buses: pd.Index
+        List of existing buses
+
+    Returns
+    -------
+        pd.DataFrame
+            Pandas dataframe of custom buses
+    """
+
+    custom_buses = read_csv_or_excel(custom_buses_path).drop(
+        ["source", "further description"], axis=1, errors="ignore"
+    )
+    if custom_buses.empty:
+        logger.debug("No custom buses found.")
+        return custom_buses
+
+    # Convert `link_capacity` to numeric
+    custom_buses["link_capacity"] = np.abs(
+        pd.to_numeric(custom_buses["link_capacity"], errors="coerce")
+    )
+
+    # Remove projects without bus name, coordinates, associated project, p_link and p_link_capacity
+    mask_not_null = (
+        custom_buses[
+            ["bus_name", "lat", "lon", "project_id", "link_bus", "link_capacity"]
+        ]
+        .notnull()
+        .all(axis=1)
+    )
+    custom_buses = _drop_invalid(
+        custom_buses,
+        mask_not_null,
+        "one of `bus_name`, `lat`, `lon`, `project_id`, `link_bus` or `link_capacity` is missing",
+        "custom bus(es)",
+    )
+
+    # Add validation for coordinates,
+    valid_lat = custom_buses["lat"].between(-90, 90)
+    valid_lon = custom_buses["lon"].between(-180, 180)
+    valid_coords = valid_lat & valid_lon
+
+    custom_buses = _drop_invalid(
+        custom_buses,
+        valid_coords,
+        "coordinates outside their valid range",
+        "custom bus(es)",
+    )
+
+    # Round of coordinates to 4 decimal places to avoid duplicates due to precision issues
+    custom_buses = custom_buses.round({"lat": 4, "lon": 4})
+
+    # TODO: check if coordinates are within the bounds of the EU/country?
+
+    # Drop duplicate subsets of bus_name and coordinates, keeping the first occurrence - this is to avoid issues with duplicate bus coordinates in the custom buses file
+    mask_unique = ~custom_buses.duplicated(
+        subset=["project_type", "project_id", "bus_name", "lat", "lon"], keep="first"
+    )
+    custom_buses = _drop_invalid(
+        custom_buses,
+        mask_unique,
+        "same bus_name and coordinates within one project; only the first occurrence is kept",
+        "custom bus(es)",
+    )
+
+    # Check if `link_bus` exists in the existing buses
+    # Connecting a new bus to an existing bus is allowed, but connecting two new buses is not allowed
+    mask_link_bus_exists = custom_buses["link_bus"].isin(existing_buses)
+    missing_link_buses = custom_buses.link_bus[~mask_link_bus_exists].unique().tolist()
+    custom_buses = _drop_invalid(
+        custom_buses,
+        mask_link_bus_exists,
+        f"`link_bus` is not an existing bus: {missing_link_buses}. Ensure that the `link_bus` in one of the following buses: {existing_buses}",
+        "custom bus(es)",
+    )
+
+    # Remove projects whose project_type is not a `storage` or `transmission` (i.e. not `s` or `t`)
+    custom_buses = _validate_project_reference(custom_buses, "custom bus(es)")
+
+    # Remove rows where link capacity is zero
+    custom_buses = _drop_invalid(
+        custom_buses,
+        custom_buses["link_capacity"] > 0,
+        "link capacity is zero",
+        "custom bus(es)",
+    )
+
+    custom_buses["link_marginal_cost"] = pd.to_numeric(
+        custom_buses["link_marginal_cost"], errors="coerce"
+    )
+    # Setting link_marginal_cost to zero if no entry exists
+    custom_buses["link_marginal_cost"] = custom_buses["link_marginal_cost"].fillna(0)
+
+    custom_buses = _drop_invalid(
+        custom_buses,
+        custom_buses["link_marginal_cost"] >= 0,
+        "link marginal cost is negative",
+        "custom bus(es)",
+    )
+
+    # Setting link_capital_cost to zero if no entry exists
+    custom_buses["link_capital_cost"] = pd.to_numeric(
+        custom_buses["link_capital_cost"], errors="coerce"
+    ).fillna(0)
+
+    custom_buses = _drop_invalid(
+        custom_buses,
+        custom_buses["link_capital_cost"] >= 0,
+        "link capital cost is negative",
+        "custom bus(es)",
+    )
+
+    logger.info(f"Extracted {len(custom_buses)} custom buses after cleaning. ")
+
+    return custom_buses
+
+
 def extract_custom_generators(
     custom_generators_static_path: str,
     custom_generator_dynamic_path: str,
@@ -570,42 +723,29 @@ def extract_custom_generators(
             "and to the PyPSA default otherwise. Ensure both datasets are compatible."
         )
 
-    # Remove projects with no project ID
-    mask_pid_null = custom_gens_static.project_id.isnull()
-    if mask_pid_null.any():
-        logger.warning(
-            f"{mask_pid_null.sum()} custom generator(s) without project ID have been dropped"
-        )
-    custom_gens_static = custom_gens_static[~mask_pid_null].astype({"project_id": int})
-
-    # Remove projects without an existing bus
-    # TODO If generator is being added at a new bus, this bus should have already been listed under `custom_cba_buses.csv`
-    mask_no_bus = ~custom_gens_static.bus.isin(existing_buses)
-    if mask_no_bus.any():
-        missing_buses = custom_gens_static.bus[mask_no_bus].unique().tolist()
-        logger.warning(
-            f"{mask_no_bus.sum()} custom generator(s) without existing bus have been dropped. Missing buses: {missing_buses}. "
-            "If new bus being added, ensure that it has been added to 'custom_cba_buses.csv'"
-        )
-    custom_gens_static = custom_gens_static[~mask_no_bus]
+    # Remove generators without an existing bus
+    # TODO If generator is being added at a new bus, this bus should have already been listed under `cba/custom_projects/buses.csv`
+    mask_bus_exists = custom_gens_static.bus.isin(existing_buses)
+    missing_buses = custom_gens_static.bus[~mask_bus_exists].unique().tolist()
+    custom_gens_static = _drop_invalid(
+        custom_gens_static,
+        mask_bus_exists,
+        f"`bus` is not an existing bus: {missing_buses}. If a new bus is being added, ensure that it has been added to 'cba/custom_projects/buses.csv'",
+        "custom generator(s)",
+    )
 
     # Remove projects without a generator name
-    mask_name_null = custom_gens_static.generator_name.isnull()
-    if mask_name_null.any():
-        logger.warning(
-            f"{mask_name_null.sum()} custom generators without generator name have been dropped"
-        )
-    custom_gens_static = custom_gens_static[~mask_name_null]
+    custom_gens_static = _drop_invalid(
+        custom_gens_static,
+        custom_gens_static.generator_name.notnull(),
+        "`generator_name` is missing",
+        "custom generator(s)",
+    )
 
-    # Remove projects whose project_type is not a `storage` or `transmission` (i.e. not `s` or `t`)
-    mask_project_type = ~custom_gens_static.project_type.isin(["s", "t"])
-    if mask_project_type.any():
-        invalid_ids = custom_gens_static.project_id[mask_project_type].unique().tolist()
-        logger.warning(
-            f"{mask_project_type.sum()} custom generator(s) with a malformed project project_type have been dropped. "
-            f"Expected the project_type to be 's' or 't', Invalid Project IDs: {invalid_ids}"
-        )
-    custom_gens_static = custom_gens_static[~mask_project_type]
+    # Remove generators with no project ID or whose project_type is not a `storage` or `transmission` (i.e. not `s` or `t`)
+    custom_gens_static = _validate_project_reference(
+        custom_gens_static, "custom generator(s)"
+    )
 
     custom_gens_static["mapping_id"] = (
         custom_gens_static["project_type"]
@@ -615,13 +755,14 @@ def extract_custom_generators(
     )
 
     # Remove duplicate mapping id - subset of `project_type`,`project id` and `generator name`
-    mask_duplicate = custom_gens_static.duplicated(subset=["mapping_id"], keep="first")
-    if mask_duplicate.any():
-        duplicate_mapping_ids = custom_gens_static[mask_duplicate].mapping_id.tolist()
-        logger.warning(
-            f"Custom generators with duplicate mapping IDs have been dropped: {duplicate_mapping_ids}"
-        )
-    custom_gens_static = custom_gens_static[~mask_duplicate]
+    mask_unique = ~custom_gens_static.duplicated(subset=["mapping_id"], keep="first")
+    duplicate_mapping_ids = custom_gens_static.mapping_id[~mask_unique].tolist()
+    custom_gens_static = _drop_invalid(
+        custom_gens_static,
+        mask_unique,
+        f"duplicate mapping IDs, only the first occurrence is kept: {duplicate_mapping_ids}",
+        "custom generator(s)",
+    )
 
     # Set default marginal cost, capital cost and efficiency if these columns have no entries
     custom_gens_static = custom_gens_static.fillna(
@@ -1116,6 +1257,7 @@ if __name__ == "__main__":
     custom_transmission_path = Path(snakemake.input.custom_transmission)
     custom_generators_static_path = Path(snakemake.input.custom_generators_static)
     custom_generators_dynamic_path = Path(snakemake.input.custom_generators_dynamic)
+    custom_buses_path = Path(snakemake.input.custom_buses)
     corrections_path = snakemake.input.cba_project_corrections
 
     # Get existing buses
@@ -1132,6 +1274,9 @@ if __name__ == "__main__":
     custom_transmission_projects = extract_custom_transmission_projects(
         custom_transmission_path, existing_buses
     )
+
+    # Custom buses
+    custom_buses = extract_custom_buses(custom_buses_path, existing_buses)
 
     # Custom generators
     # TODO Ensure custom buses have already been extracted and grouped under existing_buses
@@ -1190,3 +1335,5 @@ if __name__ == "__main__":
     custom_gens_static.to_csv(snakemake.output.generator_projects_static, index=False)
 
     custom_gens_dynamic.to_csv(snakemake.output.generator_projects_dynamic)
+
+    custom_buses.to_csv(snakemake.output.buses, index=False)
