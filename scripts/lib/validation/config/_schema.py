@@ -284,3 +284,13 @@ class ConfigSchema(BaseModel):
                 "added with the electricity distribution grid."
             )
         return self
+
+    @model_validator(mode="after")
+    def check_tyndp_requires_transport(self):
+        if self.tyndp_scenario and not self.sector.transport:
+            raise ValueError(
+                "'sector:transport' must be enabled for a TYNDP scenario. TYNDP "
+                "capacities are fixed, so omitting the EV fleets and land transport "
+                "demand would leave the system oversupplied."
+            )
+        return self

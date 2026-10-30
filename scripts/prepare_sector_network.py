@@ -9875,16 +9875,7 @@ if __name__ == "__main__":
             nhours=nhours,
         )
 
-    if options["transport"] and tyndp_scenario:
-        add_land_transport_oil_tyndp(
-            n=n,
-            costs=costs,
-            spatial=spatial,
-            options=options,
-            cf_industry=cf_industry,
-            demand=options["land_transport_oil_demand_tyndp"][investment_year],
-        )
-    elif options["transport"]:
+    if options["transport"] and not tyndp_scenario:
         add_land_transport(
             n=n,
             costs=costs,
@@ -10092,6 +10083,14 @@ if __name__ == "__main__":
             dsm_profile_fn=snakemake.input.dsm_profile_tyndp,
             dsm=options["bev_dsm"],
             v2g=options["v2g"],
+        )
+        add_land_transport_oil_tyndp(
+            n=n,
+            costs=costs,
+            spatial=spatial,
+            options=options,
+            cf_industry=cf_industry,
+            demand=options["land_transport_oil_demand_tyndp"][investment_year],
         )
 
     if tyndp_scenario and snakemake.params.hurdle_costs:
