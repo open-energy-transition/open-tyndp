@@ -641,7 +641,7 @@ def prepare_custom_buses(
                 p_max_pu=1,
                 carrier="DC",
                 marginal_cost=bus["link_marginal_cost"],
-                capital_cost=bus["link_capital_cost"]/2, 
+                capital_cost=bus["link_capital_cost"] / 2,
             )
             n.add(
                 "Link",
@@ -653,7 +653,7 @@ def prepare_custom_buses(
                 p_max_pu=1,
                 carrier="DC",
                 marginal_cost=bus["link_marginal_cost"],
-                capital_cost=bus["link_capital_cost"]/2,
+                capital_cost=bus["link_capital_cost"] / 2,
             )
 
             # Consistency check to ensure that the bus and links are correctly added
