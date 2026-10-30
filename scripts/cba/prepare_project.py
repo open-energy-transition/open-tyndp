@@ -584,7 +584,10 @@ def prepare_custom_buses(
     n: pypsa.Network, snakemake, prefix_pid: str, method: str
 ) -> None:
     """
-    Add custom buses accompanying a storage or transmission project.
+    Add custom buses accompanying a transmission project.
+
+    The buses are added before the project itself, so that the custom transmission
+    project rows referring to them can connect them to the network.
 
     Parameters
     ----------
@@ -616,51 +619,18 @@ def prepare_custom_buses(
         logger.warning("Custom buses are not applicable for TOOT projects.")
         return
     elif method == "pint":
+        # The bus is only connected to the network once the custom transmission
+        # project referring to it as bus0 or bus1 is applied
         for _, bus in custom_buses_project.iterrows():
-            # Add a suffix to the bus name to avoid conflicts with existing buses in the network
-            custom_bus_name = bus["bus_name"] + " custom bus"
             n.add(
                 "Bus",
-                custom_bus_name,
+                bus["bus_name"],
                 carrier="AC",
                 country=bus["country"],
                 y=bus["lat"],
                 x=bus["lon"],
             )
-            logger.info(f"Added custom bus {custom_bus_name} for project {prefix_pid}")
-
-            # The two links represent one physical connection, so the annualised
-            # capital cost is split equally between both the links
-            n.add(
-                "Link",
-                f"{custom_bus_name} link",
-                bus0=custom_bus_name,
-                bus1=bus["link_bus"],
-                p_nom=bus["link_capacity"],
-                p_min_pu=0,
-                p_max_pu=1,
-                carrier="DC",
-                marginal_cost=bus["link_marginal_cost"],
-                capital_cost=bus["link_capital_cost"]/2, 
-            )
-            n.add(
-                "Link",
-                f"{custom_bus_name} reverse link",
-                bus0=bus["link_bus"],
-                bus1=custom_bus_name,
-                p_nom=bus["link_capacity"],
-                p_min_pu=0,
-                p_max_pu=1,
-                carrier="DC",
-                marginal_cost=bus["link_marginal_cost"],
-                capital_cost=bus["link_capital_cost"]/2,
-            )
-
-            # Consistency check to ensure that the bus and links are correctly added
-            n.consistency_check()
-            logger.info(
-                f"Added links between custom bus {custom_bus_name} and existing bus {bus['link_bus']} for project {prefix_pid}"
-            )
+            logger.info(f"Added custom bus {bus['bus_name']} for project {prefix_pid}")
     else:
         raise ValueError(f"Unknown method {method} for project {prefix_pid}")
 
@@ -766,6 +736,9 @@ if __name__ == "__main__":
         snakemake.input.methods, project_id, project_type, planning_horizon
     )
 
+    # Custom buses are added first, as the project links connect them to the network
+    prepare_custom_buses(n, snakemake, cba_project, method)
+
     if project_type == "storage":
         prepare_storage_project(n, snakemake, project_id, method)
     elif project_type == "transmission":
@@ -775,7 +748,7 @@ if __name__ == "__main__":
             f"Unknown project type {project_type} for project {cba_project}"
         )
 
-    prepare_custom_buses(n, snakemake, cba_project, method)
     prepare_custom_generators(n, snakemake, cba_project, method)
+    n.consistency_check()
 
     n.export_to_netcdf(snakemake.output.network)

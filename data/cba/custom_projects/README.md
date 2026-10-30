@@ -8,13 +8,14 @@ header only; add one row per project, bus or generator to include it in a run.
 
 | File | Purpose |
 | --- | --- |
-| `transmission_projects.csv` | Modify an existing transmission project, or add a new one |
+| `transmission_projects.csv` | Modify an existing transmission project, add a new one, or connect a bus of `buses.csv` |
 | `buses.csv` | Buses added for a custom project, for components that do not connect to an existing bus |
 | `generators_static.csv` | Static attributes of custom generators associated with a transmission or storage project |
 | `generators_dynamic.csv` | Time-varying attributes of the custom generators added in `generators_static.csv` (two-row header, snapshots as index) |
 
-Custom buses are added before the custom generators, so a generator can be attached to a bus
-defined in `buses.csv` within the same run.
+A bus of `buses.csv` is connected to the network by a row of `transmission_projects.csv` that
+carries the same `project_id` and names it as `bus0` or `bus1`. Custom buses are added before the
+project and its custom generators, so both can refer to them.
 
 Columns, validation rules and defaults are documented under
 [Evaluation of custom projects](../../../doc/cba.md#evaluation-of-custom-projects); which projects

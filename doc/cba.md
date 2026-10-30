@@ -190,29 +190,29 @@ Custom PINT transmission projects can be evaluated with the CBA workflow. Each p
 
 Every entry must define `project_id`, `bus0`, `bus1` and at least one capacity (`p_nom 0->1` or `p_nom 1->0`), and the resulting combinations must be unique. Entries referring to TOOT projects are not supported and are ignored with a warning. Transmission capacities are in MW.
 
+`bus0` and `bus1` are normally existing buses, but either of them can also be a custom bus of the same project, in which case the entry connects that bus to the network (see [Custom buses](#custom-buses)).
+
 ### Custom buses
 
 A custom bus is a node that does not exist in the TYNDP network, added so that components of a custom project can be attached to it. Custom buses are supported for **PINT** projects only; an entry grouped with a TOOT project is ignored with a warning, since the reference network does not contain the bus in the first place.
 
 Custom buses are electricity nodes: they are added with the `AC` carrier and connected to an existing electricity bus. Nodes of other carriers, such as hydrogen, are not supported.
 
+A custom bus is not connected on its own. Its connection to the rest of the network is a custom transmission project: a row of `data/cba/custom_projects/transmission_projects.csv` that carries the same `project_id` and names the bus as `bus0` or `bus1`. The connection therefore uses the same columns, capacities, costs and hurdle costs as any other custom transmission project. As a consequence, custom buses can only be grouped with transmission projects (`project_type = t`).
+
 Each bus is defined in `data/cba/custom_projects/buses.csv`, with one row per bus:
 
-- `bus_name`: name of the new bus. The suffix ` custom bus` is appended when it is added to the network, so `new_bus` becomes `new_bus custom bus`.
+- `bus_name`: name of the new bus, used as is in the network and as `bus0` or `bus1` of the custom transmission project connecting it. It must not be the name of an existing bus.
 - `country`: country code of the bus.
 - `lat`, `lon`: coordinates of the bus, used as the `y` and `x` attributes.
-- `link_bus`: existing bus the new bus is connected to. Connecting two custom buses to each other is not supported.
-- `link_capacity`: capacity of that connection in MW.
-- `link_marginal_cost`: Marginal cost of the link in Eur/MWh. Left empty it defaults to 0.
-- `link_capital_cost`: Annualised capital cost of the connection in Eur/MW/year. Left empty it defaults to 0, in which case the connection is free in the cost comparison.
 
-Entries are dropped with a warning when `bus_name`, `lat`, `lon`, `project_id`, `link_bus` or `link_capacity` is missing, when the coordinates are outside their valid range, when `link_bus` is not an existing bus, when `project_type` is neither `s` nor `t`, when the link capacity is zero, or when the marginal or capital cost of the link is negative. Coordinates are rounded to four decimals, and rows repeating the same `bus_name` and coordinates within one project are reduced to the first occurrence.
+Entries are dropped with a warning when `bus_name`, `lat`, `lon` or `project_id` is missing, when the coordinates are outside their valid range, when `bus_name` is already an existing bus, when `project_type` is neither `s` nor `t`, and when no custom transmission project of the same `project_id` refers to the bus. Coordinates are rounded to four decimals, and rows repeating the same `bus_name` within one project are reduced to the first occurrence. A custom transmission project that refers to a custom bus of another project is dropped with a warning as well, since that bus only exists in its own project network.
 
-When applied, the bus is added to the project network as an AC `Bus`, together with a bidirectional `Link` named `<bus_name> custom bus link` connecting it to `link_bus` with `p_nom` set to `link_capacity` and `marginal_cost` to `link_marginal_cost`. The connection is modelled as a forward and a reverse link, and since both represent one physical asset, `link_capital_cost` is applied to the forward link only.
+When applied, the bus is added to the project network as an AC `Bus` before the project itself, so that the links of the custom transmission project can connect it.
 
 ### Custom generators
 
-Custom generators are used to define either a new generator / capacity update to an existing generator as part of a custom project. Unlike custom buses, custom generators are supported for both **PINT** and **TOOT** projects. Custom generators can also be defined at custom buses, provided the custom bus was defined in `data/cba/custom_projects/buses.csv`.
+Custom generators are used to define either a new generator / capacity update to an existing generator as part of a custom project. Unlike custom buses, custom generators are supported for both **PINT** and **TOOT** projects. Custom generators can also be defined at custom buses, by setting `bus` to the `bus_name` of a bus defined in `data/cba/custom_projects/buses.csv`.
 
 Each project is defined across two files:
 

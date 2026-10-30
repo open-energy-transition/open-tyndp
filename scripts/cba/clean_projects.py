@@ -32,7 +32,8 @@ the user can modify existing projects and add new ones. Transmission capacities 
 - `rules.retrieve_tyndp.output.nodes`: TYNDP electricity node list used to validate borders
 - `data/cba/table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv`: Table of projects as defined in the Implementation Guidelines Appendix B.1, used to assign the TOOT/PINT method per project and planning horizon
 - `data/cba/cba_project_corrections.csv`: Manually curated bus0/bus1/p_nom corrections for CBA projects, applied in place of the corresponding raw Excel entries
-- `data/cba/custom_projects/transmission_projects.csv`: File used to configure custom transmission projects. With it, the user can modify existing projects and add new ones.
+- `data/cba/custom_projects/transmission_projects.csv`: File used to configure custom transmission projects. With it, the user can modify existing projects and add new ones, and connect the custom buses of a project to the network.
+- `data/cba/custom_projects/buses.csv`: File used to configure custom buses, i.e. buses that do not exist in the TYNDP network and are added alongside a custom transmission project.
 - `data/cba/custom_projects/generators_static.csv`: File used to configure custom generators. With it, user can modify static attributes of existing or new generators attached to a transmission / storage project.
 - `data/cba/custom_projects/generators_dynamic.csv`: File used to configure custom generators. With it, user can modify dynamic attributes of existing or new generators attached to a transmission / storage project.
 
@@ -66,6 +67,14 @@ the user can modify existing projects and add new ones. Transmission capacities 
 
 - `resources/cba/cba_project_methods.csv`: Table defining the assignment method of each project.
 
+- `resources/cba/buses.csv`: Cleaned CSV of custom buses, one row per bus, with columns:
+  - `project_name`: Name of the project the bus is grouped with
+  - `project_type`: Type of that project, `t` for transmission or `s` for storage
+  - `project_id`: Integer identifier of that project
+  - `bus_name`: Name of the bus in the network, also used as `bus0` or `bus1` of the custom transmission project connecting it
+  - `country`: Country code of the bus
+  - `lat`, `lon`: Coordinates of the bus, used as its `y` and `x` attributes
+
 - `resources/cba/generator_projects_static.csv`: Cleaned CSV of custom generators, one row per generator, with columns:
   - `project_name`: Name of the project the generator is grouped with
   - `project_type`: Type of that project, `t` for transmission or `s` for storage
@@ -89,7 +98,6 @@ import logging
 from pathlib import Path
 
 import country_converter as coco
-import numpy as np
 import pandas as pd
 
 from scripts._helpers import configure_logging, set_scenario_config
@@ -455,7 +463,9 @@ def extract_transmission_projects(
 
 
 def extract_custom_transmission_projects(
-    custom_transmission_path: Path, existing_buses: pd.Index
+    custom_transmission_path: Path,
+    existing_buses: pd.Index,
+    custom_buses: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
     """
     Extract custom transmission projects.
@@ -465,7 +475,11 @@ def extract_custom_transmission_projects(
     custom_transmission_path : Path
         File path to custom transmission projects.
     existing_buses : pd.Index
-        List of existing buses.
+        List of existing buses, including the custom buses that may be used as
+        `bus0` or `bus1`.
+    custom_buses : pd.DataFrame, optional
+        Curated list of custom buses, used to check that a project only connects
+        to the custom buses it is grouped with.
 
     Returns
     -------
@@ -511,6 +525,29 @@ def extract_custom_transmission_projects(
             f"Some custom projects have identical bus0 and bus1, ignoring them:\n{dup_projects.to_string(index=False)}"
         )
     custom_transmission_projects = custom_transmission_projects[mask_dup_buses]
+
+    # A custom bus only exists in the network of the project it is grouped with, so a
+    # project can only connect to its own custom buses
+    if custom_buses is not None and not custom_buses.empty:
+        own = custom_buses[custom_buses.project_type == "t"]
+        own_keys = set(own.project_id.astype(str) + "@" + own.bus_name)
+        custom_bus_names = set(custom_buses.bus_name)
+        project_id = custom_transmission_projects.project_id.astype(str)
+
+        def refers_to_foreign_bus(buses: pd.Series) -> pd.Series:
+            return buses.isin(custom_bus_names) & ~(project_id + "@" + buses).isin(
+                own_keys
+            )
+
+        custom_transmission_projects = _drop_invalid(
+            custom_transmission_projects,
+            ~(
+                refers_to_foreign_bus(custom_transmission_projects.bus0)
+                | refers_to_foreign_bus(custom_transmission_projects.bus1)
+            ),
+            "`bus0` or `bus1` is a custom bus grouped with another project",
+            "custom transmission project(s)",
+        )
 
     return custom_transmission_projects
 
@@ -567,23 +604,14 @@ def extract_custom_buses(
         logger.debug("No custom buses found.")
         return custom_buses
 
-    # Convert `link_capacity` to numeric
-    custom_buses["link_capacity"] = np.abs(
-        pd.to_numeric(custom_buses["link_capacity"], errors="coerce")
-    )
-
-    # Remove projects without bus name, coordinates, associated project, p_link and p_link_capacity
+    # Remove buses without bus name, coordinates or associated project
     mask_not_null = (
-        custom_buses[
-            ["bus_name", "lat", "lon", "project_id", "link_bus", "link_capacity"]
-        ]
-        .notnull()
-        .all(axis=1)
+        custom_buses[["bus_name", "lat", "lon", "project_id"]].notnull().all(axis=1)
     )
     custom_buses = _drop_invalid(
         custom_buses,
         mask_not_null,
-        "one of `bus_name`, `lat`, `lon`, `project_id`, `link_bus` or `link_capacity` is missing",
+        "one of `bus_name`, `lat`, `lon` or `project_id` is missing",
         "custom bus(es)",
     )
 
@@ -604,67 +632,95 @@ def extract_custom_buses(
 
     # TODO: check if coordinates are within the bounds of the EU/country?
 
-    # Drop duplicate subsets of bus_name and coordinates, keeping the first occurrence - this is to avoid issues with duplicate bus coordinates in the custom buses file
+    # `bus_name` identifies the bus in the network, so one project cannot define it twice
     mask_unique = ~custom_buses.duplicated(
-        subset=["project_type", "project_id", "bus_name", "lat", "lon"], keep="first"
+        subset=["project_type", "project_id", "bus_name"], keep="first"
     )
     custom_buses = _drop_invalid(
         custom_buses,
         mask_unique,
-        "same bus_name and coordinates within one project; only the first occurrence is kept",
+        "same bus_name within one project; only the first occurrence is kept",
         "custom bus(es)",
     )
 
-    # Check if `link_bus` exists in the existing buses
-    # Connecting a new bus to an existing bus is allowed, but connecting two new buses is not allowed
-    mask_link_bus_exists = custom_buses["link_bus"].isin(existing_buses)
-    missing_link_buses = custom_buses.link_bus[~mask_link_bus_exists].unique().tolist()
+    # `bus_name` is used as is in the network and referenced as `bus0` or `bus1` of the
+    # custom transmission project connecting it, so it must not shadow an existing bus
     custom_buses = _drop_invalid(
         custom_buses,
-        mask_link_bus_exists,
-        f"`link_bus` is not an existing bus: {missing_link_buses}. Ensure that the `link_bus` in one of the following buses: {existing_buses}",
+        ~custom_buses["bus_name"].isin(existing_buses),
+        "`bus_name` is already the name of an existing bus",
         "custom bus(es)",
     )
 
     # Remove projects whose project_type is not a `storage` or `transmission` (i.e. not `s` or `t`)
     custom_buses = _validate_project_reference(custom_buses, "custom bus(es)")
 
-    # Remove rows where link capacity is zero
-    custom_buses = _drop_invalid(
-        custom_buses,
-        custom_buses["link_capacity"] > 0,
-        "link capacity is zero",
-        "custom bus(es)",
-    )
-
-    custom_buses["link_marginal_cost"] = pd.to_numeric(
-        custom_buses["link_marginal_cost"], errors="coerce"
-    )
-    # Setting link_marginal_cost to zero if no entry exists
-    custom_buses["link_marginal_cost"] = custom_buses["link_marginal_cost"].fillna(0)
-
-    custom_buses = _drop_invalid(
-        custom_buses,
-        custom_buses["link_marginal_cost"] >= 0,
-        "link marginal cost is negative",
-        "custom bus(es)",
-    )
-
-    # Setting link_capital_cost to zero if no entry exists
-    custom_buses["link_capital_cost"] = pd.to_numeric(
-        custom_buses["link_capital_cost"], errors="coerce"
-    ).fillna(0)
-
-    custom_buses = _drop_invalid(
-        custom_buses,
-        custom_buses["link_capital_cost"] >= 0,
-        "link capital cost is negative",
-        "custom bus(es)",
-    )
-
     logger.info(f"Extracted {len(custom_buses)} custom buses after cleaning. ")
 
     return custom_buses
+
+
+def with_custom_buses(existing_buses: pd.Index, custom_buses: pd.DataFrame) -> pd.Index:
+    """
+    Add the custom bus names to the list of buses that custom projects may refer to.
+
+    Parameters
+    ----------
+    existing_buses : pd.Index
+        List of existing buses.
+    custom_buses : pd.DataFrame
+        Curated list of custom buses.
+
+    Returns
+    -------
+    pd.Index
+        Existing buses, extended by the custom bus names.
+    """
+
+    if custom_buses.empty:
+        return existing_buses
+    return existing_buses.union(pd.Index(custom_buses.bus_name.unique())).rename(
+        existing_buses.name
+    )
+
+
+def drop_unconnected_custom_buses(
+    custom_buses: pd.DataFrame, custom_transmission_projects: pd.DataFrame
+) -> pd.DataFrame:
+    """
+    Drop custom buses that no custom transmission project connects to the network.
+
+    Parameters
+    ----------
+    custom_buses : pd.DataFrame
+        Curated list of custom buses.
+    custom_transmission_projects : pd.DataFrame
+        Curated list of custom transmission projects.
+
+    Returns
+    -------
+    pd.DataFrame
+        Custom buses that are connected to the network by their own project.
+    """
+
+    if custom_buses.empty:
+        return custom_buses
+
+    project_id = custom_transmission_projects.project_id.astype(str)
+    connected = set(project_id + "@" + custom_transmission_projects.bus0) | set(
+        project_id + "@" + custom_transmission_projects.bus1
+    )
+
+    return _drop_invalid(
+        custom_buses,
+        (custom_buses.project_type == "t")
+        & (custom_buses.project_id.astype(str) + "@" + custom_buses.bus_name).isin(
+            connected
+        ),
+        "no custom transmission project connects the bus to the network. Add a row to "
+        "transmission_projects.csv with the same project_id and the bus as `bus0` or `bus1`",
+        "custom bus(es)",
+    )
 
 
 def extract_custom_generators(
@@ -1270,20 +1326,27 @@ if __name__ == "__main__":
         transmission_path, corrections_path, existing_buses
     )
 
-    # Custom transmission projects
-    custom_transmission_projects = extract_custom_transmission_projects(
-        custom_transmission_path, existing_buses
-    )
-
     # Custom buses
+    # Extracted first, as custom transmission projects and generators refer to them by name
     custom_buses = extract_custom_buses(custom_buses_path, existing_buses)
 
+    # Custom transmission projects
+    custom_transmission_projects = extract_custom_transmission_projects(
+        custom_transmission_path,
+        with_custom_buses(existing_buses, custom_buses),
+        custom_buses,
+    )
+
+    # Custom buses are connected to the network by a custom transmission project
+    custom_buses = drop_unconnected_custom_buses(
+        custom_buses, custom_transmission_projects
+    )
+
     # Custom generators
-    # TODO Ensure custom buses have already been extracted and grouped under existing_buses
     custom_gens_static, custom_gens_dynamic = extract_custom_generators(
         custom_generators_static_path,
         custom_generators_dynamic_path,
-        existing_buses,
+        with_custom_buses(existing_buses, custom_buses),
         pd.Timestamp(snakemake.params.snapshots["start"]).year,
     )
 
