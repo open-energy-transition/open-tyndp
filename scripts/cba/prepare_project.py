@@ -626,7 +626,6 @@ def prepare_custom_buses(
                 country=bus["country"],
                 y=bus["lat"],
                 x=bus["lon"],
-                category=bus["category"],
             )
             logger.info(f"Added custom bus {custom_bus_name} for project {prefix_pid}")
 

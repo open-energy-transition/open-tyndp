@@ -194,6 +194,8 @@ Every entry must define `project_id`, `bus0`, `bus1` and at least one capacity (
 
 A custom bus is a node that does not exist in the TYNDP network, added so that components of a custom project can be attached to it. Custom buses are supported for **PINT** projects only; an entry grouped with a TOOT project is ignored with a warning, since the reference network does not contain the bus in the first place.
 
+Custom buses are electricity nodes: they are added with the `AC` carrier and connected to an existing electricity bus. Nodes of other carriers, such as hydrogen, are not supported.
+
 Each bus is defined in `data/cba/custom_projects/buses.csv`, with one row per bus:
 
 - `bus_name`: name of the new bus. The suffix ` custom bus` is appended when it is added to the network, so `new_bus` becomes `new_bus custom bus`.
@@ -203,7 +205,6 @@ Each bus is defined in `data/cba/custom_projects/buses.csv`, with one row per bu
 - `link_capacity`: capacity of that connection in MW.
 - `link_marginal_cost`: Marginal cost of the link in Eur/MWh. Left empty it defaults to 0.
 - `link_capital_cost`: Annualised capital cost of the connection in Eur/MW/year. Left empty it defaults to 0, in which case the connection is free in the cost comparison.
-- `category`: `onshore` or `offshore`.
 
 Entries are dropped with a warning when `bus_name`, `lat`, `lon`, `project_id`, `link_bus` or `link_capacity` is missing, when the coordinates are outside their valid range, when `link_bus` is not an existing bus, when `project_type` is neither `s` nor `t`, when the link capacity is zero, or when the marginal or capital cost of the link is negative. Coordinates are rounded to four decimals, and rows repeating the same `bus_name` and coordinates within one project are reduced to the first occurrence.
 
