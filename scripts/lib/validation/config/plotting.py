@@ -1054,7 +1054,6 @@ _TECH_COLORS.update(
         "other-res-mix": "#91ba41",
         "dsr": "#110d63",
         "H2 exogenous demand": "#bf13a0",
-        "H2_OH": "#bf13a0",
         "methane&hydrogen": "#bf13a0",
         "ATR": "#870c99",
         "H2 cavern-storage": "#bf13a0",
@@ -1063,25 +1062,65 @@ _TECH_COLORS.update(
         "H2 tank-storage": "#bf13d2",
         "H2 tank-storage charger": "#bf13d2",
         "H2 tank-storage discharger": "#bf13d2",
-        "H2 pipeline OH": "#f081dc",
         "H2 import LH2": "#F28C28",
         "H2 import Pipeline": "#FFA500",
         "h2-fuel-cell": "#c251ae",
         "h2-ccgt": "#991f83",
-        "AC_OH": "#70af1d",
         "AC_DRES": "#70af1d",
-        "DC_OH": "#8a1caf",
+        "onwind-dres": "#1a4a96",
+        "onwind-sres": "#4d82d1",
+        "onwind-sres-h2z1": "#4d82d1",
+        "onwind-sres-h2z2": "#4d82d1",
+        "offwind-r": "#4a7ec4",
+        "offwind-sres-h2z1-r": "#23477a",
+        "offwind-sres-h2z2-r": "#23477a",
+        "offwind-oh": "#5fc9e8",
+        "offwind-dres-r": "#3aa8cc",
+        "offwind-dres-oh": "#3aa8cc",
+        "offwind-sres-r": "#23477a",
+        "offwind-sres-oh": "#2287a8",
+        "offwind-sres-h2z1-oh": "#2287a8",
+        "offwind-sres-h2z2-oh": "#2287a8",
+        "hydro-ror-turbine": "#3dbfb0",
+        "hydro-pondage-turbine": "#51dbbc",
+        "hydro-pondage-reservoir": "#51bbbc",
+        "hydro-reservoir-turbine": "#298c81",
+        "hydro-reservoir-reservoir": "#296c81",
+        "hydro-phs-reservoir": "#087d97",
+        "hydro-phs-pure-reservoir": "#51abcc",
+        "solar-pv-utility-dres": "#d4a800",
+        "solar-pv-utility-sres": "#a87f00",
+        "solar-pv-utility-sres-h2z1": "#a87f00",
+        "solar-pv-utility-sres-h2z2": "#a87f00",
+        "solar-thermal": "#ffbf2b",
+        "solar-thermal-w-storage": "#e09a1f",
+        "solar-thermal-w-storage-storage": "#c27f14",
+        "other-res": "#91ba41",
+        "SRES grid connection": "#97ad8c",
+        "electricity prosumer": "#3b3785",
+        "electricity prosumer btm": "#625fa3",
+        "battery-utility": "#ace37f",
+        "battery-utility charger": "#88a75b",
+        "battery-utility discharger": "#5d4e29",
+        "battery-prosumer": "#80c944",
+        "battery-prosumer charger": "#5e8032",
+        "battery-prosumer discharger": "#3c5221",
+        "h2-ocgt": "#b52b99",
+        "h2-electrolysis": "#ff29d9",
+        "electrolyser-onshore-grid": "#ff29d9",
+        "H2 Electrolysis Z1": "#ff29d9",
+        "H2 Electrolysis Z2": "#ff29d9",
+        "h2-electrolysis-dres": "#cc1fae",
+        "H2 Electrolysis DRES Z1": "#cc1fae",
+        "H2 Electrolysis DRES Z2": "#cc1fae",
+        "h2-electrolysis-sres": "#99177f",
+        "H2 Electrolysis SRES Z1": "#99177f",
+        "H2 Electrolysis SRES Z2": "#99177f",
+        "other-non-res-h2-ccgt": "#991f83",
+        "other-non-res-h2-ocgt": "#b52b99",
+        "AC_SRES": "#70af1d",
     }
 )
-
-
-class _OffshoreMapsConfig(ConfigModel):
-    """Configuration for `plotting.offshore_maps` settings."""
-
-    bus_carriers: list[str] = Field(
-        ["DC_OH", "H2 pipeline OH"],
-        description="Bus carriers for which offshore network maps are generated.",
-    )
 
 
 class _CbaPlottingConfig(ConfigModel):
@@ -1185,10 +1224,6 @@ class PlottingConfig(ConfigModel):
     tech_colors: dict[str, str] = Field(
         default_factory=lambda: dict(_TECH_COLORS),
         description="Colors used to represent technologies and carriers consistently across all plots. Values must be hex color strings, e.g. ``#235ebc``.",
-    )
-    offshore_maps: _OffshoreMapsConfig = Field(
-        default_factory=_OffshoreMapsConfig,
-        description="Settings for offshore network maps.",
     )
     cba: _CbaPlottingConfig = Field(
         default_factory=_CbaPlottingConfig,

@@ -4336,22 +4336,6 @@
           "description": "Colors used to represent technologies and carriers consistently across all plots. Values must be hex color strings, e.g. ``#235ebc``.",
           "type": "object"
         },
-        "offshore_maps": {
-          "description": "Configuration for `plotting.offshore_maps` settings.",
-          "properties": {
-            "bus_carriers": {
-              "default": [
-                "DC_OH",
-                "H2 pipeline OH"
-              ],
-              "description": "Bus carriers for which offshore network maps are generated.",
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            }
-          }
-        },
         "cba": {
           "description": "Configuration for `plotting.cba` settings.",
           "properties": {
@@ -9635,22 +9619,6 @@
           "default": true,
           "description": "Whether to delete the worker instance when an error occurs during job execution.",
           "type": "boolean"
-        }
-      }
-    },
-    "_OffshoreMapsConfig": {
-      "description": "Configuration for `plotting.offshore_maps` settings.",
-      "properties": {
-        "bus_carriers": {
-          "default": [
-            "DC_OH",
-            "H2 pipeline OH"
-          ],
-          "description": "Bus carriers for which offshore network maps are generated.",
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
         }
       }
     },
@@ -18439,22 +18407,6 @@
           },
           "description": "Colors used to represent technologies and carriers consistently across all plots. Values must be hex color strings, e.g. ``#235ebc``.",
           "type": "object"
-        },
-        "offshore_maps": {
-          "description": "Configuration for `plotting.offshore_maps` settings.",
-          "properties": {
-            "bus_carriers": {
-              "default": [
-                "DC_OH",
-                "H2 pipeline OH"
-              ],
-              "description": "Bus carriers for which offshore network maps are generated.",
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            }
-          }
         },
         "cba": {
           "description": "Configuration for `plotting.cba` settings.",
