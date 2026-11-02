@@ -2,12 +2,12 @@
 #
 # SPDX-License-Identifier: MIT
 """
-Builds hydroelectric inflow time-series for each country based on PEMMDB v2.5 hydro inflow data from the 2024 TYNDP.
+Builds hydroelectric inflow time-series for each country based on PECD v4.2 hydro inflow data from the 2026 TYNDP.
 
 Outputs
 -------
 
-- `resources/profile_pemmdb_hydro.nc`:
+- `resources/profile_pecd_hydro.nc`:
 
     | Field  | Dimensions                      | Description                                                              |
     | ------ | ------------------------------- | ------------------------------------------------------------------------ |
@@ -20,12 +20,8 @@ import pandas as pd
 import xarray as xr
 from tqdm.contrib.itertools import product
 
-from scripts._helpers import (
-    configure_logging,
-    get_snapshots,
-    safe_planning_horizon,
-    set_scenario_config,
-)
+from scripts._helpers import configure_logging, get_snapshots, set_scenario_config
+from scripts.sb._helpers import safe_planning_horizon
 
 logger = logging.getLogger(__name__)
 
@@ -46,10 +42,10 @@ if __name__ == "__main__":
 
     tech_map = (
         pd.read_csv(snakemake.input.carrier_mapping)[
-            ["pemmdb_hydro_inflows", "open_tyndp_carrier"]
+            ["pecd_hydro_inflows", "open_tyndp_carrier"]
         ]
         .dropna()
-        .set_index("pemmdb_hydro_inflows")
+        .set_index("pecd_hydro_inflows")
         .drop_duplicates()
         .open_tyndp_carrier
     )
@@ -63,7 +59,7 @@ if __name__ == "__main__":
         year = safe_planning_horizon(
             int(year),
             available_years=snakemake.params.available_years,
-            source="PEMMDB hydro inflow",
+            source="PECD hydro inflow",
         )
 
         inflow = (

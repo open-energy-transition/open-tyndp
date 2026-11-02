@@ -31,19 +31,6 @@ data:
 
 - `data/open_tyndp_prelim/{source}/{version}/base_s_all___{planning_horizons}.nc`
 
-### Rule `retrieve_countries_centroids`
-
-Downloads country centroid geometry data by Copyright (c) 2021 Gavin Rehkemper from
-<https://cdn.jsdelivr.net/gh/gavinr/world-countries-centroids@v1.0.0/dist/countries.geojson>.
-
-**Relevant Settings**
-
-None.
-
-**Outputs**
-
-- `data/countries_centroids.geojson`
-
 ## Development
 
 ### Rule `prepare_tyndp_pecd_release`
@@ -67,10 +54,6 @@ None.
 ### Rule `build_tyndp_pemmdb_data`
 
 ::: build_tyndp_pemmdb_data
-
-### Rule `build_tyndp_trajectories`
-
-::: build_tyndp_trajectories
 
 ### Rule `build_tyndp_nuclear_profiles`
 
@@ -96,10 +79,6 @@ the electricity demand for base regions from the TYNDP electricity market demand
 
 ::: build_tyndp_gas_demand
 
-### Rule `build_tyndp_h2_demand`
-
-::: build_tyndp_h2_demand
-
 ### Rule `build_tyndp_wheeling_charges`
 
 ::: build_tyndp_wheeling_charges
@@ -107,10 +86,6 @@ the electricity demand for base regions from the TYNDP electricity market demand
 ### Rule `build_tyndp_h2_network`
 
 ::: build_tyndp_h2_network
-
-### Rule `clean_tyndp_h2_imports`
-
-::: clean_tyndp_h2_imports
 
 ### Rule `build_tyndp_h2_imports`
 
@@ -180,17 +155,13 @@ Aggregate [`make_benchmark`](#rule-make_benchmark) outputs.
 
 Aggregate [`plot_benchmark`](#rule-plot_benchmark) outputs.
 
-### Rule `build_pemmdb_and_trajectories`
+### Rule `build_tyndp_pemmdb_datas`
 
-Aggregate [`build_tyndp_pemmdb_data`](#rule-build_tyndp_pemmdb_data) and [`build_tyndp_trajectories`](#rule-build_tyndp_trajectories) outputs.
+Aggregate [`build_tyndp_pemmdb_data`](#rule-build_tyndp_pemmdb_data) outputs.
 
 ### Rule `build_tyndp_demands`
 
 Aggregate [`build_tyndp_demand`](#rule-build_tyndp_demand) outputs.
-
-### Rule `build_tyndp_h2_demands`
-
-Aggregate [`build_tyndp_h2_demand`](#rule-build_tyndp_h2_demand) outputs.
 
 ### Rule `build_tyndp_gas_demands`
 

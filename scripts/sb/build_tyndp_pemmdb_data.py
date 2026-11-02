@@ -11,8 +11,7 @@ PEMMDB capacities and profiles carry the range of weather scenarios they apply
 to (``ws_start`` to ``ws_end``, labeled ``WSxxx``), and only the entries
 covering the modeled scenario are kept. Which scenario that is comes from
 `wscenarios_tyndp` and is resolved for the planning year the data is read
-from, the same way as for demand (see
-:py:func:`scripts._helpers.get_wscenario`).
+from, the same way as for demand (see `get_wscenario` in `scripts/sb/_helpers.py`).
 
 Outputs
 -------
@@ -39,15 +38,13 @@ import xarray as xr
 from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
-from scripts._helpers import (
-    configure_logging,
+from scripts._helpers import configure_logging, get_snapshots, set_scenario_config
+from scripts.sb._helpers import (
     convert_units,
-    get_snapshots,
     get_wscenario,
     map_tyndp_carrier_names,
     parse_wscenario,
     safe_planning_horizon,
-    set_scenario_config,
 )
 
 # for compatibility with future pandas downcasting behaviour
@@ -226,9 +223,12 @@ def _extract_price_band_type(df: pd.DataFrame) -> str:
         return (
             df.pemmdb_type.str.split("/").str[1:].str.join("-").str.replace(" ", "-")
             + "-"
-            + df.purpose.astype(str)
+            + df.purpose.astype(str).fillna("nan")
             + "-"
-            + pd.to_numeric(df.price, errors="coerce").round(2).astype(str)
+            + pd.to_numeric(df.price, errors="coerce")
+            .round(2)
+            .astype(str)
+            .fillna("nan")
             + "eur"
         )
     elif "hours" in df.columns:
@@ -239,7 +239,7 @@ def _extract_price_band_type(df: pd.DataFrame) -> str:
         logger.debug(
             "No purpose or hours column in Dataframe to extract for price band type."
         )
-        return df.price.astype("str") + "eur"
+        return df.price.astype(str).fillna("nan") + "eur"
 
 
 def _process_thermal_hydrogen_capacities(
@@ -293,6 +293,7 @@ def _process_other_nonres_capacities(
         .iloc[1:]
         .dropna(how="all")
         .filter(like="Price Band")
+        .dropna(how="all", axis="columns")
     )
 
     if df.empty:
@@ -655,8 +656,6 @@ def _process_thermal_hydrogen_profiles(
     node_tech_data: pd.DataFrame,
     node: str,
     thermal_techs: list[str],
-    tyndp_scenario: str,
-    planning_horizon_i: int,
     sns: pd.DatetimeIndex,
 ) -> pd.DataFrame:
     """
@@ -720,10 +719,6 @@ def _process_thermal_hydrogen_profiles(
         .set_index(["bus", "pemmdb_carrier", "pemmdb_type"], append=True)
         .sort_index()  # sort index for more efficient indexing
     )
-
-    # Remove must-runs for DE and GA scenarios after 2030 (per TYNDP 2024 Methodology, p.37)
-    if tyndp_scenario != "NT" and planning_horizon_i > 2030:
-        profiles.loc[:, "p_min_pu"] = 0.0
 
     return profiles
 
@@ -834,7 +829,7 @@ def _process_other_nonres_profiles(
 
     # Extract plant type
     price_band_type = _extract_price_band_type(df.T).rename("price_band_type")
-    price = df.T.price
+    price = df.T.price.astype(float)
     pemmdb_carrier = (
         "Other Non-RES" + " " + df.T.pemmdb_type.str.split("/").str[1]
     ).rename("pemmdb_carrier")
@@ -1108,10 +1103,8 @@ def process_pemmdb_profiles(
     node: str,
     pemmdb_tech_sheet: str,
     thermal_techs: list[str],
-    tyndp_scenario: str,
     wscenario: int,
     planning_horizon: int,
-    planning_horizon_i: int,
     sns: pd.DatetimeIndex,
     sns_year_h: pd.DatetimeIndex,
     carrier_mapping_fn: str,
@@ -1130,14 +1123,10 @@ def process_pemmdb_profiles(
         PEMMDB technology sheet to read data for.
     thermal_techs: list[str]
         Thermal technologies to read data for.
-    tyndp_scenario : str
-        TYNDP scenario to read data for.
     wscenario : int
         Weather scenario to read data for.
     planning_horizon : int
-        Planning year used for data retrieval (fallback year if planning_horizon_i not available).
-    planning_horizon_i : int
-        Original planning year.
+        Planning year used for data retrieval (fallback year if the original planning year is not available).
     sns : pd.DatetimeIndex
         Modelled snapshots.
     sns_year_h : pd.DatetimeIndex
@@ -1157,8 +1146,6 @@ def process_pemmdb_profiles(
                 node_tech_data,
                 node,
                 thermal_techs,
-                tyndp_scenario,
-                planning_horizon_i,
                 sns,
             )
 
@@ -1235,8 +1222,6 @@ def process_pemmdb_data(
     thermal_techs: list[str],
     wscenario: int,
     planning_horizon: int,
-    planning_horizon_i: int,
-    tyndp_scenario: str,
     sns: pd.DatetimeIndex,
     sns_year_h: pd.DatetimeIndex,
     carrier_mapping_fn: str,
@@ -1258,11 +1243,7 @@ def process_pemmdb_data(
     wscenario : int
         Weather scenario to read data for.
     planning_horizon : int
-        Planning year used for data retrieval (fallback year if planning_horizon_i not available).
-    planning_horizon_i : int
-        Original planning year.
-    tyndp_scenario : str
-        TYNDP scenario to read data for.
+        Planning year used for data retrieval (fallback year if the original planning year is not available).
     sns : pd.DatetimeIndex
         Modelled snapshots.
     sns_year_h : pd.DatetimeIndex
@@ -1300,10 +1281,8 @@ def process_pemmdb_data(
             node,
             pemmdb_tech_sheet,
             thermal_techs,
-            tyndp_scenario,
             wscenario,
             planning_horizon,
-            planning_horizon_i,
             sns,
             sns_year_h,
             carrier_mapping_fn,
@@ -1338,7 +1317,6 @@ if __name__ == "__main__":
     # Electricity nodes of the TYNDP network, onshore and offshore
     nodes = pd.read_csv(snakemake.input.buses_tyndp, index_col="bus_id").index
     pemmdb_dir = snakemake.input.pemmdb_dir
-    tyndp_scenario = snakemake.params.tyndp_scenario
     carrier_mapping_fn = snakemake.input.carrier_mapping
 
     # Snapshot year
@@ -1424,8 +1402,6 @@ if __name__ == "__main__":
                     thermal_techs=thermal_techs,
                     wscenario=wscenario,
                     planning_horizon=planning_horizon,
-                    planning_horizon_i=planning_horizon_i,
-                    tyndp_scenario=tyndp_scenario,
                     sns=sns,
                     sns_year_h=sns_year_h,
                     carrier_mapping_fn=carrier_mapping_fn,
@@ -1470,8 +1446,6 @@ if __name__ == "__main__":
                     thermal_techs=thermal_techs,
                     wscenario=wscenario,
                     planning_horizon=planning_horizon,
-                    planning_horizon_i=planning_horizon_i,
-                    tyndp_scenario=tyndp_scenario,
                     sns=sns,
                     sns_year_h=sns_year_h,
                     carrier_mapping_fn=carrier_mapping_fn,

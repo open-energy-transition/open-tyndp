@@ -16,7 +16,7 @@ Each planning horizon Excel file contains 30 climate year columns (labeled
 for the corresponding planning horizon (the rest are zero-filled placeholders).
 Which 3 are populated is dependent on data package and identical across
 demand types for a given planning horizon. The availability is recorded in
-`AVAILABLE_WSCENARIOS` in `scripts/_helpers.py`.
+`AVAILABLE_WSCENARIOS` in `scripts/sb/_helpers.py`.
 
 Current implementation selects first weather scenario of a planning horizon,
 This needs to be revisit once we have implemented the full weather scenario
@@ -50,11 +50,14 @@ from pathlib import Path
 import pandas as pd
 
 from scripts._helpers import (
-    align_demand_to_snapshots,
     configure_logging,
     get_snapshots,
-    get_wscenario,
     set_scenario_config,
+)
+from scripts.sb._helpers import (
+    align_demand_to_snapshots,
+    check_snapshot_year,
+    get_wscenario,
 )
 
 logger = logging.getLogger(__name__)
@@ -98,29 +101,6 @@ GJ_DEMAND_TYPES = {"thermal_h2", "thermal_ch4"}
 
 # 1 MWh = 3.6 GJ.
 GJ_TO_MWH = 1 / 3.6
-
-
-def check_snapshot_year(year: int, drop_leap_day: bool) -> None:
-    """
-    Ensure a leap `year` doesn't leave 29 February in `snapshots`.
-
-    TYNDP 2026 demand data always spans 365 days, so demand
-    built directly against a leap `year` would be missing that day. Therefore,
-    `drop_leap_day` needs to be enabled to strip February 29th from `snapshots`.
-
-    Raises
-    ------
-    ValueError
-        If `year` is a leap year and `drop_leap_day` is False.
-    """
-    is_leap_year = pd.Timestamp(year=year, month=1, day=1).is_leap_year
-    if is_leap_year and not drop_leap_day:
-        raise ValueError(
-            f"Snapshot year {year} is a leap year but `enable.drop_leap_day` "
-            "is disabled. TYNDP 2026 demand data always spans 365 days (no "
-            "29 February). Enable `enable.drop_leap_day` or configure a "
-            "non-leap `snapshots` year."
-        )
 
 
 def multiindex_to_datetimeindex(df: pd.DataFrame, year: int) -> pd.DataFrame:

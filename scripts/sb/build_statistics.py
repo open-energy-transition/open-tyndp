@@ -6,7 +6,6 @@ This script computes the benchmark statistics from the optimised network.
 """
 
 import logging
-import re
 
 import country_converter as coco
 import numpy as np
@@ -15,23 +14,14 @@ import pypsa
 from tqdm import tqdm
 
 from scripts._helpers import (
+    configure_logging,
+    set_scenario_config,
+)
+from scripts.sb._helpers import (
     ENERGY_UNITS,
     POWER_UNITS,
     PRICE_UNITS,
-    configure_logging,
-    normalize_direction,
-    set_scenario_config,
 )
-
-NODE_MAP = {
-    "BEIOH01": "DKBH",
-    "BEOH001": "BEOF",
-    "DKWOH01": "DKNS",
-    "EEOH001": "EEOF",
-    "LTOR001": "LTOF",
-    "NLOH001": "NLLL",
-    "DEOH002": "DEKF",
-}
 
 logger = logging.getLogger(__name__)
 
@@ -111,13 +101,40 @@ def remove_last_day(sws: pd.Series, nhours: int = 24) -> pd.Series:
     return sws
 
 
+def assign_bus_carrier(s: pd.Series, n: pypsa.Network, bus_carrier: str) -> pd.Series:
+    """
+    Replace the carrier of all assets on buses with the given bus carrier by the bus carrier.
+
+    This groups e.g. all generators on SRES buses under one benchmark carrier,
+    independent of their technology names.
+
+    Parameters
+    ----------
+    s : pd.Series
+        Statistics indexed by (at least) "bus" and "carrier".
+    n : pypsa.Network
+        Optimised network.
+    bus_carrier : str
+        Bus carrier whose assets are relabelled.
+
+    Returns
+    -------
+    pd.Series
+        Statistics with relabelled carrier level.
+    """
+    idx = s.index.to_frame(index=False)
+    on_bus = idx.bus.map(n.buses.carrier).eq(bus_carrier)
+    idx["carrier"] = idx.carrier.where(~on_bus, bus_carrier)
+    return s.set_axis(pd.MultiIndex.from_frame(idx))
+
+
 def get_h2_imports(n: pypsa.Network) -> pd.Series:
     """
     Net H2 imports from import buses, attributed to the receiving bus.
 
     Imports are the net flows on links connecting a bus with category "import"
-    to a non-import bus. Flows from ammonia import terminals are labelled
-    "H2 import LH2", all others "H2 import Pipeline".
+    to a non-import bus. Flows from import buses with "H2 import LH2" generators
+    are labelled "H2 import LH2", all others "H2 import Pipeline".
 
     Parameters
     ----------
@@ -144,10 +161,11 @@ def get_h2_imports(n: pypsa.Network) -> pd.Series:
     bus = balance.index.get_level_values("bus")
     balance = balance[name.isin(links.index) & ~bus.isin(import_buses)]
 
+    lh2_buses = n.generators.bus[n.generators.carrier.eq("H2 import LH2")]
     balance_origin = balance.index.get_level_values("name").map(origin)
     carrier = pd.Index(
         np.where(
-            balance_origin.str.startswith("Ammonia"),
+            balance_origin.isin(lh2_buses),
             "H2 import LH2",
             "H2 import Pipeline",
         ),
@@ -162,7 +180,6 @@ def compute_benchmark(
     table: str,
     options: dict,
     eu27: list[str],
-    tyndp_renewable_carriers: list[str],
     planning_horizons: int,
     load_shedding: dict[str, int],
     low_voltage: bool,
@@ -180,8 +197,6 @@ def compute_benchmark(
         Full benchmarking configuration.
     eu27 : list[str]
         List of member state of European Union (EU27).
-    tyndp_renewable_carriers : list[str]
-        List of renewable carriers in TYNDP 2024.
     planning_horizons : int
         The current planning horizon year.
     load_shedding : dict[str, int]
@@ -196,7 +211,7 @@ def compute_benchmark(
     """
     opt = options["tables"][table]
     mapping = opt.get("mapping", {})
-    elec_bus_carrier = ["AC"] + (["low voltage"] if low_voltage else [])
+    elec_bus_carrier = ["AC", "AC_SRES"] + (["low voltage"] if low_voltage else [])
     supply_comps = ["Generator", "Link"]
     demand_comps = ["Link", "Load"]
     eu27_idx = n.buses[n.buses.country.isin(eu27)].index
@@ -299,7 +314,7 @@ def compute_benchmark(
             "electricity distribution grid",
             "DC",
             "load",
-            "AC_SRES",
+            "SRES grid connection",
             "EV charge",
         ]
         pumps = ["hydro-phs-pump", "hydro-phs-pure-pump"]
@@ -310,6 +325,7 @@ def compute_benchmark(
                 aggregate_across_components=True,
             )
             .loc[lambda x: (x > 0) | x.index.get_level_values("carrier").isin(pumps)]
+            .pipe(assign_bus_carrier, n=n, bus_carrier="AC_SRES")
             .abs()
             .reset_index()
             .loc[lambda df: ~df.carrier.isin(exclusions)]
@@ -318,25 +334,11 @@ def compute_benchmark(
             .sum()
             .iloc[:, 0]
         )
-
-        # Add H2 offwind capacities in MW_e
-        off_car = [c for c in tyndp_renewable_carriers if c.startswith("offwind-h2")]  # noqa: F841
-        if off_car and "efficiency_dc_to_h2" in n.generators.columns:
-            df_offwind_h2 = (
-                n.generators.query("carrier.isin(@off_car)")
-                .assign(
-                    p_nom_opt=lambda df: df.p_nom_opt / df.efficiency_dc_to_h2,
-                    bus=lambda df: df.bus.map(n.buses.location),
-                )
-                .groupby(by=["bus"] + grouper)
-                .p_nom_opt.sum()
-            )
-
-            df = pd.concat([df, df_offwind_h2])
     elif table == "power_generation":
         grouper = ["carrier"]
         exclusions = [
             "DC",
+            "SRES grid connection",
             "electricity distribution grid",
             "battery discharger",
             "battery charger",
@@ -346,14 +348,17 @@ def compute_benchmark(
             "hydro-phs-pump",
             "hydro-phs-pure-pump",
             "H2 Electrolysis",
-            "AC_SRES",
         ]
-        df = n.statistics.supply(
-            comps=supply_comps + ["StorageUnit"],
-            bus_carrier=elec_bus_carrier,
-            groupby=["bus"] + grouper,
-            aggregate_across_components=True,
-        ).loc[lambda df: ~df.index.get_level_values("carrier").isin(exclusions)]
+        df = (
+            n.statistics.supply(
+                comps=supply_comps + ["StorageUnit"],
+                bus_carrier=elec_bus_carrier,
+                groupby=["bus"] + grouper,
+                aggregate_across_components=True,
+            )
+            .loc[lambda df: ~df.index.get_level_values("carrier").isin(exclusions)]
+            .pipe(assign_bus_carrier, n=n, bus_carrier="AC_SRES")
+        )
 
         df = (
             df.rename(index=n.buses.location.to_dict(), level=0)
@@ -431,7 +436,6 @@ def compute_benchmark(
         grouper = ["carrier"]
         exclusions = [
             "H2 pipeline",
-            "H2 pipeline OH",
             "H2 cavern-storage discharger",
             "H2 tank-storage discharger",
         ]
@@ -482,7 +486,7 @@ def compute_benchmark(
 
         df = pd.concat([df_fed_btl, df_biogas])
     elif table == "energy_imports":
-        # TODO Account for domestic production of gas, solid and liquid fossil fuels
+        # TODO Account for domestic production of gas and liquid fossil fuels
         # TODO No biomass import is assumed
         grouper = ["carrier"]
         df_countries = (
@@ -492,7 +496,7 @@ def compute_benchmark(
         # Add EU level demands
         df_eu = n.statistics.supply(
             comps="Generator",
-            bus_carrier=["oil primary", "coal", "lignite", "gas"],
+            bus_carrier=["oil primary", "gas"],
             groupby=grouper,
             aggregate_across_components=True,
         ).loc[lambda s: ~s.index.isin(df_countries.index)]
@@ -551,53 +555,23 @@ def compute_benchmark(
         )
     elif table in ["crossborder_electricity", "crossborder_hydrogen"]:
         carrier = "AC" if "elec" in table else "H2"
-        bus_carrier = [carrier, f"{carrier}_OH"]  # noqa F814
-        connector = " -> " if carrier == "H2" else "-"
 
-        # Intra-carrier transmission (bus0 and bus1 share carrier)
-        # n.statistics.transmission requires bus0 and bus1 to share the same carrier
         df = n.statistics.transmission(
-            bus_carrier=bus_carrier,
+            bus_carrier=carrier,
             at_port=0,
             aggregate_across_components=True,
-            groupby=["name", "bus0"],
-        )
+            groupby=["bus0", "bus1"],
+        ).reset_index(name="value")
 
-        # Cross-carrier transmission (bus0 and bus1 differ in carrier)
-        # Fall back to n.statistics.energy_balance
-        idx_b = n.buses.query("carrier.isin(@bus_carrier)").index  # noqa F841
-        carriers_l = list(
-            n.links.query("bus0.isin(@idx_b) and bus1.isin(@idx_b)").carrier.unique()
-        )
-        df_x = n.statistics.energy_balance(
-            bus_carrier=carrier,
-            groupby=["name", "bus0"],
-            components="Link",
-            carrier=carriers_l,
-        )
-        bus0_carrier = df_x.index.get_level_values("bus0").map(n.buses.carrier)
-        df_x = df_x.where(bus0_carrier != carrier, -df_x)
-
-        # Combine intra- and cross-carrier transmission
-        df = pd.concat([df, df_x])
-        df.index = df.index.droplevel("bus0")
-
-        if carrier == "H2":
-            df = df.rename(
-                lambda x: re.sub(r"\b([A-Z]+)00\b", r"\1", x).replace("UK", "GB")
-            )
-
-        df.index = df.index.to_series().replace(regex=NODE_MAP).values
-
-        df = normalize_direction(
-            df, buses_from_index=True, connector=connector, format_index=True
-        )
-
+        swap = df.bus0 > df.bus1
         df = (
-            df.reset_index()
-            .assign(carrier=carrier)
+            df.assign(
+                border=np.where(swap, df.bus1 + "-" + df.bus0, df.bus0 + "-" + df.bus1),
+                value=df.value.where(~swap, -df.value),
+                carrier=carrier,
+            )
             .groupby(["border", "carrier"])
-            .sum()
+            .value.sum()
         )
     else:
         logger.warning(f"Unknown benchmark table: {table}")
@@ -689,7 +663,6 @@ if __name__ == "__main__":
 
     # Parameters
     options = snakemake.params["benchmarking"]
-    tyndp_renewable_carriers = snakemake.params["tyndp_renewable_carriers"]
     load_shedding = snakemake.params["load_shedding"]
     low_voltage = snakemake.params["low_voltage"]
     group_tyndp_conventionals = snakemake.params["group_tyndp_conventionals"]
@@ -731,7 +704,6 @@ if __name__ == "__main__":
             table=table,
             options=options,
             eu27=eu27,
-            tyndp_renewable_carriers=tyndp_renewable_carriers,
             planning_horizons=planning_horizons,
             load_shedding=load_shedding,
             low_voltage=low_voltage,

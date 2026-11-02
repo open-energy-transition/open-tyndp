@@ -34,6 +34,8 @@ wscenarios_tyndp:
   - 92
   - 106
 data_config:   # change to 'tyndp' to use tyndp-archive where available
+logging:
+  level: INFO
 
 launch_explorer: false
 
@@ -82,20 +84,23 @@ electricity:
   - hydro-phs
   - hydro-phs-pure
   - onwind
+  - onwind-sres
+  - onwind-dres
   - solar-pv-utility
   - solar-pv-rooftop
-  - offwind-ac-fb-r
-  - offwind-ac-fl-r
-  - offwind-dc-fb-r
-  - offwind-dc-fl-r
-  - offwind-dc-fb-oh
-  - offwind-dc-fl-oh
-  - offwind-h2-fb-oh
-  - offwind-h2-fl-oh
+  - solar-pv-utility-dres
+  - solar-pv-utility-sres
+  - offwind-r
+  - offwind-oh
+  - offwind-dres-r
+  - offwind-dres-oh
+  - offwind-sres-r
+  - offwind-sres-oh
   tyndp_stores:
   - battery
-  - h2_cavern
-  - h2_tank
+  - H2 cavern-storage
+  - H2 tank-storage
+  - home battery
   estimate_renewable_capacities:
     enable: false
 
@@ -129,18 +134,19 @@ electricity:
     - Solar PV Utility
     - Wind_Onshore
 
-  pemmdb_hydro_profiles:
+  pecd_hydro_profiles:
     enable: true
     available_years:
     - 2030
+    - 2035
     - 2040
     - 2050
     technologies:
-    - Run_of_River
-    - Pondage
-    - Reservoir
-    - PS_Open
-    - PS_Closed
+    - HRR
+    - HPI
+    - HRI
+    - HOL
+    - HCL
 
   pemmdb_capacities:
     enable: true
@@ -403,12 +409,25 @@ solving:
   solver:
     name: highs
     options: highs-default
+  solver_options:
+    highs-default:
+      solver: ipx
+      primal_feasibility_tolerance: 1.0e-06
+      dual_feasibility_tolerance: 1.0e-06
+      ipm_optimality_tolerance: 1.0e-06
+    gurobi-default:
+      BarConvTol: 1.0e-06
+      FeasibilityTol: 1.0e-06
+      OptimalityTol: 1.0e-06
   mem: 4000
 
 data:
   version_files:
   - data/versions.csv
   - data/tyndp_versions.csv
+  local_cache:
+    enable: false  # set true to read all data from one cache filled by `pixi run collect-data`
+    directory: data/local-cache
 
 plotting:
   energy_threshold: 1.
@@ -456,7 +475,12 @@ cba:
     use_presolved: false
     sb_version: latest # use 'latest' or a supported version from data/tyndp_versions.csv for pre-solved SB network input in CBA; only applies if use_presolved is true
   projects:
-  - t1-t35
+  - t225 # PINT
+  - t339 # TOOT
+  # TODO: Add back t1106 Bornholm project once CBA bus naming convention is fixed for 2026
+  - s1001 # PHS
+  - s1013 # CAES
+  - s1035 # battery
   area: tyndp # options: tyndp (TODO: entso-e, eu27)
   remove_noisy_costs: true # Use pre-noise costs for indicators while keeping noisy costs in the solve
   negative_toot_capacity: zero
@@ -468,10 +492,18 @@ cba:
     # marginal storage value and have cyclicity disabled
     cyclic_carriers:
     - battery
+    - home battery
+    - caes
     # Carriers whose state of charge is fixed at window boundaries
-    # from perfect foresight (applies to StorageUnit components only)
+    # from perfect foresight (applies to StorageUnit components only).
+    # Only carriers whose storage horizon (max_hours) exceeds the rolling horizon window need this. 
+    # Therefore hydro-pondage is not included.
     soc_boundary_carriers:
     - hydro-reservoir
+    # Discount rate used to annualize storage project CAPEX from the CBA storage projects Excel export
+    discount_rate: 0.07
+    # Lifetime (years) used for storage projects with missing or zero operational lifetime
+    default_lifetime: 25
 
   # Constrain DSR daily dispatch
   constrain_dsr: true
@@ -487,9 +519,23 @@ cba:
     solving:
       options:
         noisy_costs: false
+        load_shedding:
+          enable: true
+          all_carriers: false
+          carriers:
+            H2: 300
+            AC: 300
       solver:
         name: highs
         options: highs-simplex
+      solver_options:
+        highs-simplex:
+          primal_feasibility_tolerance: 1.0e-06
+          dual_feasibility_tolerance: 1.0e-06
+        gurobi-default:
+          BarConvTol: 1.0e-06
+          FeasibilityTol: 1.0e-05
+          OptimalityTol: 1.0e-06
 
   # Rolling horizon solving settings
   solving:
@@ -499,7 +545,10 @@ cba:
       noisy_costs: false
       load_shedding:
         enable: true
-        all_carriers: true
+        all_carriers: false
+        carriers:
+          H2: 300
+          AC: 300
       io_api: direct  # 20% faster than default lp mode for rolling horizon
 
     solver:
@@ -509,3 +558,8 @@ cba:
     solver_options:
       highs-simplex:
         parallel: "off" # does not speed up solution
+        primal_feasibility_tolerance: 1.0e-06
+        dual_feasibility_tolerance: 1.0e-06
+      gurobi-simplex:
+        FeasibilityTol: 1.0e-06
+        OptimalityTol: 1.0e-06

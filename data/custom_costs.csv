@@ -69,13 +69,6 @@ all,all,lignite-ccs,capture_rate,0.9,per unit,"CO2_emission_factors_in_TYNDP2026
 all,all,other-non-res-gas-ccgt-ccs,capture_rate,0.9,per unit,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",capture_rate = 1 - CCS emission factor / non-CCS emission factor of the same fuel
 all,all,other-non-res-coal-ccs,capture_rate,0.9,per unit,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",capture_rate = 1 - CCS emission factor / non-CCS emission factor of the same fuel
 all,all,other-non-res-lignite-ccs,capture_rate,0.9,per unit,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",capture_rate = 1 - CCS emission factor / non-CCS emission factor of the same fuel
-all,all,SMR CC,efficiency,0.69,per unit,TYNDP 2026 Hydrogen/SMR.xlsx HEAT RATE [GJ/MWh],efficiency [MWh_H2/MWh_CH4] = 3.6/HEAT RATE [GJ/MWh]. Values assumed to be LHV in line with https://www.iea.org/data-and-statistics/charts/global-average-levelised-cost-of-hydrogen-production-by-energy-source-and-technology-2019-and-2050
-all,all,SMR,efficiency,0.76,per unit,TYNDP 2026 Hydrogen/SMR.xlsx HEAT RATE [GJ/MWh],efficiency [MWh_H2/MWh_CH4] = 3.6/HEAT RATE [GJ/MWh]. Values assumed to be LHV in line with https://www.iea.org/data-and-statistics/charts/global-average-levelised-cost-of-hydrogen-production-by-energy-source-and-technology-2019-and-2050
-all,2030,SMR CC,VOM,5.06,EUR/MWh_H2,TYNDP 2026 Hydrogen/SMR.xlsx VO&M CHARGE [€/MWh],Unit assumed as [EUR/MWh_H2]. For conversion to [EUR/MWh_CH4] needs to be multiplied with efficiency. Note: NL is the only outlier at 4.96
-all,2035,SMR CC,VOM,4.96,EUR/MWh_H2,TYNDP 2026 Hydrogen/SMR.xlsx VO&M CHARGE [€/MWh],Unit assumed as [EUR/MWh_H2]. For conversion to [EUR/MWh_CH4] needs to be multiplied with efficiency.
-all,2040,SMR CC,VOM,4.86,EUR/MWh_H2,TYNDP 2026 Hydrogen/SMR.xlsx VO&M CHARGE [€/MWh],Unit assumed as [EUR/MWh_H2]. For conversion to [EUR/MWh_CH4] needs to be multiplied with efficiency.
-all,2050,SMR CC,VOM,4.76,EUR/MWh_H2,TYNDP 2026 Hydrogen/SMR.xlsx VO&M CHARGE [€/MWh],Unit assumed as [EUR/MWh_H2]. For conversion to [EUR/MWh_CH4] needs to be multiplied with efficiency.
-all,all,SMR,VOM,5.3,EUR/MWh_H2,TYNDP 2026 Hydrogen/SMR.xlsx VO&M CHARGE [€/MWh],Unit assumed as [EUR/MWh_H2]. For conversion to [EUR/MWh_CH4] needs to be multiplied with efficiency.
 all,all,nuclear,efficiency,0.33,per unit,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
 all,all,gas-conv-old1,efficiency,0.36,per unit,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
 all,all,gas-conv-old2,efficiency,0.41,per unit,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
@@ -195,14 +188,10 @@ all,2030,cavern-storage,VOM,0.00002,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xls
 all,2035,cavern-storage,VOM,0.0000175,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]",Variable O&M (€2015/MWh). No cavern-storage VOM cost specified in the TYNDP 2026 input data
 all,2040,cavern-storage,VOM,0.000015,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]",Variable O&M (€2015/MWh). No cavern-storage VOM cost specified in the TYNDP 2026 input data
 all,2050,cavern-storage,VOM,0.000012,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]",Variable O&M (€2015/MWh). No cavern-storage VOM cost specified in the TYNDP 2026 input data
-all,all,cavern-storage-charger,efficiency,0.99,per unit,"TYNDP 2026 Hydrogen/H2 STORAGES.xlsx, TEMPLATE sheet, CHARGE EFFICIENCY [%]",
-all,all,cavern-storage-discharger,efficiency,1,per unit,"TYNDP 2026 Hydrogen/H2 STORAGES.xlsx, TEMPLATE sheet, DISCHARGE EFFICIENCY [%]",
 all,2030,tank-storage,VOM,0.00002,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh), as no tank storage OPEX are given, same values as for caverns are assumed. No tank-storage VOM cost specified in the TYNDP 2026 input data"
 all,2035,tank-storage,VOM,0.0000175,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh), as no tank storage OPEX are given, same values as for caverns are assumed. No tank-storage VOM cost specified in the TYNDP 2026 input data"
 all,2040,tank-storage,VOM,0.000015,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh), as no tank storage OPEX are given, same values as for caverns are assumed. No tank-storage VOM cost specified in the TYNDP 2026 input data"
 all,2050,tank-storage,VOM,0.000012,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh), as no tank storage OPEX are given, same values as for caverns are assumed. No tank-storage VOM cost specified in the TYNDP 2026 input data"
-all,all,tank-storage-charger,efficiency,0.99,per unit,"TYNDP 2026 Hydrogen/H2 STORAGES.xlsx, TEMPLATE sheet, CHARGE EFFICIENCY [%]",
-all,all,tank-storage-discharger,efficiency,1,per unit,"TYNDP 2026 Hydrogen/H2 STORAGES.xlsx, TEMPLATE sheet, DISCHARGE EFFICIENCY [%]",
 all,all,battery bicharger,efficiency,0.92,per unit,"PEMMDB 2026 v2.X, Battery sheet, Average efficiency",Most common efficiency value. Some nodes have different efficiencies specified in the TYNDP 2026 PEMMDB input data
 all,all,home battery bicharger,efficiency,0.95,per unit,"PEMMDB 2026 v2.X, Battery sheet, Average efficiency",Most common efficiency value. Some nodes have different efficiencies specified in the TYNDP 2026 PEMMDB input data
 all,2030,BtL,efficiency,0.6,per unit,"TYNDP 2026 Supply Tool NT+ SCN 2026, Conversion factors",NCV

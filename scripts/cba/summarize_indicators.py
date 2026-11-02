@@ -17,7 +17,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.lines import Line2D
 
-from scripts._helpers import add_metadata, configure_logging, set_scenario_config
+from scripts._helpers import configure_logging, set_scenario_config
+from scripts.sb._helpers import add_metadata
 
 logger = logging.getLogger(__name__)
 
@@ -393,7 +394,7 @@ if __name__ == "__main__":
 
     # Read all files into one DataFrame
     df = pd.concat(map(pd.read_csv, input_files), ignore_index=True)
-    area = snakemake.config.get("cba", {}).get("area")
+    area = snakemake.params.area
 
     # Create a summary plot for a specific project
     create_plots(df, output_file, area)

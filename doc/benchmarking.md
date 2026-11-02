@@ -163,7 +163,6 @@ scenario with hourly resolution:
 | electricity_price_excl_shed | -0.04 | 0.12 | 0.07 | 0.19 | -0.02 | 0 | 0 | TYNDP 2024 Market Model Outputs | v0.7.1 |
 | energy_imports | 0.52 | 0.52 | 0.3 | 1.15 | 0.01 | 1 | 0 | TYNDP 2024 Scenarios Report | v0.7.1 |
 | final_energy_demand | 0.11 | 0.11 | 0.09 | 0.15 | 0.01 | 0 | 0 | TYNDP 2024 Scenarios Report | v0.7.1 |
-| generation_profiles | — | — | — | — | — | NA | NA | — | v0.7.1 |
 | hydrogen_demand | -0.22 | 0.28 | 0 | 2.96 | 0 | 0 | 1 | TYNDP 2024 Market Model Outputs | v0.7.1 |
 | hydrogen_demand_shedding_hours | 0.38 | 0.38 | 0 | 5.64 | 0 | 0 | 0 | TYNDP 2024 Market Model Outputs | v0.7.1 |
 | hydrogen_price | 0.11 | 0.16 | 0.03 | 0.27 | 0 | 0 | 0 | TYNDP 2024 Market Model Outputs | v0.7.1 |
@@ -185,14 +184,13 @@ To align naming conventions across data sources, Open-TYNDP uses a mapping table
 
 * **pemmdb_carrier**: Higher level carrier names as listed in the PEMMDB v2.4 dataset.
 * **pemmdb_type**: Specific carrier technology type as listed in the PEMMDB v2.4 dataset.
-* **pemmdb_hydro_inflows**: Carrier names as listed in the PEMMDB v2.4 hydro inflows dataset.
+* **pecd_hydro_inflows**: Hydro technology codes as listed in the PECD v4.2 hydro inflows dataset.
 * **pecd_carrier**: Carrier names as listed in the PECD v3.1 dataset.
-* **investment_dataset_carrier**: Carrier names as listed in the TYNDP 2024 investment dataset.
 * **tyndp_dashboard_carrier**: Carrier names as listed in the TYNDP 2026 Time Series Dashboards.
 * **tyndp_report_carrier**: Carrier names as listed in the TYNDP 2026 Scenarios Report.
 * **open_tyndp_carrier**: Open-TYNDP carrier naming convention representing either an energy carrier or a technology, depending on the context.
 * **open_tyndp_index**: Open-TYNDP technology naming convention found in the component index.
-* **open_tyndp_nice_names**: Open-TYNDP nice names for better readability and aggregation of technologies for reporting purposes.
+* **open_tyndp_nice_name**: Open-TYNDP nice names for better readability and aggregation of technologies for reporting purposes.
 * **benchmarking_capacity**: Naming convention for the benchmarking framework's `power_capacity` table.
 * **benchmarking_generation**: Naming convention for the benchmarking framework's `power_generation` table.
 * **benchmarking_fed**: Naming convention for the benchmarking framework's `final_energy_demand` table.
@@ -208,6 +206,14 @@ To align naming conventions across data sources, Open-TYNDP uses a mapping table
 * **open_tyndp_type**: Open-TYNDP technology type for grouping together detailed technologies if `electricity:group_tyndp_conventionals` is enabled in the configuration.
 * **pypsa_eur_carrier**: Corresponding PyPSA-Eur carrier/technology if applicable.
 * **comment**: Any additional comments.
+
+The complete technology mapping is shown below. Scroll horizontally and vertically to explore the table.
+
+<div class="scrollable-table" markdown="1">
+
+{{ read_csv("data/tyndp_technology_map.csv", keep_default_na=False) }}
+
+</div>
 
 ## Cost-Benefit Analysis Benchmarking
 

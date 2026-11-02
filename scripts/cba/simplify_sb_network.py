@@ -41,6 +41,9 @@ def extend_primary_fuel_sources(
     Primary fuel sources have no capital costs, so unlimited capacity ensures
     sufficient supply without affecting the objective function.
 
+    Both p_nom and p_nom_opt are set so that the capacity is not overwritten by
+    `n.optimize.fix_optimal_capacities()`, which resets p_nom from p_nom_opt.
+
     Parameters
     ----------
     n : pypsa.Network
@@ -61,7 +64,7 @@ def extend_primary_fuel_sources(
     ).unique()
     mask = n.generators.carrier.str.contains("|".join(primary_fuel_carriers))
     gen_i = n.generators[mask].index
-    n.generators.loc[gen_i, "p_nom"] = inf
+    n.generators.loc[gen_i, ["p_nom", "p_nom_opt"]] = inf
 
 
 def move_bus_carrier_and_cleanup(
@@ -227,9 +230,6 @@ if __name__ == "__main__":
 
     n.links.loc[n.links.carrier == "DC", "marginal_cost"] = hurdle_costs
     logger.info(f"Applied hurdle costs of {hurdle_costs} EUR/MWh to DC links")
-
-    # TODO: for DE/GA add merging of the two H2 zones
-    # TODO: for DE/GA add EV electricity consumption from SB as fixed demand
 
     # merge low voltage to market node
     move_bus_carrier_and_cleanup(n, from_carrier="low voltage")

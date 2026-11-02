@@ -25,6 +25,21 @@ storage cached_http:
 
 ARCHIVE_SOURCES = {"archive", "tyndp-archive"}
 
+_storage = storage
+
+
+def storage(url, **kwargs):
+    """
+    Return a remote handle for `url`, or the cache manifest when reading the local cache.
+
+    Since a remote handle makes Snakemake reach out to the network while the graph is built,
+    pointing at a local file instead enables offline runs with a local cache. `ancient` stops the
+    manifest's own timestamp from marking every retrieve job out of date.
+    """
+    if LOCAL_CACHE_READ:
+        return ancient(LOCAL_CACHE_MANIFEST)
+    return _storage(url, **kwargs)
+
 
 if (EUROSTAT_BALANCES_DATASET := dataset_version("eurostat_balances"))["source"] in [
     "primary",
@@ -181,7 +196,6 @@ if (POPULATION_COUNT_DATASET := dataset_version("population_count"))["source"] i
             "Retrieving population count data"
         run:
             copy2(input["tif"], output["tif"])
-
             if POPULATION_COUNT_DATASET["source"] == "primary":
                 import xarray as xr
                 import rioxarray as rio
@@ -190,7 +204,6 @@ if (POPULATION_COUNT_DATASET := dataset_version("population_count"))["source"] i
                 ds = xr.open_dataarray(file_path)
                 ds_reqd = ds.sel(x=slice(15.55, 40.41), y=slice(52.49, 41.72))
                 ds_reqd.rio.to_raster(file_path)
-
 
 
 if (GHG_EMISSIONS_DATASET := dataset_version("ghg_emissions"))["source"] in [
@@ -224,7 +237,6 @@ if (GHG_EMISSIONS_DATASET := dataset_version("ghg_emissions"))["source"] in [
                 copy2(input["ghg"], output["csv"])
 
 
-
 if (GEBCO_DATASET := dataset_version("gebco"))["source"] in [
     "primary",
     *ARCHIVE_SOURCES,
@@ -247,17 +259,14 @@ if (GEBCO_DATASET := dataset_version("gebco"))["source"] in [
                 import xarray as xr
 
                 copy2(input[0], output["zip_file"])
-
                 output_folder = Path(output["zip_file"]).parent
                 unpack_archive(output["zip_file"], output_folder)
-
                 # Limit extent to Europe to reduce file size
                 ds = xr.open_dataset(output["gebco"])
                 ds = ds.sel(lat=slice(32, 73), lon=slice(-21, 45))
                 ds.to_netcdf(output["gebco"])
             else:
                 copy2(input[0], output["gebco"])
-
 
 
 if (ATTRIBUTED_PORTS_DATASET := dataset_version("attributed_ports"))["source"] in [
@@ -384,7 +393,6 @@ if (BIDDING_ZONES_ENTSOEPY_DATASET := dataset_version("bidding_zones_entsoepy"))
             logger = logging.getLogger(__name__)
             logger.setLevel(config["logging"]["level"])
             logger.addHandler(logging.FileHandler(log[0]))
-
             logger.info("Downloading entsoe-py zones...")
             gdfs: list[gpd.GeoDataFrame] = []
             url = f"{BIDDING_ZONES_ENTSOEPY_DATASET['url']}"
@@ -408,11 +416,8 @@ if (BIDDING_ZONES_ENTSOEPY_DATASET := dataset_version("bidding_zones_entsoepy"))
                 except (Timeout, ConnectionError, TimeoutError) as e:
                     raise Exception(f"Network error retrieving {name}: {e}")
             shapes = pd.concat(gdfs, ignore_index=True)  # type: ignore
-
             logger.info("Downloading entsoe-py zones... Done")
-
             shapes.to_file(output.geojson)
-
 
 
 if (CUTOUT_DATASET := dataset_version("cutout"))["source"] in ARCHIVE_SOURCES:
@@ -720,7 +725,6 @@ if (ENERGY_ATLAS_DATASET := dataset_version("jrc_energy_atlas"))["source"] in [
                 f.write(response.content)
 
 
-
 if (
     DESNZ_ELECTRICITY_CONSUMPTION_DATASET := dataset_version(
         "desnz_electricity_consumption"
@@ -740,7 +744,6 @@ if (
             response.raise_for_status()
             with open(output["xlsx"], "wb") as f:
                 f.write(response.content)
-
 
 
 if (ONS_LAD_DATASET := dataset_version("ons_lad"))["source"] in [*ARCHIVE_SOURCES]:
@@ -774,7 +777,6 @@ elif ONS_LAD_DATASET["source"] in ["primary"]:
             response = requests.get(url, params=params)
             with open(output["geojson"], "wb") as f:
                 f.write(response.content)
-
 
 
 if (SHIP_RASTER_DATASET := dataset_version("ship_raster"))["source"] in [
@@ -811,6 +813,23 @@ if (ENSPRESO_BIOMASS_DATASET := dataset_version("enspreso_biomass"))["source"] i
         retries: 1
         message:
             "Retrieving ENSPRESO biomass data"
+        run:
+            copy2(input["xlsx"], output["xlsx"])
+
+
+if (TABULA_CALCULATOR := dataset_version("tabula_calculator"))["source"] in [
+    "primary",
+    "archive",
+]:
+
+    rule retrieve_tabula_calculator:
+        input:
+            xlsx=storage(TABULA_CALCULATOR["url"]),
+        output:
+            xlsx=f"{TABULA_CALCULATOR['folder']}/tabula-calculator.xlsx",
+        retries: 2
+        message:
+            "Retrieving TABULA building typology data calculator"
         run:
             copy2(input["xlsx"], output["xlsx"])
 
@@ -901,7 +920,6 @@ if (EEZ_DATASET := dataset_version("eez"))["source"] in ["primary"]:
 
             name = str(uuid4())[:8]
             org = str(uuid4())[:8]
-
             response = requests.post(
                 f"{EEZ_DATASET['url']}",
                 params={"name": f"World_EEZ_{EEZ_DATASET['version']}_LR.zip"},
@@ -915,12 +933,10 @@ if (EEZ_DATASET := dataset_version("eez"))["source"] in ["primary"]:
                     "agree": "1",
                 },
             )
-
             with open(output["zip_file"], "wb") as f:
                 f.write(response.content)
             output_folder = Path(output["zip_file"]).parent
             unpack_archive(output["zip_file"], output_folder)
-
 
 elif (EEZ_DATASET := dataset_version("eez"))["source"] in ARCHIVE_SOURCES:
 
@@ -956,7 +972,6 @@ if (WB_URB_POP_DATASET := dataset_version("worldbank_urban_population"))["source
         run:
             copy2(input["zip"], output["zip"])
             unpack_archive(output["zip"], WB_URB_POP_DATASET["folder"])
-
             # Filename contains some added numbers when downloaded,
             # remove them to have a consistent filename across versions
             target_filename = Path(output["csv"])
@@ -1136,13 +1151,11 @@ if (WDPA_DATASET := dataset_version("wdpa"))["source"] in [
             output_folder = Path(output["zip_file"]).parent
             copy2(input["zip_file"], output["zip_file"])
             unpack_archive(output["zip_file"], output_folder)
-
             # Extract {bYYYY} from the input file / URL
             bYYYY = re.search(
                 r"WDPA_(\w{3}\d{4})_Public_shp.zip",
                 input["zip_file"],
             ).group(1)
-
             for i in range(3):
                 # vsizip is special driver for directly working with zipped shapefiles in ogr2ogr
                 layer_path = (
@@ -1150,7 +1163,6 @@ if (WDPA_DATASET := dataset_version("wdpa"))["source"] in [
                 )
                 print(f"Adding layer {i+1} of 3 to combined output file.")
                 shell("ogr2ogr -f gpkg -update -append {output.gpkg} {layer_path}")
-
 
 
 if (WDPA_MARINE_DATASET := dataset_version("wdpa_marine"))["source"] in [
@@ -1174,19 +1186,16 @@ if (WDPA_MARINE_DATASET := dataset_version("wdpa_marine"))["source"] in [
             output_folder = Path(output["zip_file"]).parent
             copy2(input["zip_file"], output["zip_file"])
             unpack_archive(output["zip_file"], output_folder)
-
             # Extract {bYYYY} from the input file / URL
             bYYYY = re.search(
                 r"WDPA_WDOECM_(\w{3}\d{4})_Public_marine_shp.zip",
                 input["zip_file"],
             ).group(1)
-
             for i in range(3):
                 # vsizip is special driver for directly working with zipped shapefiles in ogr2ogr
                 layer_path = f"/vsizip/{output_folder}/WDPA_WDOECM_{bYYYY}_Public_marine_shp_{i}.zip"
                 print(f"Adding layer {i+1} of 3 to combined output file.")
                 shell("ogr2ogr -f gpkg -update -append {output.gpkg} {layer_path}")
-
 
 
 if (INSTRAT_CO2_PRICES_DATASET := dataset_version("instrat_co2_prices"))["source"] in [
@@ -1212,10 +1221,8 @@ if (INSTRAT_CO2_PRICES_DATASET := dataset_version("instrat_co2_prices"))["source
                 "Accept": "application/json",
                 "Referer": "https://energy.instrat.pl/",
             }
-
             r = requests.get(url, headers=headers)
             r.raise_for_status()
-
             df = pd.read_json(r.text)
             df.to_csv(output["csv"], index=False)
 
@@ -1259,11 +1266,9 @@ if (TYNDP_DATASET := dataset_version("tyndp"))["source"] in [
                 for key in input.keys():
                     # Keep zip file
                     copy2(input[key], output[f"{key}_zip"])
-
                     # unzip
                     output_folder = Path(output[f"{key}_zip"]).parent
                     unpack_archive(output[f"{key}_zip"], output_folder)
-
                     # Remove __MACOSX directory if it exists
                     macosx_dir = output_folder / "__MACOSX"
                     rmtree(macosx_dir, ignore_errors=True)
@@ -1272,24 +1277,12 @@ if (TYNDP_DATASET := dataset_version("tyndp"))["source"] in [
 
         rule retrieve_tyndp:
             input:
-                line_data=storage(TYNDP_DATASET["url"] + "/Line-data.zip"),
                 nodes=storage(TYNDP_DATASET["url"] + "/Nodes.zip"),
-                hydro_inflows=storage(TYNDP_DATASET["url"] + "/Hydro-Inflows.zip"),
-                pemmdb=storage(TYNDP_DATASET["url"] + "/PEMMDB2.zip"),
                 supply_tool=storage(
                     TYNDP_DATASET["url"] + "/20240518-Supply-Tool.xlsm.zip"
                 ),
                 benchmark=storage(
                     TYNDP_DATASET["url"] + "/TYNDP-2024-Scenarios-Package-20250128.zip"
-                ),
-                demand_profiles=storage(TYNDP_DATASET["url"] + "/Demand-Profiles.zip"),
-                ev_modelling=storage(TYNDP_DATASET["url"] + "/EV-Modelling-Inputs.zip"),
-                hybrid_hp_modelling=storage(
-                    TYNDP_DATASET["url"] + "/Hybrid-Heat-Pump-Modelling-Inputs.zip"
-                ),
-                hydrogen=storage(TYNDP_DATASET["url"] + "/Hydrogen.zip"),
-                investment_datasets=storage(
-                    TYNDP_DATASET["url"] + "/Investment-Datasets.zip"
                 ),
                 offshore_hubs=storage(TYNDP_DATASET["url"] + "/Offshore-hubs.zip"),
                 market_outputs_NT2030_CY2009=storage(
@@ -1300,41 +1293,13 @@ if (TYNDP_DATASET := dataset_version("tyndp"))["source"] in [
                     TYNDP_DATASET["url"]
                     + "/MMStandardOutputFile_NT2040_Plexos_CY2009_2.5_v40.xlsx.zip"
                 ),
-                h2_reference_grid_entsoe=storage(
-                    TYNDP_DATASET["url"] + "/StartingGrid2030.xlsx.zip"
-                ),
             output:
-                line_data_zip=f"{TYNDP_DATASET['folder']}/Line-data.zip",
                 nodes_zip=f"{TYNDP_DATASET['folder']}/Nodes.zip",
-                elec_reference_grid=f"{TYNDP_DATASET['folder']}/Line data/ReferenceGrid_Electricity.xlsx",
-                h2_reference_grid_entsos=f"{TYNDP_DATASET['folder']}/Line data/ReferenceGrid_Hydrogen.xlsx",
-                h2_reference_grid_entsoe_zip=f"{TYNDP_DATASET['folder']}/StartingGrid2030.xlsx.zip",
-                h2_reference_grid_entsoe=f"{TYNDP_DATASET['folder']}/StartingGrid2030.xlsx",
                 nodes=f"{TYNDP_DATASET['folder']}/Nodes/LIST OF NODES.xlsx",
-                hydro_inflows_zip=f"{TYNDP_DATASET['folder']}/Hydro-Inflows.zip",
-                hydro_inflows=directory(f"{TYNDP_DATASET['folder']}/Hydro Inflows"),
-                pemmdb_zip=f"{TYNDP_DATASET['folder']}/PEMMDB2.zip",
-                pemmdb=directory(f"{TYNDP_DATASET['folder']}/PEMMDB2"),
                 supply_tool_zip=f"{TYNDP_DATASET['folder']}/20240518-Supply-Tool.xlsm.zip",
                 supply_tool=f"{TYNDP_DATASET['folder']}/20240518-Supply-Tool.xlsm",
                 benchmark_zip=f"{TYNDP_DATASET['folder']}/TYNDP-2024-Scenarios-Package-20250128.zip",
                 benchmark=f"{TYNDP_DATASET['folder']}/TYNDP-2024-Scenarios-Package/TYNDP_2024-Scenario-Report-Data-Figures_240522.xlsx",
-                demand_profiles_zip=f"{TYNDP_DATASET['folder']}/Demand-Profiles.zip",
-                demand_profiles=directory(f"{TYNDP_DATASET['folder']}/Demand Profiles"),
-                ev_modelling_zip=f"{TYNDP_DATASET['folder']}/EV-Modelling-Inputs.zip",
-                ev_modelling=directory(f"{TYNDP_DATASET['folder']}/EV Modelling Inputs"),
-                hybrid_hp_modelling_zip=f"{TYNDP_DATASET['folder']}/Hybrid-Heat-Pump-Modelling-Inputs.zip",
-                hybrid_hp_modelling=directory(
-                    f"{TYNDP_DATASET['folder']}/Hybrid Heat Pump Modelling Inputs"
-                ),
-                hydrogen_zip=f"{TYNDP_DATASET['folder']}/Hydrogen.zip",
-                hydrogen=directory(f"{TYNDP_DATASET['folder']}/Hydrogen"),
-                h2_imports=f"{TYNDP_DATASET['folder']}/Hydrogen/H2 IMPORTS GENERATORS PROPERTIES.xlsx",
-                h2_storages=f"{TYNDP_DATASET['folder']}/Hydrogen/H2 STORAGES.xlsx",
-                smr=f"{TYNDP_DATASET['folder']}/Hydrogen/SMR Figures.xlsx",
-                investment_datasets_zip=f"{TYNDP_DATASET['folder']}/Investment-Datasets.zip",
-                trajectories=f"{TYNDP_DATASET['folder']}/Investment Datasets/TRAJECTORY.xlsx",
-                invest_grid=f"{TYNDP_DATASET['folder']}/Investment Datasets/GRID.xlsx",
                 offshore_hubs_zip=f"{TYNDP_DATASET['folder']}/Offshore-hubs.zip",
                 offshore_nodes=f"{TYNDP_DATASET['folder']}/Offshore hubs/NODE.xlsx",
                 market_outputs_NT2030_CY2009_zip=f"{TYNDP_DATASET['folder']}/MMStandardOutputFile_NT2030_Plexos_CY2009_2.5_v40.xlsx.zip",
@@ -1349,15 +1314,12 @@ if (TYNDP_DATASET := dataset_version("tyndp"))["source"] in [
                 for key in input.keys():
                     # Keep zip file
                     copy2(input[key], output[f"{key}_zip"])
-
                     # unzip
                     output_folder = Path(output[f"{key}_zip"]).parent
                     unpack_archive(output[f"{key}_zip"], output_folder)
-
                     # Remove __MACOSX directory if it exists
                     macosx_dir = output_folder / "__MACOSX"
                     rmtree(macosx_dir, ignore_errors=True)
-
 
 
 # TYNDP 2026 data package. Added alongside `retrieve_tyndp` (2024) rather than
@@ -1483,6 +1445,7 @@ if (TYNDP_2026_DATASET := dataset_version("tyndp_2026"))["source"] in ARCHIVE_SO
                 hydrogen_zip=f"{TYNDP_2026_DATASET['folder']}/Hydrogen.zip",
                 hydrogen=directory(f"{TYNDP_2026_DATASET['folder']}/Hydrogen"),
                 h2_imports=f"{TYNDP_2026_DATASET['folder']}/Hydrogen/H2 IMPORTS GENERATORS PROPERTIES.xlsx",
+                h2_import_profiles=f"{TYNDP_2026_DATASET['folder']}/Hydrogen/H2 IMPORT PROFILES.xlsx",
                 h2_storages=f"{TYNDP_2026_DATASET['folder']}/Hydrogen/H2 STORAGES.xlsx",
                 smr=f"{TYNDP_2026_DATASET['folder']}/Hydrogen/SMR.xlsx",
                 p2g_emarket=f"{TYNDP_2026_DATASET['folder']}/Hydrogen/P2G_emarket_template_corrected_requirecheck.xlsx",
@@ -1503,7 +1466,6 @@ if (TYNDP_2026_DATASET := dataset_version("tyndp_2026"))["source"] in ARCHIVE_SO
                             "Hydrogen/P2G_emarket_template_corrected_requirecheck.xlsx"
                         )
                     )
-
 
 
 def get_osm_archive_files(version):
@@ -1551,7 +1513,6 @@ if OSM_DATASET["source"] in ARCHIVE_SOURCES:
                 copy2(input[key], output[key])
 
 
-
 # Only create incumbent rule if it points to a different folder
 OSM_DATASET_INCUMBENT = dataset_version(
     "osm",
@@ -1592,7 +1553,6 @@ if OSM_DATASET_INCUMBENT["source"] in ARCHIVE_SOURCES and OSM_DATASET_INCUMBENT[
         run:
             for key in input.keys():
                 copy2(input[key], output[key])
-
 
 
 if OSM_DATASET["source"] == "build":
@@ -1826,7 +1786,6 @@ if (JRC_ARDECO_DATASET := dataset_version("jrc_ardeco"))["source"] in [
             for key in input.keys():
                 copy2(input[key], output[key])
 
-
 elif (JRC_ARDECO_DATASET := dataset_version("jrc_ardeco"))["source"] in ARCHIVE_SOURCES:
 
     rule retrieve_jrc_ardeco:
@@ -1845,7 +1804,6 @@ elif (JRC_ARDECO_DATASET := dataset_version("jrc_ardeco"))["source"] in ARCHIVE_
         run:
             for key in input.keys():
                 copy2(input[key], output[key])
-
 
 
 if (AQUIFER_DATA_DATASET := dataset_version("aquifer_data"))["source"] in [

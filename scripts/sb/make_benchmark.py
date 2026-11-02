@@ -21,8 +21,9 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-from scripts._helpers import configure_logging, get_version, set_scenario_config
+from scripts._helpers import configure_logging, set_scenario_config
 from scripts.build_tyndp_network import extract_country
+from scripts.sb._helpers import get_version
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +31,57 @@ SOURCES_MAP = {
     "dashboard_out": "TYNDP 2026 Dashboard Outputs",
     "report": "TYNDP 2026 Scenarios Report",
 }
+
+
+def aggregate_to_reference_zones(
+    df: pd.DataFrame, model_col: str = "Open-TYNDP"
+) -> pd.DataFrame:
+    """
+    Aggregate model buses to their country where the reference reports the
+    country as a single zone only, e.g. Italy in the TYNDP 2026 dashboard
+    outputs for 2050.
+
+    Prices are averaged over the zones, all other values are summed.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Combined DataFrame containing both Open-TYNDP and TYNDP reference data.
+    model_col : str, default "Open-TYNDP"
+        Source name of model values.
+
+    Returns
+    -------
+    pd.DataFrame
+        Combined data with the model buses of single zone countries aggregated.
+    """
+    df = df.reset_index(drop=True)
+    keys = ["table", "year", "bus"]
+    reference = pd.MultiIndex.from_frame(df.loc[df.source.ne(model_col), keys].dropna())
+    model = df[df.source.eq(model_col) & df.bus.notna()]
+    country = model.bus.map(extract_country)
+    in_reference = pd.MultiIndex.from_frame(model[keys]).isin(reference)
+    country_in_reference = pd.MultiIndex.from_frame(
+        model[["table", "year"]].assign(bus=country)
+    ).isin(reference)
+    rows = model.index[country_in_reference & ~in_reference]
+    if rows.empty:
+        return df
+
+    zones = df.loc[rows].assign(bus=country[rows])
+    cols = zones.columns.drop("value").tolist()
+    is_price = zones.table.str.contains("price")
+    aggregated = pd.concat(
+        [
+            zones[~is_price].groupby(cols, dropna=False, as_index=False).value.sum(),
+            zones[is_price].groupby(cols, dropna=False, as_index=False).value.mean(),
+        ]
+    )
+    logger.info(
+        "Aggregating model buses to single zone countries of the reference: "
+        f"{', '.join(sorted(zones.bus.unique()))}"
+    )
+    return pd.concat([df.drop(rows), aggregated], ignore_index=True)
 
 
 def load_data(
@@ -97,26 +149,15 @@ def load_data(
         .transform("any")
     )
     benchmarks_raw = benchmarks_raw[has_model & has_reference]
+    benchmarks_raw = aggregate_to_reference_zones(benchmarks_raw, model_col)
 
     # Add Country column
-    country_map = {
-        "IBIT": "IT",
-        "IBIT H2": "IT",
-        "IBFI": "FI",
-        "IBFI H2": "FI",
-        "BEIOH01": "DK",
-        "BEIOH01 H2": "DK",
-        "EU27": "EU27",
-        "Pan-EU": "Pan-EU",
-    }
-
     def _bus_to_country(bus: str) -> str:
-        code = bus.split(" ")[0]
-        if bus in country_map:
-            return country_map[bus]
-        if code.startswith("Ammonia"):
+        if bus in ["EU27", "Pan-EU"]:
+            return bus
+        if bus.startswith("Ammonia"):
             return "Ammonia"
-        return extract_country(code)
+        return extract_country(bus)
 
     benchmarks_raw.loc[:, "country"] = benchmarks_raw["bus"].map(
         lambda x: _bus_to_country(x) if pd.notna(x) else x
@@ -479,6 +520,16 @@ def compute_indicators(
     df = df_agg[~mask]
     df_na = df_agg[mask]
 
+    if df.empty:
+        logger.warning(
+            f"Skipping table {table}, no overlapping entries between sources."
+        )
+        return pd.DataFrame(), pd.DataFrame(
+            [["NA", "NA"]],
+            index=[table],
+            columns=["Missing carriers", missing_name],
+        )
+
     # Compute overall indicators of the table
     indicators = compute_all_indicators(
         df,
@@ -539,7 +590,6 @@ def get_bus_col_name(s: str, table: str):
 def compare_sources(
     table: str,
     benchmarks_raw: pd.DataFrame,
-    scenario: str,
     snapshots: dict[str, str],
     options: dict,
     model_col: str = "Open-TYNDP",
@@ -556,8 +606,6 @@ def compare_sources(
         Benchmark metric to compute.
     benchmarks_raw : pd.DataFrame
         Combined DataFrame containing both Open-TYNDP and TYNDP reference data.
-    scenario : str
-        Name of scenario to compare.
     snapshots : dict[str, str]
         Dictionary defining the temporal range with 'start' and 'end' keys.
     options : dict
@@ -712,7 +760,6 @@ def compute_overall_accuracy(
 def orchestrate_benchmark(
     bus_col_name: str,
     benchmarks_raw: pd.DataFrame,
-    scenario: str,
     snapshots: dict[str, str],
     options: dict,
     output_dir: str,
@@ -738,7 +785,6 @@ def orchestrate_benchmark(
     func = partial(
         compare_sources,
         benchmarks_raw=benchmarks_raw,
-        scenario=scenario,
         snapshots=snapshots,
         options=options,
         bus_col_name=bus_col_name,
@@ -818,7 +864,6 @@ if __name__ == "__main__":
             orchestrate_benchmark(
                 bus_col_name=bus_col_name,
                 benchmarks_raw=benchmarks_raw,
-                scenario=scenario,
                 snapshots=snapshots,
                 options=options,
                 output_dir=output_dir,
