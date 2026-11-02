@@ -9457,7 +9457,7 @@ def main(
         h2_demand_z2_file=inputs.h2_demand_z2,
         smr_fn=inputs.get("tyndp_smr"),
         h2_storages_fn=inputs.get("tyndp_h2_storages"),
-        tyndp_stores=params.tyndp_stores,
+        tyndp_stores=params.electricity["tyndp_stores"],
     )
 
     # Hydrogen already implemented in add_h2_gas_infrastructure
@@ -9498,7 +9498,7 @@ def main(
             tyndp_conventional_thermals=tyndp_conventional_thermals,
             h2_topology_tyndp=options["h2_topology_tyndp"],
             smr_ramp_limits=options["smr_ramp_limits_tyndp"],
-            tyndp_stores=params.tyndp_stores,
+            tyndp_stores=params.electricity["tyndp_stores"],
             costs=costs,
             profiles_pecd=profiles_pecd,
             nuclear_profiles=tyndp_nuclear_profiles,

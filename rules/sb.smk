@@ -345,7 +345,7 @@ rule build_tyndp_hydro_profile:
         unpack(input_data_hydro_tyndp),
         carrier_mapping="data/tyndp_technology_map.csv",
     output:
-        profile=resources("profile_pecd_hydro.nc"),
+        profile=resources("pecd_hydro_profile.nc"),
     log:
         logs("build_tyndp_hydro_profile.log"),
     benchmark:
