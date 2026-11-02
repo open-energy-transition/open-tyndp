@@ -603,9 +603,9 @@ def main(
         n,
         n_previous,
         current_horizon,
-        h2_retrofit=params.H2_retrofit,
-        h2_retrofit_capacity_per_ch4=params.H2_retrofit_capacity_per_CH4,
-        capacity_threshold=params.threshold_capacity,
+        h2_retrofit=params.h2_retrofit,
+        h2_retrofit_capacity_per_ch4=params.h2_retrofit_capacity_per_ch4,
+        capacity_threshold=params.capacity_threshold,
     )
 
     if params.existing_capacities["uniform_renewable_profiles"]:
