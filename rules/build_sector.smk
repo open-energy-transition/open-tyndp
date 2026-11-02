@@ -2,7 +2,6 @@
 # SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: MIT
-from scripts.sb._helpers import safe_planning_horizon
 
 
 rule build_population_layouts:
