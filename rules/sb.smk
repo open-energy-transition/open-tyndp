@@ -515,20 +515,16 @@ if config["sector"]["h2_topology_tyndp"]:
 
 rule group_tyndp_conventionals:
     input:
-        pemmdb_capacities=resources("pemmdb_capacities_{planning_horizon}.csv"),
-        pemmdb_profiles=resources("pemmdb_profiles_{planning_horizon}.nc"),
+        pemmdb_capacities=resources("pemmdb_capacities_{horizon}.csv"),
+        pemmdb_profiles=resources("pemmdb_profiles_{horizon}.nc"),
         carrier_mapping="data/tyndp_technology_map.csv",
     output:
-        pemmdb_capacities_grouped=resources(
-            "pemmdb_capacities_{planning_horizon}_grouped.csv"
-        ),
-        pemmdb_profiles_grouped=resources(
-            "pemmdb_profiles_{planning_horizon}_grouped.nc"
-        ),
+        pemmdb_capacities_grouped=resources("pemmdb_capacities_{horizon}_grouped.csv"),
+        pemmdb_profiles_grouped=resources("pemmdb_profiles_{horizon}_grouped.nc"),
     log:
-        logs("group_tyndp_conventionals_{planning_horizon}.log"),
+        logs("group_tyndp_conventionals_{horizon}.log"),
     benchmark:
-        benchmarks("performances/group_tyndp_conventionals_{planning_horizon}")
+        benchmarks("performances/group_tyndp_conventionals_{horizon}")
     conda:
         "../envs/environment.yaml"
     threads: 1
