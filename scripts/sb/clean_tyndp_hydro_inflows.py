@@ -81,7 +81,7 @@ if __name__ == "__main__":
         snakemake = mock_snakemake(
             "clean_tyndp_hydro_inflows",
             clusters="all",
-            planning_horizons=2030,
+            horizon=2030,
             tech="HRR",
             configfiles="config/test/config.tyndp.yaml",
         )
@@ -110,7 +110,7 @@ if __name__ == "__main__":
 
     # Planning year
     planning_horizon = safe_planning_horizon(
-        snakemake.wildcards.planning_horizons,
+        snakemake.wildcards.horizon,
         available_years=snakemake.params.available_years,
         source="PECD hydro inflow",
     )

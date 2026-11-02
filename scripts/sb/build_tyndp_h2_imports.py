@@ -133,7 +133,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "build_tyndp_h2_imports",
-            planning_horizons=2030,
+            horizon=2030,
             configfiles=["config/config.tyndp.yaml"],
         )
 
@@ -141,7 +141,7 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     # Parameters
-    planning_horizon = int(snakemake.wildcards.planning_horizons)
+    planning_horizon = int(snakemake.wildcards.horizon)
     year = get_snapshots(snakemake.params.snapshots)[0].year
     check_snapshot_year(year, snakemake.params.drop_leap_day, data_type="H2 import")
     snapshot_index = get_snapshots(

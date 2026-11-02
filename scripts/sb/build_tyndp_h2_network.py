@@ -50,7 +50,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "build_tyndp_h2_network",
-            planning_horizons=2030,
+            horizon=2030,
             run="NT",
             configfiles=["config/config.tyndp.yaml"],
         )
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     # Parameters
-    planning_horizon = int(snakemake.wildcards.planning_horizons)
+    planning_horizon = int(snakemake.wildcards.horizon)
 
     # Load and clean H2 reference grid
     h2_grid = load_h2_grid(

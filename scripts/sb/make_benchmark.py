@@ -726,9 +726,6 @@ def orchestrate_benchmark(
     output_dir: str,
     output_kpis: str,
     version: str,
-    clusters: str,
-    opts: str,
-    sector_opts: str,
     threads: int,
 ):
     logger.info(f"Computing benchmarks by {bus_col_name}")
@@ -763,7 +760,7 @@ def orchestrate_benchmark(
             benchmark_i.to_csv(
                 Path(
                     output_dir_bus_col,
-                    f"{table}_ws{snapshots['start'][:4]}_s_{clusters}_{opts}_{sector_opts}_all_years.csv",
+                    f"{table}_ws{snapshots['start'][:4]}_all_years.csv",
                 )
             )
 
@@ -784,9 +781,6 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "make_benchmark",
-            opts="",
-            clusters="all",
-            sector_opts="",
         )
 
     configure_logging(snakemake)
@@ -800,9 +794,6 @@ if __name__ == "__main__":
     mm_data_fn = snakemake.input.mm_data
     results_fn = snakemake.input.results
     output_dir = snakemake.output.benchmarks
-    clusters = snakemake.wildcards.clusters
-    opts = snakemake.wildcards.opts
-    sector_opts = snakemake.wildcards.sector_opts
     threads = snakemake.threads
 
     # Load data
@@ -830,9 +821,6 @@ if __name__ == "__main__":
                 output_dir=output_dir,
                 output_kpis=output_kpis,
                 version=version,
-                clusters=clusters,
-                opts=opts,
-                sector_opts=sector_opts,
                 threads=threads,
             )
         else:

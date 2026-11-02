@@ -6,7 +6,7 @@
 """
 Data source configuration.
 
-See docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#data
+See docs in https://open-tyndp.readthedocs.io/en/latest/configuration/#data_cf
 """
 
 from datetime import date

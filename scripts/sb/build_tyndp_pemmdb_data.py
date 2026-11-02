@@ -1301,8 +1301,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "build_tyndp_pemmdb_data",
-            clusters="all",
-            planning_horizons=2040,
+            horizon=2040,
             configfiles="config/test/config.tyndp.yaml",
         )
     configure_logging(snakemake)
@@ -1332,7 +1331,7 @@ if __name__ == "__main__":
     )
 
     # Planning year
-    planning_horizon_i = int(snakemake.wildcards.planning_horizons)
+    planning_horizon_i = int(snakemake.wildcards.horizon)
     planning_horizon = safe_planning_horizon(
         planning_horizon_i,
         available_years=snakemake.params.available_years,

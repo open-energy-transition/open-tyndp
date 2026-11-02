@@ -6,7 +6,7 @@
 """
 Adjustments configuration.
 
-See docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#adjustments
+See docs in https://open-tyndp.readthedocs.io/en/latest/configuration/#adjustments_cf
 """
 
 from pydantic import BaseModel, Field
