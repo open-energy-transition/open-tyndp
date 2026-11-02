@@ -2842,6 +2842,12 @@ def add_existing_tyndp_capacities(
                 for car in tyndp_solar_wind:
                     gens_i = n.generators.index[n.generators.carrier == car]
                     caps = ppl.query("carrier == @car").groupby("bus").p_nom.sum()
+                    lost = caps[~caps.index.isin(n.buses.index) & (caps > 0)]
+                    if not lost.empty:
+                        logger.warning(
+                            f"Dropping {lost.sum():.0f} MW of {car} on buses not in "
+                            f"the network ({', '.join(lost.index)})."
+                        )
                     caps_i = n.generators.loc[gens_i, "bus"].map(caps).fillna(0.0)
                     n.generators.loc[gens_i, "p_nom"] = caps_i
 
