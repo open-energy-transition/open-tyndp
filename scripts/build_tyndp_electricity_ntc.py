@@ -10,7 +10,7 @@ for a given wildcard planning horizon.
 once, from a single, fixed reference year (``electricity: tyndp_reference_year``)
 - the border topology is identical across all available planning horizons in
 the reference grid, only the NTC capacities differ. This script re-reads the
-same reference grid's ``Year_{planning_horizons}`` sheet to extract the
+same reference grid's ``Year_{horizon}`` sheet to extract the
 per-horizon NTC, later overlaid onto the network in `prepare_sector_network`
 (see `apply_tyndp_electricity_ntc`) whenever `electricity: base_network` is
 `tyndp`.
@@ -101,18 +101,18 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "build_tyndp_electricity_ntc",
-            planning_horizons=2030,
+            horizon=2030,
             configfiles=["config/config.tyndp.yaml"],
         )
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    pyear = int(snakemake.wildcards.planning_horizons)
+    planning_horizon = int(snakemake.wildcards.horizon)
 
     buses = gpd.read_file(snakemake.input.buses).set_index("bus_id")
     links = build_links(
-        snakemake.input.elec_reference_grid, buses, reference_year=pyear
+        snakemake.input.elec_reference_grid, buses, reference_year=planning_horizon
     )
 
     links[NTC_COLUMNS].to_csv(snakemake.output.ntc)

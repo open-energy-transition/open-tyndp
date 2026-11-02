@@ -4,7 +4,7 @@
 """
 This script loads and cleans the TYNDP 2026 H2 reference grid for a given wildcard
 planning horizon. The reference grid gives one sheet per planning horizon
-(``Year_{planning_horizons}``); the border topology is identical across all
+(``Year_{horizon}``); the border topology is identical across all
 available planning horizons, only the NTC capacities differ.
 """
 

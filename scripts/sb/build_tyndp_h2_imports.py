@@ -17,10 +17,10 @@ Inputs
 Outputs
 -------
 
-- `resources/h2_import_potentials_{planning_horizons}.csv`: one row per
+- `resources/h2_import_potentials_{horizon}.csv`: one row per
   corridor, with ``p_nom`` set to the static capacity, or to the profile's
   maximum for time-series corridors.
-- `resources/h2_import_profiles_{planning_horizons}.csv`: hourly ``p_max_pu``
+- `resources/h2_import_profiles_{horizon}.csv`: hourly ``p_max_pu``
   (normalized to each corridor's own maximum) for the time-series corridors
   only.
 """

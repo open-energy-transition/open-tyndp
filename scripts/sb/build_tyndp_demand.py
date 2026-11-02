@@ -39,7 +39,7 @@ Inputs
 Outputs
 -------
 
-- `resources/demand_tyndp_{demand_type}_{planning_horizons}.csv`: Processed
+- `resources/demand_tyndp_{demand_type}_{horizon}.csv`: Processed
   demand time series for the specified demand type and planning horizon.
   Unit depends on `demand_type` (see `DEMAND_TYPE_UNITS`).
 """
@@ -368,7 +368,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "build_tyndp_demand",
-            planning_horizons="2040",
+            horizon="2040",
             demand_type="electricity_market",
             clusters="all",
             run="NT",
@@ -379,7 +379,7 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     # Parameters
-    planning_horizon = int(snakemake.wildcards.planning_horizons)
+    planning_horizon = int(snakemake.wildcards.horizon)
     demand_type = snakemake.wildcards.demand_type
     wscenarios = snakemake.params.wscenarios
     snapshots = get_snapshots(

@@ -1023,15 +1023,15 @@ rule build_tyndp_electricity_ntc:
         elec_reference_grid=rules.retrieve_tyndp_2026.output.elec_reference_grid,
         buses=resources("tyndp/build/geojson/buses.geojson"),
     output:
-        ntc=resources("tyndp_electricity_ntc_{planning_horizons}.csv"),
+        ntc=resources("tyndp_electricity_ntc_{horizon}.csv"),
     log:
-        logs("build_tyndp_electricity_ntc_{planning_horizons}.log"),
+        logs("build_tyndp_electricity_ntc_{horizon}.log"),
     benchmark:
-        benchmarks("performances/build_tyndp_electricity_ntc_{planning_horizons}")
+        benchmarks("performances/build_tyndp_electricity_ntc_{horizon}")
     threads: 1
     resources:
         mem_mb=4000,
     message:
-        "Building TYNDP electricity NTC for {wildcards.planning_horizons}"
+        "Building TYNDP electricity NTC for {wildcards.horizon}"
     script:
         scripts("build_tyndp_electricity_ntc.py")
