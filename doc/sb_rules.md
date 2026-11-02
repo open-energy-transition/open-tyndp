@@ -79,9 +79,9 @@ the electricity demand for the simplified network from the TYNDP electricity mar
 
 ### Rule `cluster_electricity_demand_tyndp`
 
-Extends the upstream [`cluster_electricity_demand`](preparation.md#rule-cluster_electricity_demand) rule to aggregate the
+Extends the upstream `cluster_electricity_demand` rule to aggregate the
 per-horizon TYNDP electricity market demand onto the clustered network buses, so that
-[`compose_network`](preparation.md#rule-compose_network) can attach it directly.
+[`compose_network`](preparation.md#compose) can attach it directly.
 
 ## Build sector
 
@@ -172,10 +172,6 @@ Aggregate [`plot_benchmark`](#rule-plot_benchmark) outputs.
 ### Rule `build_tyndp_pemmdb_datas`
 
 Aggregate [`build_tyndp_pemmdb_data`](#rule-build_tyndp_pemmdb_data) outputs.
-
-### Rule `build_tyndp_demands`
-
-Aggregate [`build_tyndp_demand`](#rule-build_tyndp_demand) outputs.
 
 ### Rule `build_tyndp_gas_demands`
 
