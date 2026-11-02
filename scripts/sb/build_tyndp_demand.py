@@ -370,7 +370,6 @@ if __name__ == "__main__":
             "build_tyndp_demand",
             horizon="2040",
             demand_type="electricity_market",
-            clusters="all",
             run="NT",
             configfiles="config/config.tyndp.yaml",
         )
