@@ -364,7 +364,7 @@ adjustments:
       Generator:
         biogas:
           # Ratio of the TYNDP EU27 biogas potential to the PyPSA-Eur one, both summed
-          # over EU27 buses of resources/biomass_potentials_s_{clusters}_{planning_horizons}.csv
+          # over EU27 buses of resources/biomass_potentials_{horizon}.csv
           p_nom: # EU27 biogas potential for 8760h
             2030: 0.82  # PyPSA-Eur EU27 291.5 TWh vs TYNDP EU27 238.57 TWh
             2035: 1.23  # PyPSA-Eur EU27 293.2 TWh vs TYNDP EU27 360.78 TWh
@@ -382,7 +382,7 @@ adjustments:
             2050: 2.56
         solid biomass:
           # Ratio of the TYNDP EU27 biomass potential to the PyPSA-Eur one, both summed
-          # over EU27 buses of resources/biomass_potentials_s_{clusters}_{planning_horizons}.csv
+          # over EU27 buses of resources/biomass_potentials_{horizon}.csv
           p_nom: # EU27 biomass potential for 8760h
             2030: 1.48  # PyPSA-Eur EU27 973.9 TWh vs TYNDP EU27 1444.85 TWh
             2035: 1.53  # PyPSA-Eur EU27 960.8 TWh vs TYNDP EU27 1474.13 TWh
