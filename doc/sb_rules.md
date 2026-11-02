@@ -37,7 +37,7 @@ data:
 
 **Outputs**
 
-- `data/open_tyndp_prelim/{source}/{version}/base_s_all___{planning_horizons}.nc`
+- `data/open_tyndp_prelim/{source}/{version}/base_s_all___{horizon}.nc`
 
 <<<<<<< HEAD
 =======
@@ -99,8 +99,19 @@ data:
 ### Rule `build_electricity_demand_base_tyndp`
 
 Extends the upstream [`build_electricity_demand_base`](preparation.md#rule-build_electricity_demand_base) rule with TYNDP-specific load data. Builds
+<<<<<<< HEAD
 the electricity demand for base regions from the TYNDP electricity market demand prepared by
 [`build_tyndp_demand`](#rule-build_tyndp_demand).
+=======
+the electricity demand for the simplified network from the TYNDP electricity demand prepared by
+[`build_electricity_demand_tyndp`](#rule-build_electricity_demand_tyndp), once per planning horizon.
+
+### Rule `cluster_electricity_demand_tyndp`
+
+Extends the upstream [`cluster_electricity_demand`](preparation.md#rule-cluster_electricity_demand) rule to aggregate the
+per-horizon TYNDP electricity demand onto the clustered network buses, so that
+[`compose_network`](preparation.md#rule-compose_network) can attach it directly.
+>>>>>>> origin/master
 
 ## Build sector
 

@@ -545,7 +545,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "plot_indicators",
-            planning_horizons="2030",
+            horizon="2030",
             run="NT",
             configfiles=["config/config.tyndp.yaml"],
         )

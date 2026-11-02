@@ -59,16 +59,27 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "build_tyndp_h2_network",
+<<<<<<< HEAD
             planning_horizons=2030,
             run="NT",
             configfiles=["config/config.tyndp.yaml"],
+=======
+            horizon=2030,
+>>>>>>> origin/master
         )
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
     # Parameters
+<<<<<<< HEAD
     planning_horizon = int(snakemake.wildcards.planning_horizons)
+=======
+    scenario = snakemake.params.scenario
+    source = snakemake.params.h2_reference_grid_source
+    pyear = int(snakemake.wildcards.horizon)
+    cyear = get_snapshots(snakemake.params.snapshots)[0].year
+>>>>>>> origin/master
 
     # Load and clean H2 reference grid
     h2_grid = load_h2_grid(

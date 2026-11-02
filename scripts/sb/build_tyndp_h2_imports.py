@@ -133,20 +133,35 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "build_tyndp_h2_imports",
+<<<<<<< HEAD
             planning_horizons=2030,
             configfiles=["config/config.tyndp.yaml"],
+=======
+            horizon=2030,
+>>>>>>> origin/master
         )
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
     # Parameters
+<<<<<<< HEAD
     planning_horizon = int(snakemake.wildcards.planning_horizons)
     year = get_snapshots(snakemake.params.snapshots)[0].year
     check_snapshot_year(year, snakemake.params.drop_leap_day, data_type="H2 import")
     snapshot_index = get_snapshots(
         {"start": f"{year}-01-01", "end": f"{year + 1}-01-01", "inclusive": "left"},
         drop_leap_day=True,
+=======
+    scenario = snakemake.params.scenario
+    year = int(snakemake.wildcards.horizon)
+
+    # Load prepped import potentials and filter
+    fn = snakemake.input.import_potentials_prepped
+    import_potentials = pd.read_csv(fn, index_col=0)
+    import_potentials_filtered = import_potentials.query(
+        "(Scenario == 'All' or Scenario == @scenario) and Year == @year"
+>>>>>>> origin/master
     )
 
     # Load corridor properties

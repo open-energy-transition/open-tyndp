@@ -84,10 +84,14 @@ if __name__ == "__main__":
         from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake(
+<<<<<<< HEAD:scripts/sb/clean_tyndp_pecd_data.py
             "clean_tyndp_pecd_data",
             clusters="all",
+=======
+            "clean_pecd_data",
+>>>>>>> origin/master:scripts/sb/clean_pecd_data.py
             technology="Wind_Offshore",
-            planning_horizons=2030,
+            horizon=2030,
         )
     configure_logging(snakemake)
     set_scenario_config(snakemake)
@@ -99,9 +103,25 @@ if __name__ == "__main__":
     sns = get_snapshots(snakemake.params.snapshots, snakemake.params.drop_leap_day)
     wscenario = f"WS{snakemake.params.wscenario:03d}"
 
+<<<<<<< HEAD:scripts/sb/clean_tyndp_pecd_data.py
     # Planning year (falls back to latest available planning_horizon if not in list of available years)
     planning_horizon = safe_planning_horizon(
         snakemake.wildcards.planning_horizons,
+=======
+    if int(cyear) not in prebuilt_years:
+        # TODO: Note that because of this fallback, the snapshots of the profiles will not always match with the model snapshots
+        fallback_year = (
+            2009 if 2009 in prebuilt_years else (prebuilt_years[-1])
+        )  # use 2009 as default fallback if one of the filtered cyears
+        logger.warning(
+            f"Snapshot year doesn't match available TYNDP data. Falling back to {fallback_year}."
+        )
+        cyear = fallback_year
+
+    # Planning year (falls back to latest available pyear if not in list of available years)
+    pyear = safe_pyear(
+        snakemake.wildcards.horizon,
+>>>>>>> origin/master:scripts/sb/clean_pecd_data.py
         available_years=snakemake.params.available_years,
         source="PECD",
     )

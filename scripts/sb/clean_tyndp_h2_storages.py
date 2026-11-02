@@ -110,7 +110,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "clean_tyndp_h2_storages",
-            planning_horizons=2030,
+            horizon=2030,
             configfiles="config/test/config.tyndp.yaml",
         )
 
@@ -118,7 +118,11 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     # Parameters
+<<<<<<< HEAD
     planning_horizon = int(snakemake.wildcards.planning_horizons)
+=======
+    pyear = int(snakemake.wildcards.horizon)
+>>>>>>> origin/master
     h2_storage_fn = snakemake.input.h2_storages
     scenario = snakemake.params.tyndp_scenario
 

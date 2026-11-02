@@ -27,8 +27,13 @@ Closes # (if applicable).
 **If applicable:**
 - [ ] Changes in configuration options are reflected in `scripts/lib/validation`.
 - [ ] Changes in configuration options are added to `config/test/*.yaml`.
+<<<<<<< HEAD
 - [ ] Multiple weather scenarios test passes locally (`pixi run -e open-tyndp tyndp-wscenarios-test`).
 - [ ] For new data sources or versions, [these instructions](https://open-tyndp.readthedocs.io/en/latest/data_sources.html) have been followed.
+=======
+- [ ] Multiple climate years test passes locally (`pixi run -e open-tyndp tyndp-cyears-test`).
+- [ ] For new data sources or versions, [these instructions](https://open-tyndp.readthedocs.io/en/latest/data_sources/) have been followed.
+>>>>>>> origin/master
 - [ ] Open-TYNDP SPDX license header is added to all touched files.
 - [ ] Module docstrings are added to new Python scripts.
 - [ ] New rules are documented in the appropriate `doc/*.md` files.

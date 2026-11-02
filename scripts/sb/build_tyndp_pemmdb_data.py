@@ -1347,10 +1347,15 @@ if __name__ == "__main__":
         from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake(
+<<<<<<< HEAD:scripts/sb/build_tyndp_pemmdb_data.py
             "build_tyndp_pemmdb_data",
             clusters="all",
             planning_horizons=2040,
             configfiles="config/test/config.tyndp.yaml",
+=======
+            "build_pemmdb_data",
+            horizon=2030,
+>>>>>>> origin/master:scripts/sb/build_pemmdb_data.py
         )
     configure_logging(snakemake)
     set_scenario_config(snakemake)
@@ -1380,9 +1385,15 @@ if __name__ == "__main__":
     )
 
     # Planning year
+<<<<<<< HEAD:scripts/sb/build_tyndp_pemmdb_data.py
     planning_horizon_i = int(snakemake.wildcards.planning_horizons)
     planning_horizon = safe_planning_horizon(
         planning_horizon_i,
+=======
+    pyear_i = int(snakemake.wildcards.horizon)
+    pyear = safe_pyear(
+        pyear_i,
+>>>>>>> origin/master:scripts/sb/build_pemmdb_data.py
         available_years=snakemake.params.available_years,
         source="PEMMDB",
     )

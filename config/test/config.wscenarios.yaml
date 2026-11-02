@@ -39,6 +39,7 @@ logging:
 
 launch_explorer: false
 
+<<<<<<< HEAD:config/test/config.wscenarios.yaml
 scenario:
   clusters:
   - all
@@ -47,6 +48,12 @@ scenario:
   - 2035
   - 2040
   - 2050
+=======
+planning_horizons:
+- 2030
+- 2035
+- 2040
+>>>>>>> origin/master:config/test/config.cyears.yaml
 
 countries: ['AL', 'AT', 'BA', 'BE', 'BG', 'CH', 'CZ', 'CY', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MD', 'ME', 'MK', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK', 'TR', 'UA']
 
@@ -55,6 +62,9 @@ snapshots:
   end: "2013-03-08"
 
 co2_budget:
+  relative: false
+  upper:
+  lower:
 
 electricity:
   base_network: tyndp
@@ -349,9 +359,11 @@ clustering:
     aggregate_to_tyndp: true
   simplify_network:
     remove_stubs: false
+  cluster_network:
+    n_clusters: all
   temporal:
     # Important note: The segmentation (SEG) option is currently not supported, for details https://github.com/open-energy-transition/open-tyndp/pull/345
-    resolution_sector: 6H
+    averaging: 6h
 
 adjustments:
   electricity: false
@@ -417,7 +429,7 @@ solving:
       BarConvTol: 1.0e-06
       FeasibilityTol: 1.0e-06
       OptimalityTol: 1.0e-06
-  mem: 4000
+  mem_mb: 4000
 
 data:
   version_files:
@@ -508,8 +520,9 @@ cba:
   # Marginal storage value extraction settings
   msv_extraction:
     # Temporal resolution for extraction solve
-    # Options: false (use native resolution), "24H", "48H", etc.
-    resolution: false
+    # Options: averaging: false (use native resolution), "24h", "48h", etc.
+    resolution:
+      averaging: false
     # Resampling method: ffill (forward fill), interpolate (linear)
     resample_method: ffill
     # Solve options for MSV extraction
