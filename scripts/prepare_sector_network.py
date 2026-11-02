@@ -2849,7 +2849,7 @@ def add_existing_tyndp_capacities(
                             f"the network ({', '.join(lost.index)})."
                         )
                     caps_i = n.generators.loc[gens_i, "bus"].map(caps).fillna(0.0)
-                    n.generators.loc[gens_i, "p_nom"] = caps_i
+                    n.generators.loc[gens_i, ["p_nom", "p_nom_min"]] = caps_i
 
         # Add existing hydro capacities and inflows from PEMMDB
         if [c for c in tyndp_renewable_carriers if c.startswith("hydro")]:
