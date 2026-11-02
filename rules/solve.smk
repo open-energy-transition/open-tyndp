@@ -7,10 +7,6 @@
 rule solve_network:
     input:
         network=resources("networks/composed_{horizon}.nc"),
-        offshore_zone_trajectories=branch(
-            config_provider("sector", "offshore_hubs_tyndp", "enable"),
-            resources("offshore_zone_trajectories.csv"),
-        ),
     output:
         network=RESULTS + "networks/solved_{horizon}.nc",
         model=(
@@ -39,9 +35,6 @@ rule solve_network:
             "sector", "co2_sequestration_potential"
         ),
         custom_extra_functionality=input_custom_extra_functionality,
-        renewable_carriers_tyndp=config_provider(
-            "electricity", "tyndp_renewable_carriers"
-        ),
     script:
         scripts("solve_network.py")
 
