@@ -117,7 +117,7 @@ if not "pre-built" in PECD_DATASET["version"]:
         else:
             return f"{str(int(major)+1)}.0"
 
-    rule prepare_pecd_release:
+    rule prepare_tyndp_pecd_release:
         input:
             pecd_raw=PECD_DATASET["folder"],
         output:
