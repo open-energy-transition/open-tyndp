@@ -7,7 +7,7 @@ Builds hydroelectric inflow time-series for each country based on PEMMDB v2.5 hy
 Outputs
 -------
 
-- `resources/profile_pemmdb_hydro.nc`:
+- `resources/pemmdb_hydro_profile.nc`:
 
     | Field  | Dimensions                      | Description                                                              |
     | ------ | ------------------------------- | ------------------------------------------------------------------------ |

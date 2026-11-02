@@ -96,8 +96,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "clean_tyndp_hydro_inflows",
-            clusters="all",
-            planning_horizons=2030,
+            horizon=2030,
             tech="Run_of_River",
         )
     configure_logging(snakemake)
@@ -126,7 +125,7 @@ if __name__ == "__main__":
 
     # Planning year
     pyear = safe_pyear(
-        snakemake.wildcards.planning_horizons,
+        snakemake.wildcards.horizon,
         available_years=snakemake.params.available_years,
         source="Hydro inflows",
     )

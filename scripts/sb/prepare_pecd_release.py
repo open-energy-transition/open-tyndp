@@ -76,7 +76,6 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "prepare_pecd_release",
-            clusters="all",
         )
     configure_logging(snakemake)  # pylint: disable=possibly-used-before-assignment
     set_scenario_config(snakemake)

@@ -485,7 +485,10 @@ def _process_battery_capacities(
     """
     # Fill missing data for FR15
     if node == "FR15":
-        node_tech_data.iloc[-1, [5, 7, 8]] = 0
+        idx = [5, 7, 8]
+        cols = node_tech_data.columns[idx]
+        node_tech_data[cols] = node_tech_data[cols].astype(object)
+        node_tech_data.iloc[-1, idx] = 0
 
     # Extract data
     df_raw = (
@@ -773,7 +776,7 @@ def _process_other_nonres_profiles(
 
     # Extract plant type
     price_band_type = _extract_price_band_type(df.T).rename("price_band_type")
-    price = df.T.price
+    price = df.T.price.astype(float)
     pemmdb_carrier = (
         "Other Non-RES" + " " + df.T.pemmdb_type.str.split("/").str[1]
     ).rename("pemmdb_carrier")
@@ -1242,8 +1245,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "build_pemmdb_data",
-            clusters="all",
-            planning_horizons=2030,
+            horizon=2030,
         )
     configure_logging(snakemake)
     set_scenario_config(snakemake)
@@ -1275,7 +1277,7 @@ if __name__ == "__main__":
         cyear = 2009
 
     # Planning year
-    pyear_i = int(snakemake.wildcards.planning_horizons)
+    pyear_i = int(snakemake.wildcards.horizon)
     pyear = safe_pyear(
         pyear_i,
         available_years=snakemake.params.available_years,

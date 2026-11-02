@@ -79,7 +79,7 @@ if __name__ == "__main__":
             "fix_reference_sb_to_cba",
             run="NT",
             configfiles=["config/config.tyndp.yaml"],
-            planning_horizons="2040",
+            horizon="2040",
         )
 
     configure_logging(snakemake)

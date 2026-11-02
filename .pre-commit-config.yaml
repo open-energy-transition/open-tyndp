@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: CC0-1.0
-exclude: "^LICENSES|^config/schema\\.default[\\.]*.*\\.json$|^config/config\\.default[\\.]*.*\\.yaml$"
+exclude: "^LICENSES|^config/schema\\.default[\\.]*.*\\.json$|^config/config\\.default[\\.]*.*\\.yaml$|^config/plotting\\.default[\\.]*.*\\.yaml$"
 
 ci:
   autoupdate_schedule: quarterly
@@ -18,7 +18,7 @@ repos:
 # Run ruff to lint and format
 - repo: https://github.com/astral-sh/ruff-pre-commit
   # Ruff version.
-  rev: v0.15.9
+  rev: v0.15.20
   hooks:
     # Run the linter.
   - id: ruff
@@ -53,7 +53,7 @@ repos:
 
   # Format Snakemake rule / workflow files
 - repo: https://github.com/snakemake/snakefmt
-  rev: v1.0.0
+  rev: v2.0.3
   hooks:
   - id: snakefmt
 

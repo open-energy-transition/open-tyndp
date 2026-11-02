@@ -11,7 +11,7 @@ DC-connected offshore wind, and solar PV generators.
 Outputs
 -------
 
-- `resources/profile_pecd_{clusters}_{technology}.nc` with the following structure
+- `resources/pecd_profile_{technology}.nc` with the following structure
 
     | Field   | Dimensions           | Description                                        |
     | ------- | -------------------- | -------------------------------------------------- |
@@ -37,7 +37,6 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "build_renewable_profiles_pecd",
-            clusters="all",
             technology="Wind_Offshore",
         )
     configure_logging(snakemake)

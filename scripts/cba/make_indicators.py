@@ -968,7 +968,7 @@ if __name__ == "__main__":
             "make_indicators",
             run="NT",
             cba_project="t4",
-            planning_horizons="2030",
+            horizon="2030",
             configfiles=["config/config.tyndp.yaml"],
         )
     configure_logging(snakemake)
@@ -984,7 +984,7 @@ if __name__ == "__main__":
     if not n_project.is_solved:
         raise ValueError("Project network is not solved")
 
-    planning_horizon = int(snakemake.wildcards.planning_horizons)
+    planning_horizon = int(snakemake.wildcards.horizon)
     # Detect method from assignments (toot or pint)
     cba_project = snakemake.wildcards.cba_project
     project_id = int(cba_project[1:])
