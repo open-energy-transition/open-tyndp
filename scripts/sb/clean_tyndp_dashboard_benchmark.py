@@ -36,22 +36,23 @@ import pandas as pd
 from scripts._helpers import configure_logging, set_scenario_config
 from scripts.build_tyndp_network import extract_country
 from scripts.sb._helpers import (
+    CAPACITY_SHEET,
+    ELECTRICITY_SHEETS,
+    EXCHANGES_SHEET,
+    H2_SHEETS,
+    NROWS_HEADER,
+    STATS,
     convert_units,
     format_bz_names,
+    get_dashboard_files,
     get_wscenario,
     normalize_direction,
+    parse_dashboard_header,
+    parse_installed_capacity,
 )
 
 logger = logging.getLogger(__name__)
 
-# List of sheets for both electricity and hydrogen timeseries
-ELECTRICITY_SHEETS = ["E-Market", "Prosumer", "Offshore"]
-H2_SHEETS = ["H2 Zone 1", "H2 Zone 2"]
-EXCHANGES_SHEET = "Exchanges"
-CAPACITY_SHEET = "Installed Capacity"
-# Header rows of the timeseries sheets and the yearly aggregates in their first rows
-NROWS_HEADER = 9
-STATS = ["min", "max", "avg", "sum"]
 
 LOOKUP_TABLES: dict[str, dict] = {
     "power_capacity": {"sheet": [CAPACITY_SHEET]},
@@ -150,68 +151,11 @@ def _load_dashboard_carrier_mapping(
     return output_map
 
 
-def split_unit_from_category(category_labels: pd.Series) -> tuple[pd.Series, pd.Series]:
-    """
-    Split units from category (carrier) labels in the dashboard
-    """
-    parts = category_labels.astype(str).str.extract(
-        r"^(?P<carrier>.*?)\s*(?:\[(?P<unit>[^\]]*)\])?\s*$"
-    )
-    unit = parts.unit.str.replace("€", "EUR", regex=False).str.replace(
-        r"_(e|H2)$", "", regex=True
-    )
-    return parts.carrier, unit
-
-
 def rename_prosumer_nodes(buses: pd.Series) -> pd.Series:
     """
     Rename prosumer nodes to match Open-TYNDP bus names
     """
     return format_bz_names(buses).str.removesuffix("RETE")
-
-
-def parse_dashboard_header(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Parse the header of a sheet from a TYNDP TimeSeries Dashboard output file.
-
-    All sheets, except "Installed Capacity", share the same structure:
-    - Rows 1-4: Yearly values (min, max, average, and sum) of the hourly timeseries
-    - Row 6: Market Zone
-    - Row 7: Category (similar to carrier)
-    - Row 8: Element (similar to type)
-    - Row 9: Generation/Load, indicates flow direction.
-    - Row 10: Hour labels, followed by the hourly values.
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        Raw sheet read without header.
-
-    Returns
-    -------
-    pd.DataFrame
-        One row per timeseries, indexed by its column in ``df``, with columns
-        [min, max, avg, sum, bus, element, flow, carrier, unit].
-    """
-    col_keys = 1
-
-    header = df.iloc[:NROWS_HEADER].copy()
-    header.iloc[: len(STATS), col_keys] = STATS
-    header = header.set_index(col_keys).T.dropna(how="all").dropna(how="all", axis=1)
-
-    carrier, unit = split_unit_from_category(header["Category"])
-    return (
-        header.drop(columns="Category")
-        .rename_axis(columns=None)  # drop the name 1 from set_index, it breaks query
-        .rename(
-            columns={
-                "Market Zone": "bus",
-                "Element": "element",
-                "Generation/Load": "flow",
-            }
-        )
-        .assign(carrier=carrier, unit=unit)
-    )
 
 
 def parse_dashboard_sheet(df: pd.DataFrame, sheet_name: str) -> pd.DataFrame:
@@ -246,73 +190,6 @@ def parse_dashboard_sheet(df: pd.DataFrame, sheet_name: str) -> pd.DataFrame:
     df["value"] = pd.to_numeric(df["value"], errors="coerce")
 
     return df
-
-
-def parse_installed_capacity(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Parse the sheet "Installed Capacity" from a TYNDP TimeSeries Dashboard output file.
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        Raw sheet read without header.
-
-    Returns
-    -------
-    pd.DataFrame
-        Long format with columns [carrier, unit, sheet, bus, value]
-    """
-    row_data, col_value = 2, 1
-
-    carrier, unit = split_unit_from_category(df.iloc[row_data:, 0])
-    columns = pd.MultiIndex.from_arrays(
-        df.iloc[:row_data, col_value:].values, names=["sheet", "bus"]
-    )
-
-    return (
-        df.iloc[row_data:, col_value:]
-        .apply(pd.to_numeric, errors="coerce")
-        .set_axis(columns, axis=1)
-        .set_axis(pd.MultiIndex.from_arrays([carrier, unit], names=["carrier", "unit"]))
-        .stack(["sheet", "bus"], future_stack=True)
-        .rename("value")
-        .reset_index()
-        .dropna(subset=["value"])
-    )
-
-
-def get_dashboard_files(
-    dashboard_dir: str | Path, planning_horizon: int, wscenario: int
-) -> list[Path]:
-    """
-    List the TYNDP TimeSeries Dashboard files of a planning horizon and weather scenario.
-
-    Parameters
-    ----------
-    dashboard_dir : str or Path
-        Directory of the TimeSeries Dashboard files.
-    planning_horizon : int
-        Planning horizon.
-    wscenario : int
-        Weather scenario.
-
-    Returns
-    -------
-    list[Path]
-        Sorted paths to the TimeSeries Dashboard files, one per country.
-    """
-    files = sorted(
-        Path(
-            dashboard_dir, str(planning_horizon), f"Weather scenario {wscenario:03d}"
-        ).glob("*_TimeSeriesDashboard_*.xlsx")
-    )
-    if not files:
-        raise FileNotFoundError(
-            f"No TimeSeries Dashboard files for planning year {planning_horizon} "
-            f"and weather scenario WS{wscenario:03d}."
-        )
-
-    return files
 
 
 def read_dashboard(

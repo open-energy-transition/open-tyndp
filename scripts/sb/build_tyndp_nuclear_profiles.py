@@ -24,16 +24,16 @@ import pandas as pd
 
 from scripts._helpers import (
     configure_logging,
-    convert_units,
-    format_bz_names,
     get_snapshots,
-    get_wscenario,
     set_scenario_config,
 )
-from scripts.sb.clean_tyndp_dashboard_benchmark import (
+from scripts.sb._helpers import (
     CAPACITY_SHEET,
     NROWS_HEADER,
+    convert_units,
+    format_bz_names,
     get_dashboard_files,
+    get_wscenario,
     parse_dashboard_header,
     parse_installed_capacity,
 )

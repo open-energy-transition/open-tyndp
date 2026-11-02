@@ -2162,7 +2162,9 @@ def _add_conventional_thermal_capacities(
         if tech == "nuclear" and nuclear_profiles is not None:
             # Fall back to the country profile for nodes aggregated in the dashboards (e.g. IT in 2050)
             bus = n.links.loc[tech_i, "bus1"]
-            bus = bus.where(bus.isin(nuclear_profiles.columns), bus.str[:2])
+            bus = bus.where(
+                bus.isin(nuclear_profiles.columns), bus.map(n.buses.country)
+            )
             availability = nuclear_profiles.reindex(columns=bus).set_axis(
                 tech_i, axis=1
             )
