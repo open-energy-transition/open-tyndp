@@ -12,7 +12,7 @@ base → simplified → clustered → composed → solved
 All configuration is now driven by config sections rather than wildcards.
 """
 
-from scripts.sb._helpers import safe_pyear
+from scripts.sb._helpers import safe_planning_horizon
 
 
 def gated_inputs(condition, **paths):
@@ -63,7 +63,7 @@ def get_tyndp_compose_inputs(w):
         ),
         "tyndp_nuclear_profiles": (
             rules.retrieve_tyndp_nuclear_profiles.output[
-                f"nuclear_p_max_pu_{safe_pyear(horizon, available_years=mm_years, verbose=False)}"
+                f"nuclear_p_max_pu_{safe_planning_horizon(horizon, available_years=mm_years, verbose=False)}"
             ]
             if scenario and cfg["conventional"]["tyndp_availability_profiles"]
             else []
@@ -95,7 +95,7 @@ def get_tyndp_compose_inputs(w):
             inputs[f"profile_pecd_{tech}"] = resources(f"pecd_profile_{tech}.nc")
 
     if elec["pemmdb_capacities"]["enable"]:
-        pemmdb_year = safe_pyear(
+        pemmdb_year = safe_planning_horizon(
             horizon, elec["pemmdb_capacities"]["available_years"], verbose=False
         )
         grouped = "_grouped" if elec["group_tyndp_conventionals"] else ""
