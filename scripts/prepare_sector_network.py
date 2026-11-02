@@ -9289,9 +9289,9 @@ def main(
 
     if inputs.tyndp_electricity_ntc:
         logger.info(
-            f"Overlaying TYNDP electricity NTC for planning horizon {investment_year}"
+            f"Overlaying TYNDP electricity NTC for planning horizon {current_horizon}"
         )
-        apply_tyndp_electricity_ntc(n, inputs.tyndp_electricity_ntc, investment_year)
+        apply_tyndp_electricity_ntc(n, inputs.tyndp_electricity_ntc, current_horizon)
 
     if params.load["source"] == "tyndp":
         logger.info(
@@ -9510,7 +9510,7 @@ def main(
             nuclear_profiles=tyndp_nuclear_profiles,
             hydro_inflows_fn=inputs.profile_pecd_hydro,
             extendable_carriers=params.electricity["extendable_carriers"],
-            investment_year=investment_year,
+            investment_year=current_horizon,
             enable_pemmdb_caps=enable_pemmdb_caps,
             group_conventionals=params.electricity["group_tyndp_conventionals"],
         )
@@ -9588,7 +9588,7 @@ def main(
             pop_layout=pop_layout,
             biomass_potentials_file=inputs.biomass_potentials,
             nhours=nhours,
-            investment_year=investment_year,
+            investment_year=current_horizon,
             biomass_transport_costs_file=inputs.biomass_transport_costs,
             nyears=nyears,
         )
@@ -9609,7 +9609,7 @@ def main(
             options=options,
             spatial=spatial,
             cf_industry=cf_industry,
-            investment_year=investment_year,
+            investment_year=current_horizon,
         )
 
     if options["shipping"]:
