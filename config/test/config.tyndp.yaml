@@ -32,6 +32,8 @@ wscenarios_tyndp:
   - 92
   - 106
 data_config:   # change to 'tyndp' to use tyndp-archive where available
+logging:
+  level: INFO
 
 launch_explorer: false
 
@@ -410,6 +412,7 @@ solving:
     options: highs-default
   solver_options:
     highs-default:
+      solver: ipx
       primal_feasibility_tolerance: 1.0e-06
       dual_feasibility_tolerance: 1.0e-06
       ipm_optimality_tolerance: 1.0e-06
@@ -423,6 +426,9 @@ data:
   version_files:
   - data/versions.csv
   - data/tyndp_versions.csv
+  local_cache:
+    enable: false  # set true to read all data from one cache filled by `pixi run collect-data`
+    directory: data/local-cache
 
 plotting:
   energy_threshold: 1.
@@ -470,8 +476,12 @@ cba:
     use_presolved: false
     sb_version: latest # use 'latest' or a supported version from data/tyndp_versions.csv for pre-solved SB network input in CBA; only applies if use_presolved is true
   projects:
-  - t1-t35
-  - s*
+  - t225 # PINT
+  - t339 # TOOT
+  # TODO: Add back t1106 Bornholm project once CBA bus naming convention is fixed for 2026
+  - s1001 # PHS
+  - s1013 # CAES
+  - s1035 # battery
   area: tyndp # options: tyndp (TODO: entso-e, eu27)
   remove_noisy_costs: true # Use pre-noise costs for indicators while keeping noisy costs in the solve
   negative_toot_capacity: zero
@@ -486,7 +496,9 @@ cba:
     - caes
     - home battery
     # Carriers whose state of charge is fixed at window boundaries
-    # from perfect foresight (applies to StorageUnit components only)
+    # from perfect foresight (applies to StorageUnit components only).
+    # Only carriers whose storage horizon (max_hours) exceeds the rolling horizon window need this. 
+    # Therefore hydro-pondage is not included.
     soc_boundary_carriers:
     - hydro-reservoir
     # Discount rate used to annualize storage project CAPEX from the CBA storage projects Excel export
@@ -508,6 +520,12 @@ cba:
     solving:
       options:
         noisy_costs: false
+        load_shedding:
+          enable: true
+          all_carriers: false
+          carriers:
+            H2: 300
+            AC: 300
       solver:
         name: highs
         options: highs-simplex
@@ -528,7 +546,10 @@ cba:
       noisy_costs: false
       load_shedding:
         enable: true
-        all_carriers: true
+        all_carriers: false
+        carriers:
+          H2: 300
+          AC: 300
       io_api: direct  # 20% faster than default lp mode for rolling horizon
 
     solver:
