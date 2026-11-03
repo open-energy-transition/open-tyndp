@@ -73,7 +73,9 @@ def aggregate_to_reference_zones(
     is_price = zones.table.str.contains("price")
     aggregated = pd.concat(
         [
-            zones[~is_price].groupby(cols, dropna=False, as_index=False).value.sum(),
+            zones[~is_price]
+            .groupby(cols, dropna=False, as_index=False)
+            .value.sum(min_count=1),
             zones[is_price].groupby(cols, dropna=False, as_index=False).value.mean(),
         ]
     )
