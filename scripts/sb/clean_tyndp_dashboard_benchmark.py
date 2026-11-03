@@ -353,7 +353,8 @@ def load_crossborder(
     )
 
     # normalize direction
-    df = normalize_direction(df, cols=stats, buses_from_index=True, connector="-")
+    df[["bus0", "bus1"]] = df.index.to_series().str.split("-", expand=True).values
+    df = normalize_direction(df, cols=stats).set_index("border")
     mask = df["min"] > df["max"]
     df.loc[mask, ["min", "max"]] = df.loc[mask, ["max", "min"]].values
 
