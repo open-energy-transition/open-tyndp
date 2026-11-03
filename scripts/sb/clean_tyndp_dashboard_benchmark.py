@@ -33,15 +33,14 @@ import country_converter as coco
 import numpy as np
 import pandas as pd
 
-from scripts._helpers import (
-    configure_logging,
+from scripts._helpers import configure_logging, set_scenario_config
+from scripts.build_tyndp_network import extract_country
+from scripts.sb._helpers import (
     convert_units,
     format_bz_names,
     get_wscenario,
     normalize_direction,
-    set_scenario_config,
 )
-from scripts.build_tyndp_network import extract_country
 
 logger = logging.getLogger(__name__)
 
