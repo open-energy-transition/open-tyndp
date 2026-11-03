@@ -3393,9 +3393,6 @@ def add_land_transport_oil_tyndp(
         cf_industry=cf_industry,
     )
 
-    nhours = n.snapshot_weightings.generators.sum()
-    nyears = nhours / 8760
-
     n.add(
         "Bus",
         "EU land transport oil",
@@ -3408,7 +3405,7 @@ def add_land_transport_oil_tyndp(
         "EU land transport oil",
         bus="EU land transport oil",
         carrier="land transport oil",
-        p_set=demand * 1e6 * nyears / nhours,
+        p_set=demand * 1e6 / 8760,
     )
     n.add(
         "Link",
