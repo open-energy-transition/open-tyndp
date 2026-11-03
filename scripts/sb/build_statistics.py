@@ -589,6 +589,8 @@ def compute_benchmark(
     # Add EU27 (load-weighted average for prices)
     if "bus" in [c for c in ["bus", "carrier", "snapshot"] if c in df.columns]:
         if "price" in table:
+            excluded = n.buses.index[n.buses.category.isin(["offshore", "import"])]
+            df = df.loc[~df.bus.isin(excluded)]
             df_eu = df
             bus_name = "Pan-EU"
             weights = (
@@ -598,7 +600,7 @@ def compute_benchmark(
                 )
                 .groupby("bus")
                 .sum()
-                .T
+                .loc[lambda s: s.index.isin(df.bus)]
             )
             normalizer = weights.sum()
         else:
