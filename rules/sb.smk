@@ -563,8 +563,6 @@ if config["benchmarking"]["enable"]:
         output:
             benchmarks=RESULTS
             + "benchmarks/tyndp-2026/resources/benchmarks_tyndp_dashboard_{scenario}{planning_horizons}.csv",
-            crossborder=RESULTS
-            + "benchmarks/tyndp-2026/resources/benchmarks_tyndp_dashboard_crossborder_{scenario}{planning_horizons}.csv",
         log:
             logs("clean_tyndp_dashboard_benchmark_{scenario}{planning_horizons}.log"),
         benchmark:

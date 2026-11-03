@@ -642,8 +642,6 @@ if __name__ == "__main__":
 
     # assign meta data
     assign_meta_data(dashboard_data, planning_horizon, scenario)
-    assign_meta_data(crossborder, planning_horizon, scenario)
 
     # Save data
     dashboard_data.to_csv(snakemake.output.benchmarks, index=False, float_format="%.2f")
-    crossborder.to_csv(snakemake.output.crossborder)
