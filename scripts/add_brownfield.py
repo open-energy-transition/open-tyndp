@@ -54,13 +54,20 @@ def add_brownfield(
     logger.info(f"Preparing brownfield for the year {year}")
 
     # electric transmission grid set optimised capacities of previous as minimum
-    n.lines.s_nom_min = n_p.lines.s_nom_opt
+    lines_i = n.lines.index.intersection(n_p.lines.index)
+    s_nom_min = n_p.lines.s_nom_opt.where(
+        n_p.lines.s_nom_extendable, n_p.lines.s_nom_min
+    )
+    n.lines.loc[lines_i, "s_nom_min"] = s_nom_min[lines_i]
     # Clamp s_nom_max to be at least s_nom_min to prevent solver infeasibility
     # from floating-point differences between s_nom_opt and s_nom_max
     n.lines.s_nom_max = n.lines.s_nom_max.clip(lower=n.lines.s_nom_min)
     dc_i = n.links[n.links.carrier == "DC"].index
     dc_i_p = dc_i.intersection(n_p.links.index)
-    n.links.loc[dc_i_p, "p_nom_min"] = n_p.links.loc[dc_i_p, "p_nom_opt"]
+    p_nom_min = n_p.links.p_nom_opt.where(
+        n_p.links.p_nom_extendable, n_p.links.p_nom_min
+    )
+    n.links.loc[dc_i_p, "p_nom_min"] = p_nom_min[dc_i_p]
     n.links.loc[dc_i_p, "p_nom_max"] = n.links.loc[dc_i_p, "p_nom_max"].clip(
         lower=n.links.loc[dc_i_p, "p_nom_min"]
     )
