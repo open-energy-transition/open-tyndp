@@ -30,11 +30,11 @@ import logging
 import pandas as pd
 
 from scripts._helpers import (
-    check_snapshot_year,
     configure_logging,
     get_snapshots,
     set_scenario_config,
 )
+from scripts.sb._helpers import check_snapshot_year
 
 logger = logging.getLogger(__name__)
 

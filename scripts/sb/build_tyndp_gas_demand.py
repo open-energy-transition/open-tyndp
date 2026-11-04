@@ -48,7 +48,9 @@ from typing import Literal
 
 import country_converter as coco
 import pandas as pd
-from _helpers import configure_logging, interpolate_demand, set_scenario_config
+
+from scripts._helpers import configure_logging, set_scenario_config
+from scripts.sb._helpers import interpolate_demand
 
 logger = logging.getLogger(__name__)
 cc = coco.CountryConverter()
@@ -236,7 +238,7 @@ def load_gas_demand(fn: str, planning_horizon: int) -> pd.Series:
 
 if __name__ == "__main__":
     if "snakemake" not in globals():
-        from _helpers import mock_snakemake
+        from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake(
             "build_tyndp_gas_demand",
