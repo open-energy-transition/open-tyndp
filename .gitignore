@@ -32,7 +32,7 @@ gurobi.log
 /tmp
 doc/_build
 _build
-site
+/site
 
 
 /scripts/old

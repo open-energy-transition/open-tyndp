@@ -21,8 +21,9 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-from scripts._helpers import configure_logging, get_version, set_scenario_config
+from scripts._helpers import configure_logging, set_scenario_config
 from scripts.build_tyndp_network import extract_country
+from scripts.sb._helpers import get_version
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +73,9 @@ def aggregate_to_reference_zones(
     is_price = zones.table.str.contains("price")
     aggregated = pd.concat(
         [
-            zones[~is_price].groupby(cols, dropna=False, as_index=False).value.sum(),
+            zones[~is_price]
+            .groupby(cols, dropna=False, as_index=False)
+            .value.sum(min_count=1),
             zones[is_price].groupby(cols, dropna=False, as_index=False).value.mean(),
         ]
     )
