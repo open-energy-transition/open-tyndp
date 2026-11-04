@@ -33,9 +33,9 @@ import pandas as pd
 
 from scripts._helpers import (
     configure_logging,
-    format_bz_names,
     set_scenario_config,
 )
+from scripts.sb._helpers import format_bz_names
 
 logger = logging.getLogger(__name__)
 
