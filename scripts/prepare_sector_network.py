@@ -9366,7 +9366,7 @@ def main(
     )
     tyndp_renewable_carriers = params.electricity["tyndp_renewable_carriers"]
     profiles_pecd = {
-        f"profile_{k}": inputs.get(f"profile_pecd_{v}")
+        f"profile_{k}": inputs.get(f"pecd_profile_{v}")
         for k, v in profiles_pecd.items()
         if k in tyndp_renewable_carriers
     }
@@ -9544,7 +9544,7 @@ def main(
             costs=costs,
             profiles_pecd=profiles_pecd,
             nuclear_profiles=tyndp_nuclear_profiles,
-            hydro_inflows_fn=inputs.profile_pecd_hydro,
+            hydro_inflows_fn=inputs.pecd_hydro_profile,
             extendable_carriers=params.electricity["extendable_carriers"],
             investment_year=current_horizon,
             enable_pemmdb_caps=enable_pemmdb_caps,

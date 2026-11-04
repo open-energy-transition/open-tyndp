@@ -37,7 +37,7 @@ def get_tyndp_compose_inputs(w):
             if cfg["load"]["source"] == "tyndp"
             else []
         ),
-        "profile_pecd_hydro": (
+        "pecd_hydro_profile": (
             resources("pecd_hydro_profile.nc")
             if elec["pecd_hydro_profiles"]["enable"]
             else []
@@ -87,7 +87,7 @@ def get_tyndp_compose_inputs(w):
 
     if elec["pecd_renewable_profiles"]["enable"]:
         for tech in elec["pecd_renewable_profiles"]["technologies"]:
-            inputs[f"profile_pecd_{tech}"] = resources(f"pecd_profile_{tech}.nc")
+            inputs[f"pecd_profile_{tech}"] = resources(f"pecd_profile_{tech}.nc")
 
     if elec["pemmdb_capacities"]["enable"]:
         pemmdb_year = safe_planning_horizon(
