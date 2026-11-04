@@ -289,7 +289,8 @@ def load_crossborder(
     )
 
     # normalize direction
-    df = normalize_direction(df, cols=stats, buses_from_index=True, connector="-")
+    df[["bus0", "bus1"]] = df.index.to_series().str.split("-", expand=True).values
+    df = normalize_direction(df, cols=stats).set_index("border")
     mask = df["min"] > df["max"]
     df.loc[mask, ["min", "max"]] = df.loc[mask, ["max", "min"]].values
 
@@ -568,8 +569,6 @@ if __name__ == "__main__":
 
     # assign meta data
     assign_meta_data(dashboard_data, planning_horizon, scenario)
-    assign_meta_data(crossborder, planning_horizon, scenario)
 
     # Save data
     dashboard_data.to_csv(snakemake.output.benchmarks, index=False, float_format="%.2f")
-    crossborder.to_csv(snakemake.output.crossborder)

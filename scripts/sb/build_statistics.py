@@ -21,6 +21,7 @@ from scripts.sb._helpers import (
     ENERGY_UNITS,
     POWER_UNITS,
     PRICE_UNITS,
+    normalize_direction,
 )
 
 logger = logging.getLogger(__name__)
@@ -556,20 +557,16 @@ def compute_benchmark(
     elif table in ["crossborder_electricity", "crossborder_hydrogen"]:
         carrier = "AC" if "elec" in table else "H2"
 
-        df = n.statistics.transmission(
-            bus_carrier=carrier,
-            at_port=0,
-            aggregate_across_components=True,
-            groupby=["bus0", "bus1"],
-        ).reset_index(name="value")
-
-        swap = df.bus0 > df.bus1
         df = (
-            df.assign(
-                border=np.where(swap, df.bus1 + "-" + df.bus0, df.bus0 + "-" + df.bus1),
-                value=df.value.where(~swap, -df.value),
-                carrier=carrier,
+            n.statistics.transmission(
+                bus_carrier=carrier,
+                at_port=0,
+                aggregate_across_components=True,
+                groupby=["bus0", "bus1"],
             )
+            .reset_index(name="value")
+            .pipe(normalize_direction, cols=["value"])
+            .assign(carrier=carrier)
             .groupby(["border", "carrier"])
             .value.sum()
         )
@@ -592,6 +589,8 @@ def compute_benchmark(
     # Add EU27 (load-weighted average for prices)
     if "bus" in [c for c in ["bus", "carrier", "snapshot"] if c in df.columns]:
         if "price" in table:
+            excluded = n.buses.index[n.buses.category.isin(["offshore", "import"])]
+            df = df.loc[~df.bus.isin(excluded)]
             df_eu = df
             bus_name = "Pan-EU"
             weights = (
@@ -601,7 +600,7 @@ def compute_benchmark(
                 )
                 .groupby("bus")
                 .sum()
-                .T
+                .loc[lambda s: s.index.isin(df.bus)]
             )
             normalizer = weights.sum()
         else:
