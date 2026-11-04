@@ -6,6 +6,7 @@ This script computes the benchmark statistics from the optimised network.
 """
 
 import logging
+from typing import Literal
 
 import country_converter as coco
 import numpy as np
@@ -177,7 +178,9 @@ def get_h2_imports(n: pypsa.Network) -> pd.Series:
 
 
 def get_synfuel_supply(
-    n: pypsa.Network, synfuels: dict[str, str], fuel_energy: bool = False
+    n: pypsa.Network,
+    synfuels: dict[str, str],
+    unit: Literal["MWh_H2", "MWh_fuel"] = "MWh_H2",
 ) -> pd.Series:
     """
     Extract the domestic production and imports of the TYNDP synthetic fuels.
@@ -188,8 +191,8 @@ def get_synfuel_supply(
         Optimised network.
     synfuels : dict[str, str]
         Fossil carrier substituted by each synthetic fuel.
-    fuel_energy : bool, default False
-        Whether to convert the supply from MWh_H2 (True) to MWh (False) of synthetic fuel.
+    unit : {"MWh_H2", "MWh_fuel"}, default "MWh_H2"
+        Define the output unit: H2-equivalent or synthetic fuel.
 
     Returns
     -------
@@ -210,7 +213,7 @@ def get_synfuel_supply(
         aggregate_across_components=True,
     ).rename_axis(index={"bus_carrier": "fuel"})
 
-    if fuel_energy:
+    if unit == "MWh_fuel":
         efficiencies = n.links.set_index("carrier").efficiency
         efficiency = efficiencies.loc[fuels + " to " + fuels.map(synfuels)].set_axis(
             fuels
@@ -484,7 +487,7 @@ def compute_benchmark(
             fuel for fuel, fossil in synfuels.items() if fossil == "gas"
         ]
         df_synfuels = (
-            get_synfuel_supply(n, synfuels, fuel_energy=True)
+            get_synfuel_supply(n, synfuels, unit="MWh_fuel")
             .loc[lambda s: s.index.get_level_values("fuel").isin(synthetic_methane)]
             .droplevel("fuel")
         )
@@ -556,7 +559,7 @@ def compute_benchmark(
             get_h2_imports(n).reindex(eu27_idx, level="bus").groupby(by=grouper).sum()
         )
         df_synfuels = (
-            get_synfuel_supply(n, synfuels, fuel_energy=True)
+            get_synfuel_supply(n, synfuels, unit="MWh_fuel")
             .droplevel("fuel")
             .loc[lambda s: s.index.isin([f"{fuel} import" for fuel in synfuels])]
         )
@@ -581,7 +584,7 @@ def compute_benchmark(
                     f"Configured efficiency {eff_config[planning_horizons]} of '{conversion}' "
                     f"does not match the model efficiency {eff_n[conversion]}."
                 )
-        df = get_synfuel_supply(n, synfuels).droplevel("fuel")
+        df = get_synfuel_supply(n, synfuels, unit="MWh_H2").droplevel("fuel")
     elif table in ["electricity_price", "hydrogen_price"]:
         carrier = "AC" if "electricity" in table else "H2"
 
