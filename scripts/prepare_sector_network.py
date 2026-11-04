@@ -8608,6 +8608,39 @@ def cluster_heat_buses(n):
         n.add(c.name, df.loc[to_add].index, **df.loc[to_add])
 
 
+def scale_ramp_limits(n: pypsa.Network) -> None:
+    """
+    Scale hourly ramp limits to match snapshot durations for generators and links.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        PyPSA network with ramp limits given per unit of nominal power per hour.
+
+    Returns
+    -------
+    None
+        Modifies the network in-place. Ramp limits that are constant across
+        snapshots are set as static values. Otherwise, they are set as
+        time-varying values and the static ones are reset to their default.
+    """
+    hours = n.snapshot_weightings.generators
+    for c in n.components[{"Generator", "Link"}]:
+        for attr in ["ramp_limit_up", "ramp_limit_down"]:
+            limits = n.get_switchable_as_dense(c.name, attr).dropna(axis=1, how="all")
+            if limits.empty:
+                continue
+            logger.info(
+                f"Scale {attr} of {limits.shape[1]} {c.list_name} to match snapshot durations."
+            )
+            scaled = limits.mul(hours, axis=0).clip(upper=1.0)
+            is_constant = scaled.eq(scaled.iloc[0]).all()
+            c.static.loc[limits.columns, attr] = scaled.iloc[0].where(
+                is_constant, c.defaults.at[attr, "default"]
+            )
+            c.dynamic[attr] = scaled.loc[:, ~is_constant]
+
+
 def set_temporal_aggregation(n, temporal, snapshot_weightings):
     """
     Aggregate time-varying data according to `clustering.temporal` config.
@@ -8621,6 +8654,7 @@ def set_temporal_aggregation(n, temporal, snapshot_weightings):
         logger.info("Use every %s snapshot as representative", value)
         n.set_snapshots(n.snapshots[::value])
         n.snapshot_weightings *= value
+        scale_ramp_limits(n)
         return n
     else:
         # Averaging and segmentation use the precomputed snapshot weightings
@@ -8656,6 +8690,8 @@ def set_temporal_aggregation(n, temporal, snapshot_weightings):
                         pnl[k] = df.groupby(aggregation_map).max()
                     else:
                         pnl[k] = df.groupby(aggregation_map).mean()
+
+        scale_ramp_limits(m)
 
         return m
 
