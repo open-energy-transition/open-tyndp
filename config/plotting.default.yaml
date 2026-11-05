@@ -662,6 +662,12 @@ plotting:
     land transport EV: '#baf238'
     land transport demand: '#38baf2'
     EV battery: '#baf238'
+    EV Street Fixed: '#8fbf1f'
+    EV Street Commuter: '#6f9a12'
+    EV Street Non-Commuter: '#56780b'
+    EV Prosumer Fixed: '#a8d930'
+    EV Prosumer Commuter: '#c4e86b'
+    EV Prosumer Non-Commuter: '#d6f294'
     # all battery variation:
     li-ion: '#ace37f'
     li-ion charger: '#ace37f'

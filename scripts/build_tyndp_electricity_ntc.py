@@ -108,11 +108,11 @@ if __name__ == "__main__":
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    pyear = int(snakemake.wildcards.planning_horizons)
+    planning_horizon = int(snakemake.wildcards.planning_horizons)
 
     buses = gpd.read_file(snakemake.input.buses).set_index("bus_id")
     links = build_links(
-        snakemake.input.elec_reference_grid, buses, reference_year=pyear
+        snakemake.input.elec_reference_grid, buses, reference_year=planning_horizon
     )
 
     links[NTC_COLUMNS].to_csv(snakemake.output.ntc)

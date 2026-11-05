@@ -278,3 +278,24 @@ class ConfigSchema(BaseModel):
                 "the charge."
             )
         return self
+
+    @model_validator(mode="after")
+    def check_tyndp_requires_distribution_grid(self):
+        if self.tyndp_scenario and not self.sector.electricity_distribution_grid:
+            raise ValueError(
+                "'sector:electricity_distribution_grid' must be enabled for a TYNDP "
+                "scenario. The TYNDP prosumer nodes (`RETE`), to which prosumer "
+                "electricity demand and home EV charging are attached, are only "
+                "added with the electricity distribution grid."
+            )
+        return self
+
+    @model_validator(mode="after")
+    def check_tyndp_requires_transport(self):
+        if self.tyndp_scenario and not self.sector.transport:
+            raise ValueError(
+                "'sector:transport' must be enabled for a TYNDP scenario. TYNDP "
+                "capacities are fixed, so omitting the EV fleets and land transport "
+                "demand would leave the system oversupplied."
+            )
+        return self

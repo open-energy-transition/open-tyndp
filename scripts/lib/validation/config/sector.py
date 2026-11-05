@@ -512,6 +512,10 @@ class SectorConfig(BaseModel):
         },
         description="The share of vehicles that uses internal combustion engines (ICE) in a given year. What is not EV or FCEV is oil-fuelled ICE.",
     )
+    land_transport_oil_demand_tyndp: dict[int, float] = Field(
+        default_factory=dict,
+        description="EU27 land transport (road and rail) liquids demand in TWh per planning horizon. For TYNDP scenarios, it is added as a flat demand instead of the PyPSA-Eur land transport.",
+    )
 
     transport_electric_efficiency: float = Field(
         53.19,
