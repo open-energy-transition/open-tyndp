@@ -257,11 +257,11 @@ rule build_tyndp_nuclear_profiles:
     input:
         dashboard_dir=rules.retrieve_tyndp_2026.output.market_outputs,
     output:
-        resources("tyndp_nuclear_profiles/nuclear_p_max_pu_{planning_horizons}.csv"),
+        resources("tyndp_nuclear_profiles/nuclear_p_max_pu_{horizon}.csv"),
     log:
-        logs("build_tyndp_nuclear_profiles_{planning_horizons}.log"),
+        logs("build_tyndp_nuclear_profiles_{horizon}.log"),
     benchmark:
-        benchmarks("performances/build_tyndp_nuclear_profiles_{planning_horizons}")
+        benchmarks("performances/build_tyndp_nuclear_profiles_{horizon}")
     threads: 4
     resources:
         mem_mb=2000,
@@ -420,18 +420,18 @@ rule build_tyndp_wheeling_charges:
 
 rule build_tyndp_ev_fleets:
     input:
-        ev_market=resources("demand_tyndp_ev_market_{planning_horizons}.csv"),
-        ev_prosumer=resources("demand_tyndp_ev_prosumer_{planning_horizons}.csv"),
+        ev_market=resources("demand_tyndp_ev_market_{horizon}.csv"),
+        ev_prosumer=resources("demand_tyndp_ev_prosumer_{horizon}.csv"),
         ev_modelling=rules.retrieve_tyndp_2026.output.ev_modelling,
     output:
-        ev_demand=resources("ev_demand_tyndp_{planning_horizons}.csv"),
-        ev_fleets=resources("ev_fleets_tyndp_{planning_horizons}.csv"),
-        avail_profile=resources("avail_profile_tyndp_{planning_horizons}.csv"),
-        dsm_profile=resources("dsm_profile_tyndp_{planning_horizons}.csv"),
+        ev_demand=resources("ev_demand_tyndp_{horizon}.csv"),
+        ev_fleets=resources("ev_fleets_tyndp_{horizon}.csv"),
+        avail_profile=resources("avail_profile_tyndp_{horizon}.csv"),
+        dsm_profile=resources("dsm_profile_tyndp_{horizon}.csv"),
     log:
-        logs("build_tyndp_ev_fleets_{planning_horizons}.log"),
+        logs("build_tyndp_ev_fleets_{horizon}.log"),
     benchmark:
-        benchmarks("performances/build_tyndp_ev_fleets_{planning_horizons}")
+        benchmarks("performances/build_tyndp_ev_fleets_{horizon}")
     conda:
         "../envs/environment.yaml"
     threads: 1
