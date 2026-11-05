@@ -21,3 +21,9 @@ The original data files can be found under <https://2026.entsos-tyndp-scenarios.
 - **Source:** TYNDP 2026 Scenarios, <https://2026.entsos-tyndp-scenarios.eu/download/>
 - **Link:** `https://storage.googleapis.com/open-tyndp-data-store/PECD/PECD_{pre-built_version}.zip`
 - **Description:** Contains pre-built hourly PECD v4.2 capacity factor time series for weather scenarios WS003, WS021, WS029, WS032, WS037, WS059, WS065, WS071, WS077, WS091, WS092 and WS106, covering Solar PV rooftop, Solar PV utility, Onshore Wind, Offshore Wind and Solar CSP.
+
+## `NT+_TimeSeriesDashboard`
+
+- **Source:** TYNDP 2026 Scenarios, <https://2026.entsos-tyndp-scenarios.eu/download/>
+- **Link:** `https://storage.googleapis.com/open-tyndp-data-store/2026/{version}/outputs/NT+_TimeSeriesDashboard.zip`
+- **Description:** Contains the hourly market model outputs of the NT+ scenario, one file per country, for each planning horizon and weather scenario. Used for benchmarking and to build the nuclear availability profiles: the hourly nuclear generation of the `E-Market` sheet is divided by the installed capacity of the `Installed Capacity` sheet, and the weekly maximum is retained to account for maintenance schedules and forced outages.

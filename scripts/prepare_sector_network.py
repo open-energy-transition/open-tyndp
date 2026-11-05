@@ -2087,7 +2087,7 @@ def _add_conventional_thermal_capacities(
     pemmdb_capacities: pd.DataFrame,
     pemmdb_profiles: pd.DataFrame,
     tyndp_conventional_thermals: list[str],
-    nuclear_profiles: pd.DataFrame,
+    nuclear_profiles: pd.DataFrame | None,
     group_conventionals: bool,
 ) -> None:
     """
@@ -2103,7 +2103,7 @@ def _add_conventional_thermal_capacities(
         All PEMMDB must-run and availability profiles.
     tyndp_conventional_thermals : list[str]
         List of TYNDP conventional thermal technologies that were added to the network.
-    nuclear_profiles : pd.DataFrame
+    nuclear_profiles : pd.DataFrame | None
         DataFrame containing the availability profiles of nuclear power plants.
     group_conventionals : bool
         Whether TYNDP conventional carriers are aggregated into higher level groups.
@@ -2144,12 +2144,6 @@ def _add_conventional_thermal_capacities(
         # Profiles
         ##########
 
-        # (nuclear only) Define availability profiles,
-        # accounting for maintenance schedules and forced outages
-        if tech == "nuclear":
-            nuclear_profiles.columns = nuclear_profiles.columns + " nuclear"
-            nuclear_profiles = nuclear_profiles.reindex(n.snapshots)
-
         # Filter for profiles
         profiles = pemmdb_profiles.query("index_carrier == @tech")
         p_min_pu = (
@@ -2157,26 +2151,26 @@ def _add_conventional_thermal_capacities(
             .rename(columns=lambda x: x + " " + tech)
             .reindex(tech_i, axis=1, fill_value=0.0)
         )
-        # For nuclear, take the minimum of p_min_pu and nuclear_profiles to account for outages
-        if tech == "nuclear":
-            common_cols = p_min_pu.columns.intersection(nuclear_profiles.columns)
-            if not common_cols.empty:
-                p_min_pu[common_cols] = np.minimum(
-                    p_min_pu[common_cols], nuclear_profiles[common_cols]
-                )
-
         p_max_pu = (
             profiles.pivot_table(values="p_max_pu", index="time", columns="bus")
             .rename(columns=lambda x: x + " " + tech)
             .reindex(tech_i, axis=1, fill_value=1.0)
         )
-        # For nuclear, take the minimum of p_max_pu and nuclear_profiles to account for outages
-        if tech == "nuclear":
-            common_cols = p_max_pu.columns.intersection(nuclear_profiles.columns)
-            if not common_cols.empty:
-                p_max_pu[common_cols] = np.minimum(
-                    p_max_pu[common_cols], nuclear_profiles[common_cols]
-                )
+
+        # (nuclear only) Cap the profiles with the availability profiles,
+        # accounting for maintenance schedules and forced outages
+        if tech == "nuclear" and nuclear_profiles is not None:
+            # Fall back to the country profile for nodes aggregated in the dashboards (e.g. IT in 2050)
+            bus = n.links.loc[tech_i, "bus1"]
+            bus = bus.where(
+                bus.isin(nuclear_profiles.columns), bus.map(n.buses.country)
+            )
+            availability = nuclear_profiles.reindex(columns=bus).set_axis(
+                tech_i, axis=1
+            )
+            # fmin ignores NaN, so links without availability profile keep their PEMMDB profiles
+            p_min_pu = np.fmin(p_min_pu, availability.reindex_like(p_min_pu))
+            p_max_pu = np.fmin(p_max_pu, availability.reindex_like(p_max_pu))
 
         _add_pu_profiles(comp_t=n.links_t, p_min_pu=p_min_pu, p_max_pu=p_max_pu)
 
@@ -3078,7 +3072,7 @@ def add_existing_tyndp_capacities(
     tyndp_stores: list[str],
     costs: pd.DataFrame,
     profiles_pecd: dict[str, str],
-    nuclear_profiles: pd.DataFrame,
+    nuclear_profiles: pd.DataFrame | None,
     hydro_inflows_fn: str,
     extendable_carriers: list | set,
     investment_year: int,
@@ -3125,7 +3119,7 @@ def add_existing_tyndp_capacities(
         DataFrame containing the cost data.
     profiles_pecd : dict[str, str]
         Dictionary containing the paths to the PECD renewable profiles.
-    nuclear_profiles : pd.DataFrame
+    nuclear_profiles : pd.DataFrame | None
         DataFrame containing the availability profiles of nuclear power plants.
     hydro_inflows_fn : str,
         Path to file with hydro inflow profiles.
@@ -3376,6 +3370,180 @@ def add_hurdle_costs_tyndp(n: pypsa.Network, hurdle_costs: float) -> None:
     logger.info(
         f"Applied hurdle costs of {hurdle_costs} EUR/MWh to {len(links)} "
         "electricity and hydrogen transmission links"
+    )
+
+
+def add_ev_tyndp(
+    n: pypsa.Network,
+    ev_demand_fn: str,
+    ev_fleets_fn: str,
+    avail_profile_fn: str,
+    dsm_profile_fn: str,
+    dsm: bool,
+    v2g: bool,
+) -> None:
+    """
+    Add the TYNDP EV fleets with their charging, V2G and battery components.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        Network to modify.
+    ev_demand_fn : str
+        Path to the driving demand per fleet in MW.
+    ev_fleets_fn : str
+        Path to the fleet parameters.
+    avail_profile_fn : str
+        Path to the availability per flexible fleet in p.u.
+    dsm_profile_fn : str
+        Path to the minimum state of charge per flexible fleet in p.u.
+    dsm : bool
+        Add the batteries of the flexible fleets as stores for demand-side
+        management.
+    v2g : bool
+        Add V2G discharging of the flexible fleets, only if `dsm` is enabled.
+    """
+    fleets = pd.read_csv(ev_fleets_fn, index_col=0)
+    p_set = pd.read_csv(ev_demand_fn, index_col=0, parse_dates=True)
+    avail_profile = pd.read_csv(avail_profile_fn, index_col=0, parse_dates=True)
+    dsm_profile = pd.read_csv(dsm_profile_fn, index_col=0, parse_dates=True)
+    p_set, avail_profile, dsm_profile = (
+        df.reindex(n.snapshots) for df in (p_set, avail_profile, dsm_profile)
+    )
+
+    grid_buses = (fleets["node"] + "RETE").where(
+        fleets["segment"] == "Prosumer", fleets["node"]
+    )
+    in_network = grid_buses.isin(n.buses.index)
+    fleets, grid_buses = fleets[in_network], grid_buses[in_network]
+    carriers = "EV " + fleets["segment"] + " " + fleets["fleet"]
+    flexible = fleets.index[fleets["fleet"] != "Fixed"] if dsm else pd.Index([])
+    avail_profile = avail_profile.reindex(columns=flexible).reindex(
+        columns=fleets.index, fill_value=1.0
+    )
+
+    n.add("Carrier", carriers.unique().tolist() + ["BEV charger"])
+    n.add(
+        "Bus",
+        fleets.index,
+        location=fleets["node"],
+        country=fleets["node"].map(n.buses.country),
+        carrier=carriers,
+        unit="MWh_el",
+    )
+    n.add(
+        "Link",
+        fleets.index + " BEV charger",
+        bus0=grid_buses.to_numpy(),
+        bus1=fleets.index,
+        carrier="BEV charger",
+        p_nom=fleets["charge_p_nom"].to_numpy(),
+        p_max_pu=avail_profile.add_suffix(" BEV charger"),
+        efficiency=fleets["charge_efficiency"].to_numpy(),
+        marginal_cost=fleets["use_of_system_charge"].to_numpy(),
+    )
+    n.add(
+        "Load",
+        fleets.index,
+        bus=fleets.index,
+        carrier=carriers,
+        p_set=p_set[fleets.index],
+    )
+
+    if dsm:
+        n.add(
+            "Store",
+            flexible,
+            bus=flexible,
+            carrier=carriers[flexible],
+            e_nom=fleets.loc[flexible, "e_nom"],
+            e_min_pu=dsm_profile[flexible],
+            e_cyclic=True,
+        )
+
+        if v2g:
+            v2g_fleets = fleets.loc[flexible].query("discharge_p_nom > 0")
+            n.add("Carrier", "V2G")
+            n.add(
+                "Link",
+                v2g_fleets.index + " V2G",
+                bus0=v2g_fleets.index,
+                bus1=grid_buses[v2g_fleets.index].to_numpy(),
+                carrier="V2G",
+                p_nom=v2g_fleets.eval(
+                    "discharge_p_nom / discharge_efficiency"
+                ).to_numpy(),
+                p_max_pu=avail_profile[v2g_fleets.index].add_suffix(" V2G"),
+                efficiency=v2g_fleets["discharge_efficiency"].to_numpy(),
+                marginal_cost=v2g_fleets.eval(
+                    "use_of_system_charge * discharge_efficiency"
+                ).to_numpy(),
+            )
+
+    logger.info(
+        f"Added {len(fleets)} TYNDP EV fleets, of which {len(flexible)} with DSM"
+    )
+
+
+def add_land_transport_oil_tyndp(
+    n: pypsa.Network,
+    costs: pd.DataFrame,
+    spatial: SimpleNamespace,
+    options: dict,
+    cf_industry: dict,
+    demand: float,
+) -> None:
+    """
+    Add the TYNDP EU27 land transport oil demand as a flat load with its CO2
+    emissions.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        Network to modify.
+    costs : pd.DataFrame
+        Technology costs, including the CO2 intensity of oil.
+    spatial : SimpleNamespace
+        Namespace with the oil supply nodes.
+    options : dict
+        Sector options.
+    cf_industry : dict
+        Industry configuration, used to add the oil carrier buses.
+    demand : float
+        Annual land transport oil demand in TWh.
+    """
+    add_carrier_buses(
+        n=n,
+        carrier="oil",
+        costs=costs,
+        spatial=spatial,
+        options=options,
+        cf_industry=cf_industry,
+    )
+
+    n.add(
+        "Bus",
+        "EU land transport oil",
+        location="EU",
+        carrier="land transport oil",
+        unit="land transport",
+    )
+    n.add(
+        "Load",
+        "EU land transport oil",
+        bus="EU land transport oil",
+        carrier="land transport oil",
+        p_set=demand * 1e6 / 8760,
+    )
+    n.add(
+        "Link",
+        "EU land transport oil",
+        bus0=spatial.oil.nodes[0],
+        bus1="EU land transport oil",
+        bus2="co2 atmosphere",
+        carrier="land transport oil",
+        efficiency2=costs.at["oil", "CO2 intensity"],
+        p_nom_extendable=True,
     )
 
 
@@ -9746,10 +9914,6 @@ if __name__ == "__main__":
         tyndp_nuclear_profiles = pd.read_csv(
             tyndp_nuclear_profiles_fn, index_col=0, parse_dates=True
         )
-        # Use 2009 profiles for all climate years
-        tyndp_nuclear_profiles.index = tyndp_nuclear_profiles.index.map(
-            lambda t: t.replace(year=n.snapshots.year[0])
-        )
 
     conventional_generation = {
         generator: carrier
@@ -9867,7 +10031,7 @@ if __name__ == "__main__":
             nhours=nhours,
         )
 
-    if options["transport"]:
+    if options["transport"] and not tyndp_scenario:
         add_land_transport(
             n=n,
             costs=costs,
@@ -10066,6 +10230,25 @@ if __name__ == "__main__":
             prosumer_btm_demand_fn=snakemake.input.get(
                 "elec_demand_prosumer_btm_tyndp", ""
             ),
+        )
+
+    if tyndp_scenario:
+        add_ev_tyndp(
+            n,
+            ev_demand_fn=snakemake.input.ev_demand,
+            ev_fleets_fn=snakemake.input.ev_fleets,
+            avail_profile_fn=snakemake.input.avail_profile_tyndp,
+            dsm_profile_fn=snakemake.input.dsm_profile_tyndp,
+            dsm=options["bev_dsm"],
+            v2g=options["v2g"],
+        )
+        add_land_transport_oil_tyndp(
+            n=n,
+            costs=costs,
+            spatial=spatial,
+            options=options,
+            cf_industry=cf_industry,
+            demand=options["land_transport_oil_demand_tyndp"][investment_year],
         )
 
     if tyndp_scenario and snakemake.params.hurdle_costs:
