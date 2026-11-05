@@ -1099,7 +1099,7 @@
         },
         "tyndp_availability_profiles": {
           "default": false,
-          "description": "Use TYNDP 2024 hourly availability profiles (currently only for nuclear power plants), accounting for maintenance schedules and forced outages.",
+          "description": "Use TYNDP 2026 weekly availability profiles (currently only for nuclear power plants), derived from the TimeSeries Dashboards and accounting for maintenance schedules and forced outages.",
           "type": "boolean"
         }
       }
@@ -2616,49 +2616,7 @@
             }
           }
         },
-        "tyndp_vis_plfm": {
-          "description": "Configuration for a single data source.",
-          "properties": {
-            "source": {
-              "default": "archive",
-              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
-              "enum": [
-                "archive",
-                "tyndp-archive",
-                "primary",
-                "build"
-              ],
-              "type": "string"
-            },
-            "version": {
-              "default": "latest",
-              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
-              "type": "string"
-            }
-          }
-        },
         "tyndp_cba_projects": {
-          "description": "Configuration for a single data source.",
-          "properties": {
-            "source": {
-              "default": "archive",
-              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
-              "enum": [
-                "archive",
-                "tyndp-archive",
-                "primary",
-                "build"
-              ],
-              "type": "string"
-            },
-            "version": {
-              "default": "latest",
-              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
-              "type": "string"
-            }
-          }
-        },
-        "tyndp_nuclear_profiles": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {
@@ -5887,6 +5845,13 @@
             "type": "number"
           },
           "description": "The share of vehicles that uses internal combustion engines (ICE) in a given year. What is not EV or FCEV is oil-fuelled ICE.",
+          "type": "object"
+        },
+        "land_transport_oil_demand_tyndp": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "description": "EU27 land transport (road and rail) liquids demand in TWh per planning horizon. For TYNDP scenarios, it is added as a flat demand instead of the PyPSA-Eur land transport.",
           "type": "object"
         },
         "transport_electric_efficiency": {
@@ -13338,7 +13303,7 @@
         },
         "tyndp_availability_profiles": {
           "default": false,
-          "description": "Use TYNDP 2024 hourly availability profiles (currently only for nuclear power plants), accounting for maintenance schedules and forced outages.",
+          "description": "Use TYNDP 2026 weekly availability profiles (currently only for nuclear power plants), derived from the TimeSeries Dashboards and accounting for maintenance schedules and forced outages.",
           "type": "boolean"
         }
       }
@@ -14200,6 +14165,13 @@
             "type": "number"
           },
           "description": "The share of vehicles that uses internal combustion engines (ICE) in a given year. What is not EV or FCEV is oil-fuelled ICE.",
+          "type": "object"
+        },
+        "land_transport_oil_demand_tyndp": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "description": "EU27 land transport (road and rail) liquids demand in TWh per planning horizon. For TYNDP scenarios, it is added as a flat demand instead of the PyPSA-Eur land transport.",
           "type": "object"
         },
         "transport_electric_efficiency": {
@@ -17514,49 +17486,7 @@
             }
           }
         },
-        "tyndp_vis_plfm": {
-          "description": "Configuration for a single data source.",
-          "properties": {
-            "source": {
-              "default": "archive",
-              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
-              "enum": [
-                "archive",
-                "tyndp-archive",
-                "primary",
-                "build"
-              ],
-              "type": "string"
-            },
-            "version": {
-              "default": "latest",
-              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
-              "type": "string"
-            }
-          }
-        },
         "tyndp_cba_projects": {
-          "description": "Configuration for a single data source.",
-          "properties": {
-            "source": {
-              "default": "archive",
-              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
-              "enum": [
-                "archive",
-                "tyndp-archive",
-                "primary",
-                "build"
-              ],
-              "type": "string"
-            },
-            "version": {
-              "default": "latest",
-              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
-              "type": "string"
-            }
-          }
-        },
-        "tyndp_nuclear_profiles": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {
