@@ -2,14 +2,12 @@
 #
 # SPDX-License-Identifier: MIT
 import logging
-import re
 import socket
 from bisect import bisect_right
 from collections.abc import Callable
 from functools import lru_cache
 
 import git
-import numpy as np
 import pandas as pd
 import pypsa
 from matplotlib import pyplot as plt
@@ -814,111 +812,32 @@ def check_snapshot_year(
         )
 
 
-def extract_crossborder_pattern(df: pd.DataFrame, connector: str = "-"):
-    return df.index.str.extract(
-        rf"^(.*?)(\w+)( H2)*{re.escape(connector)}(\w+)( H2)*(.*)$"
-    ).fillna("")
-
-
 def normalize_direction(
-    df: pd.DataFrame | pd.Series,
-    cols: list[str] | None = None,
-    buses_from_index: bool = False,
-    connector: str = "->",
-    format_index: bool = False,
+    df: pd.DataFrame, cols: list[str], connector: str = "-"
 ) -> pd.DataFrame:
     """
     Normalize link direction so bus0 is always alphabetically before bus1.
 
     Parameters
     ----------
-    df : pd.DataFrame | pd.Series
-        Input data to normalize.
-    cols : list[str] | None, default=None
-        Names of flow columns whose sign should be flipped when direction is
-        swapped. Required when `df` is a DataFrame and ignored when `df` is a
-        Series.
-    buses_from_index : bool, default=False
-        If True, parse index instead of reading
-        "bus0"/"bus1" columns directly.
-    connector : str, default="->"
-        String separator between bus0 and bus1 in the index.
-    format_index : bool, default=False
-        If True, reformat the index after normalization to
-        ``"bus0[_suffix]->bus1[_suffix]"``.
+    df : pd.DataFrame
+        Input data with "bus0" and "bus1" columns.
+    cols : list[str]
+        Names of flow columns whose sign is flipped when direction is swapped.
+    connector : str, default="-"
+        String separator between bus0 and bus1 in the resulting "border" column.
 
     Returns
     -------
-    pd.DataFrame | pd.Series
-        Data with normalized link direction.
+    pd.DataFrame
+        Data with normalized link direction and a "border" column.
     """
-    is_series = isinstance(df, pd.Series)
-
-    if is_series:
-        df = df.to_frame("value")
-        cols = ["value"]
-    elif isinstance(df, pd.DataFrame):
-        if cols is None or len(cols) == 0:
-            raise ValueError(
-                "No column names `cols` to normalize. `cols` must be provided when `df` is a DataFrame."
-            )
-    else:
-        raise TypeError("`df` must be a pandas Series or DataFrame.")
-
-    if buses_from_index:
-        df.loc[
-            :, ["prefix", "bus0", "bus0_suffix", "bus1", "bus1_suffix", "suffix"]
-        ] = extract_crossborder_pattern(df, connector).values
-    # Protect swapping of direction for H2 import links and the bus0 starting with "X"
-    mask_import_link = df["prefix"].str.contains("H2 import", na=False)
-    mask = (
-        (df["bus0"] > df["bus1"]) & ~df["bus0"].str.startswith("X") & ~mask_import_link
-    )
-    assignments = {col: np.where(mask, -df[col], df[col]) for col in cols}
-
-    # Add bus0, bus1, and border to assignments
-    assignments.update(
-        {
-            "bus0": np.where(mask, df["bus1"], df["bus0"]),
-            "bus1": np.where(mask, df["bus0"], df["bus1"]),
-            "border": lambda df: (
-                df.prefix
-                + df.bus0
-                + df.bus0_suffix
-                + connector
-                + df.bus1
-                + df.bus1_suffix
-                + df.suffix
-            ),
-        }
-    )
-
-    df = df.assign(**assignments).drop(
-        columns=["prefix", "bus0_suffix", "bus1_suffix", "suffix"], errors="ignore"
-    )
-
-    if buses_from_index:
-        df = df.set_index("border")
-
-    if format_index:
-        idx_groups = extract_crossborder_pattern(df, connector)
-
-        mask_h2_pipeline = idx_groups[0] == "H2 pipeline "
-        idx_groups.loc[mask_h2_pipeline, [2, 4]] = " H2"
-
-        mask_import = idx_groups[0].str.contains("H2 import")
-        idx_groups.loc[mask_import, 1] = "X" + idx_groups.loc[mask_import, 1]
-        idx_groups.loc[mask_import, 4] = " H2"
-
-        df.index = idx_groups[1] + idx_groups[2] + "->" + idx_groups[3] + idx_groups[4]
-
-    if buses_from_index:
-        df.index.name = "border"
-
-    if is_series:
-        df = df.value
-
-    return df
+    swap = df["bus0"] > df["bus1"]
+    return df.assign(
+        **{col: df[col].where(~swap, -df[col]) for col in cols},
+        bus0=df["bus0"].where(~swap, df["bus1"]),
+        bus1=df["bus1"].where(~swap, df["bus0"]),
+    ).assign(border=lambda x: x.bus0 + connector + x.bus1)
 
 
 def parse_wscenario(s: pd.Series) -> pd.Series:
