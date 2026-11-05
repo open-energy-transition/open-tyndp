@@ -1105,6 +1105,12 @@ _TECH_COLORS.update(
         "battery-prosumer": "#80c944",
         "battery-prosumer charger": "#5e8032",
         "battery-prosumer discharger": "#3c5221",
+        "EV Street Fixed": "#8fbf1f",
+        "EV Street Commuter": "#6f9a12",
+        "EV Street Non-Commuter": "#56780b",
+        "EV Prosumer Fixed": "#a8d930",
+        "EV Prosumer Commuter": "#c4e86b",
+        "EV Prosumer Non-Commuter": "#d6f294",
         "h2-ocgt": "#b52b99",
         "h2-electrolysis": "#ff29d9",
         "electrolyser-onshore-grid": "#ff29d9",
@@ -1146,9 +1152,8 @@ class _BenchmarkingPlottingConfig(ConfigModel):
     colors: dict[str, str] = Field(
         default_factory=lambda: {
             "Open-TYNDP": "#1f77b4",
-            "TYNDP 2024 Scenarios Report": "#ff7f0e",
-            "TYNDP 2024 Vis Pltfm": "#aeff39",
-            "TYNDP 2024 Market Model Outputs": "#17becf",
+            "TYNDP 2026 Scenarios Report": "#ff7f0e",
+            "TYNDP 2026 Dashboard Outputs": "#17becf",
         },
         description="Colors per data source in benchmark plots.",
     )
