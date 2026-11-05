@@ -162,13 +162,7 @@ data:
   tyndp_pecd:
     source: tyndp-archive
     version: latest
-  tyndp_vis_plfm:
-    source: tyndp-archive
-    version: latest
   tyndp_cba_projects:
-    source: tyndp-archive
-    version: latest
-  tyndp_nuclear_profiles:
     source: tyndp-archive
     version: latest
   open_tyndp_prelim:

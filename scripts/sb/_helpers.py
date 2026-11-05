@@ -2,14 +2,13 @@
 #
 # SPDX-License-Identifier: MIT
 import logging
-import re
 import socket
 from bisect import bisect_right
 from collections.abc import Callable
 from functools import lru_cache
+from pathlib import Path
 
 import git
-import numpy as np
 import pandas as pd
 import pypsa
 from matplotlib import pyplot as plt
@@ -33,6 +32,15 @@ AVAILABLE_WSCENARIOS = {
     2040: [65, 71, 77],
     2050: [91, 92, 106],
 }
+
+# List of sheets from TYNDP Dashboards (market model outputs)
+ELECTRICITY_SHEETS = ["E-Market", "Prosumer", "Offshore"]
+H2_SHEETS = ["H2 Zone 1", "H2 Zone 2"]
+EXCHANGES_SHEET = "Exchanges"
+CAPACITY_SHEET = "Installed Capacity"
+# Header rows of the timeseries sheets and the yearly aggregates in their first rows
+NROWS_HEADER = 9
+STATS = ["min", "max", "avg", "sum"]
 
 
 def make_index(
@@ -814,111 +822,32 @@ def check_snapshot_year(
         )
 
 
-def extract_crossborder_pattern(df: pd.DataFrame, connector: str = "-"):
-    return df.index.str.extract(
-        rf"^(.*?)(\w+)( H2)*{re.escape(connector)}(\w+)( H2)*(.*)$"
-    ).fillna("")
-
-
 def normalize_direction(
-    df: pd.DataFrame | pd.Series,
-    cols: list[str] | None = None,
-    buses_from_index: bool = False,
-    connector: str = "->",
-    format_index: bool = False,
+    df: pd.DataFrame, cols: list[str], connector: str = "-"
 ) -> pd.DataFrame:
     """
     Normalize link direction so bus0 is always alphabetically before bus1.
 
     Parameters
     ----------
-    df : pd.DataFrame | pd.Series
-        Input data to normalize.
-    cols : list[str] | None, default=None
-        Names of flow columns whose sign should be flipped when direction is
-        swapped. Required when `df` is a DataFrame and ignored when `df` is a
-        Series.
-    buses_from_index : bool, default=False
-        If True, parse index instead of reading
-        "bus0"/"bus1" columns directly.
-    connector : str, default="->"
-        String separator between bus0 and bus1 in the index.
-    format_index : bool, default=False
-        If True, reformat the index after normalization to
-        ``"bus0[_suffix]->bus1[_suffix]"``.
+    df : pd.DataFrame
+        Input data with "bus0" and "bus1" columns.
+    cols : list[str]
+        Names of flow columns whose sign is flipped when direction is swapped.
+    connector : str, default="-"
+        String separator between bus0 and bus1 in the resulting "border" column.
 
     Returns
     -------
-    pd.DataFrame | pd.Series
-        Data with normalized link direction.
+    pd.DataFrame
+        Data with normalized link direction and a "border" column.
     """
-    is_series = isinstance(df, pd.Series)
-
-    if is_series:
-        df = df.to_frame("value")
-        cols = ["value"]
-    elif isinstance(df, pd.DataFrame):
-        if cols is None or len(cols) == 0:
-            raise ValueError(
-                "No column names `cols` to normalize. `cols` must be provided when `df` is a DataFrame."
-            )
-    else:
-        raise TypeError("`df` must be a pandas Series or DataFrame.")
-
-    if buses_from_index:
-        df.loc[
-            :, ["prefix", "bus0", "bus0_suffix", "bus1", "bus1_suffix", "suffix"]
-        ] = extract_crossborder_pattern(df, connector).values
-    # Protect swapping of direction for H2 import links and the bus0 starting with "X"
-    mask_import_link = df["prefix"].str.contains("H2 import", na=False)
-    mask = (
-        (df["bus0"] > df["bus1"]) & ~df["bus0"].str.startswith("X") & ~mask_import_link
-    )
-    assignments = {col: np.where(mask, -df[col], df[col]) for col in cols}
-
-    # Add bus0, bus1, and border to assignments
-    assignments.update(
-        {
-            "bus0": np.where(mask, df["bus1"], df["bus0"]),
-            "bus1": np.where(mask, df["bus0"], df["bus1"]),
-            "border": lambda df: (
-                df.prefix
-                + df.bus0
-                + df.bus0_suffix
-                + connector
-                + df.bus1
-                + df.bus1_suffix
-                + df.suffix
-            ),
-        }
-    )
-
-    df = df.assign(**assignments).drop(
-        columns=["prefix", "bus0_suffix", "bus1_suffix", "suffix"], errors="ignore"
-    )
-
-    if buses_from_index:
-        df = df.set_index("border")
-
-    if format_index:
-        idx_groups = extract_crossborder_pattern(df, connector)
-
-        mask_h2_pipeline = idx_groups[0] == "H2 pipeline "
-        idx_groups.loc[mask_h2_pipeline, [2, 4]] = " H2"
-
-        mask_import = idx_groups[0].str.contains("H2 import")
-        idx_groups.loc[mask_import, 1] = "X" + idx_groups.loc[mask_import, 1]
-        idx_groups.loc[mask_import, 4] = " H2"
-
-        df.index = idx_groups[1] + idx_groups[2] + "->" + idx_groups[3] + idx_groups[4]
-
-    if buses_from_index:
-        df.index.name = "border"
-
-    if is_series:
-        df = df.value
-
-    return df
+    swap = df["bus0"] > df["bus1"]
+    return df.assign(
+        **{col: df[col].where(~swap, -df[col]) for col in cols},
+        bus0=df["bus0"].where(~swap, df["bus1"]),
+        bus1=df["bus1"].where(~swap, df["bus0"]),
+    ).assign(border=lambda x: x.bus0 + connector + x.bus1)
 
 
 def parse_wscenario(s: pd.Series) -> pd.Series:
@@ -962,3 +891,127 @@ def get_wscenario(wscenarios, planning_horizon):
         wscenario = fallback_scenario
 
     return wscenario
+
+
+def split_unit_from_category(category_labels: pd.Series) -> tuple[pd.Series, pd.Series]:
+    """
+    Split units from category (carrier) labels in the dashboard
+    """
+    parts = category_labels.astype(str).str.extract(
+        r"^(?P<carrier>.*?)\s*(?:\[(?P<unit>[^\]]*)\])?\s*$"
+    )
+    unit = parts.unit.str.replace("€", "EUR", regex=False).str.replace(
+        r"_(e|H2)$", "", regex=True
+    )
+    return parts.carrier, unit
+
+
+def parse_dashboard_header(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Parse the header of a sheet from a TYNDP TimeSeries Dashboard output file.
+
+    All sheets, except "Installed Capacity", share the same structure:
+    - Rows 1-4: Yearly values (min, max, average, and sum) of the hourly timeseries
+    - Row 6: Market Zone
+    - Row 7: Category (similar to carrier)
+    - Row 8: Element (similar to type)
+    - Row 9: Generation/Load, indicates flow direction.
+    - Row 10: Hour labels, followed by the hourly values.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Raw sheet read without header.
+
+    Returns
+    -------
+    pd.DataFrame
+        One row per timeseries, indexed by its column in ``df``, with columns
+        [min, max, avg, sum, bus, element, flow, carrier, unit].
+    """
+    col_keys = 1
+
+    header = df.iloc[:NROWS_HEADER].copy()
+    header.iloc[: len(STATS), col_keys] = STATS
+    header = header.set_index(col_keys).T.dropna(how="all").dropna(how="all", axis=1)
+
+    carrier, unit = split_unit_from_category(header["Category"])
+    return (
+        header.drop(columns="Category")
+        .rename_axis(columns=None)  # drop the name 1 from set_index, it breaks query
+        .rename(
+            columns={
+                "Market Zone": "bus",
+                "Element": "element",
+                "Generation/Load": "flow",
+            }
+        )
+        .assign(carrier=carrier, unit=unit)
+    )
+
+
+def parse_installed_capacity(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Parse the sheet "Installed Capacity" from a TYNDP TimeSeries Dashboard output file.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Raw sheet read without header.
+
+    Returns
+    -------
+    pd.DataFrame
+        Long format with columns [carrier, unit, sheet, bus, value]
+    """
+    row_data, col_value = 2, 1
+
+    carrier, unit = split_unit_from_category(df.iloc[row_data:, 0])
+    columns = pd.MultiIndex.from_arrays(
+        df.iloc[:row_data, col_value:].values, names=["sheet", "bus"]
+    )
+
+    return (
+        df.iloc[row_data:, col_value:]
+        .apply(pd.to_numeric, errors="coerce")
+        .set_axis(columns, axis=1)
+        .set_axis(pd.MultiIndex.from_arrays([carrier, unit], names=["carrier", "unit"]))
+        .stack(["sheet", "bus"], future_stack=True)
+        .rename("value")
+        .reset_index()
+        .dropna(subset=["value"])
+    )
+
+
+def get_dashboard_files(
+    dashboard_dir: str | Path, planning_horizon: int, wscenario: int
+) -> list[Path]:
+    """
+    List the TYNDP TimeSeries Dashboard files of a planning horizon and weather scenario.
+
+    Parameters
+    ----------
+    dashboard_dir : str or Path
+        Directory of the TimeSeries Dashboard files.
+    planning_horizon : int
+        Planning horizon.
+    wscenario : int
+        Weather scenario.
+
+    Returns
+    -------
+    list[Path]
+        Sorted paths to the TimeSeries Dashboard files, one per country.
+    """
+    files = sorted(
+        Path(
+            dashboard_dir, str(planning_horizon), f"Weather scenario {wscenario:03d}"
+        ).glob("*_TimeSeriesDashboard_*.xlsx")
+    )
+    if not files:
+        raise FileNotFoundError(
+            f"No TimeSeries Dashboard files for planning year {planning_horizon} "
+            f"and weather scenario WS{wscenario:03d}."
+        )
+
+    return files

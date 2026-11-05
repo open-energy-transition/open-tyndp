@@ -11,14 +11,6 @@ The Scenario Building (SB) workflow is implemented in `rules/sb.smk`. Rules are 
 
 Downloads the PECD dataset.
 
-### Rule `retrieve_tyndp_vp_data`
-
-Downloads the TYNDP Visualisation Platform data used by the benchmarking framework.
-
-### Rule `retrieve_tyndp_nuclear_profiles`
-
-Downloads per-country nuclear availability profiles.
-
 ### Rule `retrieve_presolved_networks`
 
 Downloads pre-solved networks from a previous Open-TYNDP release (*preliminary outcomes*
@@ -63,6 +55,10 @@ data:
 
 ::: build_tyndp_pemmdb_data
 
+### Rule `build_tyndp_nuclear_profiles`
+
+::: build_tyndp_nuclear_profiles
+
 ### Rule `clean_tyndp_hydro_inflows`
 
 ::: clean_tyndp_hydro_inflows
@@ -93,6 +89,10 @@ per-horizon TYNDP electricity market demand onto the clustered network buses, so
 
 ::: build_tyndp_wheeling_charges
 
+### Rule `build_tyndp_ev_fleets`
+
+::: build_tyndp_ev_fleets
+
 ### Rule `build_tyndp_h2_network`
 
 ::: build_tyndp_h2_network
@@ -121,17 +121,13 @@ per-horizon TYNDP electricity market demand onto the clustered network buses, so
 
 ## Benchmark
 
-### Rule `clean_tyndp_output_benchmark`
+### Rule `clean_tyndp_dashboard_benchmark`
 
-::: clean_tyndp_output_benchmark
+::: clean_tyndp_dashboard_benchmark
 
 ### Rule `clean_tyndp_report_benchmark`
 
 ::: clean_tyndp_report_benchmark
-
-### Rule `clean_tyndp_vp_data`
-
-::: clean_tyndp_vp_data
 
 ### Rule `build_statistics`
 

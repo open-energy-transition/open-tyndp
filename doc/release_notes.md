@@ -11,6 +11,8 @@
 
 **Features**
 
+* feat: model TYNDP 2026 passenger EV fleets explicitly (fixed, commuter and non-commuter fleets for street and home charging, with smart charging and V2G) and replace the PyPSA-Eur land transport by a flat TYNDP EU27 land transport oil demand ([#1039](https://github.com/open-energy-transition/open-tyndp/pull/1039)).
+
 * feat: remove DE and GA scenarios from TYNDP 2026; add in HEV and LEV as scenarios and config entries ([#1066](https://github.com/open-energy-transition/open-tyndp/pull/1066) and [#1092](https://github.com/open-energy-transition/open-tyndp/pull/1092)). HEV and LEV currently differ from NT+ only in fuel and CO2 prices. Demand adjustments (electricity market, prosumer demand, EV, H2, thermal energy demand), hydrogen import prices, and benchmarking are not yet included.
 
 * feat: align snapshots to full year (8760 for hourly modeling) ([#1065](https://github.com/open-energy-transition/open-tyndp/pull/1065)).
@@ -45,11 +47,15 @@
 
 * Align hydro inflows to use TYNDP 2026 data and new PECD technology codes `HRR`, `HPI`, `HRI`, `HOL` and `HCL` ([#1059](https://github.com/open-energy-transition/open-tyndp/pull/1059)).
 
+* feat: update the nuclear availability profiles with the TYNDP 2026 NT+ TimeSeries Dashboards ([#1073](https://github.com/open-energy-transition/open-tyndp/pull/1073)). The new rule `build_tyndp_nuclear_profiles` extracts the profiles for each planning horizon from the weather scenario selected in `wscenarios_tyndp`. The pre-built TYNDP 2024 dataset `tyndp_nuclear_profiles` and the rule `retrieve_tyndp_nuclear_profiles` are removed.
+
 **Changes**
 
 * feat: align CO2 prices with TYNDP 2026 NT+ (97.47 / 197.51 / 297.54 / 502.74 €/t for 2030 / 2035 / 2040 / 2050) ([#1038](https://github.com/open-energy-transition/open-tyndp/pull/1038)). The interpolated 2045 value is dropped.
 
 * feat: align configuration values with the TYNDP 2026 Supply Tool (NT+): `co2_sequestration_potential`, `shipping_oil_share`, `biomass_final_demand`, the biogas and solid biomass `adjustments` factors, and the `biomass_supply` benchmarking references ([#941](https://github.com/open-energy-transition/open-tyndp/pull/941), re-merged in [#1041](https://github.com/open-energy-transition/open-tyndp/pull/1041)). Values are now also provided for 2050, and the outdated TYNDP 2024 `co2_sequestration_potential` overrides of the DE and GA scenarios are removed.
+
+* Align the Scenario Building benchmarking to the TYNDP 2026 cycle ([#960](https://github.com/open-energy-transition/open-tyndp/pull/960)). Market model outputs are read from the TYNDP 2026 Time Series Dashboards (installed capacities, prices, loads, exchanges and generation) and the Scenarios Report benchmark uses the TYNDP 2026 Scenario Report data figures (retrieved by `retrieve_tyndp_2026`). The rule `clean_tyndp_output_benchmark` is renamed to `clean_tyndp_dashboard_benchmark` and the benchmarking source `market_out` to `dashboard_out`. A new `electricity_prosumer_demand` table compares prosumer and behind-the-meter demand, and electricity demand is benchmarked as net demand. Hydrogen demand is benchmarked by use (incl. e-fuels, power generation and heat production), and methane and hydrogen for heat production are separate categories. Renewable generation is benchmarked net of curtailment, with curtailment reported separately as dumped energy. The option `load:patch_demand_with_mm` is removed. The Visualisation Platform benchmarking and the `generation_profiles` table are removed.
 
 **Bugfixes and Compatibility**
 
