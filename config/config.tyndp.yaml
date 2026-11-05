@@ -276,11 +276,11 @@ sector:
     2040: 0
     2045: 0
     2050: 0
-  shipping_oil_share:  # TYNDP 2026 Supply Tool NT+, int. shipping liquids incl. e-fuels (Carbon budget support sheet F16:I16) / EU27 all_navigation (503.6 TWh)
-    2030: 0.769
-    2035: 0.661
-    2040: 0.523
-    2050: 0.396
+  shipping_oil_share:  # TYNDP 2026 NT+ EU27 ETM liquids in navigation incl. e-fuels (int. shipping and domestic: 425.4, 363.0, 294.8, 215.3 TWh) / EU27 all_navigation (503.6 TWh)
+    2030: 0.845
+    2035: 0.721
+    2040: 0.585
+    2050: 0.428
   bev_charge_efficiency: 0.94 # p.96 of Methodology Report TYNDP 2024
   oil_boilers: false
   biomass_boiler: false
