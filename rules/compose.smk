@@ -28,7 +28,6 @@ def get_tyndp_compose_inputs(w):
     sector = cfg["sector"]
     elec = cfg["electricity"]
     h2_tyndp = sector["h2_topology_tyndp"]
-    mm_years = [2030, 2040]  # only years with Market Model output data
 
     inputs = {
         "carrier_mapping": "data/tyndp_technology_map.csv",
@@ -43,9 +42,7 @@ def get_tyndp_compose_inputs(w):
             else []
         ),
         "tyndp_nuclear_profiles": (
-            rules.retrieve_tyndp_nuclear_profiles.output[
-                f"nuclear_p_max_pu_{safe_planning_horizon(horizon, available_years=mm_years, verbose=False)}"
-            ]
+            resources(f"tyndp_nuclear_profiles/nuclear_p_max_pu_{horizon}.csv")
             if scenario and cfg["conventional"]["tyndp_availability_profiles"]
             else []
         ),
@@ -62,10 +59,10 @@ def get_tyndp_compose_inputs(w):
         gas_demand=resources(f"gas_demand_tyndp_{horizon}.csv"),
         h2_demand_z1=resources(f"demand_tyndp_h2_z1_{horizon}.csv"),
         h2_demand_z2=resources(f"demand_tyndp_h2_z2_{horizon}.csv"),
-    )
-
-    inputs |= gated_inputs(
-        scenario and sector["electricity_distribution_grid"],
+        ev_demand=resources(f"ev_demand_tyndp_{horizon}.csv"),
+        ev_fleets=resources(f"ev_fleets_tyndp_{horizon}.csv"),
+        avail_profile_tyndp=resources(f"avail_profile_tyndp_{horizon}.csv"),
+        dsm_profile_tyndp=resources(f"dsm_profile_tyndp_{horizon}.csv"),
         wheeling_charges=resources("wheeling_charges_tyndp.csv"),
         elec_demand_prosumer_tyndp=resources(
             f"demand_tyndp_electricity_prosumer_{horizon}.csv"
@@ -195,10 +192,18 @@ def get_compose_inputs(w):
                 resources("pop_weighted_heat_totals.csv") if sector["heating"] else []
             ),
             shipping_demand=resources("shipping_demand.csv"),
-            transport_demand=resources("transport_demand.csv"),
-            transport_data=resources("transport_data.csv"),
-            avail_profile=resources("avail_profile.csv"),
-            dsm_profile=resources("dsm_profile.csv"),
+            transport_demand=(
+                resources("transport_demand.csv") if not cfg["tyndp_scenario"] else []
+            ),
+            transport_data=(
+                resources("transport_data.csv") if not cfg["tyndp_scenario"] else []
+            ),
+            avail_profile=(
+                resources("avail_profile.csv") if not cfg["tyndp_scenario"] else []
+            ),
+            dsm_profile=(
+                resources("dsm_profile.csv") if not cfg["tyndp_scenario"] else []
+            ),
             heat_dsm_profile=(
                 resources("residential_heat_dsm_profile.csv")
                 if sector["residential_heat"]["dsm"]["enable"]
@@ -235,7 +240,9 @@ def get_compose_inputs(w):
                 "existing_heating_distribution_{horizon}.csv"
             ),
             temp_soil_total=resources("temp_soil_total.nc"),
-            temp_air_total=resources("temp_air_total.nc"),
+            temp_air_total=(
+                resources("temp_air_total.nc") if not cfg["tyndp_scenario"] else []
+            ),
             cop_profiles=(
                 resources("cop_profiles_{horizon}.nc") if sector["heating"] else []
             ),
