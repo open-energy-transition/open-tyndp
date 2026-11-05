@@ -2087,7 +2087,7 @@ def _add_conventional_thermal_capacities(
     pemmdb_capacities: pd.DataFrame,
     pemmdb_profiles: pd.DataFrame,
     tyndp_conventional_thermals: list[str],
-    nuclear_profiles: pd.DataFrame,
+    nuclear_profiles: pd.DataFrame | None,
     group_conventionals: bool,
 ) -> None:
     """
@@ -2103,7 +2103,7 @@ def _add_conventional_thermal_capacities(
         All PEMMDB must-run and availability profiles.
     tyndp_conventional_thermals : list[str]
         List of TYNDP conventional thermal technologies that were added to the network.
-    nuclear_profiles : pd.DataFrame
+    nuclear_profiles : pd.DataFrame | None
         DataFrame containing the availability profiles of nuclear power plants.
     group_conventionals : bool
         Whether TYNDP conventional carriers are aggregated into higher level groups.
@@ -2144,12 +2144,6 @@ def _add_conventional_thermal_capacities(
         # Profiles
         ##########
 
-        # (nuclear only) Define availability profiles,
-        # accounting for maintenance schedules and forced outages
-        if tech == "nuclear":
-            nuclear_profiles.columns = nuclear_profiles.columns + " nuclear"
-            nuclear_profiles = nuclear_profiles.reindex(n.snapshots)
-
         # Filter for profiles
         profiles = pemmdb_profiles.query("index_carrier == @tech")
         p_min_pu = (
@@ -2157,26 +2151,26 @@ def _add_conventional_thermal_capacities(
             .rename(columns=lambda x: x + " " + tech)
             .reindex(tech_i, axis=1, fill_value=0.0)
         )
-        # For nuclear, take the minimum of p_min_pu and nuclear_profiles to account for outages
-        if tech == "nuclear":
-            common_cols = p_min_pu.columns.intersection(nuclear_profiles.columns)
-            if not common_cols.empty:
-                p_min_pu[common_cols] = np.minimum(
-                    p_min_pu[common_cols], nuclear_profiles[common_cols]
-                )
-
         p_max_pu = (
             profiles.pivot_table(values="p_max_pu", index="time", columns="bus")
             .rename(columns=lambda x: x + " " + tech)
             .reindex(tech_i, axis=1, fill_value=1.0)
         )
-        # For nuclear, take the minimum of p_max_pu and nuclear_profiles to account for outages
-        if tech == "nuclear":
-            common_cols = p_max_pu.columns.intersection(nuclear_profiles.columns)
-            if not common_cols.empty:
-                p_max_pu[common_cols] = np.minimum(
-                    p_max_pu[common_cols], nuclear_profiles[common_cols]
-                )
+
+        # (nuclear only) Cap the profiles with the availability profiles,
+        # accounting for maintenance schedules and forced outages
+        if tech == "nuclear" and nuclear_profiles is not None:
+            # Fall back to the country profile for nodes aggregated in the dashboards (e.g. IT in 2050)
+            bus = n.links.loc[tech_i, "bus1"]
+            bus = bus.where(
+                bus.isin(nuclear_profiles.columns), bus.map(n.buses.country)
+            )
+            availability = nuclear_profiles.reindex(columns=bus).set_axis(
+                tech_i, axis=1
+            )
+            # fmin ignores NaN, so links without availability profile keep their PEMMDB profiles
+            p_min_pu = np.fmin(p_min_pu, availability.reindex_like(p_min_pu))
+            p_max_pu = np.fmin(p_max_pu, availability.reindex_like(p_max_pu))
 
         _add_pu_profiles(comp_t=n.links_t, p_min_pu=p_min_pu, p_max_pu=p_max_pu)
 
@@ -3028,7 +3022,7 @@ def add_existing_tyndp_capacities(
     tyndp_stores: list[str],
     costs: pd.DataFrame,
     profiles_pecd: dict[str, str],
-    nuclear_profiles: pd.DataFrame,
+    nuclear_profiles: pd.DataFrame | None,
     hydro_inflows_fn: str,
     extendable_carriers: list | set,
     investment_year: int,
@@ -3075,7 +3069,7 @@ def add_existing_tyndp_capacities(
         DataFrame containing the cost data.
     profiles_pecd : dict[str, str]
         Dictionary containing the paths to the PECD renewable profiles.
-    nuclear_profiles : pd.DataFrame
+    nuclear_profiles : pd.DataFrame | None
         DataFrame containing the availability profiles of nuclear power plants.
     hydro_inflows_fn : str,
         Path to file with hydro inflow profiles.
@@ -9695,10 +9689,6 @@ if __name__ == "__main__":
     if tyndp_nuclear_profiles_fn := snakemake.input.tyndp_nuclear_profiles:
         tyndp_nuclear_profiles = pd.read_csv(
             tyndp_nuclear_profiles_fn, index_col=0, parse_dates=True
-        )
-        # Use 2009 profiles for all climate years
-        tyndp_nuclear_profiles.index = tyndp_nuclear_profiles.index.map(
-            lambda t: t.replace(year=n.snapshots.year[0])
         )
 
     conventional_generation = {

@@ -36,19 +36,23 @@ import pandas as pd
 from scripts._helpers import configure_logging, set_scenario_config
 from scripts.build_tyndp_network import extract_country
 from scripts.sb._helpers import (
+    CAPACITY_SHEET,
+    ELECTRICITY_SHEETS,
+    EXCHANGES_SHEET,
+    H2_SHEETS,
+    NROWS_HEADER,
+    STATS,
     convert_units,
     format_bz_names,
+    get_dashboard_files,
     get_wscenario,
     normalize_direction,
+    parse_dashboard_header,
+    parse_installed_capacity,
 )
 
 logger = logging.getLogger(__name__)
 
-# List of sheets for both electricity and hydrogen timeseries
-ELECTRICITY_SHEETS = ["E-Market", "Prosumer", "Offshore"]
-H2_SHEETS = ["H2 Zone 1", "H2 Zone 2"]
-EXCHANGES_SHEET = "Exchanges"
-CAPACITY_SHEET = "Installed Capacity"
 
 LOOKUP_TABLES: dict[str, dict] = {
     "power_capacity": {"sheet": [CAPACITY_SHEET]},
@@ -147,19 +151,6 @@ def _load_dashboard_carrier_mapping(
     return output_map
 
 
-def split_unit_from_category(category_labels: pd.Series) -> tuple[pd.Series, pd.Series]:
-    """
-    Split units from category (carrier) labels in the dashboard
-    """
-    parts = category_labels.astype(str).str.extract(
-        r"^(?P<carrier>.*?)\s*(?:\[(?P<unit>[^\]]*)\])?\s*$"
-    )
-    unit = parts.unit.str.replace("€", "EUR", regex=False).str.replace(
-        r"_(e|H2)$", "", regex=True
-    )
-    return parts.carrier, unit
-
-
 def rename_prosumer_nodes(buses: pd.Series) -> pd.Series:
     """
     Rename prosumer nodes to match Open-TYNDP bus names
@@ -171,12 +162,7 @@ def parse_dashboard_sheet(df: pd.DataFrame, sheet_name: str) -> pd.DataFrame:
     """
     Parse the yearly aggregates of a sheet from a TYNDP TimeSeries Dashboard output file.
 
-    All sheets, except "Installed Capacity", share the same structure:
-    - Rows 1-4: Yearly values (min, max, average, and sum) of the hourly timeseries
-    - Row 6: Market Zone
-    - Row 7: Category (similar to carrier)
-    - Row 8: Element (similar to type)
-    - Row 9: Generation/Load, indicates flow direction.
+    See ``parse_dashboard_header`` for the structure of the sheet.
 
     Parameters
     ----------
@@ -191,27 +177,11 @@ def parse_dashboard_sheet(df: pd.DataFrame, sheet_name: str) -> pd.DataFrame:
         Long format with columns [bus, element, flow, carrier, unit, stats,
         value, sheet]
     """
-    stats = ["min", "max", "avg", "sum"]
-    col_keys, row_flow = 1, 8
-
-    header = df.iloc[: row_flow + 1].copy()
-    header.iloc[: len(stats), col_keys] = stats
-    df = header.set_index(col_keys).T.dropna(how="all").dropna(how="all", axis=1)
-
-    carrier, unit = split_unit_from_category(df["Category"])
     df = (
-        df.drop(columns="Category")
-        .rename(
-            columns={
-                "Market Zone": "bus",
-                "Element": "element",
-                "Generation/Load": "flow",
-            }
-        )
-        .assign(carrier=carrier, unit=unit)
+        parse_dashboard_header(df)
         .melt(
             id_vars=["bus", "element", "flow", "carrier", "unit"],
-            value_vars=stats,
+            value_vars=STATS,
             var_name="stats",
         )
         .assign(sheet=sheet_name)
@@ -220,39 +190,6 @@ def parse_dashboard_sheet(df: pd.DataFrame, sheet_name: str) -> pd.DataFrame:
     df["value"] = pd.to_numeric(df["value"], errors="coerce")
 
     return df
-
-
-def parse_installed_capacity(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Parse the sheet "Installed Capacity" from a TYNDP TimeSeries Dashboard output file.
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        Raw sheet read without header.
-
-    Returns
-    -------
-    pd.DataFrame
-        Long format with columns [carrier, unit, sheet, bus, value]
-    """
-    row_data, col_value = 2, 1
-
-    carrier, unit = split_unit_from_category(df.iloc[row_data:, 0])
-    columns = pd.MultiIndex.from_arrays(
-        df.iloc[:row_data, col_value:].values, names=["sheet", "bus"]
-    )
-
-    return (
-        df.iloc[row_data:, col_value:]
-        .apply(pd.to_numeric, errors="coerce")
-        .set_axis(columns, axis=1)
-        .set_axis(pd.MultiIndex.from_arrays([carrier, unit], names=["carrier", "unit"]))
-        .stack(["sheet", "bus"], future_stack=True)
-        .rename("value")
-        .reset_index()
-        .dropna(subset=["value"])
-    )
 
 
 def read_dashboard(
@@ -272,7 +209,6 @@ def read_dashboard(
         Yearly aggregates of all timeseries sheets and installed capacities.
     """
     sheet_names = ELECTRICITY_SHEETS + H2_SHEETS + [EXCHANGES_SHEET]
-    nrows_header = 9
 
     # Some nodes are missing sheets
     with pd.ExcelFile(filepath, engine="calamine") as file:
@@ -280,7 +216,7 @@ def read_dashboard(
             file,
             sheet_name=[s for s in sheet_names if s in file.sheet_names],
             header=None,
-            nrows=nrows_header,
+            nrows=NROWS_HEADER,
         )
         capacity = pd.read_excel(file, sheet_name=CAPACITY_SHEET, header=None)
 
@@ -320,7 +256,7 @@ def drop_single_zone_duplicates(df: pd.DataFrame) -> pd.DataFrame:
 
 def load_crossborder(
     df: pd.DataFrame,
-    stats: list[str] = ["min", "max", "avg", "sum"],
+    stats: list[str] = STATS,
 ) -> pd.DataFrame:
     """
     Load the cross-border flows from the "Exchanges" sheets of the TYNDP TimeSeries Dashboard.
@@ -589,18 +525,9 @@ if __name__ == "__main__":
     eu27 = cc.EU27as("ISO2").ISO2.tolist()
 
     # TYNDP TimeSeries Dashboard files
-    dashboard_files = sorted(
-        Path(
-            snakemake.input.dashboard_dir,
-            str(planning_horizon),
-            f"Weather scenario {wscenario:03d}",
-        ).glob("*_TimeSeriesDashboard_*.xlsx")
+    dashboard_files = get_dashboard_files(
+        snakemake.input.dashboard_dir, planning_horizon, wscenario
     )
-    if not dashboard_files:
-        raise FileNotFoundError(
-            f"No TimeSeries Dashboard files for planning year {planning_horizon} "
-            f"and weather scenario WS{wscenario:03d}."
-        )
 
     logger.info(f"Reading {len(dashboard_files)} TimeSeries Dashboard files")
     with ProcessPoolExecutor(max_workers=snakemake.threads) as executor:

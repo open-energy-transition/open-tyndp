@@ -11,10 +11,6 @@ The Scenario Building (SB) workflow is implemented in `rules/sb.smk`. Rules are 
 
 Downloads the PECD dataset.
 
-### Rule `retrieve_tyndp_nuclear_profiles`
-
-Downloads per-country nuclear availability profiles.
-
 ### Rule `retrieve_presolved_networks`
 
 Downloads pre-solved networks from a previous Open-TYNDP release (*preliminary outcomes*
@@ -58,6 +54,10 @@ data:
 ### Rule `build_tyndp_pemmdb_data`
 
 ::: build_tyndp_pemmdb_data
+
+### Rule `build_tyndp_nuclear_profiles`
+
+::: build_tyndp_nuclear_profiles
 
 ### Rule `clean_tyndp_hydro_inflows`
 
