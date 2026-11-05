@@ -66,6 +66,7 @@ for the NT+ scenario:
         * Electricity generation by technology, EU27 (TWh), (Fig 58)
         * Methane supply, EU27 (TWh), (Fig 70)
         * Hydrogen supply, EU27 (TWh), (Fig 74)
+        * E-fuel supply, EU27 (TWh), (Fig 79)
         * Biomass supply and utilisation, EU27 (TWh), (Fig 81)
         * Energy imports, EU27 (TWh), (Fig 83)
 
@@ -201,6 +202,7 @@ To align naming conventions across data sources, Open-TYNDP uses a mapping table
 * **benchmarking_h2_supply**: Naming convention for the benchmarking framework's `hydrogen_supply` table.
 * **benchmarking_biomass_supply**: Naming convention for the benchmarking framework's `biomass_supply` table.
 * **benchmarking_energy_imports**: Naming convention for the benchmarking framework's `energy_imports` table.
+* **benchmarking_synfuel_supply**: Naming convention for the benchmarking framework's `synfuel_supply` table. Dashboard values are mapped by element (e.g. `sng Imports`) instead of category.
 * **benchmarking_prices**: Naming convention for the benchmarking framework's different `price` tables.
 * **benchmarking_shed_hours**: Naming convention for the benchmarking framework's `electricity_demand_shedding_hours` and `hydrogen_demand_shedding_hours` tables.
 * **open_tyndp_type**: Open-TYNDP technology type for grouping together detailed technologies if `electricity:group_tyndp_conventionals` is enabled in the configuration.

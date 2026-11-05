@@ -66,8 +66,8 @@ and wheeling charges. Electricity and H₂ line data are provided for 2030, 2035
 
 **[Hydrogen](https://2026-data.entsos-tyndp-scenarios.eu/input/model-input/national-trends/Hydrogen.zip)**
 
-Hydrogen storage parameters, steam methane reforming (SMR and SMR+CCS) capacities, synthetic fuel generator properties,
-and import pipeline assumptions.
+Hydrogen storage parameters, steam methane reforming (SMR and SMR+CCS) capacities, synthetic fuel production capacities
+and generator properties, and import pipeline assumptions.
 
 **[Supply Tool](https://2026-data.entsos-tyndp-scenarios.eu/output/Supply-Tool.zip)**
 
@@ -106,6 +106,8 @@ Open-TYNDP models the electricity and hydrogen sectors as fully coupled. Cross-s
   Iberian Peninsula) are represented with separate H₂ buses.
 * **SMR and SMR+CCS:** Grey and blue hydrogen production capacities from PEMMDB and TYNDP
   hydrogen datasets.
+* **Synthetic fuels:** E-liquids and SNG are produced from the H₂ Zone 2
+  nodes, with capacities from the TYNDP Hydrogen data, or imported at the TYNDP offer price.
 * **Demand-side electrification:** Where the scenario specifies it, electricity demand
   incorporates direct electrification of heat and transport end-uses.
 
