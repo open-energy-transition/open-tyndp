@@ -7,6 +7,10 @@ The Scenario Building (SB) workflow is implemented in `rules/sb.smk`. Rules are 
 
 ## Retrieve
 
+### Rule `retrieve_tyndp_2026`
+
+Downloads the TYNDP 2026 data package, see [TYNDP 2026 data](tyndp_2026.md).
+
 ### Rule `retrieve_tyndp_pecd`
 
 Downloads the PECD dataset.
@@ -33,7 +37,7 @@ data:
 
 ## Development
 
-### Rule `prepare_tyndp_pecd_release`
+### Rule `prepare_pecd_release`
 
 ::: prepare_tyndp_pecd_release
 
@@ -162,10 +166,6 @@ Aggregate [`plot_benchmark`](#rule-plot_benchmark) outputs.
 ### Rule `build_tyndp_pemmdb_datas`
 
 Aggregate [`build_tyndp_pemmdb_data`](#rule-build_tyndp_pemmdb_data) outputs.
-
-### Rule `build_tyndp_demands`
-
-Aggregate [`build_tyndp_demand`](#rule-build_tyndp_demand) outputs.
 
 ### Rule `build_tyndp_gas_demands`
 

@@ -152,7 +152,7 @@ def get_pecd_prebuilt(w):
     if "pre-built" in PECD_DATASET["version"]:
         return rules.retrieve_tyndp_pecd.output.dir
     else:
-        return rules.prepare_tyndp_pecd_release.output.pecd_prebuilt
+        return rules.prepare_pecd_release.output.pecd_prebuilt
 
 
 rule clean_tyndp_pecd_data:
