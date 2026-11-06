@@ -967,14 +967,6 @@ _TECH_COLORS: dict[str, str] = {
 # Open-TYNDP technology colors
 _TECH_COLORS.update(
     {
-        "offwind-ac-fb-r": "#6895dd",
-        "offwind-ac-fl-r": "#6da5e8",
-        "offwind-dc-fb-r": "#71b5ed",
-        "offwind-dc-fb-oh": "#74c6f2",
-        "offwind-dc-fl-r": "#94d4f6",
-        "offwind-dc-fl-oh": "#b5e2fa",
-        "offwind-h2-fb-oh": "#c47dbd",
-        "offwind-h2-fl-oh": "#9d4d96",
         "hydro-pondage": "#51dbbc",
         "hydro-reservoir": "#298c81",
         "hydro-ror": "#3dbfb0",
