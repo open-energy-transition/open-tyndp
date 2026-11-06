@@ -13,7 +13,7 @@ The profiles are derived from the weather scenario selected for the planning hor
 
 Outputs
 -------
-- `resources/tyndp_nuclear_profiles/nuclear_p_max_pu_{planning_horizons}.csv`: weekly nuclear availability factor per bus.
+- `resources/tyndp_nuclear_profiles/nuclear_p_max_pu_{horizon}.csv`: weekly nuclear availability factor per bus.
 """
 
 import logging
@@ -87,14 +87,14 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "build_tyndp_nuclear_profiles",
-            planning_horizons="2030",
+            horizon="2030",
             configfiles="config/config.tyndp.yaml",
             run="NT",
         )
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    planning_horizon = int(snakemake.wildcards.planning_horizons)
+    planning_horizon = int(snakemake.wildcards.horizon)
     wscenario = get_wscenario(snakemake.params.wscenarios, planning_horizon)
     logger.info(
         f"Building nuclear availability profiles for {planning_horizon}, weather scenario WS{wscenario:03d}"
