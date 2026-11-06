@@ -23,7 +23,7 @@
 
 * Fix read mode of the local cache layer to avoid re-retrieving datasets with directory outputs after filling the cache in the same working directory ([#1008](https://github.com/open-energy-transition/open-tyndp/pull/1008)).
 
-* Make `retrieve_presolved_sb_networks` version-aware to adapt to the renaming of result networks in [PyPSA-Eur#1838](https://github.com/PyPSA/pypsa-eur/pull/1838) ([#1125](https://github.com/open-energy-transition/open-tyndp/pull/1125)). From release v0.10, networks are named `solved_{planning_horizons}.nc` instead of `base_s_all___{planning_horizons}.nc`.
+* Make `retrieve_presolved_sb_networks` and `retrieve_presolved_networks` version-aware to adapt to the renaming of result networks in [PyPSA-Eur#1838](https://github.com/PyPSA/pypsa-eur/pull/1838) ([#1125](https://github.com/open-energy-transition/open-tyndp/pull/1125)). From release v0.10 onwards, networks are named `solved_{planning_horizons}.nc` instead of `base_s_all___{planning_horizons}.nc`. Releases before v0.10 remain supported.
 
 
 **Documentation**
