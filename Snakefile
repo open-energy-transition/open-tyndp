@@ -150,6 +150,9 @@ if config["tyndp_scenario"]:
     )
     config["plotting"]["nice_names"].update(tyndp_nice_names)
 
+    # Data constants
+    PRESOLVED_NETWORKS_DATASET = dataset_version("open_tyndp_prelim")
+
     # Include Open-TYNDP specific set of rules for SB and CBA
     include: "rules/cba.smk"
     include: "rules/sb.smk"
