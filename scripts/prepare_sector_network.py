@@ -2183,9 +2183,10 @@ def _add_conventional_thermal_capacities(
 def _add_electrolyzer_capacities(
     n: pypsa.Network,
     pemmdb_capacities: pd.DataFrame,
+    p2g_shares: pd.DataFrame,
 ) -> None:
     """
-    Add existing onshore electrolyzer capacities from PEMMDB.
+    Add existing onshore and offshore electrolyzer capacities from PEMMDB.
 
     Parameters
     ----------
@@ -2193,6 +2194,8 @@ def _add_electrolyzer_capacities(
         The PyPSA network container object.
     pemmdb_capacities : pd.DataFrame
         All PEMMDB capacities.
+    p2g_shares : pd.DataFrame
+        Share of the total electrolyser capacity from bus0 to bus1.
 
     Returns
     -------
@@ -2212,7 +2215,6 @@ def _add_electrolyzer_capacities(
     # Z1/Z2 (and SRES/DRES) "h2-electrolysis" capacities per bus; match each
     # electrolyser link to its own zone's capacity (SRES/DRES are handled
     # separately, see `add_h2_dres_tyndp and add_h2_sres_tyndp`).
-    # TODO: Add split between zones
     base = pemmdb_capacities.query(
         "carrier == 'H2 Electrolysis' and open_tyndp_type == 'h2-electrolysis'"
     )
@@ -2221,9 +2223,15 @@ def _add_electrolyzer_capacities(
 
     z1_i = electrolyser_i[electrolyser_i.str.contains(" Z1 ")]
     z2_i = electrolyser_i[electrolyser_i.str.contains(" Z2 ")]
+    share = (
+        n.links.loc[z2_i, ["bus0", "bus1"]]
+        .join(p2g_shares.set_index(["bus0", "bus1"]).share, on=["bus0", "bus1"])
+        .share
+    )
     n.links.loc[z1_i, "p_nom"] = n.links.loc[z1_i, "bus0"].map(caps_z1).fillna(0.0)
-    n.links.loc[z2_i, "p_nom"] = n.links.loc[z2_i, "bus0"].map(caps_z2).fillna(0.0)
-
+    n.links.loc[z2_i, "p_nom"] = (
+        n.links.loc[z2_i, "bus0"].map(caps_z2).fillna(0.0) * share
+    )
     n.links.loc[electrolyser_i, "p_nom_extendable"] = False
     remove_zero_capacity_non_extendable(
         n,
@@ -2238,10 +2246,14 @@ def _add_h2_dres_capacities(
     n: pypsa.Network,
     pemmdb_capacities: pd.DataFrame,
     dres_carriers: list[str],
+    p2g_shares: pd.DataFrame,
 ) -> None:
     """
-    Connect DRES generators to the DRES bus of their country and add existing DRES electrolyzer capacities from PEMMDB.
+    Split DRES generators between the DRES buses of their country and add existing DRES electrolyser capacities from PEMMDB.
 
+    PEMMDB reports DRES per country, so for countries with several H2 Z2 zones, generator and electrolyser
+    capacities are split using the onshore P2G e-market share capacity per zone. In TYNDP 2026, this only includes SK.
+    
     Parameters
     ----------
     n : pypsa.Network
@@ -2250,6 +2262,8 @@ def _add_h2_dres_capacities(
         All PEMMDB capacities.
     dres_carriers : list[str]
         TYNDP DRES generator carriers.
+    p2g_shares : pd.DataFrame
+        Share of the total electrolyser capacity from bus0 to bus1.
 
     Returns
     -------
@@ -2257,12 +2271,10 @@ def _add_h2_dres_capacities(
         Modifies the network object in-place by adding the DRES electrolyzer capacities.
     """
     logger.info(
-        "Moving DRES generators to the DRES buses and adding PEMMDB capacities to DRES electrolyzers."
+        "Splitting DRES generators to the DRES buses and adding PEMMDB capacities to DRES electrolyzers."
     )
 
     dres = n.buses.query("carrier == 'AC_DRES'")
-    country_to_dres = pd.Series(dres.index, index=dres.country)
-    country_to_dres = country_to_dres[~country_to_dres.index.duplicated()]
 
     # Drop empty DRES generator assets and move to DRES bus
     remove_zero_capacity_non_extendable(
@@ -2270,7 +2282,9 @@ def _add_h2_dres_capacities(
     )
     gens_i = n.generators.query("carrier in @dres_carriers").index
     n.generators.loc[gens_i, "bus"] = (
-        n.generators.loc[gens_i, "bus"].map(n.buses.country).map(country_to_dres)
+        n.generators.loc[gens_i, "bus"]
+        .map(n.buses.country)
+        .map(pd.Series(dres.index, index=dres.country))
     )
 
     # Get indices for this technology
@@ -2278,15 +2292,19 @@ def _add_h2_dres_capacities(
     if electrolyser_i.empty:
         return
 
-    # Filter for capacities and add to the network
+    # Filter for capacities, split them using shares and add to the network
+    links = n.links.loc[electrolyser_i]
+    zone_caps = links.bus1.map(p2g_shares.groupby("bus1").p_nom.sum()).fillna(0.0)
+    share = (zone_caps /zone_caps.groupby(links.bus0).transform("sum")).fillna(
+        1 / links.groupby("bus0").bus0.transform("size")
+    )
     caps = (
         pemmdb_capacities.query("index_carrier == 'H2 Electrolysis DRES Z2'")
         .groupby("country")
         .p_nom.sum()
-        .rename(country_to_dres)
     )
     n.links.loc[electrolyser_i, "p_nom"] = (
-        n.links.loc[electrolyser_i, "bus0"].map(caps).fillna(0.0)
+        links.bus0.map(dres.country).map(caps).fillna(0.0) * share
     )
 
     # Fix capacities and remove empty assets
@@ -3015,6 +3033,7 @@ def add_existing_tyndp_capacities(
     pemmdb_profiles: pd.DataFrame,
     smr_capacities: pd.DataFrame,
     h2_storage_capacities: pd.DataFrame,
+    p2g_shares: pd.DataFrame,
     tyndp_renewable_carriers: list[str],
     tyndp_conventional_thermals: list[str],
     h2_topology_tyndp: bool,
@@ -3067,6 +3086,8 @@ def add_existing_tyndp_capacities(
         List of TYNDP storage technologies that were added to the network.
     costs : pd.DataFrame
         DataFrame containing the cost data.
+    p2g_shares : pd.DataFrame
+        DataFrame containing the shares of P2G capacities per H2Z2 zone.
     profiles_pecd : dict[str, str]
         Dictionary containing the paths to the PECD renewable profiles.
     nuclear_profiles : pd.DataFrame | None
@@ -3150,6 +3171,7 @@ def add_existing_tyndp_capacities(
                 n=n,
                 pemmdb_capacities=pemmdb_capacities,
                 dres_carriers=[c for c in tyndp_renewable_carriers if "-dres" in c],
+                p2g_shares=p2g_shares,
             )
             _add_h2_sres_capacities(
                 n=n,
@@ -3159,6 +3181,7 @@ def add_existing_tyndp_capacities(
             _add_electrolyzer_capacities(
                 n=n,
                 pemmdb_capacities=pemmdb_capacities,
+                p2g_shares=p2g_shares,
             )
 
         # Add existing Other RES capacities from PEMMDB to already attached Other RES components
@@ -3889,6 +3912,7 @@ def add_h2_production_tyndp(
     costs: pd.DataFrame,
     spatial: SimpleNamespace,
     smr_fn: str,
+    p2g_shares_fn: str,
     options: dict = {},
 ) -> None:
     """
@@ -3908,6 +3932,8 @@ def add_h2_production_tyndp(
         Namespace object with spatial nodes for different carriers such as `h2_tyndp`.
     smr_fn : str
         Path to CSV file containing prepped TYNDP SMR and SMR CC assets with efficiencies and VOM.
+    p2g_shares_fn : str
+        Path to CSV file containing P2G shares for each electrolyser link.
     options : dict, optional
         Dictionary of configuration options. Defaults to empty dict if not provided.
         Key options include:
@@ -3942,14 +3968,19 @@ def add_h2_production_tyndp(
     )
 
     # Add electrolysis to Z2
-    zone_country_z2 = spatial.h2_tyndp.df.country.reindex(spatial.buses_h2_z2)
-    country_to_bus_z2 = pd.Series(zone_country_z2.index, index=zone_country_z2.values)
-    country_to_bus_z2 = country_to_bus_z2[~country_to_bus_z2.index.duplicated()]
+    p2g = pd.read_csv(p2g_shares_fn)
+    network_buses = p2g[["bus0", "bus1"]].isin(n.buses.index).all(axis=1)
+    if not network_buses.all():
+        logger.warning(
+            f"Dropping P2G links with buses not in the network: "
+            f"{(p2g.bus0 + ' -> ' + p2g.bus1)[~network_buses].tolist()}"
+        )
+    p2g = p2g[network_buses]
     n.add(
         "Link",
-        nodes.index + " H2 Z2 Electrolysis",
-        bus0=nodes.index,
-        bus1=nodes.country.map(country_to_bus_z2).values,
+        p2g.bus0.values + " " + p2g.bus1.values + " H2 Z2 Electrolysis",
+        bus0=p2g.bus0.values,
+        bus1=p2g.bus1.values,
         p_nom_extendable=True,
         carrier="H2 Electrolysis",
         efficiency=costs.at["electrolysis", "efficiency"],
@@ -4034,7 +4065,8 @@ def add_h2_dres_tyndp(
     costs: pd.DataFrame,
 ) -> None:
     """
-    Adds TYNDP Z2 DRES electricity buses and electrolyzers.
+    Adds TYNDP Z2 DRES electricity buses (one per country) and electrolysers to
+    each H2 Z2 zone.
 
     Parameters
     ----------
@@ -4054,18 +4086,20 @@ def add_h2_dres_tyndp(
     """
 
     logger.info("Adding Z2 DRES electricity buses and electrolyzers.")
+    h2z2_country = spatial.h2_tyndp.df.country.loc[buses_h2_z2]
+    country_zone = h2z2_country.drop_duplicates()
     n.add(
         "Bus",
-        buses_h2_z2 + " DRES",
-        location=buses_h2_z2,
-        country=spatial.h2_tyndp.df.loc[buses_h2_z2].country.values,
+        country_zone.values + " DRES",
+        location=country_zone.index,
+        country=country_zone.values,
         carrier="AC_DRES",
         unit="MWh_el",
     )
     n.add(
         "Link",
         buses_h2_z2 + " DRES Electrolysis",
-        bus0=buses_h2_z2 + " DRES",
+        bus0=h2z2_country.values + " DRES",
         bus1=buses_h2_z2,
         p_nom_extendable=True,
         carrier="H2 Electrolysis",
@@ -4434,6 +4468,7 @@ def add_h2_topology_tyndp(
     h2_demand_z2_file: str,
     smr_fn: str,
     h2_storages_fn: str,
+    p2g_shares_fn: str,
     tyndp_stores: list[str],
 ) -> None:
     """
@@ -4471,6 +4506,8 @@ def add_h2_topology_tyndp(
         Path to CSV file containing prepped TYNDP SMR and SMR CC assets.
     h2_storages_fn : str
         Path to CSV file containing prepped TYNDP H2 storage assets.
+    p2g_shares_fn : str
+        Path to CSV file containing P2G shares for each electrolyser link.
     tyndp_stores : list[str]
         TYNDP storage technologies to add (`H2 tank-storage`, `H2 cavern-storage`).
 
@@ -4538,6 +4575,7 @@ def add_h2_topology_tyndp(
         costs=costs,
         spatial=spatial,
         smr_fn=smr_fn,
+        p2g_shares_fn=p2g_shares_fn,
         options=options,
     )
 
@@ -5109,6 +5147,7 @@ def add_h2_gas_infrastructure(
     h2_demand_z1_file,
     h2_demand_z2_file,
     smr_fn,
+    p2g_shares_fn,
     h2_storages_fn,
     tyndp_stores,
 ):
@@ -5154,6 +5193,8 @@ def add_h2_gas_infrastructure(
         Path to CSV file containing exogenous Z2 hydrogen demand data.
     smr_fn : str
         Path to CSV file containing prepped TYNDP SMR and SMR CC assets.
+    p2g_shares_fn : str
+        Path to CSV file containing P2G shares for each electrolyser link.
     h2_storages_fn : str
         Path to CSV file containing prepped TYNDP H2 storage assets.
     tyndp_stores : list[str]
@@ -5187,6 +5228,7 @@ def add_h2_gas_infrastructure(
             h2_demand_z1_file=h2_demand_z1_file,
             h2_demand_z2_file=h2_demand_z2_file,
             smr_fn=smr_fn,
+            p2g_shares_fn=p2g_shares_fn,
             h2_storages_fn=h2_storages_fn,
             tyndp_stores=tyndp_stores,
         )
@@ -9850,6 +9892,7 @@ if __name__ == "__main__":
     tyndp_nuclear_profiles = None
     smr_capacities = None
     h2_storage_capacities = None
+    p2g_shares = None
 
     # Read in PEMMDB data and availability profiles
     enable_pemmdb_caps = snakemake.params.electricity["pemmdb_capacities"]["enable"]
@@ -9917,6 +9960,7 @@ if __name__ == "__main__":
         h2_demand_z1_file=snakemake.input.h2_demand_z1,
         h2_demand_z2_file=snakemake.input.h2_demand_z2,
         smr_fn=snakemake.input.get("tyndp_smr"),
+        p2g_shares_fn=snakemake.input.get("p2g_shares"),
         h2_storages_fn=snakemake.input.get("tyndp_h2_storages"),
         tyndp_stores=snakemake.params.tyndp_stores,
     )
@@ -9946,6 +9990,7 @@ if __name__ == "__main__":
     if options["h2_topology_tyndp"]:
         smr_capacities = pd.read_csv(snakemake.input.tyndp_smr, index_col=0)
         h2_storage_capacities = pd.read_csv(snakemake.input.tyndp_h2_storages)
+        p2g_shares = pd.read_csv(snakemake.input.p2g_shares)
 
     if enable_pemmdb_caps or options["h2_topology_tyndp"]:
         add_existing_tyndp_capacities(
@@ -9954,6 +9999,7 @@ if __name__ == "__main__":
             pemmdb_profiles=pemmdb_profiles,
             smr_capacities=smr_capacities,
             h2_storage_capacities=h2_storage_capacities,
+            p2g_shares=p2g_shares,
             tyndp_renewable_carriers=tyndp_renewable_carriers,
             tyndp_conventional_thermals=tyndp_conventional_thermals,
             h2_topology_tyndp=options["h2_topology_tyndp"],
