@@ -20,10 +20,9 @@ from scripts._helpers import configure_logging, get_snapshots, set_scenario_conf
 logger = logging.getLogger(__name__)
 
 OPSD_DATE_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
-TYNDP_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 
-def load_timeseries(fn, years, countries, date_format=None, countries_regex=False):
+def load_timeseries(fn, years, countries, date_format=None):
     """
     Read and pre-filter load data.
 
@@ -36,9 +35,6 @@ def load_timeseries(fn, years, countries, date_format=None, countries_regex=Fals
         File name or url location (file format .csv)
     countries : listlike
         Countries for which to read load data.
-    countries_regex : bool
-        If True, use regex-based partial matching on column names.
-        If False, filter columns by exact country name match (default).
 
     Returns
     -------
@@ -51,10 +47,7 @@ def load_timeseries(fn, years, countries, date_format=None, countries_regex=Fals
         .dropna(how="all", axis=0)
         .rename(columns={"GB_UKM": "GB"})
     )
-    if countries_regex:
-        df = df.filter(regex="|".join(countries))
-    else:
-        df = df.filter(items=countries)
+    df = df.filter(items=countries)
     if years is not None:
         df = df.loc[years]
     return df
@@ -268,95 +261,70 @@ if __name__ == "__main__":
 
     time_shift = snakemake.params.load["fill_gaps"]["time_shift_for_large_gaps"]
 
-    if snakemake.params.load["source"] == "tyndp":
-        planning_slice = slice(
-            str(snakemake.wildcards.horizon),
-            str(snakemake.wildcards.horizon),
+    opsd = load_timeseries(snakemake.input.opsd, years, countries, OPSD_DATE_FORMAT)
+
+    entsoe = load_timeseries(snakemake.input.entsoe, years, countries)
+
+    neso = load_timeseries(snakemake.input.neso, years, countries)
+
+    load = entsoe.combine_first(opsd).combine_first(neso)
+
+    # zero values are considered missing values
+    load.replace(0, np.nan, inplace=True)
+
+    if "UA" in countries:
+        # use 2021 as template for filling missing years
+        s = load.loc["2021", "UA"]
+        fill_values = repeat_years(s, range(2010, 2026))
+        load["UA"] = load["UA"].combine_first(fill_values)
+
+    if "MD" in countries:
+        # use 2022 as template for filling missing years
+        s = load.loc["2022", "MD"]
+        fill_values = repeat_years(s, range(2010, 2025))
+        load["MD"] = load["MD"].combine_first(fill_values)
+
+    if "AL" in countries:
+        # use 2024 as template for filling missing and erroneous years
+        s = load.loc["2024", "AL"]
+        fill_values = repeat_years(s, range(2010, 2026))
+        load.loc[fill_values.index, "AL"] = fill_values
+
+    if "BA" in countries:
+        # use 2024 as template for filling missing and erroneous years
+        s = load.loc["2024", "BA"]
+        fill_values = repeat_years(s, range(2010, 2026))
+        load["BA"] = load["BA"].combine_first(fill_values)
+
+    if "XK" in countries:
+        # use 2024 as template for filling missing and erroneous years
+        s = load.loc["2024", "XK"]
+        fill_values = repeat_years(s, range(2010, 2024))
+        load["XK"] = load["XK"].combine_first(fill_values)
+
+    if "MK" in countries:
+        # use 2024 as template for filling missing and erroneous years
+        s = load.loc["2024", "MK"]
+        fill_values = repeat_years(s, range(2025, 2026))
+        load["MK"] = load["MK"].combine_first(fill_values)
+
+    if "CY" in countries:
+        # use 2021 as template for filling missing years
+        s = load.loc["2021", "CY"]
+        fill_values = repeat_years(s, range(2010, 2026))
+        load["CY"] = load["CY"].combine_first(fill_values)
+
+    if snakemake.params.load["manual_adjustments"]:
+        load = manual_adjustment(load, snakemake.input[0], countries)
+
+    if snakemake.params.load["fill_gaps"]["enable"]:
+        logger.info(f"Linearly interpolate gaps of size {interpolate_limit} and less.")
+        load = load.interpolate(method="linear", limit=interpolate_limit)
+
+        logger.info(
+            f"Filling larger gaps by copying time-slices of period '{time_shift}'."
         )
-
-        load = load_timeseries(
-            snakemake.input.tyndp,
-            planning_slice,
-            countries,
-            TYNDP_DATE_FORMAT,
-            countries_regex=True,
-        )
-
-        # need to reindex load time series to snapshots year
-        sns_year = snapshots[0].year
-        if sns_year != snapshots[-1].year:
-            logger.warning(
-                "Snapshots covers more than one year, consider limiting your analysis to a single full year."
-            )
-        load.index = load.index.map(lambda t: t.replace(year=sns_year))
-    else:
-        opsd = load_timeseries(snakemake.input.opsd, years, countries, OPSD_DATE_FORMAT)
-
-        entsoe = load_timeseries(snakemake.input.entsoe, years, countries)
-
-        neso = load_timeseries(snakemake.input.neso, years, countries)
-
-        load = entsoe.combine_first(opsd).combine_first(neso)
-
-        # zero values are considered missing values
-        load.replace(0, np.nan, inplace=True)
-
-        if "UA" in countries:
-            # use 2021 as template for filling missing years
-            s = load.loc["2021", "UA"]
-            fill_values = repeat_years(s, range(2010, 2026))
-            load["UA"] = load["UA"].combine_first(fill_values)
-
-        if "MD" in countries:
-            # use 2022 as template for filling missing years
-            s = load.loc["2022", "MD"]
-            fill_values = repeat_years(s, range(2010, 2025))
-            load["MD"] = load["MD"].combine_first(fill_values)
-
-        if "AL" in countries:
-            # use 2024 as template for filling missing and erroneous years
-            s = load.loc["2024", "AL"]
-            fill_values = repeat_years(s, range(2010, 2026))
-            load.loc[fill_values.index, "AL"] = fill_values
-
-        if "BA" in countries:
-            # use 2024 as template for filling missing and erroneous years
-            s = load.loc["2024", "BA"]
-            fill_values = repeat_years(s, range(2010, 2026))
-            load["BA"] = load["BA"].combine_first(fill_values)
-
-        if "XK" in countries:
-            # use 2024 as template for filling missing and erroneous years
-            s = load.loc["2024", "XK"]
-            fill_values = repeat_years(s, range(2010, 2024))
-            load["XK"] = load["XK"].combine_first(fill_values)
-
-        if "MK" in countries:
-            # use 2024 as template for filling missing and erroneous years
-            s = load.loc["2024", "MK"]
-            fill_values = repeat_years(s, range(2025, 2026))
-            load["MK"] = load["MK"].combine_first(fill_values)
-
-        if "CY" in countries:
-            # use 2021 as template for filling missing years
-            s = load.loc["2021", "CY"]
-            fill_values = repeat_years(s, range(2010, 2026))
-            load["CY"] = load["CY"].combine_first(fill_values)
-
-    if snakemake.params.load["source"] != "tyndp":
-        if snakemake.params.load["manual_adjustments"]:
-            load = manual_adjustment(load, snakemake.input[0], countries)
-
-        if snakemake.params.load["fill_gaps"]["enable"]:
-            logger.info(
-                f"Linearly interpolate gaps of size {interpolate_limit} and less."
-            )
-            load = load.interpolate(method="linear", limit=interpolate_limit)
-
-            logger.info(
-                f"Filling larger gaps by copying time-slices of period '{time_shift}'."
-            )
-            load = load.apply(fill_large_gaps, shift=time_shift)
+        load = load.apply(fill_large_gaps, shift=time_shift)
 
     if snakemake.params.load["supplement_synthetic"]:
         logger.info("Supplement missing data with synthetic data.")
