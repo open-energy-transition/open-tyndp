@@ -593,13 +593,13 @@ if __name__ == "__main__":
             run="NT",
             cba_project="t335",
             horizon="2030",
-            configfiles=["config/config.tyndp.yaml"],
+            configfiles=["config/test/config.tyndp.yaml"],
         )
         # snakemake = mock_snakemake(
         #     "plot_summary_projects_benchmark",
         #     run="NT",
         #     horizon="2030",
-        #     configfiles=["config/config.tyndp.yaml"],
+        #     configfiles=["config/test/config.tyndp.yaml"],
         # )
 
     configure_logging(snakemake)
