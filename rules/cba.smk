@@ -131,6 +131,7 @@ checkpoint clean_projects:
         carrier_mapping="data/tyndp_technology_map.csv",
         cba_project_corrections="data/cba/cba_project_corrections.csv",
         custom_transmission="data/cba/custom_projects/transmission_projects.csv",
+        custom_buses="data/cba/custom_projects/buses.csv",
         custom_generators_static="data/cba/custom_projects/generators_static.csv",
         custom_generators_dynamic="data/cba/custom_projects/generators_dynamic.csv",
     output:
@@ -139,6 +140,7 @@ checkpoint clean_projects:
         methods=resources("cba/cba_project_methods.csv"),
         generator_projects_static=resources("cba/generator_projects_static.csv"),
         generator_projects_dynamic=resources("cba/generator_projects_dynamic.csv"),
+        buses=resources("cba/buses.csv"),
     log:
         logs("cba/clean_projects.log"),
     benchmark:
@@ -362,6 +364,7 @@ rule prepare_project:
         storage_projects=rules.clean_projects.output.storage_projects,
         generator_projects_static=rules.clean_projects.output.generator_projects_static,
         generator_projects_dynamic=rules.clean_projects.output.generator_projects_dynamic,
+        buses=rules.clean_projects.output.buses,
         methods=rules.clean_projects.output.methods,
         costs=resources("costs_{horizon}_processed.csv"),
     output:
