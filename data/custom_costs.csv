@@ -198,3 +198,5 @@ all,2030,BtL,efficiency,0.6,per unit,"TYNDP 2026 Supply Tool NT+ SCN 2026, Conve
 all,2035,BtL,efficiency,0.63,per unit,"TYNDP 2026 Supply Tool NT+ SCN 2026, Conversion factors",NCV
 all,2040,BtL,efficiency,0.66,per unit,"TYNDP 2026 Supply Tool NT+ SCN 2026, Conversion factors",NCV
 all,2050,BtL,efficiency,0.7,per unit,"TYNDP 2026 Supply Tool NT+ SCN 2026, Conversion factors",NCV
+all,all,hybrid gas boiler,efficiency,0.925926,per unit,"TYNDP 2026 NT+ KPI Dashboard, CH4 for HHP Boilers vs. Heat Production from CH4 HHP","Dashboards imply a heat rate of 1.08 GJ/GJ (efficiency 1/1.08), not the 1.0753 GJ/GJ given in Heat/HHP_CH4_BOILERS.xlsx"
+all,all,hybrid H2 boiler,efficiency,1.08,per unit,"TYNDP 2026 NT+ TimeSeriesDashboard, H2 Boiler (load) vs. H2 Boiler heat","Dashboards imply heat = 1.08 x H2 input, not the 1.0753 GJ/GJ heat rate given in Heat/HHP_H2_BOILERS.xlsx"

@@ -28,6 +28,9 @@ logger = logging.getLogger(__name__)
 
 pypsa.options.params.statistics.nice_names = False
 
+HYBRID_HEAT_CARRIERS = ["CH4 hybrid heat", "H2 hybrid heat"]
+HYBRID_HEAT_PUMPS = ["CH4 hybrid air heat pump", "H2 hybrid air heat pump"]
+
 
 def add_benchmarking_mappings(
     carrier_mapping_fn: str, tables: dict, group_tyndp_conventionals: bool = False
@@ -246,14 +249,15 @@ def compute_benchmark(
         ) * (1e6 * year_share)
 
         df = pd.concat([df_countries, df_eu])
+        df = df[~df.index.isin(HYBRID_HEAT_CARRIERS)]
     elif table in ["electricity_demand", "electricity_prosumer_demand"]:
         grouper = ["carrier"]
         carriers = ["electricity prosumer", "electricity prosumer btm"]
         if table == "electricity_demand":
-            carriers = ["electricity"] + carriers
+            carriers = ["electricity"] + carriers + HYBRID_HEAT_PUMPS
         df = (
             n.statistics.energy_balance(
-                comps="Load",
+                comps=demand_comps,
                 bus_carrier=elec_bus_carrier,
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
@@ -340,7 +344,7 @@ def compute_benchmark(
             "SRES grid connection",
             "BEV charger",
             "V2G",
-        ]
+        ] + HYBRID_HEAT_PUMPS
         pumps = ["hydro-phs-pump", "hydro-phs-pure-pump"]
         df = (
             n.statistics.optimal_capacity(
@@ -418,6 +422,19 @@ def compute_benchmark(
             .sum()
         )
         df = pd.concat([df, df_curtailment])
+    elif table == "hybrid_heating":
+        grouper = ["carrier"]
+        df = (
+            n.statistics.supply(
+                comps="Link",
+                bus_carrier=HYBRID_HEAT_CARRIERS,
+                groupby=["bus"] + grouper,
+                aggregate_across_components=True,
+            )
+            .rename(index=n.buses.location.to_dict(), level="bus")
+            .groupby(["bus"] + grouper)
+            .sum()
+        )
     elif table in [
         "electricity_demand_shedding_hours",
         "hydrogen_demand_shedding_hours",
