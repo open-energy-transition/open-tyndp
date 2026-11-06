@@ -291,7 +291,7 @@ def load_non_co2_emission_factors(path: str) -> pd.DataFrame:
     Returns
     -------
     pandas.DataFrame
-        A DataFrame containing the mean non-CO2 emission factors for each fuel type.
+        A DataFrame containing the mean non-CO2 emission factors (in kg/MWh) for each fuel type.
     """
     df = pd.read_csv(path, encoding="utf-8-sig")
     df = df[df["Fuel"].notna()]
@@ -311,6 +311,7 @@ def load_non_co2_emission_factors(path: str) -> pd.DataFrame:
     )
     factors["Fuel"] = df["Fuel"]
     df_mean = factors.groupby("Fuel")[list(pollutant_cols.values())].mean()
+    df_mean = df_mean * 3.6  # convert from kg/GJ to kg/MWh (1 MWh = 3.6 GJ)
     return df_mean
 
 
