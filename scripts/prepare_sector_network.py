@@ -2833,8 +2833,14 @@ def add_existing_tyndp_capacities(
                 for car in tyndp_solar_wind:
                     gens_i = n.generators.index[n.generators.carrier == car]
                     caps = ppl.query("carrier == @car").groupby("bus").p_nom.sum()
+                    lost = caps[~caps.index.isin(n.buses.index) & (caps > 0)]
+                    if not lost.empty:
+                        logger.warning(
+                            f"Dropping {lost.sum():.0f} MW of {car} on buses not in "
+                            f"the network ({', '.join(lost.index)})."
+                        )
                     caps_i = n.generators.loc[gens_i, "bus"].map(caps).fillna(0.0)
-                    n.generators.loc[gens_i, "p_nom"] = caps_i
+                    n.generators.loc[gens_i, ["p_nom", "p_nom_min"]] = caps_i
 
         # Add existing hydro capacities and inflows from PEMMDB
         if [c for c in tyndp_renewable_carriers if c.startswith("hydro")]:
@@ -8767,6 +8773,39 @@ def cluster_heat_buses(n):
         n.add(c.name, df.loc[to_add].index, **df.loc[to_add])
 
 
+def scale_ramp_limits(n: pypsa.Network) -> None:
+    """
+    Scale hourly ramp limits to match snapshot durations for generators and links.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        PyPSA network with ramp limits given per unit of nominal power per hour.
+
+    Returns
+    -------
+    None
+        Modifies the network in-place. Ramp limits that are constant across
+        snapshots are set as static values. Otherwise, they are set as
+        time-varying values and the static ones are reset to their default.
+    """
+    hours = n.snapshot_weightings.generators
+    for c in n.components[{"Generator", "Link"}]:
+        for attr in ["ramp_limit_up", "ramp_limit_down"]:
+            limits = n.get_switchable_as_dense(c.name, attr).dropna(axis=1, how="all")
+            if limits.empty:
+                continue
+            logger.info(
+                f"Scale {attr} of {limits.shape[1]} {c.list_name} to match snapshot durations."
+            )
+            scaled = limits.mul(hours, axis=0).clip(upper=1.0)
+            is_constant = scaled.eq(scaled.iloc[0]).all()
+            c.static.loc[limits.columns, attr] = scaled.iloc[0].where(
+                is_constant, c.defaults.at[attr, "default"]
+            )
+            c.dynamic[attr] = scaled.loc[:, ~is_constant]
+
+
 def set_temporal_aggregation(n, temporal, snapshot_weightings):
     """
     Aggregate time-varying data according to `clustering.temporal` config.
@@ -8780,6 +8819,7 @@ def set_temporal_aggregation(n, temporal, snapshot_weightings):
         logger.info("Use every %s snapshot as representative", value)
         n.set_snapshots(n.snapshots[::value])
         n.snapshot_weightings *= value
+        scale_ramp_limits(n)
         return n
     else:
         # Averaging and segmentation use the precomputed snapshot weightings
@@ -8815,6 +8855,8 @@ def set_temporal_aggregation(n, temporal, snapshot_weightings):
                         pnl[k] = df.groupby(aggregation_map).max()
                     else:
                         pnl[k] = df.groupby(aggregation_map).mean()
+
+        scale_ramp_limits(m)
 
         return m
 
@@ -9448,9 +9490,9 @@ def main(
 
     if inputs.tyndp_electricity_ntc:
         logger.info(
-            f"Overlaying TYNDP electricity NTC for planning horizon {investment_year}"
+            f"Overlaying TYNDP electricity NTC for planning horizon {current_horizon}"
         )
-        apply_tyndp_electricity_ntc(n, inputs.tyndp_electricity_ntc, investment_year)
+        apply_tyndp_electricity_ntc(n, inputs.tyndp_electricity_ntc, current_horizon)
 
     if params.load["source"] == "tyndp":
         logger.info(
@@ -9489,7 +9531,7 @@ def main(
     )
     tyndp_renewable_carriers = params.electricity["tyndp_renewable_carriers"]
     profiles_pecd = {
-        f"profile_{k}": inputs.get(f"profile_pecd_{v}")
+        f"profile_{k}": inputs.get(f"pecd_profile_{v}")
         for k, v in profiles_pecd.items()
         if k in tyndp_renewable_carriers
     }
@@ -9618,7 +9660,7 @@ def main(
         h2_demand_z2_file=inputs.h2_demand_z2,
         smr_fn=inputs.get("tyndp_smr"),
         h2_storages_fn=inputs.get("tyndp_h2_storages"),
-        tyndp_stores=params.tyndp_stores,
+        tyndp_stores=params.electricity["tyndp_stores"],
     )
 
     # Hydrogen already implemented in add_h2_gas_infrastructure
@@ -9659,13 +9701,13 @@ def main(
             tyndp_conventional_thermals=tyndp_conventional_thermals,
             h2_topology_tyndp=options["h2_topology_tyndp"],
             smr_ramp_limits=options["smr_ramp_limits_tyndp"],
-            tyndp_stores=params.tyndp_stores,
+            tyndp_stores=params.electricity["tyndp_stores"],
             costs=costs,
             profiles_pecd=profiles_pecd,
             nuclear_profiles=tyndp_nuclear_profiles,
-            hydro_inflows_fn=inputs.profile_pecd_hydro,
+            hydro_inflows_fn=inputs.pecd_hydro_profile,
             extendable_carriers=params.electricity["extendable_carriers"],
-            investment_year=investment_year,
+            investment_year=current_horizon,
             enable_pemmdb_caps=enable_pemmdb_caps,
             group_conventionals=params.electricity["group_tyndp_conventionals"],
         )
@@ -9743,7 +9785,7 @@ def main(
             pop_layout=pop_layout,
             biomass_potentials_file=inputs.biomass_potentials,
             nhours=nhours,
-            investment_year=investment_year,
+            investment_year=current_horizon,
             biomass_transport_costs_file=inputs.biomass_transport_costs,
             nyears=nyears,
         )
@@ -9764,7 +9806,7 @@ def main(
             options=options,
             spatial=spatial,
             cf_industry=cf_industry,
-            investment_year=investment_year,
+            investment_year=current_horizon,
         )
 
     if options["shipping"]:

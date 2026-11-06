@@ -250,7 +250,7 @@ def input_all_tyndp(w):
     run_names = config["run"]["name"]
     for run_name in run_names if isinstance(run_names, list) else [run_names]:
         scen = scenario_config(run_name) if run_name in scenarios else config
-        if not get_config(scen, ("benchmarking", "enable")):
+        if not navigate_config(scen, ("benchmarking", "enable")):
             continue
         files.extend(
             expand(

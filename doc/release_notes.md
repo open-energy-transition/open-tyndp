@@ -150,6 +150,8 @@
 
 * **Breaking:** The linear approximation of AC line losses (`solving: options: transmission_losses`) now uses secants instead of tangents, which underestimates losses less. The option now takes `false`, `true` (PyPSA defaults) or a dict passed to PyPSA (default `{mode: secants, atol: 15, rtol: 0.5}`). Integers are deprecated; use `{mode: tangents, segments: 2}` for the previous behaviour ([#2301](https://github.com/PyPSA/pypsa-eur/pull/2301)).
 
+* Fix: `build_swiss_energy_balances` now reads the October 2026 edition of the Swiss energy balances (data for 2000-2025), which renamed table rows. ([#2380](https://github.com/PyPSA/pypsa-eur/pull/2380)).
+
 ## PyPSA-Eur v2026.09.0 (25th September 2026)
 
 **Streamlined Workflow**
@@ -301,8 +303,6 @@ for file name mappings and configuration changes in detail.
   ([#2275](https://github.com/PyPSA/pypsa-eur/pull/2275)).
 
 * **Breaking:** `electricity: max_hours: iron-air` now counts hours at rated output rather than hours of stored energy, matching how duration and cost per kWh are quoted for iron-air. The store is therefore sized by `max_hours / efficiency_dispatch`, and the store cost of iron-air added as `Store` is converted to cost per MWh stored. Cost per MW is unchanged, so iron-air becomes more capable per euro and results including it will change ([#2298](https://github.com/PyPSA/pypsa-eur/pull/2298)).
-
-* Fix: `build_swiss_energy_balances` now reads the October 2026 edition of the Swiss energy balances (data for 2000-2025), which renamed table rows. ([#2380](https://github.com/PyPSA/pypsa-eur/pull/2380)).
 
 ## PyPSA-Eur v2026.08.0 (19th August 2026, merged 23rd September 2026)
 

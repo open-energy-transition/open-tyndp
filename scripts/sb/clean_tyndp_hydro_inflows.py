@@ -80,7 +80,6 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "clean_tyndp_hydro_inflows",
-            clusters="all",
             horizon=2030,
             tech="HRR",
             configfiles="config/test/config.tyndp.yaml",

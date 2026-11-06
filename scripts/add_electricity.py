@@ -603,6 +603,14 @@ def attach_wind_and_solar(
         landfall_length = landfall_lengths.get(car, 0.0)
 
         with xr.open_dataset(profile_filenames["profile_" + car]) as ds:
+            missing = ds.indexes["bus"].difference(n.buses.index)
+            if not missing.empty:
+                logger.warning(
+                    f"Skipping {car} on {len(missing)} buses not in the network "
+                    f"({', '.join(missing)})."
+                )
+                ds = ds.drop_sel(bus=missing)
+
             if ds.indexes["bus"].empty:
                 continue
 

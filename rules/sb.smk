@@ -79,7 +79,7 @@ if not "pre-built" in PECD_DATASET["version"]:
         else:
             return f"{str(int(major)+1)}.0"
 
-    rule prepare_pecd_release:
+    rule prepare_tyndp_pecd_release:
         input:
             pecd_raw=PECD_DATASET["folder"],
         output:
@@ -257,11 +257,11 @@ rule build_tyndp_nuclear_profiles:
     input:
         dashboard_dir=rules.retrieve_tyndp_2026.output.market_outputs,
     output:
-        resources("tyndp_nuclear_profiles/nuclear_p_max_pu_{planning_horizons}.csv"),
+        resources("tyndp_nuclear_profiles/nuclear_p_max_pu_{horizon}.csv"),
     log:
-        logs("build_tyndp_nuclear_profiles_{planning_horizons}.log"),
+        logs("build_tyndp_nuclear_profiles_{horizon}.log"),
     benchmark:
-        benchmarks("performances/build_tyndp_nuclear_profiles_{planning_horizons}")
+        benchmarks("performances/build_tyndp_nuclear_profiles_{horizon}")
     threads: 4
     resources:
         mem_mb=2000,
@@ -326,7 +326,7 @@ rule build_tyndp_hydro_profile:
         unpack(input_data_hydro_tyndp),
         carrier_mapping="data/tyndp_technology_map.csv",
     output:
-        profile=resources("profile_pecd_hydro.nc"),
+        profile=resources("pecd_hydro_profile.nc"),
     log:
         logs("build_tyndp_hydro_profile.log"),
     benchmark:
@@ -420,18 +420,18 @@ rule build_tyndp_wheeling_charges:
 
 rule build_tyndp_ev_fleets:
     input:
-        ev_market=resources("demand_tyndp_ev_market_{planning_horizons}.csv"),
-        ev_prosumer=resources("demand_tyndp_ev_prosumer_{planning_horizons}.csv"),
+        ev_market=resources("demand_tyndp_ev_market_{horizon}.csv"),
+        ev_prosumer=resources("demand_tyndp_ev_prosumer_{horizon}.csv"),
         ev_modelling=rules.retrieve_tyndp_2026.output.ev_modelling,
     output:
-        ev_demand=resources("ev_demand_tyndp_{planning_horizons}.csv"),
-        ev_fleets=resources("ev_fleets_tyndp_{planning_horizons}.csv"),
-        avail_profile=resources("avail_profile_tyndp_{planning_horizons}.csv"),
-        dsm_profile=resources("dsm_profile_tyndp_{planning_horizons}.csv"),
+        ev_demand=resources("ev_demand_tyndp_{horizon}.csv"),
+        ev_fleets=resources("ev_fleets_tyndp_{horizon}.csv"),
+        avail_profile=resources("avail_profile_tyndp_{horizon}.csv"),
+        dsm_profile=resources("dsm_profile_tyndp_{horizon}.csv"),
     log:
-        logs("build_tyndp_ev_fleets_{planning_horizons}.log"),
+        logs("build_tyndp_ev_fleets_{horizon}.log"),
     benchmark:
-        benchmarks("performances/build_tyndp_ev_fleets_{planning_horizons}")
+        benchmarks("performances/build_tyndp_ev_fleets_{horizon}")
     conda:
         "../envs/environment.yaml"
     threads: 1
@@ -519,20 +519,16 @@ if config["sector"]["h2_topology_tyndp"]:
 
 rule group_tyndp_conventionals:
     input:
-        pemmdb_capacities=resources("pemmdb_capacities_{planning_horizon}.csv"),
-        pemmdb_profiles=resources("pemmdb_profiles_{planning_horizon}.nc"),
+        pemmdb_capacities=resources("pemmdb_capacities_{horizon}.csv"),
+        pemmdb_profiles=resources("pemmdb_profiles_{horizon}.nc"),
         carrier_mapping="data/tyndp_technology_map.csv",
     output:
-        pemmdb_capacities_grouped=resources(
-            "pemmdb_capacities_{planning_horizon}_grouped.csv"
-        ),
-        pemmdb_profiles_grouped=resources(
-            "pemmdb_profiles_{planning_horizon}_grouped.nc"
-        ),
+        pemmdb_capacities_grouped=resources("pemmdb_capacities_{horizon}_grouped.csv"),
+        pemmdb_profiles_grouped=resources("pemmdb_profiles_{horizon}_grouped.nc"),
     log:
-        logs("group_tyndp_conventionals_{planning_horizon}.log"),
+        logs("group_tyndp_conventionals_{horizon}.log"),
     benchmark:
-        benchmarks("performances/group_tyndp_conventionals_{planning_horizon}")
+        benchmarks("performances/group_tyndp_conventionals_{horizon}")
     conda:
         "../envs/environment.yaml"
     threads: 1
@@ -649,7 +645,7 @@ if config["benchmarking"]["enable"]:
         input:
             results=expand(
                 RESULTS + "benchmarks/tyndp-2026/resources/benchmarks_{horizon}.csv",
-                horizon=config["planning_horizons"],
+                horizon=config_provider("planning_horizons"),
                 allow_missing=True,
             ),
             benchmarks=RESULTS + "benchmarks/tyndp-2026/resources/benchmarks_tyndp.csv",
@@ -658,7 +654,7 @@ if config["benchmarking"]["enable"]:
                     RESULTS
                     + "benchmarks/tyndp-2026/resources/benchmarks_tyndp_dashboard_{scenario}{horizon}.csv",
                     scenario=config_provider("tyndp_scenario"),
-                    horizon=config_provider("planning_horizons")(w),
+                    horizon=config_provider("planning_horizons"),
                     allow_missing=True,
                 )
                 if config_provider("tyndp_scenario")(w)
@@ -688,7 +684,7 @@ if config["benchmarking"]["enable"]:
         input:
             results=expand(
                 RESULTS + "benchmarks/tyndp-2026/resources/benchmarks_{horizon}.csv",
-                horizon=config["planning_horizons"],
+                horizon=config_provider("planning_horizons"),
                 allow_missing=True,
             ),
             dashboard_data=lambda w: (
@@ -696,7 +692,7 @@ if config["benchmarking"]["enable"]:
                     RESULTS
                     + "benchmarks/tyndp-2026/resources/benchmarks_tyndp_dashboard_{scenario}{horizon}.csv",
                     scenario=config_provider("tyndp_scenario"),
-                    horizon=config_provider("planning_horizons")(w),
+                    horizon=config_provider("planning_horizons"),
                     allow_missing=True,
                 )
                 if config_provider("tyndp_scenario")(w)
