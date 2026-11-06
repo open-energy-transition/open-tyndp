@@ -65,15 +65,16 @@ if (NUC_PROFILES := dataset_version("tyndp_nuclear_profiles"))[
             os.remove(output["dir"] + ".zip")
 
 
-if (PRESOLVED_NETWORKS_DATASET := dataset_version("open_tyndp_prelim"))[
-    "source"
-] in ARCHIVE_SOURCES:
+if PRESOLVED_NETWORKS_DATASET["source"] in ARCHIVE_SOURCES:
 
     rule retrieve_presolved_networks:
         input:
             zip_file=storage(PRESOLVED_NETWORKS_DATASET["url"]),
         output:
-            network=f"{PRESOLVED_NETWORKS_DATASET['folder']}/base_s_all___{{horizon}}.nc",
+            network=f"{PRESOLVED_NETWORKS_DATASET['folder']}/"
+            + get_solved_network_name(
+                PRESOLVED_NETWORKS_DATASET["version"], "{horizon}"
+            ),
         log:
             "logs/retrieve_presolved_networks_{horizon}.log",
         run:
@@ -81,7 +82,7 @@ if (PRESOLVED_NETWORKS_DATASET := dataset_version("open_tyndp_prelim"))[
             from shutil import copyfileobj
             from zipfile import ZipFile
 
-            target_suffix = f"networks/base_s_all___{wildcards.horizon}.nc"
+            target_suffix = f"networks/{Path(output['network']).name}"
             with ZipFile(input["zip_file"], "r") as zf:
                 matches = [m for m in zf.namelist() if m.endswith(target_suffix)]
                 if not matches:
@@ -1130,14 +1131,15 @@ rule close_explorers:
             print(f"Closed {killed_count} explorer instance(s).")
 
 
-if (PRESOLVED_NETWORKS_DATASET := dataset_version("open_tyndp_prelim"))[
-    "source"
-] in ARCHIVE_SOURCES:
+if PRESOLVED_NETWORKS_DATASET["source"] in ARCHIVE_SOURCES:
 
     use rule launch_explorer as launch_presolved_explorer with:
         input:
             expand(
-                f"{PRESOLVED_NETWORKS_DATASET['folder']}/base_s_all___{{horizon}}.nc",
+                f"{PRESOLVED_NETWORKS_DATASET['folder']}/"
+                + get_solved_network_name(
+                    PRESOLVED_NETWORKS_DATASET["version"], "{horizon}"
+                ),
                 horizon=config["planning_horizons"],
             ),
         output:

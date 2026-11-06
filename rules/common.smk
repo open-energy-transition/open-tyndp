@@ -12,6 +12,7 @@ import requests
 import pandas as pd
 import json
 import yaml
+from packaging.version import Version
 
 path = workflow.source_path("../scripts/_helpers.py")
 sys.path.insert(0, os.path.dirname(path))
@@ -228,6 +229,17 @@ def dataset_version(
         ).as_posix()
 
     return dataset
+
+
+def get_solved_network_name(version: str, horizon: int | str) -> str:
+    """
+    Return the file name of a solved SB network in an Open-TYNDP release.
+
+    Releases from v0.10 onwards follow the PyPSA-Eur#1838 naming.
+    """
+    if Version(version) >= Version("0.10"):
+        return f"solved_{horizon}.nc"
+    return f"base_s_all___{horizon}.nc"
 
 
 def solver_threads(w):
