@@ -49,14 +49,11 @@ from pathlib import Path
 
 import pandas as pd
 
-from scripts._helpers import (
-    configure_logging,
-    get_snapshots,
-    set_scenario_config,
-)
+from scripts._helpers import configure_logging, get_snapshots, set_scenario_config
 from scripts.sb._helpers import (
     align_demand_to_snapshots,
     check_snapshot_year,
+    format_bz_names,
     get_wscenario,
 )
 
@@ -307,7 +304,7 @@ def read_demand_excel(
         if demand_type in GJ_DEMAND_TYPES:
             demand = demand * GJ_TO_MWH
         # Rename UK in GB
-        demand.columns = demand.columns.str.replace("UK", "GB")
+        demand.columns = format_bz_names(demand.columns.to_series())
         demand.columns.name = "Bus"
         demand.index.name = DEMAND_TYPE_UNITS[demand_type]
         demand = drop_zero_demand_columns(demand)
