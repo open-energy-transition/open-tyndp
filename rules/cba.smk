@@ -9,6 +9,7 @@ from pathlib import Path
 from zipfile import ZipFile
 
 import pandas as pd
+from packaging.version import Version
 from snakemake.logging import logger
 
 from scripts.cba._helpers import filter_projects_by_specs
@@ -73,12 +74,21 @@ def get_run_name(w):
     return run or ""
 
 
+def presolved_sb_network_file(sb_version: str, horizon: int | str) -> str:
+    version = dataset_version("open_tyndp_prelim", version=sb_version)["version"]
+    if Version(version) >= Version("0.10"):
+        filename = f"solved_{horizon}.nc"
+    else:
+        filename = f"base_s_all___{horizon}.nc"
+    return RESULTS + f"networks/presolved-{sb_version}/{filename}"
+
+
 def presolved_sb_network_path(w, horizon=None):
     sb_version = config_provider(
         "cba", "cba_scenario_input", "sb_version", default="latest"
     )(w)
     target_horizon = horizon if horizon is not None else w.horizon
-    return RESULTS + f"networks/presolved-{sb_version}/base_s_all___{target_horizon}.nc"
+    return presolved_sb_network_file(sb_version, target_horizon)
 
 
 if config.get("cba", {}).get("cba_scenario_input", {}).get("use_presolved", False):
@@ -95,12 +105,11 @@ if config.get("cba", {}).get("cba_scenario_input", {}).get("use_presolved", Fals
             input:
                 zip_file=storage(SB_SOLVED_NETWORKS_DATASET["url"]),
             output:
-                network=RESULTS
-                + f"networks/presolved-{config['cba']['cba_scenario_input']['sb_version']}/base_s_all___{{horizon}}.nc",
+                network=presolved_sb_network_file(sb_version, "{horizon}"),
             log:
                 logs("cba/retrieve_presolved_sb_networks_{horizon}.log"),
             run:
-                target_suffix = f"networks/base_s_all___{wildcards.horizon}.nc"
+                target_suffix = f"networks/{Path(output['network']).name}"
                 with ZipFile(input["zip_file"], "r") as zf:
                     matches = [
                         m for m in zf.namelist() if m.endswith(target_suffix)
@@ -178,8 +187,8 @@ def input_sb_network(w):
         if config_provider("clustering", "cluster_network", "n_clusters")(w) != "all":
             raise ValueError(
                 "Pre-solved SB runs from releases < v0.10 require "
-                "clustering.cluster_network.n_clusters='all' to match their Zenodo "
-                "network naming (base_s_all___{horizon}.nc)."
+                "clustering.cluster_network.n_clusters='all' to match "
+                "the configuration of the pre-solved SB networks."
             )
         horizon = _effective_horizon(
             int(w.horizon),
