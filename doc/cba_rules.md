@@ -90,14 +90,7 @@ Solves the CBA network using the rolling horizon approach. Shares the script wit
 ### Rule `plot_cba_benchmark`
 
 Plots per-project indicator benchmarking charts comparing computed indicators against
-TYNDP 2024 reference values. Shares the script with [`plot_weather_benchmark`](#rule-plot_weather_benchmark).
-
-::: plot_benchmark_indicators
-
-### Rule `plot_weather_benchmark`
-
-Plots weather ensemble benchmarking charts from indicators aggregated across climate years.
-Shares the script with [`plot_cba_benchmark`](#rule-plot_cba_benchmark).
+TYNDP 2024 reference values.
 
 ::: plot_benchmark_indicators
 
