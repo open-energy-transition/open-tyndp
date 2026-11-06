@@ -93,6 +93,7 @@ import pandas as pd
 
 from scripts._helpers import configure_logging, set_scenario_config
 from scripts.cba._helpers import get_pypsa_dynamic_attributes, read_csv_or_excel
+from scripts.sb._helpers import format_bz_names
 
 logger = logging.getLogger(__name__)
 
@@ -188,10 +189,8 @@ def read_tyndp_electricity_buses(
     """
     virtual_buses = virtual_buses if virtual_buses is not None else []
 
-    buses = (
-        pd.read_excel(buses_fn, sheet_name=sheet_name)
-        .replace("UK", "GB", regex=True)
-        .set_index(col_name)
+    buses = format_bz_names(pd.read_excel(buses_fn, sheet_name=sheet_name)).set_index(
+        col_name
     )
 
     if "OFFSHORE_NODE_TYPE" in buses.columns:
@@ -421,12 +420,10 @@ def extract_transmission_projects(
         **{c: projects[c].str.split("\n") for c in multiline_columns}
     ).explode(multiline_columns)
 
-    # Note: This dictionary is also defined in build_tyndp_network.py#build_links
-    replace_dict = {"UK": "GB"}
     projects = projects.assign(
-        **projects["border"]
-        .replace(replace_dict, regex=True)
-        .str.extract(r"(?P<bus0>[A-Za-z0-9]{4,}) ?- ?(?P<bus1>[A-Za-z0-9]{4,})$")
+        **format_bz_names(projects["border"]).str.extract(
+            r"(?P<bus0>[A-Za-z0-9]{4,}) ?- ?(?P<bus1>[A-Za-z0-9]{4,})$"
+        )
     )
 
     # For project t339, the border is given as ITCS-ITSI and ITSA-ITSI, when it should be connected to the virtual node ITVI instead: ITCS-ITVI and ITSA-ITVI
