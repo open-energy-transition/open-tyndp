@@ -4,9 +4,6 @@
 #
 
 import os
-import shutil
-from pathlib import Path
-from zipfile import ZipFile
 
 import pandas as pd
 from snakemake.logging import logger
@@ -78,42 +75,8 @@ def presolved_sb_network_path(w, horizon=None):
         "cba", "cba_scenario_input", "sb_version", default="latest"
     )(w)
     target_horizon = horizon if horizon is not None else w.horizon
-    return RESULTS + f"networks/presolved-{sb_version}/base_s_all___{target_horizon}.nc"
-
-
-if config.get("cba", {}).get("cba_scenario_input", {}).get("use_presolved", False):
-    sb_version = (
-        config.get("cba", {}).get("cba_scenario_input", {}).get("sb_version", "latest")
-    )
-    if (
-        SB_SOLVED_NETWORKS_DATASET := dataset_version(
-            "open_tyndp_prelim", version=sb_version
-        )
-    )["source"] in ARCHIVE_SOURCES:
-
-        rule retrieve_presolved_sb_networks:
-            input:
-                zip_file=storage(SB_SOLVED_NETWORKS_DATASET["url"]),
-            output:
-                network=RESULTS
-                + f"networks/presolved-{config['cba']['cba_scenario_input']['sb_version']}/base_s_all___{{horizon}}.nc",
-            log:
-                logs("cba/retrieve_presolved_sb_networks_{horizon}.log"),
-            run:
-                target_suffix = f"networks/base_s_all___{wildcards.horizon}.nc"
-                with ZipFile(input["zip_file"], "r") as zf:
-                    matches = [
-                        m for m in zf.namelist() if m.endswith(target_suffix)
-                    ]
-                    if not matches:
-                        raise ValueError(
-                            f"Could not find '{target_suffix}' in {input['zip_file']}."
-                        )
-                    member = matches[0]
-                    out_path = Path(output["network"])
-                    out_path.parent.mkdir(parents=True, exist_ok=True)
-                    with zf.open(member) as src, out_path.open("wb") as dst:
-                        shutil.copyfileobj(src, dst)
+    folder = dataset_version("open_tyndp_prelim", version=sb_version)["folder"]
+    return f"{folder}/base_s_all___{target_horizon}.nc"
 
 
 # Build MSV
@@ -850,19 +813,23 @@ rule prepare_references:
         ),
 
 
+def presolved_sb_networks(w):
+    networks = []
+    for run in cba_target_runs(w):
+        run_w = Wildcards(fromdict={"run": run})
+        if config_provider("cba", "cba_scenario_input", "use_presolved", default=False)(
+            run_w
+        ):
+            networks += [
+                presolved_sb_network_path(run_w, horizon)
+                for horizon in config_provider("cba", "planning_horizons")(run_w)
+            ]
+    return networks
+
+
 rule collect_cba_data:
     input:
-        lambda w: (
-            expand(
-                rules.retrieve_presolved_sb_networks.output.network,
-                horizon=config_provider("cba", "planning_horizons")(w),
-                run=cba_target_runs(w),
-            )
-            if config_provider(
-                "cba", "cba_scenario_input", "use_presolved", default=False
-            )(w)
-            else []
-        ),
+        presolved_sb_networks,
         lambda w: expand(
             rules.clean_projects.output,
             run=cba_target_runs(w),
