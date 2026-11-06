@@ -645,7 +645,7 @@ if config["benchmarking"]["enable"]:
         input:
             results=expand(
                 RESULTS + "benchmarks/tyndp-2026/resources/benchmarks_{horizon}.csv",
-                horizon=config["planning_horizons"],
+                horizon=config_provider("planning_horizons"),
                 allow_missing=True,
             ),
             benchmarks=RESULTS + "benchmarks/tyndp-2026/resources/benchmarks_tyndp.csv",
@@ -654,7 +654,7 @@ if config["benchmarking"]["enable"]:
                     RESULTS
                     + "benchmarks/tyndp-2026/resources/benchmarks_tyndp_dashboard_{scenario}{horizon}.csv",
                     scenario=config_provider("tyndp_scenario"),
-                    horizon=config_provider("planning_horizons")(w),
+                    horizon=config_provider("planning_horizons"),
                     allow_missing=True,
                 )
                 if config_provider("tyndp_scenario")(w)
@@ -684,7 +684,7 @@ if config["benchmarking"]["enable"]:
         input:
             results=expand(
                 RESULTS + "benchmarks/tyndp-2026/resources/benchmarks_{horizon}.csv",
-                horizon=config["planning_horizons"],
+                horizon=config_provider("planning_horizons"),
                 allow_missing=True,
             ),
             dashboard_data=lambda w: (
@@ -692,7 +692,7 @@ if config["benchmarking"]["enable"]:
                     RESULTS
                     + "benchmarks/tyndp-2026/resources/benchmarks_tyndp_dashboard_{scenario}{horizon}.csv",
                     scenario=config_provider("tyndp_scenario"),
-                    horizon=config_provider("planning_horizons")(w),
+                    horizon=config_provider("planning_horizons"),
                     allow_missing=True,
                 )
                 if config_provider("tyndp_scenario")(w)
