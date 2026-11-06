@@ -5,6 +5,7 @@
 
 from scripts.sb._helpers import safe_pyear, find_free_port
 from shutil import unpack_archive, copy2
+from packaging.version import Version
 
 # Retrieve
 ##########
@@ -69,20 +70,19 @@ if PRESOLVED_NETWORKS_DATASET["source"] in ARCHIVE_SOURCES:
 
     rule retrieve_presolved_networks:
         input:
-            zip_file=storage(PRESOLVED_NETWORKS_DATASET["url"]),
-        output:
-            network=f"{PRESOLVED_NETWORKS_DATASET['folder']}/"
-            + get_solved_network_name(
-                PRESOLVED_NETWORKS_DATASET["version"], "{horizon}"
+            zip_file=lambda w: storage(
+                dataset_version("open_tyndp_prelim", version=w.version)["url"]
             ),
+        output:
+            network=f"{Path(PRESOLVED_NETWORKS_DATASET['folder']).parent}/"
+            + "{version}/{filename}.nc",
         log:
-            "logs/retrieve_presolved_networks_{horizon}.log",
+            "logs/retrieve_presolved_networks_{version}_{filename}.log",
         run:
-            from pathlib import Path
             from shutil import copyfileobj
             from zipfile import ZipFile
 
-            target_suffix = f"networks/{Path(output['network']).name}"
+            target_suffix = f"networks/{wildcards.filename}.nc"
             with ZipFile(input["zip_file"], "r") as zf:
                 matches = [m for m in zf.namelist() if m.endswith(target_suffix)]
                 if not matches:
@@ -93,6 +93,21 @@ if PRESOLVED_NETWORKS_DATASET["source"] in ARCHIVE_SOURCES:
                 out_path.parent.mkdir(parents=True, exist_ok=True)
                 with zf.open(matches[0]) as src, out_path.open("wb") as dst:
                     copyfileobj(src, dst)
+
+
+def presolved_network(version: str, horizon: int | str) -> str:
+    """
+    Return the path of a pre-solved network retrieved from an Open-TYNDP release.
+
+    Releases from v0.10 onwards follow the PyPSA-Eur#1838 naming.
+    """
+    if Version(version) >= Version("0.10"):
+        filename = f"solved_{horizon}"
+    else:
+        filename = f"base_s_all___{horizon}"
+    return rules.retrieve_presolved_networks.output.network.format(
+        version=version, filename=filename
+    )
 
 
 # License - MIT - Copyright (c) 2021 Gavin Rehkemper
@@ -1135,13 +1150,10 @@ if PRESOLVED_NETWORKS_DATASET["source"] in ARCHIVE_SOURCES:
 
     use rule launch_explorer as launch_presolved_explorer with:
         input:
-            expand(
-                f"{PRESOLVED_NETWORKS_DATASET['folder']}/"
-                + get_solved_network_name(
-                    PRESOLVED_NETWORKS_DATASET["version"], "{horizon}"
-                ),
-                horizon=config["planning_horizons"],
-            ),
+            [
+                presolved_network(PRESOLVED_NETWORKS_DATASET["version"], horizon)
+                for horizon in config["planning_horizons"]
+            ],
         output:
             "logs/presolved_explorer_launched.log",
         params:
