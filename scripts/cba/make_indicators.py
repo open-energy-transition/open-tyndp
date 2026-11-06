@@ -663,8 +663,7 @@ def calculate_b4_indicator(
     method : str
         Either "pint" or "toot" (case-insensitive).
     emission_factors : pd.DataFrame
-        DataFrame with non-CO2 emission factors (kg/MWh) indexed by carrier and
-        with columns for different pollutants and statistics (min, mean, max).
+        DataFrame with non-CO2 emission factors (kg/MWh) indexed by carrier.
     ac_assets_reference : pandas.Series or None, optional
         Pre-filtered Series of electricity-producing assets on AC buses for the reference network.
         Default is None.
