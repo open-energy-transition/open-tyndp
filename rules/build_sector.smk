@@ -1932,6 +1932,10 @@ rule prepare_sector_network:
             config_provider("sector", "h2_topology_tyndp"),
             resources("h2_storages_prepped_{planning_horizons}.csv"),
         ),
+        p2g_shares=branch(
+            config_provider("sector", "h2_topology_tyndp"),
+            resources("p2g_shares_{planning_horizons}.csv"),
+        ),
         tyndp_electricity_ntc=branch(
             lambda w: config_provider("electricity", "base_network")(w) == "tyndp"
             and config_provider("electricity", "tyndp_reference_year")(w)
