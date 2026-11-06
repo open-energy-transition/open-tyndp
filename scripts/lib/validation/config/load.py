@@ -6,7 +6,7 @@
 """
 Load configuration.
 
-See docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#load
+See docs in https://open-tyndp.readthedocs.io/en/latest/configuration/#load_cf
 """
 
 from typing import Literal

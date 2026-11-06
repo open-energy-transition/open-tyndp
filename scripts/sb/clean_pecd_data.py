@@ -30,9 +30,9 @@ from tqdm import tqdm
 from scripts._helpers import (
     configure_logging,
     get_snapshots,
-    safe_pyear,
     set_scenario_config,
 )
+from scripts.sb._helpers import safe_pyear
 
 logger = logging.getLogger(__name__)
 
@@ -80,9 +80,8 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "clean_pecd_data",
-            clusters="all",
             technology="Wind_Offshore",
-            planning_horizons=2030,
+            horizon=2030,
         )
     configure_logging(snakemake)
     set_scenario_config(snakemake)
@@ -109,7 +108,7 @@ if __name__ == "__main__":
 
     # Planning year (falls back to latest available pyear if not in list of available years)
     pyear = safe_pyear(
-        snakemake.wildcards.planning_horizons,
+        snakemake.wildcards.horizon,
         available_years=snakemake.params.available_years,
         source="PECD",
     )

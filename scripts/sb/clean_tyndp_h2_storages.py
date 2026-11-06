@@ -11,10 +11,10 @@ import numpy as np
 import pandas as pd
 
 from scripts._helpers import (
-    SCENARIO_DICT,
     configure_logging,
     set_scenario_config,
 )
+from scripts.sb._helpers import SCENARIO_DICT
 
 logger = logging.getLogger(__name__)
 
@@ -116,7 +116,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "clean_tyndp_h2_storages",
-            planning_horizons=2030,
+            horizon=2030,
             configfiles="config/test/config.tyndp.yaml",
         )
 
@@ -124,7 +124,7 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     # Parameters
-    pyear = int(snakemake.wildcards.planning_horizons)
+    pyear = int(snakemake.wildcards.horizon)
     h2_storage_fn = snakemake.input.h2_storages
     scenario = snakemake.params.tyndp_scenario
     h2_zones_tyndp = snakemake.params.h2_zones_tyndp

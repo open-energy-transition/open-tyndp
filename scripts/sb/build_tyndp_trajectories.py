@@ -16,11 +16,10 @@ import logging
 import pandas as pd
 
 from scripts._helpers import (
-    SCENARIO_DICT,
     configure_logging,
-    map_tyndp_carrier_names,
     set_scenario_config,
 )
+from scripts.sb._helpers import SCENARIO_DICT, map_tyndp_carrier_names
 
 logger = logging.getLogger(__name__)
 
@@ -30,8 +29,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "build_tyndp_trajectories",
-            clusters="all",
-            planning_horizons=2030,
+            horizon=2030,
         )
     configure_logging(snakemake)
     set_scenario_config(snakemake)

@@ -15,12 +15,14 @@ import pypsa
 from tqdm import tqdm
 
 from scripts._helpers import (
+    configure_logging,
+    set_scenario_config,
+)
+from scripts.sb._helpers import (
     ENERGY_UNITS,
     POWER_UNITS,
     PRICE_UNITS,
-    configure_logging,
     normalize_direction,
-    set_scenario_config,
 )
 
 NODE_MAP = {
@@ -675,10 +677,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "build_statistics",
-            opts="",
-            clusters="all",
-            sector_opts="",
-            planning_horizons="2030",
+            horizon="2030",
         )
 
     configure_logging(snakemake)
@@ -692,7 +691,7 @@ if __name__ == "__main__":
     group_tyndp_conventionals = snakemake.params["group_tyndp_conventionals"]
     cc = coco.CountryConverter()
     eu27 = cc.EU27as("ISO2").ISO2.tolist()
-    planning_horizons = int(snakemake.wildcards.planning_horizons)
+    planning_horizons = int(snakemake.wildcards.horizon)
 
     # Map Open-TYNDP carrier names to benchmarking carrier names
     add_benchmarking_mappings(

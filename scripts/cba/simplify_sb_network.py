@@ -17,7 +17,7 @@ Creates the base CBA network with:
 
 **Outputs**
 
-- `resources/cba/networks/simple_{planning_horizons}.nc`: Simplified network for CBA
+- `resources/cba/networks/simple_{horizon}.nc`: Simplified network for CBA
 """
 
 import logging
@@ -236,7 +236,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "simplify_sb_network",
-            planning_horizons="2030",
+            horizon="2030",
             run="NT",
             configfiles=["config/config.tyndp.yaml"],
         )

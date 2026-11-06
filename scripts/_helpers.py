@@ -5,33 +5,28 @@
 
 import atexit
 import contextlib
-import copy
 import logging
 import os
 import re
-import socket
 import time
-from bisect import bisect_right
 from collections.abc import Callable
 from functools import lru_cache, partial, wraps
+from itertools import takewhile
+from operator import attrgetter
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import Literal
+from typing import Any, Literal
 
 import atlite
 import fiona
-import git
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pypsa
 import pytz
-import requests
 import xarray as xr
 import yaml
 from dask.distributed import Client, LocalCluster
 from snakemake.utils import update_config
-from tqdm import tqdm
 
 from scripts.lib.validation.config.data import VersionsSchema
 
@@ -39,19 +34,114 @@ logger = logging.getLogger(__name__)
 
 REGION_COLS = ["geometry", "name", "x", "y", "country"]
 
-SCENARIO_DICT = {
-    "Distributed Energy": "DE",
-    "Global Ambition": "GA",
-    r"National Trends\s*\+": "NT",
-    r"NT\s*\+": "NT",
-    "National Trends": "NT",
-}
-
-ENERGY_UNITS = {"TWh", "GWh", "MWh", "kWh"}
-POWER_UNITS = {"GW", "MW", "kW"}
-PRICE_UNITS = {"EUR/MWh", "EUR/MWh_e", "EUR/MWh_H2"}
-
 PYPSA_V1 = bool(re.match(r"^1\.\d", pypsa.__version__))
+
+
+def strip_if_str(value: Any) -> Any:
+    """Return stripped strings while leaving other values unchanged."""
+
+    return value.strip() if isinstance(value, str) else value
+
+
+def sanitize_busmap(busmap: pd.Series) -> pd.Series:
+    """Ensure busmap labels are stripped of surrounding whitespace."""
+
+    series = busmap.map(strip_if_str)
+    if series.name is None:
+        series.name = "busmap"
+    series.index.name = "name"
+    return series
+
+
+def rename_network_component(
+    network: pypsa.Network, component: str, rename_map: pd.Series
+) -> None:
+    """
+    Rename a PyPSA component across static and dynamic tables in-place.
+
+    Parameters
+    ----------
+    network : pypsa.Network
+        Network instance whose component entries should be renamed.
+    component : str
+        Component name as used by PyPSA (e.g. ``"Generator"``, ``"Link"``).
+    rename_map : pandas.Series
+        Series mapping existing component names (index) to their new names (values).
+
+    Raises
+    ------
+    KeyError
+        If the component is not present on the network or any of the keys to
+        rename are missing from the static table.
+    ValueError
+        If duplicate source or target names are detected, or if a target name
+        collides with an unrenamed entry.
+    """
+
+    if component not in network.component_attrs:
+        raise KeyError(f"Component '{component}' not found on network")
+
+    if rename_map.empty:
+        return
+
+    rename_map = rename_map.dropna()
+    if rename_map.empty:
+        return
+
+    if pd.Index(rename_map.index).has_duplicates:
+        raise ValueError("Duplicate component names in rename_map index")
+
+    if pd.Index(rename_map.values).has_duplicates:
+        raise ValueError("Duplicate target names in rename_map values")
+
+    static_table = network.static(component)
+
+    missing = pd.Index(rename_map.index).difference(static_table.index)
+    if not missing.empty:
+        missing_text = ", ".join(str(name) for name in missing)
+        raise KeyError(
+            f"Cannot rename {component} entries; missing keys: {missing_text}"
+        )
+
+    existing = static_table.index.difference(rename_map.index)
+    conflicts = existing.intersection(pd.Index(rename_map.values))
+    if not conflicts.empty:
+        conflict_text = ", ".join(str(name) for name in conflicts)
+        raise ValueError(
+            f"Renaming {component} entries would collide with existing names: {conflict_text}"
+        )
+
+    mapping = rename_map.to_dict()
+
+    static_table.rename(index=mapping, inplace=True)
+
+    for dynamic_table in network.dynamic(component).values():
+        if isinstance(dynamic_table, pd.DataFrame):
+            dynamic_table.rename(columns=mapping, inplace=True)
+        elif isinstance(dynamic_table, pd.Series):
+            dynamic_table.rename(index=mapping, inplace=True)
+
+
+def get_temporal_resolution(temporal: dict) -> tuple[str, int | str] | None:
+    """
+    Return the active temporal aggregation as ``(method, value)`` or ``None``.
+
+    ``method`` is one of ``"averaging"``, ``"segmentation"`` or
+    ``"representative"`` as configured under ``clustering.temporal``. Mutual
+    exclusivity of these methods is enforced by the config schema. ``value`` is a
+    pandas offset for ``"averaging"`` and an integer otherwise.
+    """
+    active = {
+        method: temporal[method]
+        for method in ("averaging", "segmentation", "representative")
+        if temporal[method]
+    }
+    if not active:
+        return None
+    ((method, value),) = active.items()
+    if method == "averaging":
+        return method, value
+    return method, int(value)
 
 
 def get_scenarios(run):
@@ -128,15 +218,16 @@ def get_run_path(fn, dir, rdir, shared_resources, exclude_from_shared):
         )
         is_shared = no_relevant_wildcards and not_shared_rule
         shared_files = (
-            "networks/base_s_{clusters}.nc",
-            "regions_onshore_base_s_{clusters}.geojson",
-            "regions_offshore_base_s_{clusters}.geojson",
-            "busmap_base_s_{clusters}.csv",
-            "linemap_base_s_{clusters}.csv",
-            "cluster_network_base_s_{clusters}",
-            "profile_{clusters}_",
-            "build_renewable_profile_{clusters}",
-            "regions_by_class_{clusters}",
+            "networks/clustered.nc",
+            "networks/simplified.nc",
+            "onshore_regions.geojson",
+            "offshore_regions.geojson",
+            "onshore_regions_simplified.geojson",
+            "offshore_regions_simplified.geojson",
+            "busmap_simplify_network.csv",
+            "busmap_cluster_network.csv",
+            "busmap.csv",
+            "linemap_cluster_network.csv",
             "availability_matrix_",
             "determine_availability_matrix_",
             "solar_thermal",
@@ -205,48 +296,6 @@ def get_shadow(run):
     if shadow_config:
         return "shallow"
     return None
-
-
-def get_opt(opts, expr, flags=None):
-    """
-    Return the first option matching the regular expression.
-
-    The regular expression is case-insensitive by default.
-    """
-    if flags is None:
-        flags = re.IGNORECASE
-    for o in opts:
-        match = re.match(expr, o, flags=flags)
-        if match:
-            return match.group(0)
-    return None
-
-
-def find_opt(opts, expr):
-    """
-    Return if available the float after the expression.
-    """
-    for o in opts:
-        if expr in o:
-            m = re.findall(r"m?\d+(?:[\.p]\d+)?", o)
-            if len(m) > 0:
-                return True, float(m[-1].replace("p", ".").replace("m", "-"))
-            else:
-                return True, None
-    return False, None
-
-
-def fill_wildcards(s: str, **wildcards: str) -> str:
-    """
-    Fill given (subset of) wildcards into a path with wildcards
-    """
-    for k, v in wildcards.items():
-        if isinstance(v, (list, tuple)):
-            assert len(v) == 1, f"Need a single entry for {k}, but found: {v}"
-            v = v[0]
-
-        s = s.replace("{" + k + "}", v)
-    return s
 
 
 # Define a context manager to temporarily mute print statements
@@ -335,28 +384,6 @@ def update_p_nom_max(n):
     n.generators.p_nom_max = n.generators[["p_nom_min", "p_nom_max"]].max(1)
 
 
-def aggregate_p_nom(n):
-    return pd.concat(
-        [
-            n.generators.groupby("carrier").p_nom_opt.sum(),
-            n.storage_units.groupby("carrier").p_nom_opt.sum(),
-            n.links.groupby("carrier").p_nom_opt.sum(),
-            n.loads_t.p.groupby(n.loads.carrier, axis=1).sum().mean(),
-        ]
-    )
-
-
-def aggregate_p(n):
-    return pd.concat(
-        [
-            n.generators_t.p.sum().groupby(n.generators.carrier).sum(),
-            n.storage_units_t.p.sum().groupby(n.storage_units.carrier).sum(),
-            n.stores_t.p.sum().groupby(n.stores.carrier).sum(),
-            -n.loads_t.p.sum().groupby(n.loads.carrier).sum(),
-        ]
-    )
-
-
 def get(item, investment_year=None):
     """
     Check whether item depends on investment year.
@@ -387,108 +414,6 @@ def get(item, investment_year=None):
             return lower + (higher - lower) * (investment_year - lower_key) / (
                 higher_key - lower_key
             )
-
-
-def aggregate_e_nom(n):
-    return pd.concat(
-        [
-            (n.storage_units["p_nom_opt"] * n.storage_units["max_hours"])
-            .groupby(n.storage_units["carrier"])
-            .sum(),
-            n.stores["e_nom_opt"].groupby(n.stores.carrier).sum(),
-        ]
-    )
-
-
-def aggregate_p_curtailed(n):
-    return pd.concat(
-        [
-            (
-                (
-                    n.generators_t.p_max_pu.sum().multiply(n.generators.p_nom_opt)
-                    - n.generators_t.p.sum()
-                )
-                .groupby(n.generators.carrier)
-                .sum()
-            ),
-            (
-                (n.storage_units_t.inflow.sum() - n.storage_units_t.p.sum())
-                .groupby(n.storage_units.carrier)
-                .sum()
-            ),
-        ]
-    )
-
-
-def aggregate_costs(n, flatten=False, opts=None, existing_only=False):
-    components = dict(
-        Link=("p_nom", "p0"),
-        Generator=("p_nom", "p"),
-        StorageUnit=("p_nom", "p"),
-        Store=("e_nom", "p"),
-        Line=("s_nom", None),
-        Transformer=("s_nom", None),
-    )
-
-    costs = {}
-    for c, (p_nom, p_attr) in zip(
-        n.components[list(components.keys())], components.values()
-    ):
-        if c.static.empty:
-            continue
-        if not existing_only:
-            p_nom += "_opt"
-        costs[(c.list_name, "capital")] = (
-            (c.static[p_nom] * c.static.capital_cost).groupby(c.static.carrier).sum()
-        )
-        if p_attr is not None:
-            p = c.dynamic[p_attr].sum()
-            if c.name == "StorageUnit":
-                p = p.loc[p > 0]
-            costs[(c.list_name, "marginal")] = (
-                (p * c.static.marginal_cost).groupby(c.static.carrier).sum()
-            )
-    costs = pd.concat(costs)
-
-    if flatten:
-        assert opts is not None
-        conv_techs = opts["conv_techs"]
-
-        costs = costs.reset_index(level=0, drop=True)
-        costs = costs["capital"].add(
-            costs["marginal"].rename({t: t + " marginal" for t in conv_techs}),
-            fill_value=0.0,
-        )
-
-    return costs
-
-
-def progress_retrieve(url, file, disable=False):
-    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
-
-    Path(file).parent.mkdir(parents=True, exist_ok=True)
-
-    # Raise HTTPError for transient errors
-    # 429: Too Many Requests (rate limiting)
-    # 500, 502, 503, 504: Server errors
-    response = requests.get(url, headers=headers, stream=True)
-    if response.status_code in (429, 500, 502, 503, 504):
-        response.raise_for_status()
-    total_size = int(response.headers.get("content-length", 0))
-    chunk_size = 1024
-
-    with tqdm(
-        total=total_size,
-        unit="B",
-        unit_scale=True,
-        unit_divisor=1024,
-        desc=str(file),
-        disable=disable,
-    ) as t:
-        with open(file, "wb") as f:
-            for data in response.iter_content(chunk_size=chunk_size):
-                f.write(data)
-                t.update(len(data))
 
 
 def retry(func: Callable) -> Callable:
@@ -541,8 +466,9 @@ def mock_snakemake(
 ):
     """
     This function is expected to be executed from the 'scripts'-directory of '
-    the snakemake project. It returns a snakemake.script.Snakemake object,
-    based on the Snakefile.
+    the snakemake project or from one of its subdirectories, e.g.
+    'scripts/build_central_heating_temperature_profiles' or 'scripts/build_cop_profiles'.
+    It returns a snakemake.script.Snakemake object, based on the Snakefile.
 
     If a rule has wildcards, you have to specify them in **wildcards.
 
@@ -581,23 +507,24 @@ def mock_snakemake(
     )
 
     script_dir = Path(__file__).parent.resolve()
+    cwd = Path.cwd().resolve()
     if root_dir is None:
         root_dir = script_dir.parent
     else:
         root_dir = Path(root_dir).resolve()
 
     workdir = None
-    user_in_script_dir = Path.cwd().resolve() == script_dir
+    user_in_script_dir = cwd == script_dir or script_dir in cwd.parents
     if str(submodule_dir) in __file__:
         # the submodule_dir path is only need to locate the project dir
         os.chdir(Path(__file__[: __file__.find(str(submodule_dir))]))
     elif user_in_script_dir:
         os.chdir(root_dir)
-    elif Path.cwd().resolve() != root_dir:
+    elif cwd != root_dir:
         logger.info(
             "Not in scripts or root directory, will assume this is a separate workdir"
         )
-        workdir = Path.cwd()
+        workdir = cwd
 
     try:
         for p in SNAKEFILE_CHOICES:
@@ -672,7 +599,7 @@ def mock_snakemake(
 
     finally:
         if user_in_script_dir:
-            os.chdir(script_dir)
+            os.chdir(cwd)
     return snakemake
 
 
@@ -696,213 +623,6 @@ def generate_periodic_profiles(dt_index, nodes, weekly_profile, localize=None):
     week_df = week_df.tz_localize(localize)
 
     return week_df
-
-
-def parse(infix):
-    """
-    Recursively parse a chained wildcard expression into a dictionary or a YAML
-    object.
-
-    Parameters
-    ----------
-    list_to_parse : list
-        The list to parse.
-
-    Returns
-    -------
-    dict or YAML object
-        The parsed list.
-    """
-    if len(infix) == 1:
-        return yaml.safe_load(infix[0])
-    else:
-        return {infix.pop(0): parse(infix)}
-
-
-def update_config_from_wildcards(config, w, inplace=True):
-    """
-    Parses configuration settings from wildcards and updates the config.
-    """
-
-    if not inplace:
-        config = copy.deepcopy(config)
-
-    if w.get("opts"):
-        opts = w.opts.split("-")
-
-        if nhours := get_opt(opts, r"^\d+(h|seg)$"):
-            config["clustering"]["temporal"]["resolution_elec"] = nhours
-
-        co2l_enable, co2l_value = find_opt(opts, "Co2L")
-        if co2l_enable:
-            config["electricity"]["co2limit_enable"] = True
-            if co2l_value is not None:
-                config["electricity"]["co2limit"] = (
-                    co2l_value * config["electricity"]["co2base"]
-                )
-
-        gasl_enable, gasl_value = find_opt(opts, "CH4L")
-        if gasl_enable:
-            config["electricity"]["gaslimit_enable"] = True
-            if gasl_value is not None:
-                config["electricity"]["gaslimit"] = gasl_value * 1e6
-
-        if "Ept" in opts:
-            config["costs"]["emission_prices"]["dynamic"] = True
-
-        ep_enable, ep_value = find_opt(opts, "Ep")
-        if ep_enable:
-            config["costs"]["emission_prices"]["enable"] = True
-            if ep_value is not None:
-                config["costs"]["emission_prices"]["co2"] = ep_value
-
-        if "ATK" in opts:
-            config["autarky"]["enable"] = True
-            if "ATKc" in opts:
-                config["autarky"]["by_country"] = True
-
-        attr_lookup = {
-            "p": "p_nom_max",
-            "e": "e_nom_max",
-            "c": "capital_cost",
-            "m": "marginal_cost",
-        }
-        for o in opts:
-            flags = ["+e", "+p", "+m", "+c"]
-            if all(flag not in o for flag in flags):
-                continue
-            carrier, component, attr_factor = o.split("+")
-            attr = attr_lookup[attr_factor[0]]
-            factor = float(attr_factor[1:])
-            if not isinstance(config["adjustments"]["electricity"], dict):
-                config["adjustments"]["electricity"] = dict()
-            update_config(
-                config["adjustments"]["electricity"],
-                {"factor": {component: {carrier: {attr: factor}}}},
-            )
-
-        for o in opts:
-            if o.startswith("lv") or o.startswith("lc"):
-                config["electricity"]["transmission_limit"] = o[1:]
-                break
-
-    if w.get("sector_opts"):
-        opts = w.sector_opts.split("-")
-
-        if "T" in opts:
-            config["sector"]["transport"] = True
-
-        if "H" in opts:
-            config["sector"]["heating"] = True
-
-        if "B" in opts:
-            config["sector"]["biomass"] = True
-
-        if "I" in opts:
-            config["sector"]["industry"] = True
-
-        if "A" in opts:
-            config["sector"]["agriculture"] = True
-
-        if "CCL" in opts:
-            config["solving"]["constraints"]["CCL"] = True
-
-        eq_value = get_opt(opts, r"^EQ+\d*\.?\d+(c|)")
-        for o in opts:
-            if eq_value is not None:
-                config["solving"]["constraints"]["EQ"] = eq_value
-            elif "EQ" in o:
-                config["solving"]["constraints"]["EQ"] = True
-            break
-
-        if "BAU" in opts:
-            config["solving"]["constraints"]["BAU"] = True
-
-        if "SAFE" in opts:
-            config["solving"]["constraints"]["SAFE"] = True
-
-        if nhours := get_opt(opts, r"^\d+(h|sn|seg)$"):
-            config["clustering"]["temporal"]["resolution_sector"] = nhours
-
-        if "decentral" in opts:
-            config["sector"]["electricity_transmission_grid"] = False
-
-        if "noH2network" in opts:
-            config["sector"]["H2_network"] = False
-
-        if "nowasteheat" in opts:
-            config["sector"]["use_fischer_tropsch_waste_heat"] = False
-            config["sector"]["use_methanolisation_waste_heat"] = False
-            config["sector"]["use_haber_bosch_waste_heat"] = False
-            config["sector"]["use_methanation_waste_heat"] = False
-            config["sector"]["use_fuel_cell_waste_heat"] = False
-            config["sector"]["use_electrolysis_waste_heat"] = False
-
-        if "nodistrict" in opts:
-            config["sector"]["district_heating"]["progress"] = 0.0
-
-        dg_enable, dg_factor = find_opt(opts, "dist")
-        if dg_enable:
-            config["sector"]["electricity_distribution_grid"] = True
-            if dg_factor is not None:
-                config["sector"]["electricity_distribution_grid_cost_factor"] = (
-                    dg_factor
-                )
-
-        if "biomasstransport" in opts:
-            config["sector"]["biomass_transport"] = True
-
-        _, maxext = find_opt(opts, "linemaxext")
-        if maxext is not None:
-            config["lines"]["max_extension"] = maxext * 1e3
-            config["links"]["max_extension"] = maxext * 1e3
-
-        _, co2l_value = find_opt(opts, "Co2L")
-        if co2l_value is not None:
-            config["co2_budget"] = float(co2l_value)
-
-        if co2_distribution := get_opt(opts, r"^(cb)\d+(\.\d+)?(ex|be)$"):
-            config["co2_budget"] = co2_distribution
-
-        if co2_budget := get_opt(opts, r"^(cb)\d+(\.\d+)?$"):
-            config["co2_budget"] = float(co2_budget[2:])
-
-        attr_lookup = {
-            "p": "p_nom_max",
-            "e": "e_nom_max",
-            "c": "capital_cost",
-            "m": "marginal_cost",
-        }
-        for o in opts:
-            flags = ["+e", "+p", "+m", "+c"]
-            if all(flag not in o for flag in flags):
-                continue
-            carrier, component, attr_factor = o.split("+")
-            attr = attr_lookup[attr_factor[0]]
-            factor = float(attr_factor[1:])
-            if not isinstance(config["adjustments"]["sector"], dict):
-                config["adjustments"]["sector"] = dict()
-            update_config(
-                config["adjustments"]["sector"],
-                {"factor": {component: {carrier: {attr: factor}}}},
-            )
-
-        _, sdr_value = find_opt(opts, "sdr")
-        if sdr_value is not None:
-            config["costs"]["social_discountrate"] = sdr_value / 100
-
-        _, seq_limit = find_opt(opts, "seq")
-        if seq_limit is not None:
-            config["sector"]["co2_sequestration_potential"] = seq_limit
-
-        # any config option can be represented in wildcard
-        for o in opts:
-            if o.startswith("CF+"):
-                infix = o.split("+")[1:]
-                update_config(config, parse(infix))
-
-    if not inplace:
-        return config
 
 
 def get_snapshots(
@@ -1092,6 +812,60 @@ def load_cutout(
     return cutout
 
 
+def create_placeholder_plot(
+    output_path: str, message: str, ylabel: str = "", figsize: tuple = (12, 8)
+) -> None:
+    """
+    Create a placeholder plot when data is missing or empty.
+
+    This is useful for plotting scripts that need to create output files
+    even when the underlying data is not available (e.g., carriers missing
+    in electricity-only models).
+
+    Parameters
+    ----------
+    output_path : str
+        Path where the placeholder plot should be saved.
+    message : str
+        Message to display in the center of the plot.
+    ylabel : str, optional
+        Y-axis label to display. Default is empty string.
+    figsize : tuple, optional
+        Figure size as (width, height). Default is (12, 8).
+
+    Returns
+    -------
+    None
+        Saves the plot to output_path and closes the figure.
+
+    Examples
+    --------
+    >>> create_placeholder_plot(
+    ...     "results/plot.svg",
+    ...     "No gas network in model",
+    ...     ylabel="Energy [TWh/a]"
+    ... )
+    """
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots(figsize=figsize)
+    ax.text(
+        0.5,
+        0.5,
+        message,
+        ha="center",
+        va="center",
+        fontsize=14 if figsize[0] >= 10 else 10,
+        transform=ax.transAxes,
+    )
+    if ylabel:
+        ax.set_ylabel(ylabel)
+    ax.grid(axis="x")
+    ax.axis("off") if not ylabel else None
+    fig.savefig(output_path, bbox_inches="tight")
+    plt.close(fig)
+
+
 def setup_dask(nprocesses: int) -> dict:
     if nprocesses > 1:
         cluster = LocalCluster(n_workers=nprocesses, threads_per_worker=1)
@@ -1119,6 +893,34 @@ def load_costs(cost_file: str) -> pd.DataFrame:
     """
 
     return pd.read_csv(cost_file, index_col=0)
+
+
+def _simplify_polys(
+    polys, minarea=100 * 1e6, maxdistance=None, tolerance=None, filterremote=True
+):  # 100*1e6 = 100 km² if CRS is DISTANCE_CRS
+    from shapely.geometry import MultiPolygon
+
+    if isinstance(polys, MultiPolygon):
+        polys = sorted(polys.geoms, key=attrgetter("area"), reverse=True)
+        mainpoly = polys[0]
+        mainlength = np.sqrt(mainpoly.area / (2.0 * np.pi))
+
+        if maxdistance is not None:
+            mainlength = maxdistance
+
+        if mainpoly.area > minarea:
+            polys = MultiPolygon(
+                [
+                    p
+                    for p in takewhile(lambda p: p.area > minarea, polys)
+                    if not filterremote or (mainpoly.distance(p) < mainlength)
+                ]
+            )
+        else:
+            polys = mainpoly
+    if tolerance is not None:
+        polys = polys.simplify(tolerance=tolerance)
+    return polys
 
 
 @lru_cache
@@ -1190,844 +992,3 @@ def _load_data_version(file: str | Path, validate: bool = True) -> pd.DataFrame:
         data_versions = VersionsSchema.validate(data_versions)
 
     return data_versions
-
-
-def make_index(
-    c, cname0="bus0", cname1="bus1", prefix="", connector="->", suffix="", separator=" "
-):
-    idx = [prefix, c[cname0], connector, c[cname1], suffix]
-    idx = [i for i in idx if i]
-    return separator.join(idx)
-
-
-def extract_grid_data_tyndp(
-    links,
-    replace_dict: dict = {},
-    expand_from_index: bool = True,
-    idx_prefix: str = "",
-    idx_connector: str = "",
-    idx_suffix: str = "",
-    idx_separator: str = " ",
-):
-    """
-    Extract TYNDP reference grid data from the raw input table.
-
-    Parameters
-    ----------
-    links : pd.DataFrame
-        DataFrame with raw links to extract grid information from.
-    replace_dict : dict
-        Dictionary with region names to replace.
-    expand_from_index : bool
-        Whether to expand the bus0 and bus1 from index or directly use the columns.
-    idx_prefix : str, optional
-        Prefix to prepend to generated indices.
-    idx_connector : str, optional
-        Separator string between bus0 and bus1 in generated indices (e.g., "->", "-").
-    idx_suffix : str, optional
-        Suffix to append to generated indices.
-    idx_separator : str, optional
-        String used to join index components (prefix, bus0, connector, bus1, suffix).
-
-    Returns
-    -------
-    pd.DataFrame
-        DataFrame with extracted grid data information with nominal capacity in input unit, bus0 and bus1.
-    """
-
-    if expand_from_index:
-        links.loc[:, "Border"] = links["Border"].replace(replace_dict, regex=True)
-        links = pd.concat(
-            [
-                links,
-                links.Border.str.split("-", expand=True).set_axis(
-                    ["bus0", "bus1"], axis=1
-                ),
-            ],
-            axis=1,
-        )
-    elif "bus0" in links.columns and "bus1" in links.columns:
-        links.loc[:, ["bus0", "bus1"]] = links[["bus0", "bus1"]].replace(
-            replace_dict, regex=True
-        )
-    else:
-        raise KeyError(
-            f"Columns 'bus0' and 'bus1' must be present in the input DataFrame. Available columns: {list(links.columns)}"
-        )
-
-    # Create forward and reverse direction dataframes
-    forward_links = links[["bus0", "bus1", "Summary Direction 1"]].rename(
-        columns={"Summary Direction 1": "p_nom"}
-    )
-
-    reverse_links = links[["bus1", "bus0", "Summary Direction 2"]].rename(
-        columns={"bus1": "bus0", "bus0": "bus1", "Summary Direction 2": "p_nom"}
-    )
-
-    # Combine into unidirectional links and return
-    links = pd.concat([forward_links, reverse_links])
-
-    links.index = links.apply(
-        make_index,
-        axis=1,
-        prefix=idx_prefix,
-        connector=idx_connector,
-        suffix=idx_suffix,
-        separator=idx_separator,
-    )
-
-    return links
-
-
-def safe_pyear(
-    year: int | str,
-    available_years: list[int] = [2030, 2040, 2050],
-    source: str = "TYNDP",
-    verbose: bool = True,
-) -> int:
-    """
-    Checks and adjusts whether a given pyear is in the available years of a given data source. If not, it
-    falls back to the previous available year.
-
-    Parameters
-    ----------
-    year : int
-        Planning horizon year which will be checked and possibly adjusted to previous available year.
-    available_years : list[int], optional
-        List of available years. Default is [2030, 2040, 2050].
-    source : str, optional
-        Source of the data for which availability will be checked. For logging purpose only. Default is "TYNDP".
-    verbose : bool, optional
-        Whether to activate verbose logging. Default is True.
-
-    Returns
-    -------
-    year_new : int
-        Safe pyear adjusted for available years.
-    """
-
-    if not available_years:
-        raise ValueError(
-            "No `available_years` provided. Expected a non-empty list of years."
-        )
-    if not isinstance(year, int):
-        year = int(year)
-    if year not in available_years:
-        year_new = available_years[
-            bisect_right(sorted(available_years), year, lo=1) - 1
-        ]
-        if verbose:
-            logger.warning(
-                f"{source} data unavailable for planning horizon {year}. Falling back to previous available year {year_new}."
-            )
-    else:
-        year_new = year
-
-    return year_new
-
-
-def map_tyndp_carrier_names(
-    df: pd.DataFrame,
-    carrier_mapping_fn: str,
-    on_columns: list[str],
-    drop_on_columns=False,
-):
-    """
-    Map external carriers to available tyndp_carrier names based on an input mapping. Optionally drop merged on columns.
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        DataFrame with external carriers to map
-    carrier_mapping_fn : str
-        Path to file with mapping from external carriers to available tyndp_carrier names.
-    on_columns : list[str]
-        Columns to merge on between the external carriers and tyndp_carriers.
-    drop_on_columns : bool, optional
-        Whether to drop merge columns and rename `open_tyndp_carrier` and `open_tyndp_index` to `carrier`
-        and `index_carrier`. Default is False.
-
-    Returns
-    -------
-    pd.DataFrame
-        Input DataFrame with external carriers mapped to available tyndp_carriers and index_carriers.
-    """
-
-    # Read TYNDP carrier mapping
-    carrier_mapping = (
-        pd.read_csv(carrier_mapping_fn)[
-            on_columns + ["open_tyndp_carrier", "open_tyndp_index", "open_tyndp_type"]
-        ]
-    ).dropna()
-
-    # Map the carriers
-    df = df.merge(carrier_mapping, on=on_columns, how="left")
-
-    # If the carrier is DSR or Other Non-RES, the different price bands are too diverse for a robust external
-    # mapping. Instead, we will combine the carrier and type information.
-    if "pemmdb_carrier" in on_columns:
-
-        def normalize_carrier(s):
-            return s.lower().replace(" ", "-").replace("other-non-res", "chp")
-
-        # Other Non-RES are assumed to represent CHP plants (according to TYNDP 2024 Methodology report p.37)
-        df = df.assign(
-            open_tyndp_carrier=lambda x: np.where(
-                x["pemmdb_carrier"].isin(["DSR", "Other Non-RES"]),
-                x["pemmdb_carrier"].apply(normalize_carrier),
-                x["open_tyndp_carrier"],
-            ),
-            open_tyndp_index=lambda x: np.where(
-                x["pemmdb_carrier"].isin(["DSR", "Other Non-RES"]),
-                x["open_tyndp_carrier"]
-                + "-"
-                + x["pemmdb_type"].apply(normalize_carrier),
-                x["open_tyndp_index"],
-            ),
-        )
-
-    if not drop_on_columns:
-        return df
-
-    # Otherwise drop merge columns and rename to new "carrier" and "index_carrier" column
-    df = df.drop(on_columns, axis="columns").rename(
-        columns={
-            "open_tyndp_carrier": "carrier",
-            "open_tyndp_index": "index_carrier",
-        }
-    )
-
-    # Move "carrier" and "index_carrier" to the front
-    cols = ["carrier", "index_carrier"] + [
-        col for col in df.columns if col not in ["carrier", "index_carrier"]
-    ]
-
-    return df[cols]
-
-
-@lru_cache
-def get_version(hash_len: int = 9) -> str:
-    """
-    Create a version identifier from git repository state.
-
-    Returns a version string based on the latest reachable tag and current commit:
-    - If HEAD is exactly at a tag: returns the tag name (e.g., "v1.2.3")
-    - If HEAD is beyond a tag: returns "tag+g{hash}" (e.g., "v1.2.3+g1a2b3c4d")
-    - If no tags found: returns just the commit hash (e.g., "1a2b3c4d5")
-
-    Parameters
-    ----------
-    hash_len : int, optional
-        Number of characters to use from the commit hash. Default is 9.
-
-    Returns
-    -------
-    str
-        Version string derived from the git repository state.
-    """
-    try:
-        repo = git.Repo(search_parent_directories=True)
-        tags = sorted(
-            repo.tags, key=lambda t: t.commit.committed_datetime, reverse=True
-        )
-        last_tag = None
-        for tag in tags:
-            if repo.is_ancestor(tag.commit, repo.head.commit):
-                last_tag = tag
-                break
-        if last_tag and last_tag.commit == repo.head.commit:
-            return f"{last_tag}"
-        elif last_tag:
-            return f"{last_tag}+g{repo.head.commit.hexsha[:hash_len]}"
-        else:
-            return repo.head.commit.hexsha[:hash_len]
-
-    except Exception as e:
-        logger.warning(f"Failed to determine version from git repository: {e}")
-        return "unknown"
-
-
-def add_metadata(
-    fig: plt.Figure,
-    ax: plt.Axes | None = None,
-    model_col: str = "",
-    rfc_source: str = "",
-    rfc_cols: list[str] = [],
-    note: str = "",
-) -> None:
-    """
-    Add a version tag, and optionally reference-source/note text, to a figure.
-
-    The version tag is always added. The reference-source line is added only
-    when both `model_col` and `rfc_source` are given; the note is added only
-    when `note` is given.
-
-    Parameters
-    ----------
-    fig : plt.Figure
-        Figure to annotate.
-    ax : plt.Axes, optional
-        Axes used to host the text artists. Default is None, in which case the
-        text is added directly to the figure.
-    model_col : str, optional
-        Column name for model values, used in the reference-source text.
-        Default is "".
-    rfc_source : str, optional
-        Reference source label, used in the reference-source text. Default is
-        "".
-    rfc_cols : list[str], optional
-        Additional reference source column names shown for comparison.
-        Default is [].
-    note : str, optional
-        Additional note text. Default is "".
-    """
-    host = ax if ax is not None else fig
-
-    # Version
-    version = get_version()
-    fig.draw_without_rendering()
-    bbox_fig = fig.get_tightbbox(fig.canvas.get_renderer())
-    fig_width_inches, fig_height_inches = fig.get_size_inches()
-    x0_fig = (
-        bbox_fig.x0 / fig_width_inches
-    )  # Convert bbox coordinates from inches to figure coordinates
-    x1_fig = (
-        bbox_fig.x1 / fig_width_inches
-    )  # Convert bbox coordinates from inches to figure coordinates
-    y0_fig = bbox_fig.y0 / fig_height_inches
-
-    host.text(
-        x1_fig,
-        y0_fig - 0.05,
-        f"version: {version}",
-        transform=fig.transFigure,
-        ha="right",
-        va="bottom",
-        fontsize=8,
-        alpha=0.7,
-    )
-
-    # Reference source
-    if model_col != "" and rfc_source != "":
-        additional_sources = (
-            "" if len(rfc_cols) <= 1 else " Other sources shown for comparison."
-        )
-        host.text(
-            x0_fig,
-            y0_fig - 0.05,
-            f"Model outputs ({model_col}) benchmarked against {rfc_source}.{additional_sources}",
-            transform=fig.transFigure,
-            ha="left",
-            va="bottom",
-            fontsize=8,
-            alpha=0.7,
-        )
-
-    # Notes
-    if note:
-        host.text(
-            x0_fig,
-            y0_fig - 0.07,
-            "\n".join(note),
-            transform=fig.transFigure,
-            ha="left",
-            va="top",
-            fontsize=8,
-            alpha=0.7,
-        )
-
-
-def convert_units(
-    df: pd.DataFrame,
-    unit_col: str = "unit",
-    value_col: str = "value",
-    invert: bool = False,
-) -> pd.DataFrame:
-    """
-    Convert values to standardized units based on unit type.
-
-    Energy values are converted to MWh, power values to MW:
-    - Energy units (TWh, GWh, MWh, kWh) → MWh
-    - Power units (GW, MW, kW) → MW
-
-    When invert=False (default):
-        - Values are converted from unit_col units to standard units (MWh/MW)
-        - The "unit" column is updated to reflect the standardized unit
-
-    When invert=True:
-        - Values are converted from standard units (MWh/MW) back to unit_col units
-        - The "unit" column is NOT modified
-        - Useful for reverting previously standardized data
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        Long-format DataFrame containing values to convert.
-    unit_col : str, default "unit"
-        Name of the column containing the unit information.
-        When invert=False: contains source units to convert from.
-        When invert=True: contains target units to convert to.
-    value_col : str, default "value"
-        Name of the column containing values to convert.
-    invert : bool, default False
-        If False, convert to standard units and update "unit" column.
-        If True, convert from standard units using inverse factors without modifying "unit" column.
-
-    Returns
-    -------
-    pd.DataFrame
-        DataFrame with converted values.
-    """
-    df = df.copy()
-
-    unit_conversion = {
-        "TWh": 1000000,
-        "GWh": 1000,
-        "MWh": 1,
-        "GW": 1000,
-        "MW": 1,
-        "kW": 0.001,
-    }
-
-    if invert:
-        # Inverse conversion factor to revert unit
-        unit_conversion = {k: 1 / v for k, v in unit_conversion.items()}
-
-    # Convert values using conversion factors
-    conversion_factors = df[unit_col].map(unit_conversion)
-    df[value_col] = pd.to_numeric(df[value_col], errors="coerce") * conversion_factors
-
-    # Update unit column
-    if not invert:
-        df["unit"] = df[unit_col].apply(
-            lambda x: "MWh" if x in ENERGY_UNITS else "MW" if x in POWER_UNITS else x
-        )
-
-    return df
-
-
-def check_cyear(cyear: int, scenario: str) -> int:
-    """
-    Check if the climatic year is valid for the given scenario.
-
-    Parameters
-    ----------
-    cyear : int
-        Climatic year to validate.
-    scenario : str
-        TYNDP scenario name.
-
-    Returns
-    -------
-    int
-        Valid climatic year, falling back to 2009 if the input is not available.
-    """
-
-    valid_years = {
-        "NT": [1995, 2008, 2009],
-        "DE": [1995, 2008, 2009],
-        "GA": [1995, 2008, 2009],
-    }
-
-    if cyear not in valid_years[scenario]:
-        logger.warning(
-            f"Snapshot year {cyear} doesn't match available TYNDP data. Falling back to 2009."
-        )
-        cyear = 2009
-
-    return cyear
-
-
-def get_tyndp_conventional_thermals(
-    mapping: pd.DataFrame,
-    tyndp_conventional_carriers: list[str],
-    group_conventionals: bool,
-    include_h2_fuel_cell: bool,
-    include_h2_turbine: bool,
-) -> tuple[dict[str, str], list[str]]:
-    """
-    Get list of TYNDP conventional thermal generation technologies.
-
-    Parameters
-    ----------
-    mapping : pd.DataFrame
-        TYNDP conventional carrier mapping (grouped or ungrouped).
-    tyndp_conventional_carriers : list[str]
-        TYNDP conventional carriers.
-    group_conventionals : bool
-        Whether to group conventional thermal technologies.
-    include_h2_fuel_cell : bool
-        Whether to include hydrogen fuel cell technology.
-    include_h2_turbine : bool
-        Whether to include hydrogen turbine technology.
-
-    Returns
-    -------
-    tuple[dict[str, str], list[str]]
-        Dictionary with conventional mapping and list of conventional thermal technology names.
-    """
-
-    # Filter mapping for conventional carriers while setting oil as common fuel for oil technologies
-    mapping = (
-        mapping[["open_tyndp_carrier", "open_tyndp_type", "pypsa_eur_carrier"]]
-        .query("open_tyndp_carrier in @tyndp_conventional_carriers")
-        .loc[lambda df: df.index.notna()]
-        .replace(
-            {"open_tyndp_carrier": ["oil-light", "oil-heavy", "oil-shale"]}, "oil"
-        )  # TODO To remove once the three carriers have been implemented
-    )
-
-    if group_conventionals:
-        mapping = mapping.groupby("open_tyndp_type").first()
-
-    conventional_dict = mapping.open_tyndp_carrier.to_dict()
-    conventional_thermals = list(conventional_dict)
-
-    if include_h2_fuel_cell:
-        conventional_thermals.append("h2-fuel-cell")
-    if include_h2_turbine:
-        conventional_thermals.append("h2-ccgt")
-
-    return conventional_dict, conventional_thermals
-
-
-def interpolate_demand(
-    available_years: list[int],
-    pyear: int,
-    load_single_year_func: Callable,
-    **load_kwargs,
-) -> pd.DataFrame | pd.Series:
-    """
-    Interpolate demand between available years.
-
-    Parameters
-    ----------
-    available_years : list[int]
-        Sorted list of years for which data is available.
-    pyear : int
-        Planning year to interpolate demand for.
-    load_single_year_func : Callable
-        Function to load data for a single planning year.
-    **load_kwargs
-        Keyword arguments to pass to load_single_year_func. Must include 'pyear'
-        as a parameter key, which will be overridden with interpolation boundary years.
-
-    Returns
-    -------
-    pd.DataFrame | pd.Series
-        Interpolated demand data.
-    """
-    # Currently, only interpolation is implemented, not extrapolation
-    idx = bisect_right(available_years, pyear)
-    if idx == 0:
-        # Planning horizon is before all available years
-        logger.warning(
-            f"Year {pyear} is before the first available year {available_years[0]}. "
-            f"Falling back to first available year."
-        )
-        year_lower = year_upper = available_years[0]
-    elif idx == len(available_years):
-        # Planning horizon is after all available years
-        logger.warning(
-            f"Year {pyear} is after the latest available year {available_years[-1]}. "
-            f"Falling back to latest available year."
-        )
-        year_lower = year_upper = available_years[-1]
-    else:
-        year_lower = available_years[idx - 1]
-        year_upper = available_years[idx]
-
-    logger.debug(f"Interpolating {pyear} from {year_lower} and {year_upper}")
-
-    kwargs_lower = {**load_kwargs, "pyear": year_lower}
-    kwargs_upper = {**load_kwargs, "pyear": year_upper}
-
-    df_lower = load_single_year_func(**kwargs_lower)
-    df_upper = load_single_year_func(**kwargs_upper)
-
-    # Check if data was loaded successfully
-    if df_lower.empty and df_upper.empty:
-        logger.error("Both years failed to load")
-        return pd.DataFrame()
-    elif df_lower.empty:
-        logger.warning(
-            f"Year {year_lower} failed to load. Filling with zeros for interpolation."
-        )
-        df_lower = pd.DataFrame(0, index=df_upper.index, columns=df_upper.columns)
-    elif df_upper.empty:
-        logger.warning(
-            f"Year {year_upper} failed to load. Using data from lower year for interpolation."
-        )
-        df_upper = df_lower
-
-    if year_upper == year_lower:
-        return df_lower
-
-    # Handle column mismatches for DataFrames (only relevant for DataFrame, not Series)
-    if isinstance(df_lower, pd.DataFrame) and isinstance(df_upper, pd.DataFrame):
-        missing_in_lower = df_upper.columns.difference(df_lower.columns)
-        missing_in_upper = df_lower.columns.difference(df_upper.columns)
-
-        if len(missing_in_lower) > 0 or len(missing_in_upper) > 0:
-            logger.warning(
-                f"Column mismatch between {year_lower} and {year_upper}. "
-                f"Missing columns filled with zeros. "
-                f"Missing in {year_lower}: {list(missing_in_lower)}, "
-                f"Missing in {year_upper}: {list(missing_in_upper)}"
-            )
-        df_lower_aligned, df_upper_aligned = df_lower.align(
-            df_upper, join="outer", axis=1, fill_value=0
-        )
-    else:
-        # For Series, just align
-        df_lower_aligned, df_upper_aligned = df_lower.align(
-            df_upper, join="outer", fill_value=0
-        )
-
-    # Perform linear interpolation
-    weight = (pyear - year_lower) / (year_upper - year_lower)
-    result = df_lower_aligned * (1 - weight) + df_upper_aligned * weight
-
-    return result
-
-
-def find_free_port(start_port: int = 8050, max_attempts: int = 50) -> int:
-    """
-    Find the first available port starting from start_port.
-
-    Parameters
-    ----------
-    start_port : int, optional
-        Port number to begin scanning from. Default is 8050.
-    max_attempts : int, optional
-        Maximum number of ports to check before raising an error. Default is 50.
-
-    Returns
-    -------
-    int
-        First available port number in the scanned range.
-    """
-    for port in range(start_port, start_port + max_attempts):
-        try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.bind(("127.0.0.1", port))
-                return port
-        except OSError:
-            continue
-    raise RuntimeError(
-        f"Could not find free port in range {start_port}-{start_port + max_attempts}"
-    )
-
-
-def remove_zero_capacity_non_extendable(
-    n, carriers, component_types={"Generator", "Link"}
-):
-    """
-    Remove non-expandable assets with no capacity for the given carriers and component types.
-
-    Parameters
-    ----------
-    n : pypsa.Network
-        The PyPSA network container object.
-    carriers : list[str]
-        Carriers to filter for.
-    component_types : set[str]
-        Component types to iterate over, e.g. {"Generator", "Link"}.
-
-    Returns
-    -------
-    None
-        Modifies the network object in-place.
-    """
-    for c in n.components[component_types]:
-        attr = "e" if c.name == "Store" else "p"
-        idx = c.static.loc[
-            (c.static["carrier"].isin(carriers))
-            & (~c.static[f"{attr}_nom_extendable"])
-            & (c.static[f"{attr}_nom"] == 0)
-        ].index
-        n.remove(c.name, idx)
-
-
-def remove_disconnected_storage_buses(
-    n: "pypsa.Network",
-    carriers: list[str],
-) -> None:
-    """
-    Remove storage buses whose carrier is in *carriers* but that no longer
-    have a Store connected to them.
-
-    Parameters
-    ----------
-    n : pypsa.Network
-        The network to modify in place.
-    carriers : list[str]
-        Bus carriers to check (e.g. ``["hydro-phs", "hydro-phs-pure"]``).
-    """
-    remaining_stores = n.stores[n.stores.carrier.isin(carriers)].bus.unique()
-    idx = n.buses.loc[
-        n.buses.carrier.isin(carriers) & ~n.buses.index.isin(remaining_stores)
-    ].index
-    n.remove("Bus", idx)
-
-
-def _add_new_profiles_to_existing(
-    component_t: dict,
-    attr: str,
-    new_profiles: pd.DataFrame,
-) -> None:
-    """
-    Safely add new time series data to a PyPSA network component.
-
-    Parameters
-    ----------
-    component_t : dict
-        The time-varying PyPSA component (e.g., n.generators_t).
-    attr : str
-        The attribute name (e.g., 'p_max_pu', 'inflow').
-    new_profiles : pd.DataFrame
-        New data to concatenate.
-    """
-    if new_profiles.empty:
-        return
-
-    existing = component_t[attr]
-    index_name = existing.index.name
-
-    component_t[attr] = pd.concat([existing, new_profiles], axis=1)
-    component_t[attr].index.name = index_name
-
-
-def align_demand_to_snapshots(
-    demand: pd.DataFrame, snapshots: pd.DatetimeIndex, format: str = None
-) -> pd.DataFrame:
-    """
-    Convert demand index to DatetimeIndex, adjust year to match snapshots, and reindex to snapshots.
-
-    Parameters
-    ----------
-    demand : pd.DataFrame
-        Demand time series with a datetime-compatible index.
-    snapshots : pd.DatetimeIndex
-        Target snapshot index to align demand to.
-    format : str, optional
-        Datetime format string for parsing the demand index. Default is None.
-
-    Returns
-    -------
-    pd.DataFrame
-        Demand data reindexed to the provided snapshots.
-    """
-
-    demand.index = pd.to_datetime(demand.index, format=format)
-    target_year = snapshots[0].year
-    demand.index = demand.index.map(lambda x: x.replace(year=target_year))
-
-    return demand.reindex(snapshots)
-
-
-def extract_crossborder_pattern(df: pd.DataFrame, connector: str = "-"):
-    return df.index.str.extract(
-        rf"^(.*?)(\w+)( H2)*{re.escape(connector)}(\w+)( H2)*(.*)$"
-    ).fillna("")
-
-
-def normalize_direction(
-    df: pd.DataFrame | pd.Series,
-    cols: list[str] | None = None,
-    buses_from_index: bool = False,
-    connector: str = "->",
-    format_index: bool = False,
-) -> pd.DataFrame:
-    """
-    Normalize link direction so bus0 is always alphabetically before bus1.
-
-    Parameters
-    ----------
-    df : pd.DataFrame | pd.Series
-        Input data to normalize.
-    cols : list[str] | None, default=None
-        Names of flow columns whose sign should be flipped when direction is
-        swapped. Required when `df` is a DataFrame and ignored when `df` is a
-        Series.
-    buses_from_index : bool, default=False
-        If True, parse index instead of reading
-        "bus0"/"bus1" columns directly.
-    connector : str, default="->"
-        String separator between bus0 and bus1 in the index.
-    format_index : bool, default=False
-        If True, reformat the index after normalization to
-        ``"bus0[_suffix]->bus1[_suffix]"``.
-
-    Returns
-    -------
-    pd.DataFrame | pd.Series
-        Data with normalized link direction.
-    """
-    is_series = isinstance(df, pd.Series)
-
-    if is_series:
-        df = df.to_frame("value")
-        cols = ["value"]
-    elif isinstance(df, pd.DataFrame):
-        if cols is None or len(cols) == 0:
-            raise ValueError(
-                "No column names `cols` to normalize. `cols` must be provided when `df` is a DataFrame."
-            )
-    else:
-        raise TypeError("`df` must be a pandas Series or DataFrame.")
-
-    if buses_from_index:
-        df.loc[
-            :, ["prefix", "bus0", "bus0_suffix", "bus1", "bus1_suffix", "suffix"]
-        ] = extract_crossborder_pattern(df, connector).values
-    # Protect swapping of direction for H2 import links and the bus0 starting with "X"
-    mask_import_link = df["prefix"].str.contains("H2 import", na=False)
-    mask = (
-        (df["bus0"] > df["bus1"]) & ~df["bus0"].str.startswith("X") & ~mask_import_link
-    )
-    assignments = {col: np.where(mask, -df[col], df[col]) for col in cols}
-
-    # Add bus0, bus1, and border to assignments
-    assignments.update(
-        {
-            "bus0": np.where(mask, df["bus1"], df["bus0"]),
-            "bus1": np.where(mask, df["bus0"], df["bus1"]),
-            "border": lambda df: (
-                df.prefix
-                + df.bus0
-                + df.bus0_suffix
-                + connector
-                + df.bus1
-                + df.bus1_suffix
-                + df.suffix
-            ),
-        }
-    )
-
-    df = df.assign(**assignments).drop(
-        columns=["prefix", "bus0_suffix", "bus1_suffix", "suffix"], errors="ignore"
-    )
-
-    if buses_from_index:
-        df = df.set_index("border")
-
-    if format_index:
-        idx_groups = extract_crossborder_pattern(df, connector)
-
-        mask_h2_pipeline = idx_groups[0] == "H2 pipeline "
-        idx_groups.loc[mask_h2_pipeline, [2, 4]] = " H2"
-
-        mask_import = idx_groups[0].str.contains("H2 import")
-        idx_groups.loc[mask_import, 1] = "X" + idx_groups.loc[mask_import, 1]
-        idx_groups.loc[mask_import, 4] = " H2"
-
-        df.index = idx_groups[1] + idx_groups[2] + "->" + idx_groups[3] + idx_groups[4]
-
-    if buses_from_index:
-        df.index.name = "border"
-
-    if is_series:
-        df = df.value
-
-    return df

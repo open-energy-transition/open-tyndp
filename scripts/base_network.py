@@ -1532,7 +1532,14 @@ def build_admin_shapes(
 
         # Only keep the values whose keys are in countries
         country_level = {
-            k: v for k, v in admin_levels.items() if (k != "level") and (k in countries)
+            k: v
+            for k, v in {**admin_levels, **admin_levels["countries"]}.items()
+            if k in countries
+        }
+        subregion_level = {
+            k: v
+            for k, v in admin_levels["countries"].items()
+            if len(k) > 2 and k[:2] in countries
         }
         if country_level:
             country_level_list = "\n".join(
@@ -1549,6 +1556,12 @@ def build_admin_shapes(
                 ]
                 .map(country_level)
                 .map(level_map)
+            )
+
+        for k, v in subregion_level.items():
+            logger.info(f"Setting administrative level {v} for subregion {k}")
+            nuts3_regions.loc[nuts3_regions.index.str.startswith(k), "column"] = (
+                level_map[v]
             )
 
         # If GB is in the countries, set the level, aggregate London area to level 1 due to converging issues
@@ -1706,10 +1719,10 @@ if __name__ == "__main__":
     n.export_to_netcdf(snakemake.output.base_network)
 
     # Export shapes
-    onshore_shapes.to_file(snakemake.output.regions_onshore)
+    onshore_shapes.to_file(snakemake.output.onshore_regions)
     # append_bus_shapes(n, shapes, "onshore")
 
-    offshore_shapes.to_file(snakemake.output.regions_offshore)
+    offshore_shapes.to_file(snakemake.output.offshore_regions)
     # append_bus_shapes(n, offshore_shapes, "offshore")
 
     # Convert contains columns into strings (pyogrio-friendly)

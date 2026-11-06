@@ -14,12 +14,11 @@ import numpy as np
 import pandas as pd
 
 from scripts._helpers import (
-    SCENARIO_DICT,
     configure_logging,
-    extract_grid_data_tyndp,
     get_snapshots,
     set_scenario_config,
 )
+from scripts.sb._helpers import SCENARIO_DICT, extract_grid_data_tyndp
 
 logger = logging.getLogger(__name__)
 
@@ -260,7 +259,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "build_tyndp_h2_network",
-            planning_horizons=2030,
+            horizon=2030,
         )
 
     configure_logging(snakemake)
@@ -269,7 +268,7 @@ if __name__ == "__main__":
     # Parameters
     scenario = snakemake.params.scenario
     source = snakemake.params.h2_reference_grid_source
-    pyear = int(snakemake.wildcards.planning_horizons)
+    pyear = int(snakemake.wildcards.horizon)
     cyear = get_snapshots(snakemake.params.snapshots)[0].year
 
     # Load and prep H2 reference grid and interzonal pipeline capacities

@@ -16,10 +16,10 @@ import pandas as pd
 
 from scripts._helpers import (
     configure_logging,
-    extract_grid_data_tyndp,
     set_scenario_config,
 )
 from scripts.build_tyndp_network import add_links_missing_attributes
+from scripts.sb._helpers import extract_grid_data_tyndp
 from scripts.sb.build_tyndp_transmission_projects import read_invest_file
 
 
@@ -79,7 +79,7 @@ if __name__ == "__main__":
             "fix_reference_sb_to_cba",
             run="NT",
             configfiles=["config/config.tyndp.yaml"],
-            planning_horizons="2040",
+            horizon="2040",
         )
 
     configure_logging(snakemake)

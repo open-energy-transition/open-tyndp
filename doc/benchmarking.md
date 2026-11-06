@@ -97,12 +97,12 @@ The SB benchmarking workflow is controlled by `config/benchmarking.default.yaml`
 The full set of benchmarking output files is stored under `results/benchmarks/tyndp-2024/`:
 
 * `resources/` — processed benchmarking inputs from both Open-TYNDP and TYNDP 2024.
-* `csvs_s_{clusters}_{opts}_{sector_opts}_all_years/` — quantitative tables.
-* `graphics_s_{clusters}_{opts}_{sector_opts}_all_years/` — figures.
-* `kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_bus.csv` — summary table aggregated from bus level KPIs.
-* `kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_country.csv` — summary table aggregated from country level KPIs.
-* `kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_bus.pdf` — summary figure aggregated from bus level KPIs.
-* `kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_country.pdf` — summary figure aggregated from country level KPIs.
+* `csvs_all_years/` — quantitative tables.
+* `graphics_all_years/` — figures.
+* `kpis_all_years_by_bus.csv` — summary table aggregated from bus level KPIs.
+* `kpis_all_years_by_country.csv` — summary table aggregated from country level KPIs.
+* `kpis_all_years_by_bus.pdf` — summary figure aggregated from bus level KPIs.
+* `kpis_all_years_by_country.pdf` — summary figure aggregated from country level KPIs.
 
 The structure of these outputs can be validated in the published preliminary benchmarking results on [Zenodo](https://doi.org/10.5281/zenodo.18608105).
 
@@ -110,7 +110,7 @@ The structure of these outputs can be validated in the published preliminary ben
 
 ### Outputs
 
-Example of indicators extracted from `power_generation_cy2009_s_all___all_years.csv` by countries
+Example of indicators extracted from `power_generation_cy2009_all_years.csv` by countries
 for the NT scenario with hourly resolution:
 
 | Carrier | sMPE | sMAPE | sMdAPE | RMSLE | Growth Error | Missing countries | reference | version |
@@ -153,7 +153,7 @@ Example of figure created for the generation profiles for the DE scenario in 204
 
 ![](img/tyndp/benchmarking_gen_profiles_DE_2040.png)
 
-Example of summary indicators extracted from `kpis_s_all__all_years_by_country.csv` for the NT
+Example of summary indicators extracted from `kpis_all_years_by_country.csv` for the NT
 scenario with hourly resolution:
 
 | Metric | sMPE | sMAPE | sMdAPE | RMSLE | Growth Error | Missing carriers | Missing countries | reference | version |

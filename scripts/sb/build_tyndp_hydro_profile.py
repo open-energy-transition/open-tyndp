@@ -7,7 +7,7 @@ Builds hydroelectric inflow time-series for each country based on PEMMDB v2.5 hy
 Outputs
 -------
 
-- `resources/profile_pemmdb_hydro.nc`:
+- `resources/pemmdb_hydro_profile.nc`:
 
     | Field  | Dimensions                      | Description                                                              |
     | ------ | ------------------------------- | ------------------------------------------------------------------------ |
@@ -23,9 +23,9 @@ from tqdm.contrib.itertools import product
 from scripts._helpers import (
     configure_logging,
     get_snapshots,
-    safe_pyear,
     set_scenario_config,
 )
+from scripts.sb._helpers import safe_pyear
 
 logger = logging.getLogger(__name__)
 
