@@ -49,9 +49,9 @@ jobs:
         git checkout "$BRANCH"
 
     - name: Setup Pixi
-      uses: prefix-dev/setup-pixi@v0.11.0
+      uses: prefix-dev/setup-pixi@v0.11.2
       with:
-        pixi-version: v0.68.1
+        pixi-version: v0.71.0
         cache: true
         cache-write: false
         environments: open-tyndp
@@ -63,7 +63,7 @@ jobs:
         utils/windows-installer/build_installer.sh
 
     - name: Sign Windows installer
-      uses: ossign/ossign@1.1.0
+      uses: ossign/ossign@1.3.1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         config: |

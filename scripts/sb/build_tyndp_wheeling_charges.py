@@ -20,7 +20,7 @@ Inputs
 
 - `data/tyndp/.../2026/Line-data/WHEELING_CHARGES.xlsx`: TYNDP 2026 wheeling
   charges, `Prosumer` sheet, one row per node.
-- `data/tyndp/.../2026/Demand/{pyear}/ELECTRICITY_PROSUMER {pyear}.xlsx`: TYNDP
+- `data/tyndp/.../2026/Demand/{horizon}/ELECTRICITY_PROSUMER {horizon}.xlsx`: TYNDP
   2026 prosumer demand, one sheet per prosumer node.
 
 Outputs

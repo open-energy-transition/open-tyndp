@@ -7,7 +7,7 @@ Builds hydroelectric inflow time-series for each country based on PECD v4.2 hydr
 Outputs
 -------
 
-- `resources/profile_pecd_hydro.nc`:
+- `resources/pecd_hydro_profile.nc`:
 
     | Field  | Dimensions                      | Description                                                              |
     | ------ | ------------------------------- | ------------------------------------------------------------------------ |
