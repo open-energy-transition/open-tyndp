@@ -23,6 +23,8 @@
 
 * Fix read mode of the local cache layer to avoid re-retrieving datasets with directory outputs after filling the cache in the same working directory ([#1008](https://github.com/open-energy-transition/open-tyndp/pull/1008)).
 
+* Fix units for non-CO2 emission factors in CBA ([#1124](https://github.com/open-energy-transition/open-tyndp/pull/1124)).
+
 **Documentation**
 
 * Fix the broken links in the documentation ([#997](https://github.com/open-energy-transition/open-tyndp/pull/997)).
