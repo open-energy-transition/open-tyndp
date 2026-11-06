@@ -71,7 +71,7 @@
 
 **Documentation**
 
-* doc: update `sb.md`, `sb_rules.md`, `tyndp_2026.md` and `tyndp_2024.md` to the TYNDP 2026 Scenario Building methodology and data, and refer to TYNDP 2026 in the README, landing page, FAQ, licenses, scenarios and limitations pages ([#1123](https://github.com/open-energy-transition/open-tyndp/pull/1123)).
+* doc: update documentation to TYNDP 2026 ([#1123](https://github.com/open-energy-transition/open-tyndp/pull/1123)).
 
 **Developers Note**
 
