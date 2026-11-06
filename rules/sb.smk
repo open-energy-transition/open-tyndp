@@ -87,9 +87,9 @@ if not "pre-built" in PECD_DATASET["version"]:
                 f"{PECD_DATASET['folder']}+pre-built.{get_pecd_prebuilt_version(increment_minor= True)}"
             ),
         log:
-            "logs/prepare_tyndp_pecd_release.log",
+            "logs/prepare_pecd_release.log",
         benchmark:
-            benchmarks("performances/prepare_tyndp_pecd_release")
+            benchmarks("performances/prepare_pecd_release")
         threads: 4
         resources:
             mem_mb=1000,
@@ -104,7 +104,7 @@ if not "pre-built" in PECD_DATASET["version"]:
                 "electricity", "pecd_renewable_profiles", "available_years"
             ),
         script:
-            scripts("sb/prepare_tyndp_pecd_release.py")
+            scripts("sb/prepare_pecd_release.py")
 
 
 # Build electricity
@@ -150,7 +150,7 @@ def get_pecd_prebuilt(w):
     if "pre-built" in PECD_DATASET["version"]:
         return rules.retrieve_tyndp_pecd.output.dir
     else:
-        return rules.prepare_tyndp_pecd_release.output.pecd_prebuilt
+        return rules.prepare_pecd_release.output.pecd_prebuilt
 
 
 rule clean_tyndp_pecd_data:

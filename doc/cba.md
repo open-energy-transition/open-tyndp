@@ -102,40 +102,40 @@ Example Collection (`config/scenarios.tyndp.yaml`):
 ```yaml
 NT-ws1995:
 #  <<: *cba-common
-snapshots:
+  snapshots:
     start: "1995-01-01"
     end: "1996-01-01"
 
-atlite:
+  atlite:
     default_cutout: europe-1995-sarah3-era5
 
-cba:
+  cba:
     sb_scenario: NT
 
 
 NT-ws2008:
 #  <<: *cba-common
-snapshots:
+  snapshots:
     start: "2008-01-01"
     end: "2009-01-01"
 
-atlite:
+  atlite:
     default_cutout: europe-2008-sarah3-era5
 
-cba:
+  cba:
     sb_scenario: NT
 
 
 NT-ws2009:
 #  <<: *cba-common
-snapshots:
+  snapshots:
     start: "2009-01-01"
     end: "2010-01-01"
 
-atlite:
+  atlite:
     default_cutout: europe-2009-sarah3-era5
 
-cba:
+  cba:
     sb_scenario: NT
 
 NT-wscenarios:

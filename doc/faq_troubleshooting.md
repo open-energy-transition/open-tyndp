@@ -93,11 +93,11 @@ This page contains frequently asked questions about the Open-TYNDP project:
 
 ??? question "What data sources and assumptions does Open-TYNDP use, and where can I find them?"
 
-    Open-TYNDP integrates TYNDP 2024 data (electricity demand, hydrogen topology, PECD renewable profiles, PEMMDB capacities, CBA projects and more) with PyPSA-Eur's open-source workflow. All data sources and their licenses are documented in [tyndp_2024](tyndp_2024.md). The Open-TYNDP reproduces the 2024 TYNDP-specific assumptions and methodology based on the [TYNDP 2024 Scenarios Methodology Report](https://2024.entsos-tyndp-scenarios.eu/wp-content/uploads/2025/01/TYNDP_2024_Scenarios_Methodology_Report_Final_Version_250128.pdf).
+    Open-TYNDP integrates TYNDP 2026 data (electricity demand, electricity and hydrogen topology, PECD renewable profiles, PEMMDB capacities, CBA projects and more) with PyPSA-Eur's open-source workflow. All data sources and their licenses are documented in [tyndp_2026](tyndp_2026.md). The Open-TYNDP reproduces the 2026 TYNDP-specific assumptions and methodology based on the [TYNDP 2026 Scenarios Methodology Report](https://2026.entsos-tyndp-scenarios.eu/scenarios-methodology-report/introduction/).
 
 ??? question "How can I verify that Open-TYNDP results are reliable and accurate?"
 
-    Open-TYNDP includes a comprehensive benchmarking framework that validates model outputs against published TYNDP 2024 data using a multi-criteria approach. The framework is documented in [benchmarking](benchmarking.md) and the current results for NT scenario in the dedicated section of the [3rd workshop notebook](https://open-energy-transition.github.io/open-tyndp-workshops/20251203-workshop-pypsa-03.html#benchmark-results). Be aware that Open-TYNDP is under active development (see [limitations](limitations.md) and [development status](index.md#development-status)), and validation is ongoing as features are implemented.
+    Open-TYNDP includes a comprehensive benchmarking framework that validates model outputs against published TYNDP 2026 data (Scenario Report data figures and market model outputs from the Time Series Dashboards) using a multi-criteria approach. The framework is documented in [benchmarking](benchmarking.md), and the benchmark results of the latest release are published on [Zenodo](https://doi.org/10.5281/zenodo.18608105). Be aware that Open-TYNDP is under active development (see [limitations](limitations.md) and [development status](index.md#development-status)), and validation is ongoing as features are implemented.
 
 ## Flexibility and Independence
 
