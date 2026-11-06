@@ -74,9 +74,9 @@ def get_run_name(w):
 
 
 def get_presolved_sb_version(w) -> str:
-    sb_version = config_provider(
-        "cba", "cba_scenario_input", "sb_version", default="latest"
-    )(w)
+    sb_version = config_provider("cba", "cba_scenario_input", "sb_version")(w)
+    if sb_version is None:
+        return PRESOLVED_NETWORKS_DATASET["version"]
     return dataset_version("open_tyndp_prelim", version=sb_version)["version"]
 
 
@@ -91,8 +91,6 @@ if PRESOLVED_NETWORKS_DATASET["source"] in ARCHIVE_SOURCES:
             network=RESULTS + "networks/presolved_{sb_version}_{horizon}.nc",
         log:
             logs("cba/retrieve_presolved_sb_networks_{sb_version}_{horizon}.log"),
-        wildcard_constraints:
-            sb_version=r"[0-9.]+",
         run:
             target_suffix = "networks/" + get_solved_network_name(
                 wildcards.sb_version, wildcards.horizon

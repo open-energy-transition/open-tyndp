@@ -70,7 +70,8 @@ and Open-TYNDP configuration options.
 !!! warning
 
     We recommend always running the CBA workflow with the latest pre-solved SB networks, which is what the
-    default `cba_scenario_input:sb_version: latest` selects. Earlier versions stay retrievable
+    default `data:open_tyndp_prelim:version: latest` selects. `cba_scenario_input:sb_version`
+    overrides this version for CBA only, also per scenario. Earlier versions stay retrievable
     but may no longer match what a newer workflow expects, and nothing checks for that
     mismatch. If you encounter errors, please
     [report them](https://github.com/open-energy-transition/open-tyndp/issues) and fall back to

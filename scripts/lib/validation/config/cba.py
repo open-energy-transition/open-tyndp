@@ -161,9 +161,9 @@ class _CbaSbToCbaConfig(ConfigModel):
         False,
         description="If true, use a pre-solved SB network from an external archive instead of running the SB workflow.",
     )
-    sb_version: str = Field(
-        "latest",
-        description="Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a version tagged as supported in data/tyndp_versions.csv.",
+    sb_version: str | None = Field(
+        None,
+        description="Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a version tagged as supported in data/tyndp_versions.csv. If not set, `data: open_tyndp_prelim: version` is used.",
     )
 
 
