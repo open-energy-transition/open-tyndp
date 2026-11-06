@@ -135,6 +135,25 @@ if __name__ == "__main__":
         raise ValueError(
             f"No PECD data found for {pecd_tech} in {planning_horizon}. Please specify a technology covered within the TYNDP PECD data."
         )
+
+    # Check for when a node has capacity data for a technology in PEMMDB dataset but no capacity factors in PECD dataset
+    missing = [node for node, data in zip(nodes, pecd) if data is None]
+    carriers = (
+        pd.read_csv(snakemake.input.carrier_mapping)
+        .query("pecd_carrier == @pecd_tech")
+        .open_tyndp_carrier
+    )
+    missing_capacities = (
+        pd.read_csv(snakemake.input.pemmdb_capacities)
+        .query("carrier in @carriers and bus in @missing and p_nom > 0")
+        .bus.unique()
+    )
+    if missing_capacities.size:
+        logger.warning(
+            f"No PECD capacity factors for {pecd_tech} in {planning_horizon} at nodes with PEMMDB capacity: "
+            f"{', '.join(missing_capacities)}. Filled with '{snakemake.params.fill_gaps_method}'."
+        )
+
     pecd_df = pd.concat(pecd, axis=1)
     fill_na = (
         pd.Series(0.0, index=pecd_df.index)
