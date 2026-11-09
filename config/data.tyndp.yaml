@@ -142,7 +142,7 @@ data:
     source: tyndp-archive
     version: latest
   cutout:
-    source: archive
+    source: tyndp-archive
     version: latest
   dh_areas:
     source: tyndp-archive
