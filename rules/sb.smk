@@ -178,29 +178,28 @@ if not "pre-built" in PECD_DATASET["version"]:
 # Build electricity
 ###################
 
-if config["load"]["source"] == "tyndp":
 
-    rule clean_tyndp_electricity_demand:
-        input:
-            electricity_demand=rules.retrieve_tyndp.output.demand_profiles,
-        output:
-            electricity_demand_prepped=resources("electricity_demand_raw_tyndp.csv"),
-        log:
-            logs("clean_tyndp_electricity_demand.log"),
-        benchmark:
-            benchmarks("performances/clean_tyndp_electricity_demand")
-        conda:
-            "../envs/environment.yaml"
-        threads: 4
-        resources:
-            mem_mb=4000,
-        params:
-            planning_horizons=config_provider("planning_horizons"),
-            snapshots=config_provider("snapshots"),
-            scenario=config_provider("tyndp_scenario"),
-            available_years=config_provider("load", "available_years_tyndp"),
-        script:
-            scripts("sb/clean_tyndp_electricity_demand.py")
+rule clean_tyndp_electricity_demand:
+    input:
+        electricity_demand=rules.retrieve_tyndp.output.demand_profiles,
+    output:
+        electricity_demand_prepped=resources("electricity_demand_raw_tyndp.csv"),
+    log:
+        logs("clean_tyndp_electricity_demand.log"),
+    benchmark:
+        benchmarks("performances/clean_tyndp_electricity_demand")
+    conda:
+        "../envs/environment.yaml"
+    threads: 4
+    resources:
+        mem_mb=4000,
+    params:
+        planning_horizons=config_provider("planning_horizons"),
+        snapshots=config_provider("snapshots"),
+        scenario=config_provider("tyndp_scenario"),
+        available_years=config_provider("load", "available_years_tyndp"),
+    script:
+        scripts("sb/clean_tyndp_electricity_demand.py")
 
 
 use rule build_electricity_demand as build_electricity_demand_tyndp with:
