@@ -41,16 +41,13 @@ def load_timeseries(fn, years, countries, date_format=None):
     load : pd.DataFrame
         Load time-series with UTC timestamps x ISO-2 countries
     """
-    df = (
+    return (
         pd.read_csv(fn, index_col=0, parse_dates=[0], date_format=date_format)
         .tz_localize(None)
         .dropna(how="all", axis=0)
-        .rename(columns={"GB_UKM": "GB"})
+        .filter(items=countries)
+        .loc[years]
     )
-    df = df.filter(items=countries)
-    if years is not None:
-        df = df.loc[years]
-    return df
 
 
 def consecutive_nans(ds):
