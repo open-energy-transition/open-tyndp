@@ -9852,15 +9852,18 @@ def main(
         synfuel_generators = pd.read_csv(synfuel_generators_fn, index_col=0)
 
     if options["h2_topology_tyndp"] and options["synfuels_tyndp"]["enable"]:
-        synfuel_demand = pd.read_csv(
-            inputs.synfuel_demand_tyndp, index_col=0, parse_dates=True
-        ).reindex(n.snapshots)
+        synfuels = options["synfuels_tyndp"]["carriers"]
+        synfuel_demand = (
+            pd.read_csv(inputs.synfuel_demand_tyndp, index_col=0, parse_dates=True)
+            .reindex(n.snapshots)
+            .rename(columns={fuel.replace("-", "_"): fuel for fuel in synfuels})
+        )
         add_synfuels_tyndp(
             n=n,
             costs=costs,
             demand=synfuel_demand,
             generators=synfuel_generators,
-            carriers=options["synfuels_tyndp"]["carriers"],
+            carriers=synfuels,
             spatial=spatial,
             nyears=nyears,
         )

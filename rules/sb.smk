@@ -142,7 +142,6 @@ rule build_tyndp_demand:
         snapshots=config_provider("snapshots"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
         wscenarios=config_provider("wscenarios_tyndp"),
-        synfuels=config_provider("sector", "synfuels_tyndp", "carriers"),
     script:
         scripts("sb/build_tyndp_demand.py")
 
