@@ -309,7 +309,7 @@ class ElectricityConfig(BaseModel):
     )
     remove_unconnected_components: bool = Field(
         True,
-        description="Remove all buses outside the largest connected network component in `base_network`. If `false`, isolated buses are kept and those without any assets are removed at the end of `prepare_sector_network`"
+        description="Remove all buses outside the largest connected network component in `base_network`. If `false`, isolated buses are kept and those without any assets are removed at the end of `prepare_sector_network`",
     )
     tyndp_reference_year: int = Field(
         2030,
