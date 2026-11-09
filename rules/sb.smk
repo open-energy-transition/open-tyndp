@@ -486,11 +486,11 @@ if config["sector"]["h2_topology_tyndp"]:
         input:
             p2g_emarket=rules.retrieve_tyndp_2026.output.p2g_emarket,
         output:
-            p2g_shares=resources("p2g_shares_{planning_horizons}.csv"),
+            p2g_shares=resources("p2g_shares_{horizon}.csv"),
         log:
-            logs("build_tyndp_p2g_shares_{planning_horizons}.log"),
+            logs("build_tyndp_p2g_shares_{horizon}.log"),
         benchmark:
-            benchmarks("performances/build_tyndp_p2g_shares_{planning_horizons}")
+            benchmarks("performances/build_tyndp_p2g_shares_{horizon}")
         conda:
             "../envs/environment.yaml"
         threads: 1

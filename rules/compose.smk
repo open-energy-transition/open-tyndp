@@ -80,6 +80,7 @@ def get_tyndp_compose_inputs(w):
         h2_import_profiles_tyndp=resources(f"h2_import_profiles_{horizon}.csv"),
         tyndp_smr=resources(f"smr_data_prepped_{horizon}.csv"),
         tyndp_h2_storages=resources(f"h2_storages_prepped_{horizon}.csv"),
+        p2g_shares=resources(f"p2g_shares_{horizon}.csv"),
     )
 
     if elec["pecd_renewable_profiles"]["enable"]:

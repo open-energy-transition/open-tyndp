@@ -13,16 +13,16 @@ coming from the P2G e-market file.
 Inputs
 ------
 
-- Input file from .../Hydrogen/P2G_emarket_template_corrected_requirecheck.xlsx`:
+- Input file from `.../Hydrogen/P2G_emarket_template_corrected_requirecheck.xlsx`:
   TYNDP 2026 P2G e-market capacities, one row per year and
   electricity node/H2 zone pair.
 
 Outputs
 -------
 
-- `resources/p2g_shares_{planning_horizons}.csv`: share of the
+- `resources/p2g_shares_{horizon}.csv`: share of the
   electrolyser capacity of `bus0` that goes to `bus1`, with columns `bus0`,
-  `bus1`, `p_nom`and `share`.
+  `bus1`, `p_nom` and `share`.
 """
 
 import logging
@@ -57,7 +57,7 @@ def load_p2g_shares(fn: str, planning_horizon: int) -> pd.DataFrame:
     Returns
     -------
     pd.DataFrame
-        Split shares with columns `bus0`, `bus1` and `share`.
+        Split shares with columns `bus0`, `bus1`, `p_nom` and `share`.
     """
     p2g = pd.read_excel(fn, sheet_name="TEMPLATE", engine="calamine")
     p2g = p2g.rename(columns=COLUMN_MAP).query("year == @planning_horizon")
@@ -76,13 +76,13 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "build_tyndp_p2g_shares",
-            planning_horizons=2030,
+            horizon=2030,
             configfiles="config/test/config.tyndp.yaml",
         )
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    planning_horizon = int(snakemake.wildcards.planning_horizons)
+    planning_horizon = int(snakemake.wildcards.horizon)
     p2g_shares = load_p2g_shares(snakemake.input.p2g_emarket, planning_horizon)
     p2g_shares.to_csv(snakemake.output.p2g_shares, index=False)
