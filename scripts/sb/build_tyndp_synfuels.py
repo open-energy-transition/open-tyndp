@@ -17,10 +17,10 @@ Inputs
 Outputs
 -------
 
-- `resources/synfuel_links_tyndp_{planning_horizons}.csv`: production link
+- `resources/synfuel_links_tyndp_{horizon}.csv`: production link
   capacities with columns ``bus0`` (H2 Zone 2 node), ``fuel`` (``e-liquids`` or
   ``sng``) and ``p_nom`` (MW_H2).
-- `resources/synfuel_generators_tyndp_{planning_horizons}.csv`: generator
+- `resources/synfuel_generators_tyndp_{horizon}.csv`: generator
   properties indexed by generator, one per synthetic fuel import (e.g.
   ``e-liquids``, ``sng``) and ``CO2-Synfuels`` for the biogenic CO2, with
   columns ``marginal_cost`` (offer price, EUR/MWh_H2) and ``e_sum_max``
@@ -130,14 +130,14 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "build_tyndp_synfuels",
-            planning_horizons=2030,
+            horizon=2030,
             configfiles="config/test/config.tyndp.yaml",
         )
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    planning_horizon = int(snakemake.wildcards.planning_horizons)
+    planning_horizon = int(snakemake.wildcards.horizon)
     fuels = list(snakemake.params.synfuels)
 
     links = load_synfuel_links(snakemake.input.synfuel_lines, planning_horizon, fuels)
