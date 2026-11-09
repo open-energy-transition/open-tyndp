@@ -146,8 +146,8 @@ Battery,Battery Utility Scale Store,,,Li-Ion Battery Volume,,,battery,battery-ut
 ,,,,,H2 Demand for P2L,,methanolisation,,Methanolisation,,,,,,e-fuels,,,,,,,,,,Hydrogen demand benchmark
 ,,,,,H2 for Ammonia production,,,,,,,,,,e-fuels,,,,,,,,,,Hydrogen demand benchmark
 ,,,,H2 to H2 power plants,,,,,,,,,,,power generation,,,,,,,,,,Hydrogen demand benchmark
-,,,,H2 to eLiquids,,,H2 to e-liquids,,H2 to E-Liquids,,,,,,e-fuels,,,,,,,,,,Hydrogen demand benchmark
-,,,,H2 to sng,,,H2 to sng,,H2 to SNG,,,,,,e-fuels,synthetic methane (domestic),,,,,,,,,Hydrogen demand and methane supply benchmarks
+,,,,H2 to eLiquids,,,H2 to e-liquids,,H2 to E-Liquids,,,,,,e-fuels,,,,,e-liquids (domestic),,,,,Hydrogen demand benchmark
+,,,,H2 to sng,,,H2 to sng,,H2 to SNG,,,,,,e-fuels,synthetic methane (domestic),,,,sng (domestic),,,,,Hydrogen demand and methane supply benchmarks
 ,,,,E-Liquids-Domestic Production,e-liquid EU production,,,,,,,,,,,,,,,e-liquids (domestic),,,,,Synthetic fuel supply benchmark
 ,,,,SNG-Domestic Production,e-methane EU production,,,,,,,,,,,,,,,sng (domestic),,,,,Synthetic fuel supply benchmark
 ,,,,e-liquids Imports,e-liquid importet,,e-liquids import,,E-Liquids Import,,,,,,,,,,liquids,e-liquids (import),,,,,Energy imports and synthetic fuel supply benchmarks

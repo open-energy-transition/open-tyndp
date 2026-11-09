@@ -603,6 +603,8 @@ def compute_benchmark(
         eff_n = n.links.set_index("carrier").efficiency
         for fuel, eff_config in opt.get("synfuel_efficiency", {}).items():
             conversion = f"{fuel} to {synfuels[fuel]}"
+            if conversion not in eff_n.index:
+                continue
             if not np.isclose(eff_n[conversion], eff_config[planning_horizons]):
                 raise ValueError(
                     f"Configured efficiency {eff_config[planning_horizons]} of '{conversion}' "

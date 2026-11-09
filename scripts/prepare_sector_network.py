@@ -9470,7 +9470,7 @@ def add_import_options(
             )
 
     synfuels = options["synfuels_tyndp"]["carriers"]
-    synfuel_imports = pd.Index(list(synfuels)).intersection(import_config["carriers"])
+    synfuel_imports = pd.Index(list(synfuels)).intersection(list(carriers))
     if not (skipped := synfuel_imports.difference(n.buses.carrier)).empty:
         logger.warning(
             f"Skipping synthetic fuel imports without a synthetic fuel bus: {skipped.tolist()}"
