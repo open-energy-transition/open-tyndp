@@ -9,7 +9,7 @@ This page contains frequently asked questions about the Open-TYNDP project:
 
 ??? question "What is Open-TYNDP?"
 
-    Open-TYNDP is an open-source research and innovation project, which is a collaboration between [Open Energy Transition (OET)](https://openenergytransition.org/) and ENTSO-E. The project aims to explore the option of a complementary open-source tool in the Ten-Year Network Development Plan (TYNDP) by building a workflow based on PyPSA-Eur. It provides one streamlined tool for the Scenario Building (SB) and the Cost-Benefit Analysis (CBA) of the TYNDP.
+    Open-TYNDP is an open-source research and innovation project by [Open Energy Transition (OET)](https://openenergytransition.org/) testing whether open-source models can complement proprietary software for European grid planning. The project aims to explore the option of a complementary open-source tool in the Ten-Year Network Development Plan (TYNDP) by building a workflow based on PyPSA-Eur. It provides one streamlined tool for the Scenario Building (SB) and the Cost-Benefit Analysis (CBA) of the TYNDP. It was successfully benchmarked against the official TYNDP 2024 studies and is under continuous security review by ENTSO-E.
 
 ??? question "How does Open-TYNDP relate to PyPSA-Eur?"
 
@@ -39,7 +39,7 @@ This page contains frequently asked questions about the Open-TYNDP project:
 
 ??? question "What computational resources do I need to run Open-TYNDP models?"
 
-    Full TYNDP scenario runs require significant computational resources: typically 55GB RAM, 8 CPU cores, and 1h15 runtime for NT scenario and a single planning horizon, using a commercial solver such as Gurobi. However, CBA assessment requirements are lower, typically running on standard workstations and HiGHS for around a minute per project. For testing and exploration, you can use smaller configurations using reduced temporal/spatial resolution that run on standard workstations and HiGHS. The TYNDP test configuration defined by `config/test/config.tyndp.yaml` is a good starting point. You can also explore lightweight and web-based examples using the [interactive workshops notebook](https://open-energy-transition.github.io/open-tyndp-workshops).
+    Full TYNDP scenario runs require significant computational resources: typically 35GB RAM, 8 CPU cores, and 20 minutes runtime for NT scenario and a single planning horizon, using a commercial solver such as Gurobi. However, CBA assessment requirements are lower, typically running on standard workstations with 8GB RAM, 25 minutes runtime with HiGHS. For testing and exploration, you can use smaller configurations using reduced temporal/spatial resolution that run on standard workstations and HiGHS. The TYNDP test configuration defined by `config/test/config.tyndp.yaml` is a good starting point. You can also explore lightweight and web-based examples using the [interactive workshops notebook](https://open-energy-transition.github.io/open-tyndp-workshops).
 
 ??? question "What solver do I need to solve Open-TYNDP models?"
 
@@ -93,11 +93,11 @@ This page contains frequently asked questions about the Open-TYNDP project:
 
 ??? question "What data sources and assumptions does Open-TYNDP use, and where can I find them?"
 
-    Open-TYNDP integrates TYNDP 2026 data (electricity demand, electricity and hydrogen topology, PECD renewable profiles, PEMMDB capacities, CBA projects and more) with PyPSA-Eur's open-source workflow. All data sources and their licenses are documented in [tyndp_2026](tyndp_2026.md). The Open-TYNDP reproduces the 2026 TYNDP-specific assumptions and methodology based on the [TYNDP 2026 Scenarios Methodology Report](https://2026.entsos-tyndp-scenarios.eu/scenarios-methodology-report/introduction/).
+    Open-TYNDP integrates TYNDP 2026 data (electricity and hydrogen demands, electricity and hydrogen topologies, PECD renewable profiles, PEMMDB capacities, CBA projects and more) with PyPSA-Eur's open-source workflow. All data sources and their licenses are documented in [tyndp_2026](tyndp_2026.md). The Open-TYNDP reproduces the 2026 TYNDP-specific assumptions and methodology based on the [TYNDP 2026 Scenarios Methodology Report](https://2026.entsos-tyndp-scenarios.eu/scenarios-methodology-report/introduction/).
 
 ??? question "How can I verify that Open-TYNDP results are reliable and accurate?"
 
-    Open-TYNDP includes a comprehensive benchmarking framework that validates model outputs against published TYNDP 2026 data (Scenario Report data figures and market model outputs from the Time Series Dashboards) using a multi-criteria approach. The framework is documented in [benchmarking](benchmarking.md), and the benchmark results of the latest release are published on [Zenodo](https://doi.org/10.5281/zenodo.18608105). Be aware that Open-TYNDP is under active development (see [limitations](limitations.md) and [development status](index.md#development-status)), and validation is ongoing as features are implemented.
+    Open-TYNDP includes a comprehensive benchmarking framework that validates model outputs against published TYNDP 2026 data (Scenario Report data figures and market model outputs from the Time Series Dashboards) using a multi-criteria approach. The framework is documented in [benchmarking](benchmarking.md), and the benchmark results of the latest release will be published on [Zenodo](https://doi.org/10.5281/zenodo.18608105) with the next release. Be aware that Open-TYNDP is under active development (see [limitations](limitations.md) and [development status](index.md#development-status)), and validation is ongoing as features are implemented.
 
 ## Flexibility and Independence
 
@@ -125,7 +125,8 @@ This page contains frequently asked questions about the Open-TYNDP project:
 
 ??? question "Where can I find the latest results?"
 
-    The preliminary results for the NT scenario and the corresponding benchmarking outputs are presented in the [3rd workshop notebook](https://open-energy-transition.github.io/open-tyndp-workshops/20251203-workshop-pypsa-03.html#benchmark-results). However, new fixes and features are constantly integrated in the model. The latest networks and corresponding benchmarks are also available in a [ZIP archive](https://storage.googleapis.com/open-tyndp-data-store/runs/NT-1H-20251209.zip). Be aware that Open-TYNDP is under active development (see [limitations](limitations.md) and [development status](index.md#development-status)), and validation is ongoing as features are implemented.
+
+    The latest results, networks and corresponding benchmarks are available on [Zenodo](https://doi.org/10.5281/zenodo.18608105). Be aware that Open-TYNDP is under active development (see [limitations](limitations.md) and [development status](index.md#development-status)), and validation is ongoing as features are implemented.
 
 ??? question "Is there a way to interactively visualize results?"
 
