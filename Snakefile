@@ -11,6 +11,7 @@ from os.path import normpath, exists, join
 from shutil import copyfile, move, rmtree
 from dotenv import load_dotenv
 from snakemake.logging import logger
+from snakemake.iocontainers import Wildcards
 from snakemake.utils import min_version
 
 load_dotenv()
@@ -253,6 +254,15 @@ def get_balance_map_plots(w):
     return plots
 
 
+def runs_with(*keys):
+    runs = config["run"]["name"]
+    return [
+        run
+        for run in ([runs] if isinstance(runs, str) else runs)
+        if config_provider(*keys)(Wildcards(fromdict={"run": run}))
+    ]
+
+
 def input_all_tyndp(w):
     files = []
     if config_provider("tyndp_scenario")(w) and config_provider("sector", "H2_network")(
@@ -265,11 +275,11 @@ def input_all_tyndp(w):
                 horizon=config["planning_horizons"],
             )
         )
-    if config_provider("sector", "offshore_hubs_tyndp", "enable")(w):
+    if runs := runs_with("sector", "offshore_hubs_tyndp", "enable"):
         files.extend(
             expand(
                 (resources("maps/base_offshore_network_{horizon}_{carrier}.pdf")),
-                run=config["run"]["name"],
+                run=runs,
                 horizon=config["planning_horizons"],
                 carrier=config_provider("plotting", "offshore_maps", "bus_carriers")(w),
             )
@@ -277,22 +287,22 @@ def input_all_tyndp(w):
         files.extend(
             expand(
                 (RESULTS + "maps/static/offshore_network_{carrier}_{horizon}.pdf"),
-                run=config["run"]["name"],
+                run=runs,
                 horizon=config["planning_horizons"],
                 carrier=config_provider("plotting", "offshore_maps", "bus_carriers")(w),
             )
         )
-    if config_provider("benchmarking", "enable")(w):
+    if runs := runs_with("benchmarking", "enable"):
         files.extend(
             expand(
                 rules.plot_benchmark.output.kpis_by_bus,
-                run=config["run"]["name"],
+                run=runs,
             )
         )
         files.extend(
             expand(
                 rules.plot_benchmark.output.kpis_by_country,
-                run=config["run"]["name"],
+                run=runs,
             )
         )
 
