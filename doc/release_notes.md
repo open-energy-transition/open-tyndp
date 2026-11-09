@@ -89,7 +89,7 @@ model results are unchanged with respect to v0.9. Upgrading is recommended for a
 
 * Apply security patches on top of v0.9 ([#1138](https://github.com/open-energy-transition/open-tyndp/pull/1138)).
 
-* Fix: `build_swiss_energy_balances` now reads the October 2026 edition of the Swiss energy balances (data for 2000-2025), which renamed table rows. ([#11](https://github.com/open-energy-transition/open-tyndp/pull/1139)).
+* Fix `build_swiss_energy_balances` now reads the October 2026 edition of the Swiss energy balances (data for 2000-2025), which renamed table rows ([#1139](https://github.com/open-energy-transition/open-tyndp/pull/1139)).
 
 * Fix read mode of the local cache layer to avoid re-retrieving datasets with directory outputs after filling the cache in the same working directory ([#1008](https://github.com/open-energy-transition/open-tyndp/pull/1008)).
 
