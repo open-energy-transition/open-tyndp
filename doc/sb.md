@@ -72,7 +72,7 @@ and wheeling charges. Electricity and H₂ line data are provided for 2030, 2035
 
 **[Hydrogen](https://2026-data.entsos-tyndp-scenarios.eu/input/model-input/national-trends/Hydrogen.zip)**
 
-Hydrogen storage parameters, steam methane reforming (SMR and SMR+CCS) capacities, synthetic fuel generator properties,
+Hydrogen storage parameters, steam methane reforming (SMR and SMR+CCS) capacities, synthetic fuel generator properties, P2G electrolyser capacities
 and import pipeline assumptions.
 
 **[Supply Tool](https://2026-data.entsos-tyndp-scenarios.eu/output/Supply-Tool.zip)**
