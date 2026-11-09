@@ -490,7 +490,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "clean_tyndp_dashboard_benchmark",
-            planning_horizons="2040",
+            horizon="2040",
             scenario="NT",
             configfiles="config/test/config.tyndp.yaml",
         )
@@ -501,7 +501,7 @@ if __name__ == "__main__":
     # Parameters
     options = snakemake.params["benchmarking"]
     scenario = snakemake.params["scenario"]
-    planning_horizon = int(snakemake.wildcards.planning_horizons)
+    planning_horizon = int(snakemake.wildcards.horizon)
     countries = snakemake.params["countries"]
 
     # currently only implemented for NT
