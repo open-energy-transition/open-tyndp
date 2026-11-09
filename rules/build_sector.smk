@@ -1787,7 +1787,6 @@ rule prepare_sector_network:
             resources("district_heat_share_base_s_{clusters}_{planning_horizons}.csv"),
         ),
         heating_efficiencies=resources("heating_efficiencies.csv"),
-        temp_soil_total=resources("temp_soil_total_base_s_{clusters}.nc"),
         temp_air_total=branch(
             lambda w: not config_provider("tyndp_scenario")(w),
             resources("temp_air_total_base_s_{clusters}.nc"),
