@@ -7,7 +7,7 @@ Builds TYNDP split shares of electrolyser capacities between H2 Z2 zones.
 PEMMDB gives one electrolyser capacity per electricity node, while some
 countries have several H2 Z2 zones (such as FR, SK). The TYNDP P2G e-market file
 gives the electrolyser capacity per electricity node and H2 zone pair.
-PEMMDB remains the source of the capacities, with the split shares 
+PEMMDB remains the source of the capacities, with the split shares
 coming from the P2G e-market file.
 
 Inputs
@@ -44,7 +44,7 @@ COLUMN_MAP = {
 
 def load_p2g_shares(fn: str, planning_horizon: int) -> pd.DataFrame:
     """
-    Load the TYNDP P2G e-market electrolyser capacities and calculate the 
+    Load the TYNDP P2G e-market electrolyser capacities and calculate the
     split shares.
 
     Parameters
@@ -67,7 +67,7 @@ def load_p2g_shares(fn: str, planning_horizon: int) -> pd.DataFrame:
     p2g[["bus0", "bus1"]] = format_bz_names(p2g[["bus0", "bus1"]])
     p2g["share"] = p2g.p_nom / p2g.groupby("bus0").p_nom.transform("sum")
 
-    return p2g[["bus0", "bus1", "p_nom","share"]]
+    return p2g[["bus0", "bus1", "p_nom", "share"]]
 
 
 if __name__ == "__main__":

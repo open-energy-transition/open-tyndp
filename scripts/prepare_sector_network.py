@@ -1971,7 +1971,7 @@ def _add_h2_dres_capacities(
 
     PEMMDB reports DRES per country, so for countries with several H2 Z2 zones, generator and electrolyser
     capacities are split using the onshore P2G e-market share capacity per zone. In TYNDP 2026, this only includes SK.
-    
+
     Parameters
     ----------
     n : pypsa.Network
@@ -2013,7 +2013,7 @@ def _add_h2_dres_capacities(
     # Filter for capacities, split them using shares and add to the network
     links = n.links.loc[electrolyser_i]
     zone_caps = links.bus1.map(p2g_shares.groupby("bus1").p_nom.sum()).fillna(0.0)
-    share = (zone_caps /zone_caps.groupby(links.bus0).transform("sum")).fillna(
+    share = (zone_caps / zone_caps.groupby(links.bus0).transform("sum")).fillna(
         1 / links.groupby("bus0").bus0.transform("size")
     )
     caps = (
