@@ -230,7 +230,7 @@ class _SynfuelsTyndpConfig(BaseModel):
 
     enable: bool = Field(
         False,
-        description="Add TYNDP 2026 synthetic fuels. Requires `h2_topology_tyndp`.",
+        description="Add TYNDP 2026 synthetic fuels. Requires `h2_topology_tyndp`. Cannot be combined with `industry` or `methanation`.",
     )
     carriers: dict[str, Literal["oil", "gas"]] = Field(
         default_factory=lambda: {"e-liquids": "oil", "sng": "gas"},
@@ -412,7 +412,10 @@ class SectorConfig(BaseModel):
     transport: bool = Field(True, description="Add transport sector.")
     heating: bool = Field(True, description="Add heating sector.")
     biomass: bool = Field(True, description="Add biomass sector.")
-    industry: bool = Field(True, description="Add industry sector.")
+    industry: bool = Field(
+        True,
+        description="Add industry sector. Cannot be combined with `synfuels_tyndp: enable`.",
+    )
     shipping: bool = Field(True, description="Add shipping sector.")
     aviation: bool = Field(True, description="Add aviation sector.")
     agriculture: bool = Field(True, description="Add agriculture sector.")
@@ -698,7 +701,7 @@ class SectorConfig(BaseModel):
 
     methanation: bool = Field(
         True,
-        description="Add option for transforming hydrogen and CO2 into methane using methanation.",
+        description="Add option for transforming hydrogen and CO2 into methane using methanation. Cannot be combined with `synfuels_tyndp: enable`.",
     )
     coal_cc: bool = Field(
         False, description="Add option for coal CHPs with carbon capture."
@@ -1001,4 +1004,16 @@ class SectorConfig(BaseModel):
         """Validate that TYNDP synthetic fuels are used with the TYNDP H2 topology."""
         if self.synfuels_tyndp.enable and not self.h2_topology_tyndp:
             raise ValueError("`synfuels_tyndp: enable` requires `h2_topology_tyndp`.")
+        return self
+
+    @model_validator(mode="after")
+    def check_synfuels_tyndp_conflicts(self) -> "SectorConfig":
+        """Validate that TYNDP synthetic fuels are not combined with PyPSA-Eur ones."""
+        options = {"industry": self.industry, "methanation": self.methanation}
+        conflicts = ", ".join(f"`{key}`" for key, enabled in options.items() if enabled)
+        if self.synfuels_tyndp.enable and conflicts:
+            raise ValueError(
+                "`synfuels_tyndp: enable` cannot be combined with PyPSA-Eur "
+                f"synthetic fuels from {conflicts}."
+            )
         return self

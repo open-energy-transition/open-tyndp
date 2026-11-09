@@ -5547,7 +5547,7 @@
         },
         "industry": {
           "default": true,
-          "description": "Add industry sector.",
+          "description": "Add industry sector. Cannot be combined with `synfuels_tyndp: enable`.",
           "type": "boolean"
         },
         "shipping": {
@@ -6044,7 +6044,7 @@
         },
         "methanation": {
           "default": true,
-          "description": "Add option for transforming hydrogen and CO2 into methane using methanation.",
+          "description": "Add option for transforming hydrogen and CO2 into methane using methanation. Cannot be combined with `synfuels_tyndp: enable`.",
           "type": "boolean"
         },
         "coal_cc": {
@@ -6390,7 +6390,7 @@
           "properties": {
             "enable": {
               "default": false,
-              "description": "Add TYNDP 2026 synthetic fuels. Requires `h2_topology_tyndp`.",
+              "description": "Add TYNDP 2026 synthetic fuels. Requires `h2_topology_tyndp`. Cannot be combined with `industry` or `methanation`.",
               "type": "boolean"
             },
             "carriers": {
@@ -10888,7 +10888,7 @@
       "properties": {
         "enable": {
           "default": false,
-          "description": "Add TYNDP 2026 synthetic fuels. Requires `h2_topology_tyndp`.",
+          "description": "Add TYNDP 2026 synthetic fuels. Requires `h2_topology_tyndp`. Cannot be combined with `industry` or `methanation`.",
           "type": "boolean"
         },
         "carriers": {
@@ -13893,7 +13893,7 @@
         },
         "industry": {
           "default": true,
-          "description": "Add industry sector.",
+          "description": "Add industry sector. Cannot be combined with `synfuels_tyndp: enable`.",
           "type": "boolean"
         },
         "shipping": {
@@ -14390,7 +14390,7 @@
         },
         "methanation": {
           "default": true,
-          "description": "Add option for transforming hydrogen and CO2 into methane using methanation.",
+          "description": "Add option for transforming hydrogen and CO2 into methane using methanation. Cannot be combined with `synfuels_tyndp: enable`.",
           "type": "boolean"
         },
         "coal_cc": {
@@ -14736,7 +14736,7 @@
           "properties": {
             "enable": {
               "default": false,
-              "description": "Add TYNDP 2026 synthetic fuels. Requires `h2_topology_tyndp`.",
+              "description": "Add TYNDP 2026 synthetic fuels. Requires `h2_topology_tyndp`. Cannot be combined with `industry` or `methanation`.",
               "type": "boolean"
             },
             "carriers": {
