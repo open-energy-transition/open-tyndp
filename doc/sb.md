@@ -101,7 +101,7 @@ network, applying TYNDP-specific constraints, solving the dispatch optimisation,
 ### Network Construction
 
 The PyPSA network is built at **bidding zone / country-level resolution** for the electricity and hydrogen
-sectors respectively. Buses represent national-level aggregations; Interconnectors are modelled as links sized by the net transfer capacities(NTC) from the TYNDP Line Data.
+sectors respectively. Buses represent bidding zones; Interconnectors are modelled as links sized by the net transfer capacities(NTC) from the TYNDP Line Data.
 
 Generator and storage components are attached to bidding zone buses using PEMMDB 2.X capacity data.
 
@@ -110,7 +110,7 @@ Generator and storage components are attached to bidding zone buses using PEMMDB
 Open-TYNDP models the electricity and hydrogen sectors as fully coupled. Cross-sector components include:
 
 * **Electrolysers:** Convert electricity to hydrogen; capacity is fixed per PEMMDB 2.X.
-* **Hydrogen fuel cells, CCGTs and OCGTs:** Reconvert hydrogen to electricity.
+* **Hydrogen fuel cells, CCGTs and OCGTs:** Reconvert hydrogen or methane to electricity.
 * **Hydrogen network:** Dedicated H₂ pipelines between H₂ zone buses are included for planning
   horizons from 2030 onward, using TYNDP Line Data. Following the TYNDP hydrogen node list, H₂
   buses are split into Zone 1 (Z1) and Zone 2 (Z2) buses.
@@ -118,8 +118,7 @@ Open-TYNDP models the electricity and hydrogen sectors as fully coupled. Cross-s
   data.
 * **Synthetic fuels:** E-liquids and SNG are produced from the H₂ Zone 2
   nodes, with capacities from the TYNDP Hydrogen data, or imported at the TYNDP offer price.
-* **Demand-side electrification:** Direct electrification of heat and transport end-uses is
-  part of the exogenous TYNDP electricity demand.
+* **Demand-side electrification:** Direct electrification of heat and transport end-uses.
 
 ### Dispatch Optimisation
 
