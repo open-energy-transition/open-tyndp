@@ -254,24 +254,23 @@ def get_balance_map_plots(w):
     return plots
 
 
-def runs_with(*keys):
+def runs_with(*keys: str) -> list[str]:
     runs = config["run"]["name"]
     return [
         run
         for run in ([runs] if isinstance(runs, str) else runs)
-        if config_provider(*keys)(Wildcards(fromdict={"run": run}))
+        if config_provider(*keys)(Wildcards(fromdict={"run": run} if run else {}))
     ]
 
 
 def input_all_tyndp(w):
     files = []
-    if config_provider("tyndp_scenario")(w) and config_provider("sector", "H2_network")(
-        w
-    ):
+    tyndp_runs = runs_with("tyndp_scenario")
+    if runs := [r for r in runs_with("sector", "H2_network") if r in tyndp_runs]:
         files.extend(
             expand(
                 (resources("maps/base_h2_network_{horizon}.pdf")),
-                run=config["run"]["name"],
+                run=runs,
                 horizon=config["planning_horizons"],
             )
         )
@@ -306,11 +305,11 @@ def input_all_tyndp(w):
             )
         )
 
-    if config_provider("launch_explorer")(w):
+    if runs := runs_with("launch_explorer"):
         files.extend(
             expand(
                 RESULTS + "logs/explorer_launched.log",
-                run=config["run"]["name"],
+                run=runs,
             )
         )
 
