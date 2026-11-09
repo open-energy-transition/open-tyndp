@@ -27,7 +27,7 @@
 
 * Fix the broken links in the documentation ([#997](https://github.com/open-energy-transition/open-tyndp/pull/997)).
 
-* Fix the broken pixi link in the readme documentation ([#1122](https://github.com/open-energy-transition/open-tyndp/pull/1122)).
+* Fix the broken `pixi` link in the README ([#1122](https://github.com/open-energy-transition/open-tyndp/pull/1122)).
 
 
 **Developers Note**
