@@ -425,20 +425,27 @@ def _remove_dangling_branches(branches, buses):
     )
 
 
-def _remove_unconnected_components(network, threshold=6):
+def _remove_unconnected_components(
+    network: pypsa.Network, config: dict
+) -> pypsa.Network:
+    if not config["electricity"]["remove_unconnected_components"]:
+        return network
+
     _, labels = csgraph.connected_components(
         network.adjacency_matrix(return_dataframe=False), directed=False
     )
     component = pd.Series(labels, index=network.buses.index)
+    largest = component.value_counts().index[0]
+    removed = component.index[component != largest]
 
-    component_sizes = component.value_counts()
-    components_to_remove = component_sizes.loc[component_sizes < threshold]
+    if removed.empty:
+        return network
 
     logger.info(
-        f"Removing {len(components_to_remove)} unconnected network components with less than {components_to_remove.max()} buses. In total {components_to_remove.sum()} buses."
+        f"Removing {component.nunique() - 1} network components outside the largest one, in total {len(removed)} buses: {', '.join(removed)}"
     )
 
-    return network[component == component_sizes.index[0]]
+    return network[component == largest]
 
 
 def _set_countries_and_substations(n, config, country_shapes, offshore_shapes):
@@ -642,7 +649,7 @@ def _adjust_capacities_of_under_construction_branches(n, config):
 
     if lines_mode == "remove" or links_mode == "remove":
         # We might need to remove further unconnected components
-        n = _remove_unconnected_components(n)
+        n = _remove_unconnected_components(n, config)
 
     return n
 
@@ -748,7 +755,7 @@ def base_network(
     if config["electricity"].get("base_network") == "entsoegridkit":
         _apply_parameter_corrections(n, parameter_corrections)
 
-    n = _remove_unconnected_components(n)
+    n = _remove_unconnected_components(n, config)
 
     _set_countries_and_substations(n, config, country_shapes, offshore_shapes)
 
