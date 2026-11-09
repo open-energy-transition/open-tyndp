@@ -11,7 +11,6 @@ from os.path import normpath, exists, join
 from shutil import copyfile, move, rmtree
 from dotenv import load_dotenv
 from snakemake.logging import logger
-from snakemake.iocontainers import Wildcards
 from snakemake.utils import min_version
 
 load_dotenv()
@@ -252,15 +251,6 @@ def get_balance_map_plots(w):
         )
 
     return plots
-
-
-def runs_with(*keys: str) -> list[str]:
-    runs = config["run"]["name"]
-    return [
-        run
-        for run in ([runs] if isinstance(runs, str) else runs)
-        if config_provider(*keys)(Wildcards(fromdict={"run": run} if run else {}))
-    ]
 
 
 def input_all_tyndp(w):
