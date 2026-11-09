@@ -255,8 +255,7 @@ def get_balance_map_plots(w):
 
 def input_all_tyndp(w):
     files = []
-    tyndp_runs = runs_with("tyndp_scenario")
-    if runs := [r for r in runs_with("sector", "H2_network") if r in tyndp_runs]:
+    if runs := runs_with("sector", "h2_topology_tyndp"):
         files.extend(
             expand(
                 (resources("maps/base_h2_network_{horizon}.pdf")),
