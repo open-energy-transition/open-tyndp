@@ -37,7 +37,7 @@ data:
 
 ## Development
 
-### Rule `prepare_pecd_release`
+### Rule `prepare_tyndp_pecd_release`
 
 ::: prepare_tyndp_pecd_release
 

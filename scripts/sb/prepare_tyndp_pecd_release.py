@@ -57,7 +57,7 @@ if __name__ == "__main__":
         from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake(
-            "prepare_pecd_release",
+            "prepare_tyndp_pecd_release",
             clusters="all",
         )
     configure_logging(snakemake)  # pylint: disable=possibly-used-before-assignment
