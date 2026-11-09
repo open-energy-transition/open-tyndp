@@ -44,8 +44,8 @@ with each layer overriding the ones listed before it:
   and planning horizons.
 - **`config/scenarios.tyndp.yaml`**: The per-scenario overrides, applied on top of the
   run-level configuration. `config.tyndp.yaml` points to this file through `run.scenarios.file`
-  and switches it on with `run.scenarios.enable: true`. Each named scenario (e.g. `NT`, `DE`,
-  `GA`, or a climate-year collection) supplies only the settings that differ from the run-level
+  and switches it on with `run.scenarios.enable: true`. Each named scenario (e.g. `NT`, `HEV`,
+  `LEV`, or a climate-year collection) supplies only the settings that differ from the run-level
   configuration and is selected through the `{run}` wildcard. See
   [Scenario Building](sb.md#configuration) and
   [Cost-Benefit Analysis](cba.md#running-single-vs-multiple-climate-years) for how each
@@ -208,14 +208,14 @@ Configuration for `foresight` settings.
 
 Configuration for `tyndp_scenario` settings.
 
-- **Type:** enum (`NT`, `DE`, `GA`, `false`)
+- **Type:** enum (`NT`, `HEV`, `LEV`, `false`)
 - **Default:** `false`
 
-Scenario configuration of the TYNDP data, which is one of `NT`, `DE` or `GA`. `false` disables the TYNDP-specific rules.
+Scenario configuration of the TYNDP data, which is one of `NT` (National Trends +), `HEV` (High Economic Variant) or `LEV` (Low Economic Variant). `false` disables the TYNDP-specific rules.
 
 !!! warning
-    Only `NT` is implemented and validated. `DE` and `GA` are incomplete, unsupported, and not
-    planned to be supported. The workflow might fail when running `DE` or `GA`. See [Scenarios](scenarios.md).
+    `HEV` and `LEV` are only partially implemented and currently differ from `NT` only in fuel and
+    CO2 prices. See [Scenarios](scenarios.md).
 
 **YAML Syntax**
 
@@ -488,19 +488,6 @@ Configuration for `transmission_projects` settings.
 
 ```yaml
 {{ yaml_section("transmission_projects") }}
-```
-
-
-## `tyndp_investment_candidates` {#tyndp_investment_candidates_cf}
-
-Defines which investment candidates to include in the network. Currently supports TYNDP 2024 investment candidates. This configuration applies to the TYNDP base networks and should not be used with `transmission_projects` enabled (see [`transmission_projects`](#transmission_projects_cf)).
-
-{{ schema_table("tyndp_investment_candidates") }}
-
-**YAML Syntax**
-
-```yaml
-{{ yaml_section("tyndp_investment_candidates") }}
 ```
 
 

@@ -132,4 +132,4 @@ Used by `pixi run collect-data-cba`, see
 ### Rule `cba`
 
 Top-level target rule. Collects ensemble outputs from all climate year runs in a collection
-scenario (e.g. `NT-cyears`) and the per-scenario results from nested runs.
+scenario (e.g. `NT-wscenarios`) and the per-scenario results from nested runs.

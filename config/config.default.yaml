@@ -43,6 +43,12 @@ foresight: overnight
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration/#tyndp_scenario_cf
 tyndp_scenario: false
 
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration/#hurdle_costs_cf
+hurdle_costs: 0.01
+
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration/#wscenarios_tyndp_cf
+wscenarios_tyndp: {}
+
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration/#launch_explorer_cf
 launch_explorer: false
 
@@ -122,6 +128,7 @@ electricity:
   - 500.0
   - 750.0
   base_network: osm
+  tyndp_reference_year: 2030
   gaslimit_enable: false
   gaslimit: false
   operational_reserve:
@@ -181,37 +188,50 @@ electricity:
   pecd_renewable_profiles:
     enable: false
     pre_built:
-      cyears:
-      - 1995
-      - 2008
-      - 2009
+      wscenarios:
+      - 3
+      - 21
+      - 29
+      - 32
+      - 37
+      - 59
+      - 65
+      - 71
+      - 77
+      - 91
+      - 92
+      - 106
     fill_gaps_method: zero
     available_years:
     - 2030
+    - 2035
     - 2040
     - 2050
     technologies:
     - Wind_Offshore
-    - LFSolarPVRooftop
-    - LFSolarPVUtility
+    - Solar PV Rooftop
+    - Solar PV Utility
     - Wind_Onshore
-  pemmdb_hydro_profiles:
+    - CSP_noStorage_0h_dispatched
+  pecd_hydro_profiles:
     enable: false
     available_years:
     - 2030
+    - 2035
     - 2040
     - 2050
     technologies:
-    - Run_of_River
-    - Pondage
-    - Reservoir
-    - PS_Open
-    - PS_Closed
+    - HRR
+    - HPI
+    - HRI
+    - HOL
+    - HCL
   pemmdb_capacities:
     enable: false
     nprocesses: 4
     available_years:
     - 2030
+    - 2035
     - 2040
     - 2050
     technologies:
@@ -582,12 +602,6 @@ transmission_projects:
   - confirmed
   new_link_capacity: zero
 
-# docs in https://open-tyndp.readthedocs.io/en/latest/configuration/#tyndp_investment_candidates_cf
-tyndp_investment_candidates:
-  patch_sb_with_annexe: false
-  elec_projects: {}
-  h2_projects: {}
-
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration/#transformers_cf
 transformers:
   x: 0.1
@@ -601,10 +615,6 @@ load:
     enable: true
     interpolate_limit: 6
     time_shift_for_large_gaps: 1w
-  available_years_tyndp:
-  - 2030
-  - 2040
-  - 2050
   manual_adjustments: true
   scaling_factor: 1.0
   fixed_year: false
@@ -613,7 +623,6 @@ load:
   distribution_key:
     gdp: 0.6
     population: 0.4
-  patch_demand_with_mm: false
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration/#pypsa_eur_cf
 pypsa_eur:
@@ -930,6 +939,7 @@ sector:
     2040: 0.3
     2045: 0.15
     2050: 0
+  land_transport_oil_demand_tyndp: {}
   transport_electric_efficiency: 53.19
   transport_fuel_cell_efficiency: 30.003
   transport_ice_efficiency: 16.0712
@@ -1108,9 +1118,7 @@ sector:
       efficiency_per_1000km: 1
   H2_network: true
   h2_topology_tyndp: false
-  h2_reference_grid_source: entsoe
-  h2_zones_tyndp: false
-  h2_demand_patch_with_mm: false
+  smr_ramp_limits_tyndp: false
   gas_network: true
   gas_demand_exogenously: false
   H2_retrofit: false
@@ -1171,13 +1179,6 @@ sector:
       methanol: 121
       gas: 122
       oil: 125
-  offshore_hubs_tyndp:
-    enable: false
-    patch_crossborder_with_mm: false
-    connect_isolated: false
-    max_capacity:
-      DC_OH: 10
-      H2 pipeline OH: 30
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration/#industry_cf
 industry:
@@ -1645,6 +1646,9 @@ data:
   tyndp:
     source: archive
     version: latest
+  tyndp_2026:
+    source: archive
+    version: latest
   powerplants:
     source: archive
     version: latest
@@ -1699,20 +1703,11 @@ data:
   tyndp_pecd:
     source: archive
     version: latest
-  tyndp_vis_plfm:
-    source: archive
-    version: latest
   tyndp_cba_projects:
-    source: archive
-    version: latest
-  tyndp_nuclear_profiles:
     source: archive
     version: latest
   open_tyndp_prelim:
     source: archive
-    version: latest
-  countries_centroids:
-    source: primary
     version: latest
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration/#overpass_api_cf
@@ -1727,7 +1722,6 @@ overpass_api:
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration/#cba_cf
 cba:
-  hurdle_costs: 0.01
   co2_societal_cost: {}
   planning_horizons: []
   cba_scenario_input:

@@ -2,14 +2,13 @@
 #
 # SPDX-License-Identifier: MIT
 import logging
-import re
 import socket
 from bisect import bisect_right
 from collections.abc import Callable
 from functools import lru_cache
+from pathlib import Path
 
 import git
-import numpy as np
 import pandas as pd
 import pypsa
 from matplotlib import pyplot as plt
@@ -17,8 +16,6 @@ from matplotlib import pyplot as plt
 logger = logging.getLogger(__name__)
 
 SCENARIO_DICT = {
-    "Distributed Energy": "DE",
-    "Global Ambition": "GA",
     r"National Trends\s*\+": "NT",
     r"NT\s*\+": "NT",
     "National Trends": "NT",
@@ -27,6 +24,24 @@ ENERGY_UNITS = {"TWh", "GWh", "MWh", "kWh"}
 POWER_UNITS = {"GW", "MW", "kW"}
 PRICE_UNITS = {"EUR/MWh", "EUR/MWh_e", "EUR/MWh_H2"}
 
+# Weather scenarios that contain data in the TYNDP 2026 data,
+# per planning horizon.
+AVAILABLE_WSCENARIOS = {
+    2030: [3, 21, 29],
+    2035: [32, 37, 59],
+    2040: [65, 71, 77],
+    2050: [91, 92, 106],
+}
+
+# List of sheets from TYNDP Dashboards (market model outputs)
+ELECTRICITY_SHEETS = ["E-Market", "Prosumer", "Offshore"]
+H2_SHEETS = ["H2 Zone 1", "H2 Zone 2"]
+EXCHANGES_SHEET = "Exchanges"
+CAPACITY_SHEET = "Installed Capacity"
+# Header rows of the timeseries sheets and the yearly aggregates in their first rows
+NROWS_HEADER = 9
+STATS = ["min", "max", "avg", "sum"]
+
 
 def make_index(
     c, cname0="bus0", cname1="bus1", prefix="", connector="->", suffix="", separator=" "
@@ -34,6 +49,31 @@ def make_index(
     idx = [prefix, c[cname0], connector, c[cname1], suffix]
     idx = [i for i in idx if i]
     return separator.join(idx)
+
+
+def format_bz_names(
+    obj: str | pd.Series | pd.DataFrame,
+) -> str | pd.Series | pd.DataFrame:
+    """
+    Standardize TYNDP bidding zone / node name conventions to Open-TYNDP's.
+
+    Currently only rewrites the "UK" country-code convention to "GB" (and the
+    "UK-N" sub-zone code to "GBNI"). Works both on a single string and,
+    element-wise, on a pandas Series/DataFrame.
+
+    Parameters
+    ----------
+    obj : str | pd.Series | pd.DataFrame
+        Raw bidding zone / node name(s) to format.
+
+    Returns
+    -------
+    str | pd.Series | pd.DataFrame
+        Formatted name(s) with standardized region codes.
+    """
+    if isinstance(obj, str):
+        return obj.replace("UK-N", "UKNI").replace("UK", "GB")
+    return obj.replace("UK-N", "UKNI", regex=True).replace("UK", "GB", regex=True)
 
 
 def extract_grid_data_tyndp(
@@ -115,14 +155,14 @@ def extract_grid_data_tyndp(
     return links
 
 
-def safe_pyear(
+def safe_planning_horizon(
     year: int | str,
     available_years: list[int] = [2030, 2040, 2050],
     source: str = "TYNDP",
     verbose: bool = True,
 ) -> int:
     """
-    Checks and adjusts whether a given pyear is in the available years of a given data source. If not, it
+    Checks and adjusts whether a given planning_horizon is in the available years of a given data source. If not, it
     falls back to the previous available year.
 
     Parameters
@@ -139,7 +179,7 @@ def safe_pyear(
     Returns
     -------
     year_new : int
-        Safe pyear adjusted for available years.
+        Safe planning_horizon adjusted for available years.
     """
 
     if not available_years:
@@ -199,28 +239,16 @@ def map_tyndp_carrier_names(
     # Map the carriers
     df = df.merge(carrier_mapping, on=on_columns, how="left")
 
-    # If the carrier is DSR or Other Non-RES, the different price bands are too diverse for a robust external
-    # mapping. Instead, we will combine the carrier and type information.
+    # DSR price bands are too diverse for a robust external mapping. Instead, we
+    # will combine the carrier and type information.
     if "pemmdb_carrier" in on_columns:
+        dsr = df["pemmdb_carrier"] == "DSR"
 
-        def normalize_carrier(s):
-            return s.lower().replace(" ", "-").replace("other-non-res", "chp")
-
-        # Other Non-RES are assumed to represent CHP plants (according to TYNDP 2024 Methodology report p.37)
-        df = df.assign(
-            open_tyndp_carrier=lambda x: np.where(
-                x["pemmdb_carrier"].isin(["DSR", "Other Non-RES"]),
-                x["pemmdb_carrier"].apply(normalize_carrier),
-                x["open_tyndp_carrier"],
-            ),
-            open_tyndp_index=lambda x: np.where(
-                x["pemmdb_carrier"].isin(["DSR", "Other Non-RES"]),
-                x["open_tyndp_carrier"]
-                + "-"
-                + x["pemmdb_type"].apply(normalize_carrier),
-                x["open_tyndp_index"],
-            ),
-        )
+        if dsr.any():
+            df.loc[dsr, "open_tyndp_carrier"] = "dsr"
+            df.loc[dsr, "open_tyndp_index"] = "dsr-" + df.loc[
+                dsr, "pemmdb_type"
+            ].str.lower().str.replace(" ", "-")
 
     if not drop_on_columns:
         return df
@@ -442,36 +470,28 @@ def convert_units(
     return df
 
 
-def check_cyear(cyear: int, scenario: str) -> int:
+def check_wscenario(wscenario: int) -> int:
     """
-    Check if the climatic year is valid for the given scenario.
+    Check if the weather scenario is valid for the TYNDP data.
 
     Parameters
     ----------
-    cyear : int
-        Climatic year to validate.
-    scenario : str
-        TYNDP scenario name.
+    wscenario : int
+        Weather scenario to validate.
 
     Returns
     -------
     int
-        Valid climatic year, falling back to 2009 if the input is not available.
+        Valid weather scenario, falling back to 2009 if the input is not available.
     """
 
-    valid_years = {
-        "NT": [1995, 2008, 2009],
-        "DE": [1995, 2008, 2009],
-        "GA": [1995, 2008, 2009],
-    }
-
-    if cyear not in valid_years[scenario]:
+    if wscenario not in [1995, 2008, 2009]:
         logger.warning(
-            f"Snapshot year {cyear} doesn't match available TYNDP data. Falling back to 2009."
+            f"Snapshot year {wscenario} doesn't match available TYNDP data. Falling back to 2009."
         )
-        cyear = 2009
+        wscenario = 2009
 
-    return cyear
+    return wscenario
 
 
 def get_tyndp_conventional_thermals(
@@ -522,14 +542,14 @@ def get_tyndp_conventional_thermals(
     if include_h2_fuel_cell:
         conventional_thermals.append("h2-fuel-cell")
     if include_h2_turbine:
-        conventional_thermals.append("h2-ccgt")
+        conventional_thermals.extend(["h2-ccgt", "h2-ocgt"])
 
     return conventional_dict, conventional_thermals
 
 
 def interpolate_demand(
     available_years: list[int],
-    pyear: int,
+    planning_horizon: int,
     load_single_year_func: Callable,
     **load_kwargs,
 ) -> pd.DataFrame | pd.Series:
@@ -540,12 +560,12 @@ def interpolate_demand(
     ----------
     available_years : list[int]
         Sorted list of years for which data is available.
-    pyear : int
+    planning_horizon : int
         Planning year to interpolate demand for.
     load_single_year_func : Callable
         Function to load data for a single planning year.
     **load_kwargs
-        Keyword arguments to pass to load_single_year_func. Must include 'pyear'
+        Keyword arguments to pass to load_single_year_func. Must include 'planning_horizon'
         as a parameter key, which will be overridden with interpolation boundary years.
 
     Returns
@@ -554,18 +574,18 @@ def interpolate_demand(
         Interpolated demand data.
     """
     # Currently, only interpolation is implemented, not extrapolation
-    idx = bisect_right(available_years, pyear)
+    idx = bisect_right(available_years, planning_horizon)
     if idx == 0:
         # Planning horizon is before all available years
         logger.warning(
-            f"Year {pyear} is before the first available year {available_years[0]}. "
+            f"Year {planning_horizon} is before the first available year {available_years[0]}. "
             f"Falling back to first available year."
         )
         year_lower = year_upper = available_years[0]
     elif idx == len(available_years):
         # Planning horizon is after all available years
         logger.warning(
-            f"Year {pyear} is after the latest available year {available_years[-1]}. "
+            f"Year {planning_horizon} is after the latest available year {available_years[-1]}. "
             f"Falling back to latest available year."
         )
         year_lower = year_upper = available_years[-1]
@@ -573,10 +593,10 @@ def interpolate_demand(
         year_lower = available_years[idx - 1]
         year_upper = available_years[idx]
 
-    logger.debug(f"Interpolating {pyear} from {year_lower} and {year_upper}")
+    logger.debug(f"Interpolating {planning_horizon} from {year_lower} and {year_upper}")
 
-    kwargs_lower = {**load_kwargs, "pyear": year_lower}
-    kwargs_upper = {**load_kwargs, "pyear": year_upper}
+    kwargs_lower = {**load_kwargs, "planning_horizon": year_lower}
+    kwargs_upper = {**load_kwargs, "planning_horizon": year_upper}
 
     df_lower = load_single_year_func(**kwargs_lower)
     df_upper = load_single_year_func(**kwargs_upper)
@@ -621,7 +641,7 @@ def interpolate_demand(
         )
 
     # Perform linear interpolation
-    weight = (pyear - year_lower) / (year_upper - year_lower)
+    weight = (planning_horizon - year_lower) / (year_upper - year_lower)
     result = df_lower_aligned * (1 - weight) + df_upper_aligned * weight
 
     return result
@@ -691,7 +711,7 @@ def remove_disconnected_storage_buses(
 ) -> None:
     """
     Remove storage buses whose carrier is in *carriers* but that no longer
-    have a Store connected to them.
+    have a Store connected to them as well as any generators connected to those buses.
 
     Parameters
     ----------
@@ -704,6 +724,12 @@ def remove_disconnected_storage_buses(
     idx = n.buses.loc[
         n.buses.carrier.isin(carriers) & ~n.buses.index.isin(remaining_stores)
     ].index
+    gen_i = n.generators.index[n.generators.bus.isin(idx)]
+    if not gen_i.empty:
+        logger.info(
+            f"Removing generators attached to disconnected storage buses: {gen_i.tolist()}"
+        )
+    n.remove("Generator", gen_i)
     n.remove("Bus", idx)
 
 
@@ -762,108 +788,230 @@ def align_demand_to_snapshots(
     return demand.reindex(snapshots)
 
 
-def extract_crossborder_pattern(df: pd.DataFrame, connector: str = "-"):
-    return df.index.str.extract(
-        rf"^(.*?)(\w+)( H2)*{re.escape(connector)}(\w+)( H2)*(.*)$"
-    ).fillna("")
+def check_snapshot_year(
+    year: int, drop_leap_day: bool, data_type: str = "demand"
+) -> None:
+    """
+    Ensure a leap `year` doesn't leave 29 February in `snapshots`.
+
+    TYNDP 2026 time series always span 365 days, so data built directly
+    against a leap `year` would be missing that day. Therefore,
+    `drop_leap_day` needs to be enabled to strip February 29th from `snapshots`.
+
+    Parameters
+    ----------
+    year : int
+        Snapshot year.
+    drop_leap_day : bool
+        Whether 29 February is dropped from `snapshots`.
+    data_type : str
+        Name of the checked TYNDP data, used in the error message.
+
+    Raises
+    ------
+    ValueError
+        If `year` is a leap year and `drop_leap_day` is False.
+    """
+    is_leap_year = pd.Timestamp(year=year, month=1, day=1).is_leap_year
+    if is_leap_year and not drop_leap_day:
+        raise ValueError(
+            f"Snapshot year {year} is a leap year but `enable.drop_leap_day` "
+            f"is disabled. TYNDP 2026 {data_type} data always spans 365 days (no "
+            "29 February). Enable `enable.drop_leap_day` or configure a "
+            "non-leap `snapshots` year."
+        )
 
 
 def normalize_direction(
-    df: pd.DataFrame | pd.Series,
-    cols: list[str] | None = None,
-    buses_from_index: bool = False,
-    connector: str = "->",
-    format_index: bool = False,
+    df: pd.DataFrame, cols: list[str], connector: str = "-"
 ) -> pd.DataFrame:
     """
     Normalize link direction so bus0 is always alphabetically before bus1.
 
     Parameters
     ----------
-    df : pd.DataFrame | pd.Series
-        Input data to normalize.
-    cols : list[str] | None, default=None
-        Names of flow columns whose sign should be flipped when direction is
-        swapped. Required when `df` is a DataFrame and ignored when `df` is a
-        Series.
-    buses_from_index : bool, default=False
-        If True, parse index instead of reading
-        "bus0"/"bus1" columns directly.
-    connector : str, default="->"
-        String separator between bus0 and bus1 in the index.
-    format_index : bool, default=False
-        If True, reformat the index after normalization to
-        ``"bus0[_suffix]->bus1[_suffix]"``.
+    df : pd.DataFrame
+        Input data with "bus0" and "bus1" columns.
+    cols : list[str]
+        Names of flow columns whose sign is flipped when direction is swapped.
+    connector : str, default="-"
+        String separator between bus0 and bus1 in the resulting "border" column.
 
     Returns
     -------
-    pd.DataFrame | pd.Series
-        Data with normalized link direction.
+    pd.DataFrame
+        Data with normalized link direction and a "border" column.
     """
-    is_series = isinstance(df, pd.Series)
+    swap = df["bus0"] > df["bus1"]
+    return df.assign(
+        **{col: df[col].where(~swap, -df[col]) for col in cols},
+        bus0=df["bus0"].where(~swap, df["bus1"]),
+        bus1=df["bus1"].where(~swap, df["bus0"]),
+    ).assign(border=lambda x: x.bus0 + connector + x.bus1)
 
-    if is_series:
-        df = df.to_frame("value")
-        cols = ["value"]
-    elif isinstance(df, pd.DataFrame):
-        if cols is None or len(cols) == 0:
-            raise ValueError(
-                "No column names `cols` to normalize. `cols` must be provided when `df` is a DataFrame."
-            )
-    else:
-        raise TypeError("`df` must be a pandas Series or DataFrame.")
 
-    if buses_from_index:
-        df.loc[
-            :, ["prefix", "bus0", "bus0_suffix", "bus1", "bus1_suffix", "suffix"]
-        ] = extract_crossborder_pattern(df, connector).values
-    # Protect swapping of direction for H2 import links and the bus0 starting with "X"
-    mask_import_link = df["prefix"].str.contains("H2 import", na=False)
-    mask = (
-        (df["bus0"] > df["bus1"]) & ~df["bus0"].str.startswith("X") & ~mask_import_link
+def parse_wscenario(s: pd.Series) -> pd.Series:
+    """
+    Convert weather scenario labels (eg. WS065) into their integer index.
+    """
+    return pd.to_numeric(s.astype(str).str.removeprefix("WS"), errors="coerce")
+
+
+def get_wscenario(wscenarios, planning_horizon):
+    """
+    Select the weather scenario to use for a given planning horizon.
+
+    Parameters
+    ----------
+    wscenarios : dict
+        Mapping of planning year to a list of requested weather scenarios,
+        e.g. ``{planning_horizon: [wscenario, ...]}``.
+    planning_horizon : int
+        Planning horizon for which to select the weather scenario.
+
+    Returns
+    -------
+    int
+        Selected weather scenario. Falls back to the first entry in
+        ``AVAILABLE_WSCENARIOS[planning_horizon]`` if unavailable.
+
+    Notes
+    -----
+    Currently always picks the first requested weather scenario; should be
+    adapted once the full weather year implementation is available in SB.
+    """
+    wscenario = wscenarios[planning_horizon][0]
+
+    if wscenario not in AVAILABLE_WSCENARIOS[planning_horizon]:
+        fallback_scenario = AVAILABLE_WSCENARIOS[planning_horizon][0]
+        logger.warning(
+            f"Weather scenario WS{wscenario:03d} not available for "
+            f"planning horizon {planning_horizon}, falling back to WS{fallback_scenario:03d}"
+        )
+        wscenario = fallback_scenario
+
+    return wscenario
+
+
+def split_unit_from_category(category_labels: pd.Series) -> tuple[pd.Series, pd.Series]:
+    """
+    Split units from category (carrier) labels in the dashboard
+    """
+    parts = category_labels.astype(str).str.extract(
+        r"^(?P<carrier>.*?)\s*(?:\[(?P<unit>[^\]]*)\])?\s*$"
     )
-    assignments = {col: np.where(mask, -df[col], df[col]) for col in cols}
+    unit = parts.unit.str.replace("€", "EUR", regex=False).str.replace(
+        r"_(e|H2)$", "", regex=True
+    )
+    return parts.carrier, unit
 
-    # Add bus0, bus1, and border to assignments
-    assignments.update(
-        {
-            "bus0": np.where(mask, df["bus1"], df["bus0"]),
-            "bus1": np.where(mask, df["bus0"], df["bus1"]),
-            "border": lambda df: (
-                df.prefix
-                + df.bus0
-                + df.bus0_suffix
-                + connector
-                + df.bus1
-                + df.bus1_suffix
-                + df.suffix
-            ),
-        }
+
+def parse_dashboard_header(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Parse the header of a sheet from a TYNDP TimeSeries Dashboard output file.
+
+    All sheets, except "Installed Capacity", share the same structure:
+    - Rows 1-4: Yearly values (min, max, average, and sum) of the hourly timeseries
+    - Row 6: Market Zone
+    - Row 7: Category (similar to carrier)
+    - Row 8: Element (similar to type)
+    - Row 9: Generation/Load, indicates flow direction.
+    - Row 10: Hour labels, followed by the hourly values.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Raw sheet read without header.
+
+    Returns
+    -------
+    pd.DataFrame
+        One row per timeseries, indexed by its column in ``df``, with columns
+        [min, max, avg, sum, bus, element, flow, carrier, unit].
+    """
+    col_keys = 1
+
+    header = df.iloc[:NROWS_HEADER].copy()
+    header.iloc[: len(STATS), col_keys] = STATS
+    header = header.set_index(col_keys).T.dropna(how="all").dropna(how="all", axis=1)
+
+    carrier, unit = split_unit_from_category(header["Category"])
+    return (
+        header.drop(columns="Category")
+        .rename_axis(columns=None)  # drop the name 1 from set_index, it breaks query
+        .rename(
+            columns={
+                "Market Zone": "bus",
+                "Element": "element",
+                "Generation/Load": "flow",
+            }
+        )
+        .assign(carrier=carrier, unit=unit)
     )
 
-    df = df.assign(**assignments).drop(
-        columns=["prefix", "bus0_suffix", "bus1_suffix", "suffix"], errors="ignore"
+
+def parse_installed_capacity(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Parse the sheet "Installed Capacity" from a TYNDP TimeSeries Dashboard output file.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Raw sheet read without header.
+
+    Returns
+    -------
+    pd.DataFrame
+        Long format with columns [carrier, unit, sheet, bus, value]
+    """
+    row_data, col_value = 2, 1
+
+    carrier, unit = split_unit_from_category(df.iloc[row_data:, 0])
+    columns = pd.MultiIndex.from_arrays(
+        df.iloc[:row_data, col_value:].values, names=["sheet", "bus"]
     )
 
-    if buses_from_index:
-        df = df.set_index("border")
+    return (
+        df.iloc[row_data:, col_value:]
+        .apply(pd.to_numeric, errors="coerce")
+        .set_axis(columns, axis=1)
+        .set_axis(pd.MultiIndex.from_arrays([carrier, unit], names=["carrier", "unit"]))
+        .stack(["sheet", "bus"], future_stack=True)
+        .rename("value")
+        .reset_index()
+        .dropna(subset=["value"])
+    )
 
-    if format_index:
-        idx_groups = extract_crossborder_pattern(df, connector)
 
-        mask_h2_pipeline = idx_groups[0] == "H2 pipeline "
-        idx_groups.loc[mask_h2_pipeline, [2, 4]] = " H2"
+def get_dashboard_files(
+    dashboard_dir: str | Path, planning_horizon: int, wscenario: int
+) -> list[Path]:
+    """
+    List the TYNDP TimeSeries Dashboard files of a planning horizon and weather scenario.
 
-        mask_import = idx_groups[0].str.contains("H2 import")
-        idx_groups.loc[mask_import, 1] = "X" + idx_groups.loc[mask_import, 1]
-        idx_groups.loc[mask_import, 4] = " H2"
+    Parameters
+    ----------
+    dashboard_dir : str or Path
+        Directory of the TimeSeries Dashboard files.
+    planning_horizon : int
+        Planning horizon.
+    wscenario : int
+        Weather scenario.
 
-        df.index = idx_groups[1] + idx_groups[2] + "->" + idx_groups[3] + idx_groups[4]
+    Returns
+    -------
+    list[Path]
+        Sorted paths to the TimeSeries Dashboard files, one per country.
+    """
+    files = sorted(
+        Path(
+            dashboard_dir, str(planning_horizon), f"Weather scenario {wscenario:03d}"
+        ).glob("*_TimeSeriesDashboard_*.xlsx")
+    )
+    if not files:
+        raise FileNotFoundError(
+            f"No TimeSeries Dashboard files for planning year {planning_horizon} "
+            f"and weather scenario WS{wscenario:03d}."
+        )
 
-    if buses_from_index:
-        df.index.name = "border"
-
-    if is_series:
-        df = df.value
-
-    return df
+    return files

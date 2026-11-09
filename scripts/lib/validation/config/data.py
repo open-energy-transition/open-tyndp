@@ -386,6 +386,10 @@ class DataConfig(BaseModel):
         default_factory=_DataSourceConfig,
         description="TYNDP 2024 data source configuration.",
     )
+    tyndp_2026: _DataSourceConfig = Field(
+        default_factory=_DataSourceConfig,
+        description="TYNDP 2026 data source configuration.",
+    )
     powerplants: _DataSourceConfig = Field(
         default_factory=_DataSourceConfig,
         description="Powerplants data source configuration.",
@@ -458,23 +462,11 @@ class DataConfig(BaseModel):
         default_factory=_DataSourceConfig,
         description="TYNDP PECD (Pan-European Climate Database) data source configuration.",
     )
-    tyndp_vis_plfm: _DataSourceConfig = Field(
-        default_factory=_DataSourceConfig,
-        description="TYNDP visualisation platform data source configuration.",
-    )
     tyndp_cba_projects: _DataSourceConfig = Field(
         default_factory=_DataSourceConfig,
         description="TYNDP CBA projects data source configuration.",
     )
-    tyndp_nuclear_profiles: _DataSourceConfig = Field(
-        default_factory=_DataSourceConfig,
-        description="TYNDP nuclear profiles data source configuration.",
-    )
     open_tyndp_prelim: _DataSourceConfig = Field(
         default_factory=_DataSourceConfig,
         description="Open-TYNDP preliminary results data source configuration.",
-    )
-    countries_centroids: _DataSourceConfig = Field(
-        default_factory=lambda: _DataSourceConfig(source="primary"),
-        description="World country centroids data source configuration.",
     )

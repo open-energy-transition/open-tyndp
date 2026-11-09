@@ -1,0 +1,60 @@
+name: Close linked issues on merge into tyndp-2026
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [tyndp-2026]
+
+permissions:
+  issues: write
+  pull-requests: read
+
+jobs:
+  close-issues:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+    - name: Close issues linked in the Development sidebar or the PR body
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        BASE: ${{ github.event.pull_request.base.ref }}
+      run: |
+        # Fetch sidebar links before closing anything, so that an API failure aborts
+        # the job (bash -e)
+        issues=$(
+          gh api graphql \
+            -F owner="${GITHUB_REPOSITORY_OWNER}" \
+            -F repo="${GITHUB_REPOSITORY#*/}" \
+            -F pr="$PR_NUMBER" \
+            -f query='
+              query($owner: String!, $repo: String!, $pr: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  pullRequest(number: $pr) {
+                    closingIssuesReferences(first: 50, userLinkedOnly: true) {
+                      nodes { number repository { nameWithOwner } }
+                    }
+                  }
+                }
+              }' \
+            --jq '.data.repository.pullRequest.closingIssuesReferences.nodes[]
+                  | select(.repository.nameWithOwner == env.GITHUB_REPOSITORY) | .number'
+        )
+        # The Development sidebar is authoritative. Without sidebar links, fall back to
+        # closing keywords in the PR body (close(s/d), fix(es/ed), resolve(s/d), e.g.
+        # "Fixes #N"), which GitHub only registers for PRs into the default branch.
+        # Only same-repository references ("#N") count.
+        if [[ -z "$issues" ]]; then
+          issues=$(
+            jq -r '.pull_request.body // ""' "$GITHUB_EVENT_PATH" \
+              | grep -oiE '\b(close[sd]?|fix(e[sd])?|resolve[sd]?):?\s+#[0-9]+' \
+              | grep -oE '[0-9]+$' \
+              || true
+          )
+        fi
+        for issue in $(printf '%s\n' $issues | sort -un); do
+          gh issue close "$issue" --repo "$GITHUB_REPOSITORY" \
+            --comment "Closed by #$PR_NUMBER (merged into \`$BASE\`)." \
+            || echo "::warning::Could not close $GITHUB_REPOSITORY#$issue"
+        done

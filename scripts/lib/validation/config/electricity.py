@@ -11,7 +11,7 @@ See docs in https://open-tyndp.readthedocs.io/en/latest/configuration/#electrici
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from scripts.lib.validation.config._base import ConfigModel
 
@@ -168,18 +168,18 @@ class _AutarkyConfig(BaseModel):
 class _PecdPreBuiltConfig(BaseModel):
     """Configuration for `electricity.pecd_renewable_profiles.pre_built` settings."""
 
-    cyears: list[int] = Field(
-        default_factory=lambda: [1995, 2008, 2009],
-        description="List of climate years to filter for when creating the PECD pre-built. Can be any year between 1982 and 2019.",
+    wscenarios: list[int] = Field(
+        default_factory=lambda: [3, 21, 29, 32, 37, 59, 65, 71, 77, 91, 92, 106],
+        description="List of weather scenarios to filter for when creating the PECD pre-built. The scenario numbering ranges between 1-120.",
     )
 
-    @field_validator("cyears")
+    @field_validator("wscenarios")
     @classmethod
-    def validate_cyears(cls, v: list[int]) -> list[int]:
-        """Validate that climate years are between 1982 and 2019."""
+    def validate_wscenarios(cls, v: list[int]) -> list[int]:
+        """Validate that weather scenarios are between 1 and 120."""
         for year in v:
-            if not 1982 <= year <= 2019:
-                raise ValueError(f"Climate year {year} must be between 1982 and 2019")
+            if not 1 <= year <= 120:
+                raise ValueError(f"Weather scenario {year} must be between 1 and 120")
         return v
 
 
@@ -199,51 +199,43 @@ class _PecdRenewableProfilesConfig(BaseModel):
         description="The chosen method for filling gaps in the PECD data to the modelled nodes. Can be either `zero` to fill with zero values or any other aggregation method such as `mean`, `median`, `max` or similar.",
     )
     available_years: list[int] = Field(
-        default_factory=lambda: [2030, 2040, 2050],
+        default_factory=lambda: [2030, 2035, 2040, 2050],
         description="List of years for which PECD data is available.",
     )
     technologies: list[
         Literal[
             "Wind_Offshore",
-            "LFSolarPVRooftop",
-            "LFSolarPVUtility",
-            "CSP_noStorage",
-            "CSP_withStorage",
+            "Solar PV Rooftop",
+            "Solar PV Utility",
             "Wind_Onshore",
+            "CSP_noStorage_0h_dispatched",
         ]
     ] = Field(
         default_factory=lambda: [
             "Wind_Offshore",
-            "LFSolarPVRooftop",
-            "LFSolarPVUtility",
+            "Solar PV Rooftop",
+            "Solar PV Utility",
             "Wind_Onshore",
+            "CSP_noStorage_0h_dispatched",
         ],
         description="The PECD technologies whose PECD profile is used. These PECD technologies and their profiles are mapped to `tyndp_renewable_carriers`. Please make sure that the mapping is included in the `tyndp_technology_map.csv` file.",
     )
 
 
-class _PemmdbHydroProfilesConfig(BaseModel):
-    """Configuration for `electricity.pemmdb_hydro_profiles` settings."""
+class _PecdHydroProfilesConfig(BaseModel):
+    """Configuration for `electricity.pecd_hydro_profiles` settings."""
 
     enable: bool = Field(
         False,
-        description="Activate PEMMDB hydro inflow profiles from 2024 TYNDP instead of default hydro profiles.",
+        description="Activate PECD v4.2 hydro inflow profiles from TYNDP 2026 instead of default hydro profiles.",
     )
     available_years: list[int] = Field(
-        default_factory=lambda: [2030, 2040, 2050],
-        description="List of years for which PEMMDB hydro inflows data is available.",
+        default_factory=lambda: [2030, 2035, 2040, 2050],
+        description="List of years for which PECD hydro inflows data is available.",
     )
-    technologies: list[
-        Literal["Run_of_River", "Pondage", "Reservoir", "PS_Open", "PS_Closed"]
-    ] = Field(
-        default_factory=lambda: [
-            "Run_of_River",
-            "Pondage",
-            "Reservoir",
-            "PS_Open",
-            "PS_Closed",
-        ],
-        description="The hydro technologies for which PEMMDB hydro inflows data is used.",
+    technologies: list[Literal["HRR", "HPI", "HRI", "HOL", "HCL"]] = Field(
+        default_factory=lambda: ["HRR", "HPI", "HRI", "HOL", "HCL"],
+        description="The hydro technologies for which PECD hydro inflows data is used, as PECD codes: HRR (run of river), HPI (pondage), HRI (reservoir), HOL (open-loop pumped storage), HCL (closed-loop pumped storage).",
     )
 
 
@@ -259,7 +251,7 @@ class _PemmdbCapacitiesConfig(BaseModel):
         description="Number of parallel processes when reading pemmdb data.",
     )
     available_years: list[int] = Field(
-        default_factory=lambda: [2030, 2040, 2050],
+        default_factory=lambda: [2030, 2035, 2040, 2050],
         description="List of years for which PEMMDB data is available.",
     )
     technologies: list[
@@ -314,6 +306,10 @@ class ElectricityConfig(BaseModel):
     base_network: Literal["entsoegridkit", "osm", "tyndp"] = Field(
         "osm",
         description="Specify the underlying base network, i.e. GridKit (based on ENTSO-E web map extract), OpenStreetMap (OSM), or TYNDP.",
+    )
+    tyndp_reference_year: int = Field(
+        2030,
+        description="Planning-horizon year of the TYNDP reference grid used to build the static base network topology and its initial NTC, when `base_network` is 'tyndp'. The node/link topology is identical across all TYNDP planning horizons, only NTC differs, so a single fixed year is used here; per-horizon NTC for `tyndp_scenario` runs is instead applied later, in `prepare_sector_network`.",
     )
     gaslimit_enable: bool = Field(
         False,
@@ -396,15 +392,17 @@ class ElectricityConfig(BaseModel):
             "solar-pv",
             "solar-pv-utility",
             "solar-pv-rooftop",
+            "solar-pv-utility-sres",
+            "solar-pv-utility-dres",
             "onwind",
-            "offwind-ac-fb-r",
-            "offwind-ac-fl-r",
-            "offwind-dc-fb-r",
-            "offwind-dc-fl-r",
-            "offwind-dc-fb-oh",
-            "offwind-dc-fl-oh",
-            "offwind-h2-fb-oh",
-            "offwind-h2-fl-oh",
+            "onwind-sres",
+            "onwind-dres",
+            "offwind-r",
+            "offwind-oh",
+            "offwind-dres-r",
+            "offwind-dres-oh",
+            "offwind-sres-r",
+            "offwind-sres-oh",
             "other-res",
             "hydro-ror",
             "hydro-reservoir",
@@ -416,7 +414,9 @@ class ElectricityConfig(BaseModel):
         default_factory=list,
         description="List of TYNDP renewable generators to include in the model. Technologies covered by specified TYNDP renewable carriers need to be removed from `estimate_renewable_carriers` technology list.",
     )
-    tyndp_stores: list[Literal["battery", "h2_cavern", "h2_tank"]] = Field(
+    tyndp_stores: list[
+        Literal["battery", "H2 cavern-storage", "H2 tank-storage", "home battery"]
+    ] = Field(
         default_factory=list,
         description="List of TYNDP storage units (battery and/or hydrogen).",
     )
@@ -424,9 +424,9 @@ class ElectricityConfig(BaseModel):
         default_factory=_PecdRenewableProfilesConfig,
         description="PECD (Pan-European Climate Database) renewable profiles configuration.",
     )
-    pemmdb_hydro_profiles: _PemmdbHydroProfilesConfig = Field(
-        default_factory=_PemmdbHydroProfilesConfig,
-        description="PEMMDB hydro profiles configuration.",
+    pecd_hydro_profiles: _PecdHydroProfilesConfig = Field(
+        default_factory=_PecdHydroProfilesConfig,
+        description="PECD hydro inflow profiles configuration.",
     )
     pemmdb_capacities: _PemmdbCapacitiesConfig = Field(
         default_factory=_PemmdbCapacitiesConfig,
@@ -453,3 +453,19 @@ class ElectricityConfig(BaseModel):
         description="Toggles specific dispatch constraints for DSR units within the SB workflow.",
     )
     model_config = ConfigDict(populate_by_name=True)
+
+    @model_validator(mode="after")
+    def check_tyndp_batteries_not_extendable(self) -> "ElectricityConfig":
+        """Validate that TYNDP batteries are not also listed as extendable stores."""
+        overlap = (
+            {"battery", "home battery"}
+            & set(self.tyndp_stores)
+            & set(self.extendable_carriers.Store)
+        )
+        if overlap:
+            raise ValueError(
+                f"{sorted(overlap)} must not be listed in both "
+                "'electricity:tyndp_stores' and 'electricity:extendable_carriers:Store'. "
+                "TYNDP batteries are added with fixed PEMMDB capacities."
+            )
+        return self

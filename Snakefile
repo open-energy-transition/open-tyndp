@@ -61,21 +61,6 @@ scenarios = get_scenarios(run)
 
 validate_scenarios(config, scenarios)
 
-selected_runs = run["name"] if isinstance(run["name"], list) else [run["name"]]
-unsupported = {
-    name
-    for name in selected_runs
-    if scenarios.get(name, {}).get("tyndp_scenario", config["tyndp_scenario"])
-    in ("DE", "GA")
-}
-if unsupported:
-    logger.warning(
-        f"Selected run(s) {sorted(unsupported)} use the DE or GA scenario. "
-        "Only the National Trends (NT) scenario is implemented, validated and benchmarked in Open-TYNDP. "
-        "DE and GA are incomplete, unsupported, and there are no plans to support them within Open-TYND. The workflow may "
-        "fail for these scenarios, and any results it does produce are not validated."
-    )
-
 RDIR = get_rdir(run)
 PROJ_DIR = Path(workflow.snakefile).parent
 
@@ -262,34 +247,21 @@ def input_all_tyndp(w):
                 horizon=config["planning_horizons"],
             )
         )
-    if config_provider("sector", "offshore_hubs_tyndp", "enable")(w):
-        files.extend(
-            expand(
-                (resources("maps/base_offshore_network_{horizon}_{carrier}.pdf")),
-                run=config["run"]["name"],
-                horizon=config["planning_horizons"],
-                carrier=config_provider("plotting", "offshore_maps", "bus_carriers")(w),
-            )
-        )
-        files.extend(
-            expand(
-                (RESULTS + "maps/static/offshore_network_{carrier}_{horizon}.pdf"),
-                run=config["run"]["name"],
-                horizon=config["planning_horizons"],
-                carrier=config_provider("plotting", "offshore_maps", "bus_carriers")(w),
-            )
-        )
-    if config_provider("benchmarking", "enable")(w):
+    run_names = config["run"]["name"]
+    for run_name in run_names if isinstance(run_names, list) else [run_names]:
+        scen = scenario_config(run_name) if run_name in scenarios else config
+        if not navigate_config(scen, ("benchmarking", "enable")):
+            continue
         files.extend(
             expand(
                 rules.plot_benchmark.output.kpis_by_bus,
-                run=config["run"]["name"],
+                run=run_name,
             )
         )
         files.extend(
             expand(
                 rules.plot_benchmark.output.kpis_by_country,
-                run=config["run"]["name"],
+                run=run_name,
             )
         )
 

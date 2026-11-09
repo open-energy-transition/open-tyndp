@@ -18,11 +18,9 @@ For a comprehensive overview of the TYNDP modelling methodology and its limitati
 
 ## Limitations of Open-TYNDP
 
-- **Only the National Trends (NT) scenario is implemented:** the Distributed Energy (DE) and
-  Global Ambition (GA) deviation scenarios are incomplete and unsupported, and there are no plans
-  to support them. They can still be selected via `tyndp_scenario`, but the workflow may fail for
-  them and any results produced are neither validated nor benchmarked. Our assumptions for the DE and GA
-  scenarios are kept in `config/scenarios.tyndp.yaml` for reference. See [Scenarios](scenarios.md).
+- **HEV and LEV are only partially implemented:** the High Economic Variant (HEV) and Low Economic
+  Variant (LEV) currently differ from National Trends+ (NT+) only in fuel and CO2 prices, and they are
+  not benchmarked. See [Scenarios](scenarios.md).
 
 ## Limitations of PyPSA-Eur
 

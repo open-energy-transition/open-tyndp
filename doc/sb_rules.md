@@ -11,14 +11,6 @@ The Scenario Building (SB) workflow is implemented in `rules/sb.smk`. Rules are 
 
 Downloads the PECD dataset.
 
-### Rule `retrieve_tyndp_vp_data`
-
-Downloads the TYNDP Visualisation Platform data used by the benchmarking framework.
-
-### Rule `retrieve_tyndp_nuclear_profiles`
-
-Downloads per-country nuclear availability profiles.
-
 ### Rule `retrieve_presolved_networks`
 
 Downloads pre-solved networks from a previous Open-TYNDP release (*preliminary outcomes*
@@ -39,61 +31,33 @@ data:
 
 - `data/open_tyndp_prelim/{source}/{version}/base_s_all___{horizon}.nc`
 
-### Rule `retrieve_countries_centroids`
-
-Downloads country centroid geometry data by Copyright (c) 2021 Gavin Rehkemper from
-<https://cdn.jsdelivr.net/gh/gavinr/world-countries-centroids@v1.0.0/dist/countries.geojson>.
-
-**Relevant Settings**
-
-```yaml
-data:
-    countries_centroids:
-        source:
-        version:
-```
-
-**Outputs**
-
-- `data/countries_centroids/{source}/{version}/countries.geojson`
-
 ## Development
 
-### Rule `prepare_pecd_release`
+### Rule `prepare_tyndp_pecd_release`
 
-::: prepare_pecd_release
+::: prepare_tyndp_pecd_release
 
 ## Build electricity
 
-### Rule `clean_tyndp_electricity_demand`
+### Rule `build_tyndp_demand`
 
-::: clean_tyndp_electricity_demand
+::: build_tyndp_demand
 
-### Rule `build_electricity_demand_tyndp`
+### Rule `clean_tyndp_pecd_data`
 
-Extends the upstream [`build_electricity_demand`](preparation.md#electricity_demand) rule with TYNDP-specific load data. Builds
-per-country load time series from the TYNDP electricity demand prepared by
-[`clean_tyndp_electricity_demand`](#rule-clean_tyndp_electricity_demand).
-
-### Rule `clean_pecd_data`
-
-::: clean_pecd_data
+::: clean_tyndp_pecd_data
 
 ### Rule `build_renewable_profiles_pecd`
 
 ::: build_renewable_profiles_pecd
 
-### Rule `build_pemmdb_data`
+### Rule `build_tyndp_pemmdb_data`
 
-::: build_pemmdb_data
+::: build_tyndp_pemmdb_data
 
-### Rule `build_tyndp_transmission_projects`
+### Rule `build_tyndp_nuclear_profiles`
 
-::: build_tyndp_transmission_projects
-
-### Rule `build_tyndp_trajectories`
-
-::: build_tyndp_trajectories
+::: build_tyndp_nuclear_profiles
 
 ### Rule `clean_tyndp_hydro_inflows`
 
@@ -106,14 +70,14 @@ per-country load time series from the TYNDP electricity demand prepared by
 ### Rule `build_electricity_demand_base_tyndp`
 
 Extends the upstream [`build_electricity_demand_base`](preparation.md#rule-build_electricity_demand_base) rule with TYNDP-specific load data. Builds
-the electricity demand for the simplified network from the TYNDP electricity demand prepared by
-[`build_electricity_demand_tyndp`](#rule-build_electricity_demand_tyndp), once per planning horizon.
+the electricity demand for the simplified network from the TYNDP electricity market demand prepared by
+[`build_tyndp_demand`](#rule-build_tyndp_demand), once per planning horizon.
 
 ### Rule `cluster_electricity_demand_tyndp`
 
-Extends the upstream [`cluster_electricity_demand`](preparation.md#rule-cluster_electricity_demand) rule to aggregate the
-per-horizon TYNDP electricity demand onto the clustered network buses, so that
-[`compose_network`](preparation.md#rule-compose_network) can attach it directly.
+Extends the upstream `cluster_electricity_demand` rule to aggregate the
+per-horizon TYNDP electricity market demand onto the clustered network buses, so that
+[`compose_network`](preparation.md#compose) can attach it directly.
 
 ## Build sector
 
@@ -121,17 +85,17 @@ per-horizon TYNDP electricity demand onto the clustered network buses, so that
 
 ::: build_tyndp_gas_demand
 
-### Rule `build_tyndp_h2_demand`
+### Rule `build_tyndp_wheeling_charges`
 
-::: build_tyndp_h2_demand
+::: build_tyndp_wheeling_charges
+
+### Rule `build_tyndp_ev_fleets`
+
+::: build_tyndp_ev_fleets
 
 ### Rule `build_tyndp_h2_network`
 
 ::: build_tyndp_h2_network
-
-### Rule `clean_tyndp_h2_imports`
-
-::: clean_tyndp_h2_imports
 
 ### Rule `build_tyndp_h2_imports`
 
@@ -145,10 +109,6 @@ per-horizon TYNDP electricity demand onto the clustered network buses, so that
 
 ::: clean_tyndp_h2_storages
 
-### Rule `build_tyndp_offshore_hubs`
-
-::: build_tyndp_offshore_hubs
-
 ### Rule `group_tyndp_conventionals`
 
 ::: group_tyndp_conventionals
@@ -159,27 +119,15 @@ per-horizon TYNDP electricity demand onto the clustered network buses, so that
 
 ::: plot_base_hydrogen_network
 
-### Rule `plot_base_offshore_network`
-
-::: plot_offshore_network
-
-### Rule `plot_offshore_network`
-
-::: plot_offshore_network
-
 ## Benchmark
 
-### Rule `clean_tyndp_output_benchmark`
+### Rule `clean_tyndp_dashboard_benchmark`
 
-::: clean_tyndp_output_benchmark
+::: clean_tyndp_dashboard_benchmark
 
 ### Rule `clean_tyndp_report_benchmark`
 
 ::: clean_tyndp_report_benchmark
-
-### Rule `clean_tyndp_vp_data`
-
-::: clean_tyndp_vp_data
 
 ### Rule `build_statistics`
 
@@ -199,7 +147,7 @@ Aggregate rules that run the corresponding base rule across all configured wildc
 
 ### Rule `clean_pecd_datas`
 
-Aggregate [`clean_pecd_data`](#rule-clean_pecd_data) outputs.
+Aggregate [`clean_tyndp_pecd_data`](#rule-clean_tyndp_pecd_data) outputs.
 
 ### Rule `build_renewable_profiles_pecds`
 
@@ -217,13 +165,9 @@ Aggregate [`make_benchmark`](#rule-make_benchmark) outputs.
 
 Aggregate [`plot_benchmark`](#rule-plot_benchmark) outputs.
 
-### Rule `build_pemmdb_and_trajectories`
+### Rule `build_tyndp_pemmdb_datas`
 
-Aggregate [`build_pemmdb_data`](#rule-build_pemmdb_data) and [`build_tyndp_trajectories`](#rule-build_tyndp_trajectories) outputs.
-
-### Rule `build_tyndp_h2_demands`
-
-Aggregate [`build_tyndp_h2_demand`](#rule-build_tyndp_h2_demand) outputs.
+Aggregate [`build_tyndp_pemmdb_data`](#rule-build_tyndp_pemmdb_data) outputs.
 
 ### Rule `build_tyndp_gas_demands`
 

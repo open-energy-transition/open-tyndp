@@ -2,11 +2,11 @@
 #
 # SPDX-License-Identifier: MIT
 """
-Loads and filters the available raw PECD data for the subset of required climate years as specified in the configuration.
+Loads and filters the available raw PECD data for the subset of required weather scenarios as specified in the configuration.
 
 Outputs
 -------
-PECD prebuilt directory with filtered csv files including only relevant climate year data.
+PECD prebuilt directory with filtered csv files including only relevant weather scenario data.
 """
 
 import logging
@@ -31,38 +31,20 @@ def process_pecd_files(
     pecd_file: str,
     dir_pecd: Path,
     output_dir: Path,
-    cyears: pd.Series,
+    wscenarios: pd.Series,
 ) -> pd.DataFrame:
     fn = Path(dir_pecd, pecd_file)
 
-    # Malta CSP data file has an extra header row that must be skipped
-    if pecd_file == "PECD_CSP_noStorage_2040_MT00_edition 2023.2.csv":
-        skiprows = 11
-    else:
-        skiprows = 10
+    skiprows = 10
 
     def _usecols(name):
-        return (
-            name in ("Date", "Hour")
-            or name in cyears.values
-            or name in cyears.astype(str).values
-            or name in cyears.astype(float).astype(str).values
-        )
+        return name in ("Date", "Hour") or name in wscenarios
 
-    if "xls" in pecd_file or "xlsx" in pecd_file:
-        df = pd.read_excel(
-            fn,
-            skiprows=skiprows,  # first rows contain only file metadata
-            usecols=lambda name: _usecols(name),
-            engine="openpyxl",
-        ).rename(columns={str(float(cyear)): str(cyear) for cyear in cyears})
-    else:
-        df = pd.read_csv(
-            fn,
-            skiprows=skiprows,  # first rows contain only file metadata
-            usecols=lambda name: _usecols(name),
-        ).rename(columns={str(float(cyear)): str(cyear) for cyear in cyears})
-
+    df = pd.read_csv(
+        fn,
+        skiprows=skiprows,  # first rows contain only file metadata
+        usecols=lambda name: _usecols(name),
+    )
     output_file = Path(output_dir, pecd_file).with_suffix(".csv")
 
     df.to_csv(output_file, index=False)
@@ -75,7 +57,7 @@ if __name__ == "__main__":
         from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake(
-            "prepare_pecd_release",
+            "prepare_tyndp_pecd_release",
         )
     configure_logging(snakemake)  # pylint: disable=possibly-used-before-assignment
     set_scenario_config(snakemake)
@@ -83,23 +65,23 @@ if __name__ == "__main__":
     # Parameters
     ############
 
-    # Climate year from snapshots
-    cyears = pd.Series(snakemake.params.cyears).astype(int)
-    available_cyears = np.arange(1982, 2020, 1)
-    if set(cyears).difference(available_cyears):
+    # Weather scenarios from snakemake params
+    wscenarios = [f"WS{x:03d}" for x in pd.Series(snakemake.params.wscenarios)]
+    available_wscenarios = [f"WS{x:03d}" for x in np.arange(1, 121, 1)]
+    if set(wscenarios).difference(available_wscenarios):
         logger.warning(
-            "Climate year doesn't match available TYNDP data. Only returning subset of available climate years."
+            "Weather scenarios doesn't match available TYNDP data. Only returning subset of available weather scenarios."
         )
-        cyears = pd.Series(list(set(cyears).intersection(available_cyears)))
+        wscenarios = pd.Series(list(set(wscenarios).intersection(available_wscenarios)))
     # Planning years for which PECD data is available for in the specified PECD version
-    available_pyears = snakemake.params.available_pyears
+    available_years = snakemake.params.available_years
     # Input and output directories and prebuilt version
     dir_pecd = snakemake.input.pecd_raw
     prebuilt_dir = snakemake.output.pecd_prebuilt
 
     # Iterate over available planning years
     #######################################
-    for year in available_pyears:
+    for year in available_years:
         dir_pecd_year = Path(dir_pecd, str(year))
         pecd_files = [
             f
@@ -123,7 +105,7 @@ if __name__ == "__main__":
             process_pecd_files,
             dir_pecd=dir_pecd_year,
             output_dir=output_dir,
-            cyears=cyears,
+            wscenarios=wscenarios,
         )
 
         with mp.Pool(processes=snakemake.threads) as pool:

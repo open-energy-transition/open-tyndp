@@ -224,31 +224,21 @@ rule simplify_sb_network:
         tyndp_conventional_carriers=config_provider(
             "electricity", "tyndp_conventional_carriers"
         ),
-        hurdle_costs=config_provider("cba", "hurdle_costs"),
+        hurdle_costs=config_provider("hurdle_costs"),
     script:
         scripts("cba/simplify_sb_network.py")
 
 
-# build reference corrections between SB investments and CBA guidelines
-def get_elec_project_build_years(w):
-    return config_provider("tyndp_investment_candidates", "elec_projects")(w).get(
-        int(w.horizon)
-    )
-
-
+# Placeholder for reference corrections aligning the SB base network with the
+# CBA reference grid of a given planning horizon
+# TODO: Update once CBA corrections are clarified
 rule fix_reference_sb_to_cba:
-    input:
-        invest_grid=rules.retrieve_tyndp.output.invest_grid,
-        guidelines="data/cba/table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv",
-        buses=rules.build_tyndp_network.output.substations_geojson,
     output:
         corrections=resources("cba/reference_sb_to_cba_{horizon}.csv"),
     log:
         logs("cba/fix_reference_sb_to_cba_{horizon}.log"),
     benchmark:
         benchmarks("performances/cba/fix_reference_sb_to_cba_{horizon}")
-    params:
-        build_years=get_elec_project_build_years,
     script:
         scripts("cba/fix_reference_sb_to_cba.py")
 
@@ -258,21 +248,12 @@ rule fix_reference_sb_to_cba:
 rule prepare_reference:
     input:
         network=rules.simplify_sb_network.output.network,
-        transmission_projects=rules.clean_projects.output.transmission_projects,
-        storage_projects=rules.clean_projects.output.storage_projects,
-        corrections=rules.fix_reference_sb_to_cba.output.corrections,
-        costs=resources("costs_{horizon}_processed.csv"),
     output:
         network=resources("cba/networks/reference_{horizon}.nc"),
     log:
         logs("cba/prepare_reference_{horizon}.log"),
     benchmark:
         benchmarks("performances/cba/prepare_reference_{horizon}")
-    params:
-        hurdle_costs=config_provider("cba", "hurdle_costs"),
-        patch_sb_with_annexe=config_provider(
-            "tyndp_investment_candidates", "patch_sb_with_annexe"
-        ),
     script:
         scripts("cba/prepare_reference.py")
 
@@ -371,7 +352,7 @@ rule prepare_project:
     benchmark:
         benchmarks("performances/cba/prepare_project_{cba_project}_{horizon}")
     params:
-        hurdle_costs=config_provider("cba", "hurdle_costs"),
+        hurdle_costs=config_provider("hurdle_costs"),
         tech_colors=config_provider("plotting", "tech_colors"),
         storage_discount_rate=config_provider("cba", "storage", "discount_rate"),
         negative_toot_capacity=config_provider("cba", "negative_toot_capacity"),
@@ -771,6 +752,9 @@ def collect_cba_scenario_inputs(w):
             run=cba_scenarios(w),
         )
     )
+    if not config_provider("benchmarking", "enable")(w):
+        return inputs
+
     inputs.extend(
         expand(
             rules.plot_cba_benchmark.output.plot_file,
@@ -844,10 +828,11 @@ def cba_ensemble_inputs(w):
     return inputs
 
 
-# collect files to be stored in the scenario collection directory, e.g., NT-cyears
+# collect files to be stored in the scenario collection directory, e.g., NT-wscenarios
 rule cba:
     input:
         cba_ensemble_inputs,
+        # collect files to be stored in the scenario directory, e.g., NT-ws1995
         lambda w: [
             f
             for run in cba_target_runs(w)

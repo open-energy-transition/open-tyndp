@@ -2,7 +2,6 @@
 # SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: MIT
-from scripts.sb._helpers import safe_pyear
 
 
 rule build_population_layouts:
@@ -1487,7 +1486,7 @@ rule time_aggregation:
             and config_provider("sector", "solar_thermal")(w)
             else []
         ),
-        # TODO: add cop and transport profiles, search for others in prepare_sectcor (like master considers them) 
+        # TODO: add cop and transport profiles, search for others in prepare_sectcor (like master considers them)
     output:
         snapshot_weightings=resources("snapshot_weightings.csv"),
     log:

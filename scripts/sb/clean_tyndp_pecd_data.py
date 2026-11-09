@@ -5,13 +5,11 @@
 Loads and cleans the available PECD capacity factor generation time series based on PECD weather data.
 The script is executed for a given technology and planning horizon. Technologies can be one of:
 
-   * LFSolarPVUtility,
-   * LFSolarPVRooftop,
+   * Solar PV Utility,
+   * Solar PV Rooftop,
    * Wind_Offshore,
    * Wind_Onshore,
-   * CSP_noStorage,
-   * CSP_withStorage_7h_dispatched,
-   * CSP_withStorage_7h_preDispatch (note: includes cf > 1 for when thermal storage can be used).
+   * CSP_noStorage_0h_dispatched,
 
 Outputs
 -------
@@ -27,12 +25,8 @@ from pathlib import Path
 import pandas as pd
 from tqdm import tqdm
 
-from scripts._helpers import (
-    configure_logging,
-    get_snapshots,
-    set_scenario_config,
-)
-from scripts.sb._helpers import safe_pyear
+from scripts._helpers import configure_logging, get_snapshots, set_scenario_config
+from scripts.sb._helpers import safe_planning_horizon
 
 logger = logging.getLogger(__name__)
 
@@ -40,37 +34,39 @@ logger = logging.getLogger(__name__)
 def read_pecd_file(
     node: str,
     dir_pecd: str,
-    cyear: int,
-    cyear_i: int,
-    pyear: int,
+    wscenario: int,
+    planning_horizon: int,
     technology: str,
     sns: pd.DatetimeIndex,
 ):
-    fn = Path(
-        dir_pecd,
-        str(pyear),
-        f"PECD_{technology}_{pyear}_{node.replace('GB', 'UK')}_edition 2023.2.csv",
-    )
+    pecd_node = node.replace("GB", "UK")  # PECD files keep the raw TYNDP node codes
 
-    # PECD only differentiates between utility and rooftop PV for some nodes
-    if not os.path.isfile(fn) and "LFSolarPV" in technology:
-        fn = Path(str(fn).replace(technology, "LFSolarPV"))
+    if "Solar" in technology:
+        fn = Path(dir_pecd, str(planning_horizon), f"{technology} {pecd_node}.csv")
+    else:
+        fn = Path(
+            dir_pecd,
+            str(planning_horizon),
+            f"{pecd_node}_CapacityFactors_{technology}_{planning_horizon}.csv",
+        )
+
     if not os.path.isfile(fn):
-        logger.warning(f"Missing data for {technology} in {node} in {pyear}.")
         return None
 
     pecd_bus = pd.read_csv(fn)
-
-    datetime_str = f"{cyear_i}." + pecd_bus["Date"].str.cat(
-        (pecd_bus["Hour"] - 1).astype(str), sep=" "
+    year = sns[0].year
+    datetime_idx = pd.to_datetime(
+        f"{year}."
+        + pecd_bus["Date"].str.cat((pecd_bus["Hour"] - 1).astype(str), sep=" "),
+        format="%Y.%d.%m. %H",
     )
+
     cf_pecd = (
-        pecd_bus.set_index(pd.to_datetime(datetime_str, format="%Y.%d.%m. %H"))
+        pecd_bus.set_index(datetime_idx)
         .drop(columns=["Date", "Hour"])
-        .loc[sns, [str(cyear)]]  # filter for snapshots and climate year only
-        .rename(columns={str(cyear): node})
+        .loc[sns, [wscenario]]  # filter for snapshots and weather scenario only
+        .rename(columns={wscenario: node})
     )
-
     return cf_pecd
 
 
@@ -79,7 +75,7 @@ if __name__ == "__main__":
         from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake(
-            "clean_pecd_data",
+            "clean_tyndp_pecd_data",
             technology="Wind_Offshore",
             horizon=2030,
         )
@@ -91,23 +87,10 @@ if __name__ == "__main__":
 
     # Climate year from snapshots
     sns = get_snapshots(snakemake.params.snapshots, snakemake.params.drop_leap_day)
-    cyear = sns[0].year
-    # define climate year to use for the Datetime Index later on
-    cyear_i = cyear
-    prebuilt_years = snakemake.params.prebuilt_years
+    wscenario = f"WS{snakemake.params.wscenario:03d}"
 
-    if int(cyear) not in prebuilt_years:
-        # TODO: Note that because of this fallback, the snapshots of the profiles will not always match with the model snapshots
-        fallback_year = (
-            2009 if 2009 in prebuilt_years else (prebuilt_years[-1])
-        )  # use 2009 as default fallback if one of the filtered cyears
-        logger.warning(
-            f"Snapshot year doesn't match available TYNDP data. Falling back to {fallback_year}."
-        )
-        cyear = fallback_year
-
-    # Planning year (falls back to latest available pyear if not in list of available years)
-    pyear = safe_pyear(
+    # Planning year (falls back to latest available planning_horizon if not in list of available years)
+    planning_horizon = safe_planning_horizon(
         snakemake.wildcards.horizon,
         available_years=snakemake.params.available_years,
         source="PECD",
@@ -116,16 +99,14 @@ if __name__ == "__main__":
     # Technology as in PECD terminology
     pecd_tech = snakemake.wildcards.technology
 
-    offshore_buses = pd.read_excel(snakemake.input.offshore_buses, index_col=0)
-    onshore_buses = pd.read_csv(snakemake.input.onshore_buses, index_col=0)
+    buses_tyndp = pd.read_csv(snakemake.input.buses_tyndp).set_index("bus_id")
 
-    nodes = (
-        offshore_buses.index.str.replace(
-            "UK", "GB", regex=True
-        )  # replace UK with GB for naming convention
-        if pecd_tech == "Wind_Offshore"
-        else onshore_buses.index
-    )
+    # Offshore wind is also given at onshore nodes, other technologies are onshore only
+    if pecd_tech != "Wind_Offshore":
+        buses_tyndp = buses_tyndp[buses_tyndp["category"] == "onshore"]
+
+    nodes = buses_tyndp.index.tolist()
+
     dir_pecd = snakemake.input.pecd_prebuilt
 
     # Load and prep pecd data
@@ -141,9 +122,8 @@ if __name__ == "__main__":
     func = partial(
         read_pecd_file,
         dir_pecd=dir_pecd,
-        cyear=cyear,
-        cyear_i=cyear_i,
-        pyear=pyear,
+        wscenario=wscenario,
+        planning_horizon=planning_horizon,
         technology=pecd_tech,
         sns=sns,
     )
@@ -153,7 +133,7 @@ if __name__ == "__main__":
 
     if all(data is None for data in pecd):
         raise ValueError(
-            f"No PECD data found for {pecd_tech} in {pyear}. Please specify a technology covered within the TYNDP PECD data."
+            f"No PECD data found for {pecd_tech} in {planning_horizon}. Please specify a technology covered within the TYNDP PECD data."
         )
     pecd_df = pd.concat(pecd, axis=1)
     fill_na = (

@@ -9,7 +9,7 @@ Sector configuration.
 See docs in https://open-tyndp.readthedocs.io/en/latest/configuration/#sector_cf
 """
 
-from typing import Any, Literal
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -392,26 +392,6 @@ class _ImportsConfig(BaseModel):
     )
 
 
-class _OffshoreHubsTyndpConfig(BaseModel):
-    """Configuration for `sector.offshore_hubs_tyndp` settings."""
-
-    enable: bool = Field(
-        False,
-        description="Add option to include TYNDP offshore hubs.",
-    )
-    patch_crossborder_with_mm: bool = Field(
-        False,
-        description="Add option to patch the Offshore Hubs interconnector capacities with the Market Model output data.",
-    )
-    connect_isolated: bool = Field(
-        False, description="Copperplate isolated wind farms to the grid."
-    )
-    max_capacity: dict[str, float] = Field(
-        default_factory=lambda: {"DC_OH": 10, "H2 pipeline OH": 30},
-        description="Maximum transmission capacity between two offshore hubs of a carrier (GW). Keys are carrier names (e.g., 'DC_OH', 'H2 pipeline OH').",
-    )
-
-
 class SectorConfig(BaseModel):
     """Configuration for `sector` settings."""
 
@@ -549,6 +529,10 @@ class SectorConfig(BaseModel):
             2050: 0,
         },
         description="The share of vehicles that uses internal combustion engines (ICE) in a given year. What is not EV or FCEV is oil-fuelled ICE.",
+    )
+    land_transport_oil_demand_tyndp: dict[int, float] = Field(
+        default_factory=dict,
+        description="EU27 land transport (road and rail) liquids demand in TWh per planning horizon. For TYNDP scenarios, it is added as a flat demand instead of the PyPSA-Eur land transport.",
     )
 
     transport_electric_efficiency: float = Field(
@@ -894,17 +878,9 @@ class SectorConfig(BaseModel):
         False,
         description="Use TYNDP H2 topology for hydrogen network.",
     )
-    h2_reference_grid_source: Literal["entsoe", "entsos"] = Field(
-        "entsoe",
-        description="Source dataset for the TYNDP hydrogen reference grid. 'entsoe' uses StartingGrid2030.xlsx (from ENTSO-E landing page); 'entsos' uses ReferenceGrid_Hydrogen.xlsx (from ENTSOS Scenarios data Line Data dataset), with added H2 investment candidates.",
-    )
-    h2_zones_tyndp: bool = Field(
+    smr_ramp_limits_tyndp: bool = Field(
         False,
-        description="Add option to split TYNDP H2 nodes into two zones (Z1, Z1), currently only available for DE/GA scenarios.",
-    )
-    h2_demand_patch_with_mm: bool = Field(
-        False,
-        description="Add option to patch the TYNDP H2 demand with the Market Model output data.",
+        description="Add TYNDP ramp limits to SMR and SMR CCS links. Only used with `h2_topology_tyndp`.",
     )
     gas_network: bool = Field(
         True,
@@ -1001,8 +977,4 @@ class SectorConfig(BaseModel):
     )
     imports: _ImportsConfig = Field(
         default_factory=_ImportsConfig, description="Imports configuration."
-    )
-    offshore_hubs_tyndp: _OffshoreHubsTyndpConfig = Field(
-        default_factory=_OffshoreHubsTyndpConfig,
-        description="TYNDP offshore hubs configuration.",
     )

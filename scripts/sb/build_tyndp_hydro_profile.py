@@ -2,12 +2,12 @@
 #
 # SPDX-License-Identifier: MIT
 """
-Builds hydroelectric inflow time-series for each country based on PEMMDB v2.5 hydro inflow data from the 2024 TYNDP.
+Builds hydroelectric inflow time-series for each country based on PECD v4.2 hydro inflow data from the 2026 TYNDP.
 
 Outputs
 -------
 
-- `resources/pemmdb_hydro_profile.nc`:
+- `resources/pecd_hydro_profile.nc`:
 
     | Field  | Dimensions                      | Description                                                              |
     | ------ | ------------------------------- | ------------------------------------------------------------------------ |
@@ -20,12 +20,8 @@ import pandas as pd
 import xarray as xr
 from tqdm.contrib.itertools import product
 
-from scripts._helpers import (
-    configure_logging,
-    get_snapshots,
-    set_scenario_config,
-)
-from scripts.sb._helpers import safe_pyear
+from scripts._helpers import configure_logging, get_snapshots, set_scenario_config
+from scripts.sb._helpers import safe_planning_horizon
 
 logger = logging.getLogger(__name__)
 
@@ -42,28 +38,28 @@ if __name__ == "__main__":
     years_in_time = pd.DatetimeIndex(time).year.unique()
 
     technologies = snakemake.params.technologies
-    pyears = snakemake.params.planning_horizons
+    planning_horizons = snakemake.params.planning_horizons
 
     tech_map = (
         pd.read_csv(snakemake.input.carrier_mapping)[
-            ["pemmdb_hydro_inflows", "open_tyndp_carrier"]
+            ["pecd_hydro_inflows", "open_tyndp_carrier"]
         ]
         .dropna()
-        .set_index("pemmdb_hydro_inflows")
+        .set_index("pecd_hydro_inflows")
         .drop_duplicates()
         .open_tyndp_carrier
     )
 
     inflows = []
 
-    for year, technology in product(pyears, technologies):
+    for year, technology in product(planning_horizons, technologies):
         logger.info(f"Extracting hydro inflows for {technology} in {year}")
         year_i = year
-        # falling back to latest available pyear if not in list of available years
-        year = safe_pyear(
+        # falling back to latest available planning_horizon if not in list of available years
+        year = safe_planning_horizon(
             int(year),
             available_years=snakemake.params.available_years,
-            source="PEMMDB hydro inflow",
+            source="PECD hydro inflow",
         )
 
         inflow = (

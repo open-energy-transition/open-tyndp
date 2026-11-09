@@ -14,6 +14,23 @@ run:
 foresight: myopic
 
 tyndp_scenario: NT
+wscenarios_tyndp:
+  2030:
+  - 3
+  - 21
+  - 29
+  2035:
+  - 32
+  - 37
+  - 59
+  2040:
+  - 65
+  - 71
+  - 77
+  2050:
+  - 91
+  - 92
+  - 106
 data_config:   # change to 'tyndp' to use tyndp-archive where available
 logging:
   level: INFO
@@ -22,13 +39,15 @@ launch_explorer: true
 
 planning_horizons:
 - 2030
+- 2035
 - 2040
+- 2050
 
-countries: ['AL', 'AT', 'BA', 'BE', 'BG', 'CH', 'CZ', 'CY', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'ME', 'MK', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK']
+countries: ['AL', 'AT', 'BA', 'BE', 'BG', 'CH', 'CZ', 'CY', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MD', 'ME', 'MK', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK', 'TR', 'UA']
 
 snapshots:
   start: "2009-01-01"
-  end: "2009-12-31"  # Ignore the last day of the year to get exactly 52 weeks
+  end: "2010-01-01"
 
 co2_budget:
   relative: false
@@ -61,60 +80,77 @@ electricity:
   - hydro-phs
   - hydro-phs-pure
   - onwind
+  - onwind-sres
+  - onwind-dres
   - solar-pv-utility
   - solar-pv-rooftop
-  - offwind-ac-fb-r
-  - offwind-ac-fl-r
-  - offwind-dc-fb-r
-  - offwind-dc-fl-r
-  - offwind-dc-fb-oh
-  - offwind-dc-fl-oh
-  - offwind-h2-fb-oh
-  - offwind-h2-fl-oh
+  - solar-pv-utility-dres
+  - solar-pv-utility-sres
+  - offwind-r
+  - offwind-oh
+  - offwind-dres-r
+  - offwind-dres-oh
+  - offwind-sres-r
+  - offwind-sres-oh
   tyndp_stores:
   - battery
-  - h2_cavern
-  - h2_tank
+  - H2 cavern-storage
+  - H2 tank-storage
+  - home battery
   estimate_renewable_capacities:
     enable: false
 
   pecd_renewable_profiles:
     enable: true
     pre_built:
-      cyears:
-      - 1995
-      - 2008
-      - 2009
+      wscenarios:
+      - 3
+      - 21
+      - 29
+      - 32
+      - 37
+      - 59
+      - 65
+      - 71
+      - 77
+      - 91
+      - 92
+      - 106
     fill_gaps_method: zero
     # Complete PECD data is only available for the years 2030, 2040
     # TODO: adjust once updated 2050 PECD data is available
     available_years:
     - 2030
-    - 2040
-    technologies:
-    - Wind_Offshore
-    - LFSolarPVRooftop
-    - LFSolarPVUtility
-    - Wind_Onshore
-
-  pemmdb_hydro_profiles:
-    enable: true
-    available_years:
-    - 2030
+    - 2035
     - 2040
     - 2050
     technologies:
-    - Run_of_River
-    - Pondage
-    - Reservoir
-    - PS_Open
-    - PS_Closed
+    - Wind_Offshore
+    - Solar PV Rooftop
+    - Solar PV Utility
+    - Wind_Onshore
+    - CSP_noStorage_0h_dispatched
+
+  pecd_hydro_profiles:
+    enable: true
+    available_years:
+    - 2030
+    - 2035
+    - 2040
+    - 2050
+    technologies:
+    - HRR
+    - HPI
+    - HRI
+    - HOL
+    - HCL
 
   pemmdb_capacities:
     enable: true
     nprocesses: 4
     available_years:
     - 2030
+    - 2035
     - 2040
     - 2050
     technologies:
@@ -160,28 +196,12 @@ links:
 transmission_projects:
   enable: false
 
-tyndp_investment_candidates:
-  patch_sb_with_annexe: true
-  elec_projects:
-    2040:
-    - 2030
-    - 2035
-  h2_projects:
-    2040:
-    - 2030
-    - 2035
-
 load:
   source: tyndp # opsd, tyndp
   fill_gaps:
     enable: false
-  available_years_tyndp:
-  - 2030
-  - 2040
-  - 2050
   manual_adjustments: false
   supplement_synthetic: false
-  patch_demand_with_mm: true
 
 pypsa_eur:
   Bus:
@@ -202,7 +222,6 @@ biomass:
     2030: 0
     2035: 0
     2040: 0
-    2045: 0
     2050: 0
   share_sustainable_potential_available:
     2020: 1
@@ -210,7 +229,6 @@ biomass:
     2030: 1
     2035: 1
     2040: 1
-    2045: 1
     2050: 1
 
 existing_capacities:
@@ -227,43 +245,26 @@ sector:
   agriculture: false
   fossil_fuels: true
 
-  land_transport_fuel_cell_share:  # Not modelled
-    2030: 0
-    2035: 0
-    2040: 0
-    2045: 0
-    2050: 0
-  land_transport_electric_share:  # included in exogenous demand
-    2030: 0
-    2035: 0
-    2040: 0
-    2045: 0
-    2050: 0
-  land_transport_ice_share:  # TODO Improve TYNDP 2024 approximations
-    2030: 0.96
-    2035: 0.82  # interpolation
-    2040: 0.68
-    2045: 0.42  # interpolation
-    2050: 0.16
+  land_transport_oil_demand_tyndp:  # TWh, TYNDP 2026 NT+ EU27 transport liquids (Scenario Report fig. 19) minus international aviation (Supply Tool) and domestic aviation and navigation (Eurostat 2023)
+    2030: 2530
+    2035: 1885
+    2040: 1357
+    2050: 524
   shipping_hydrogen_share:  # included in exogenous demand  # TODO Validate assumption
     2030: 0
     2035: 0
     2040: 0
-    2045: 0
     2050: 0
   shipping_methanol_share:  # included in exogenous demand  # TODO Validate assumption
     2030: 0
     2035: 0
     2040: 0
-    2045: 0
     2050: 0
-  shipping_oil_share:
-    2030: 0.85
-    2035: 0.65
-    2040: 0.45
-    2045: 0.2
-    2050: 0
-  bev_charge_efficiency: 0.94 # p.96 of Methodology Report TYNDP 2024
+  shipping_oil_share:  # TYNDP 2026 Supply Tool NT+, FuelEU Maritime-compliant fuel split (not raw ETM demand)
+    2030: 0.875
+    2035: 0.751
+    2040: 0.547
+    2050: 0.138
   oil_boilers: false
   biomass_boiler: false
   solar_thermal: false
@@ -272,10 +273,11 @@ sector:
   regional_co2_sequestration_potential:
     enable: false
   co2_sequestration_potential:
-    # Values from TYNDP 2024 Supply Tool
-    2030: 47
-    2035: 167
-    2040: 344
+    # Values from TYNDP 2026 Supply Tool NT+ (CCS sheet, "Total CCS")
+    2030: 44
+    2035: 111
+    2040: 142
+    2050: 179
   co2_spatial: false
   co2_network: false
   methanol:
@@ -284,9 +286,7 @@ sector:
     biomass_to_methanol: false
   ammonia: false
   h2_topology_tyndp: true
-  h2_reference_grid_source: entsoe
-  h2_zones_tyndp: false
-  h2_demand_patch_with_mm: true
+  smr_ramp_limits_tyndp: true
   gas_network: false
   gas_demand_exogenously: true
   biomass_spatial: false
@@ -294,10 +294,11 @@ sector:
   biomass_to_liquid_cc: true
   force_biomass_potential: true
   force_biogas_potential: true
-  biomass_final_demand: # in TWh and for 8760h
-    2030: 939
-    2035: 863   # linear interpolation
-    2040: 787
+  biomass_final_demand: # in TWh and for 8760h, TYNDP 2026 Supply Tool NT+: ETM final energy demand + for heat production + for biogas not upgraded to biomethane
+    2030: 1089
+    2035: 1028
+    2040: 1012
+    2050: 998
   electrobiofuels: false
   transmission_efficiency:
     enable:
@@ -306,25 +307,17 @@ sector:
     enable: true
     carriers:
     - H2
-  offshore_hubs_tyndp:
-    enable: true
-    patch_crossborder_with_mm: true
-    connect_isolated: true
-    max_capacity:
-      DC_OH: 10
-      H2 pipeline OH: 30
 
 costs:
   custom_cost_scn: NT
   emission_prices:
     enable: true
     co2:
-      # Source: Methodology report, p32
-      2030: 113.4
-      2035: 130.2 # interpolated
-      2040: 147
-      2045: 157.5 # interpolated
-      2050: 168
+      # Source: TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, sheet NT
+      2030: 97.47
+      2035: 197.51
+      2040: 297.54
+      2050: 502.74
 
 clustering:
   mode: administrative
@@ -347,31 +340,41 @@ adjustments:
     factor:
       Generator:
         biogas:
+          # Ratio of the TYNDP EU27 biogas potential to the PyPSA-Eur one, both summed
+          # over EU27 buses of resources/biomass_potentials_{horizon}.csv
           p_nom: # EU27 biogas potential for 8760h
-            2030: 1.26  # PyPSA-Eur 301 TWh vs TYNDP 380 TWh
-            2035: 1.89  # interpolated
-            2040: 2.51  # PyPSA-Eur 306 TWh vs TYNDP 771 TWh
+            2030: 0.82  # PyPSA-Eur EU27 291.5 TWh vs TYNDP EU27 238.57 TWh
+            2035: 1.23  # PyPSA-Eur EU27 293.2 TWh vs TYNDP EU27 360.78 TWh
+            2040: 1.84  # PyPSA-Eur EU27 294.8 TWh vs TYNDP EU27 542.68 TWh
+            2050: 2.56  # PyPSA-Eur EU27 298.2 TWh vs TYNDP EU27 764.09 TWh
           e_sum_max:
-            2030: 1.26
-            2035: 1.89
-            2040: 2.51
+            2030: 0.82
+            2035: 1.23
+            2040: 1.84
+            2050: 2.56
           e_sum_min:
-            2030: 1.26
-            2035: 1.89
-            2040: 2.51
+            2030: 0.82
+            2035: 1.23
+            2040: 1.84
+            2050: 2.56
         solid biomass:
+          # Ratio of the TYNDP EU27 biomass potential to the PyPSA-Eur one, both summed
+          # over EU27 buses of resources/biomass_potentials_{horizon}.csv
           p_nom: # EU27 biomass potential for 8760h
-            2030: 2.02 # PyPSA-Eur 974 TWh vs TYNDP 1964 TWh (8736h value: 1959 TWh = 1463 Supply Tool + 496 Other-RES)
-            2035: 1.90 # interpolated
-            2040: 1.77 # PyPSA-Eur 950 TWh vs TYNDP 1678 TWh (8736h value: 1673 TWh = 1316 Supply Tool + 357 Other-RES)
+            2030: 1.48  # PyPSA-Eur EU27 973.9 TWh vs TYNDP EU27 1444.85 TWh
+            2035: 1.53  # PyPSA-Eur EU27 960.8 TWh vs TYNDP EU27 1474.13 TWh
+            2040: 1.69  # PyPSA-Eur EU27 949.1 TWh vs TYNDP EU27 1607.73 TWh
+            2050: 1.65  # PyPSA-Eur EU27 949.7 TWh vs TYNDP EU27 1569.12 TWh
           e_sum_max:
-            2030: 2.02
-            2035: 1.90
-            2040: 1.77
+            2030: 1.48
+            2035: 1.53
+            2040: 1.69
+            2050: 1.65
           e_sum_min:
-            2030: 2.02
-            2035: 1.90
-            2040: 1.77
+            2030: 1.48
+            2035: 1.53
+            2040: 1.69
+            2050: 1.65
     absolute: false
 
 solving:
@@ -428,11 +431,12 @@ plotting:
     - oil
     - co2_stored
 
+hurdle_costs: 0.01 # Transmission link marginal cost
+
 benchmarking:
   enable: true
 
 cba:
-  hurdle_costs: 0.01 # Transmission line marginal cost
   co2_societal_cost: # euros/t; 2024 CBA Implementation Guidelines, p. 68
     2030:
       low: 126
@@ -449,9 +453,9 @@ cba:
     use_presolved: false
     sb_version: latest # use 'latest' or a supported version from data/tyndp_versions.csv for pre-solved SB network input in CBA; only applies if use_presolved is true
   projects:
-  - t335 # PINT
+  - t225 # PINT
   - t339 # TOOT
-  - t1106 # TOOT, offshore
+  # TODO: Add back t1106 Bornholm project once CBA bus naming convention is fixed for 2026
   - s1001 # PHS
   - s1013 # CAES
   - s1035 # battery
@@ -467,6 +471,7 @@ cba:
     cyclic_carriers:
     - battery
     - caes
+    - home battery
     # Carriers whose state of charge is fixed at window boundaries
     # from perfect foresight (applies to StorageUnit components only).
     # Only carriers whose storage horizon (max_hours) exceeds the rolling horizon window need this. 

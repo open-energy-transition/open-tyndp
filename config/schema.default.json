@@ -459,11 +459,6 @@
     "CbaConfig": {
       "description": "Configuration for top level `cba` (cost-benefit analysis) settings.",
       "properties": {
-        "hurdle_costs": {
-          "default": 0.01,
-          "description": "Marginal cost for transmission lines in cost-benefit analysis networks (EUR/MWh).",
-          "type": "number"
-        },
         "co2_societal_cost": {
           "additionalProperties": {
             "additionalProperties": {
@@ -1104,7 +1099,7 @@
         },
         "tyndp_availability_profiles": {
           "default": false,
-          "description": "Use TYNDP 2024 hourly availability profiles (currently only for nuclear power plants), accounting for maintenance schedules and forced outages.",
+          "description": "Use TYNDP 2026 weekly availability profiles (currently only for nuclear power plants), derived from the TimeSeries Dashboards and accounting for maintenance schedules and forced outages.",
           "type": "boolean"
         }
       }
@@ -2222,6 +2217,27 @@
             }
           }
         },
+        "tyndp_2026": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "tyndp-archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
         "powerplants": {
           "description": "Configuration for a single data source.",
           "properties": {
@@ -2600,27 +2616,6 @@
             }
           }
         },
-        "tyndp_vis_plfm": {
-          "description": "Configuration for a single data source.",
-          "properties": {
-            "source": {
-              "default": "archive",
-              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
-              "enum": [
-                "archive",
-                "tyndp-archive",
-                "primary",
-                "build"
-              ],
-              "type": "string"
-            },
-            "version": {
-              "default": "latest",
-              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
-              "type": "string"
-            }
-          }
-        },
         "tyndp_cba_projects": {
           "description": "Configuration for a single data source.",
           "properties": {
@@ -2642,49 +2637,7 @@
             }
           }
         },
-        "tyndp_nuclear_profiles": {
-          "description": "Configuration for a single data source.",
-          "properties": {
-            "source": {
-              "default": "archive",
-              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
-              "enum": [
-                "archive",
-                "tyndp-archive",
-                "primary",
-                "build"
-              ],
-              "type": "string"
-            },
-            "version": {
-              "default": "latest",
-              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
-              "type": "string"
-            }
-          }
-        },
         "open_tyndp_prelim": {
-          "description": "Configuration for a single data source.",
-          "properties": {
-            "source": {
-              "default": "archive",
-              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
-              "enum": [
-                "archive",
-                "tyndp-archive",
-                "primary",
-                "build"
-              ],
-              "type": "string"
-            },
-            "version": {
-              "default": "latest",
-              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
-              "type": "string"
-            }
-          }
-        },
-        "countries_centroids": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {
@@ -2726,6 +2679,11 @@
             "tyndp"
           ],
           "type": "string"
+        },
+        "tyndp_reference_year": {
+          "default": 2030,
+          "description": "Planning-horizon year of the TYNDP reference grid used to build the static base network topology and its initial NTC, when `base_network` is 'tyndp'. The node/link topology is identical across all TYNDP planning horizons, only NTC differs, so a single fixed year is used here; per-horizon NTC for `tyndp_scenario` runs is instead applied later, in `prepare_sector_network`.",
+          "type": "integer"
         },
         "gaslimit_enable": {
           "default": false,
@@ -2928,15 +2886,17 @@
               "solar-pv",
               "solar-pv-utility",
               "solar-pv-rooftop",
+              "solar-pv-utility-sres",
+              "solar-pv-utility-dres",
               "onwind",
-              "offwind-ac-fb-r",
-              "offwind-ac-fl-r",
-              "offwind-dc-fb-r",
-              "offwind-dc-fl-r",
-              "offwind-dc-fb-oh",
-              "offwind-dc-fl-oh",
-              "offwind-h2-fb-oh",
-              "offwind-h2-fl-oh",
+              "onwind-sres",
+              "onwind-dres",
+              "offwind-r",
+              "offwind-oh",
+              "offwind-dres-r",
+              "offwind-dres-oh",
+              "offwind-sres-r",
+              "offwind-sres-oh",
               "other-res",
               "hydro-ror",
               "hydro-reservoir",
@@ -2953,8 +2913,9 @@
           "items": {
             "enum": [
               "battery",
-              "h2_cavern",
-              "h2_tank"
+              "H2 cavern-storage",
+              "H2 tank-storage",
+              "home battery"
             ],
             "type": "string"
           },
@@ -2971,8 +2932,8 @@
             "pre_built": {
               "description": "Configuration for `electricity.pecd_renewable_profiles.pre_built` settings.",
               "properties": {
-                "cyears": {
-                  "description": "List of climate years to filter for when creating the PECD pre-built. Can be any year between 1982 and 2019.",
+                "wscenarios": {
+                  "description": "List of weather scenarios to filter for when creating the PECD pre-built. The scenario numbering ranges between 1-120.",
                   "items": {
                     "type": "integer"
                   },
@@ -2997,11 +2958,10 @@
               "items": {
                 "enum": [
                   "Wind_Offshore",
-                  "LFSolarPVRooftop",
-                  "LFSolarPVUtility",
-                  "CSP_noStorage",
-                  "CSP_withStorage",
-                  "Wind_Onshore"
+                  "Solar PV Rooftop",
+                  "Solar PV Utility",
+                  "Wind_Onshore",
+                  "CSP_noStorage_0h_dispatched"
                 ],
                 "type": "string"
               },
@@ -3009,30 +2969,30 @@
             }
           }
         },
-        "pemmdb_hydro_profiles": {
-          "description": "Configuration for `electricity.pemmdb_hydro_profiles` settings.",
+        "pecd_hydro_profiles": {
+          "description": "Configuration for `electricity.pecd_hydro_profiles` settings.",
           "properties": {
             "enable": {
               "default": false,
-              "description": "Activate PEMMDB hydro inflow profiles from 2024 TYNDP instead of default hydro profiles.",
+              "description": "Activate PECD v4.2 hydro inflow profiles from TYNDP 2026 instead of default hydro profiles.",
               "type": "boolean"
             },
             "available_years": {
-              "description": "List of years for which PEMMDB hydro inflows data is available.",
+              "description": "List of years for which PECD hydro inflows data is available.",
               "items": {
                 "type": "integer"
               },
               "type": "array"
             },
             "technologies": {
-              "description": "The hydro technologies for which PEMMDB hydro inflows data is used.",
+              "description": "The hydro technologies for which PECD hydro inflows data is used, as PECD codes: HRR (run of river), HPI (pondage), HRI (reservoir), HOL (open-loop pumped storage), HCL (closed-loop pumped storage).",
               "items": {
                 "enum": [
-                  "Run_of_River",
-                  "Pondage",
-                  "Reservoir",
-                  "PS_Open",
-                  "PS_Closed"
+                  "HRR",
+                  "HPI",
+                  "HRI",
+                  "HOL",
+                  "HCL"
                 ],
                 "type": "string"
               },
@@ -3680,13 +3640,6 @@
             }
           }
         },
-        "available_years_tyndp": {
-          "description": "List of years for which TYNDP demand data is available.",
-          "items": {
-            "type": "integer"
-          },
-          "type": "array"
-        },
         "manual_adjustments": {
           "default": true,
           "description": "Whether to adjust the load data manually according to the function in `manual_adjustment`.",
@@ -3734,21 +3687,6 @@
               "type": "number"
             }
           }
-        },
-        "patch_demand_with_mm": {
-          "anyOf": [
-            {
-              "type": "boolean"
-            },
-            {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            }
-          ],
-          "default": false,
-          "description": "Whether to patch the electricity demand with Market Model output data. Set to `true` to apply to all nodes, or provide a list of node names to apply selectively."
         }
       }
     },
@@ -4355,22 +4293,6 @@
           },
           "description": "Colors used to represent technologies and carriers consistently across all plots. Values must be hex color strings, e.g. ``#235ebc``.",
           "type": "object"
-        },
-        "offshore_maps": {
-          "description": "Configuration for `plotting.offshore_maps` settings.",
-          "properties": {
-            "bus_carriers": {
-              "default": [
-                "DC_OH",
-                "H2 pipeline OH"
-              ],
-              "description": "Bus carriers for which offshore network maps are generated.",
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            }
-          }
         },
         "cba": {
           "description": "Configuration for `plotting.cba` settings.",
@@ -5909,6 +5831,13 @@
           "description": "The share of vehicles that uses internal combustion engines (ICE) in a given year. What is not EV or FCEV is oil-fuelled ICE.",
           "type": "object"
         },
+        "land_transport_oil_demand_tyndp": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "description": "EU27 land transport (road and rail) liquids demand in TWh per planning horizon. For TYNDP scenarios, it is added as a flat demand instead of the PyPSA-Eur land transport.",
+          "type": "object"
+        },
         "transport_electric_efficiency": {
           "default": 53.19,
           "description": "The conversion efficiencies of electric vehicles in transport.",
@@ -6451,23 +6380,9 @@
           "description": "Use TYNDP H2 topology for hydrogen network.",
           "type": "boolean"
         },
-        "h2_reference_grid_source": {
-          "default": "entsoe",
-          "description": "Source dataset for the TYNDP hydrogen reference grid. 'entsoe' uses StartingGrid2030.xlsx (from ENTSO-E landing page); 'entsos' uses ReferenceGrid_Hydrogen.xlsx (from ENTSOS Scenarios data Line Data dataset), with added H2 investment candidates.",
-          "enum": [
-            "entsoe",
-            "entsos"
-          ],
-          "type": "string"
-        },
-        "h2_zones_tyndp": {
+        "smr_ramp_limits_tyndp": {
           "default": false,
-          "description": "Add option to split TYNDP H2 nodes into two zones (Z1, Z1), currently only available for DE/GA scenarios.",
-          "type": "boolean"
-        },
-        "h2_demand_patch_with_mm": {
-          "default": false,
-          "description": "Add option to patch the TYNDP H2 demand with the Market Model output data.",
+          "description": "Add TYNDP ramp limits to SMR and SMR CCS links. Only used with `h2_topology_tyndp`.",
           "type": "boolean"
         },
         "gas_network": {
@@ -6731,33 +6646,6 @@
                 "type": "number"
               },
               "description": "Price for importing renewable energy of carrier.",
-              "type": "object"
-            }
-          }
-        },
-        "offshore_hubs_tyndp": {
-          "description": "Configuration for `sector.offshore_hubs_tyndp` settings.",
-          "properties": {
-            "enable": {
-              "default": false,
-              "description": "Add option to include TYNDP offshore hubs.",
-              "type": "boolean"
-            },
-            "patch_crossborder_with_mm": {
-              "default": false,
-              "description": "Add option to patch the Offshore Hubs interconnector capacities with the Market Model output data.",
-              "type": "boolean"
-            },
-            "connect_isolated": {
-              "default": false,
-              "description": "Copperplate isolated wind farms to the grid.",
-              "type": "boolean"
-            },
-            "max_capacity": {
-              "additionalProperties": {
-                "type": "number"
-              },
-              "description": "Maximum transmission capacity between two offshore hubs of a carrier (GW). Keys are carrier names (e.g., 'DC_OH', 'H2 pipeline OH').",
               "type": "object"
             }
           }
@@ -7373,36 +7261,6 @@
             "keep"
           ],
           "type": "string"
-        }
-      }
-    },
-    "TyndpInvestmentCandidatesConfig": {
-      "description": "Configuration for top level `tyndp_investment_candidates` settings.",
-      "properties": {
-        "patch_sb_with_annexe": {
-          "default": false,
-          "description": "Whether to apply capacity corrections to SB electricity transmission projects to align them with the CBA reference grid guidelines. Corrections are only relevant for the 2040 horizon.",
-          "type": "boolean"
-        },
-        "elec_projects": {
-          "additionalProperties": {
-            "items": {
-              "type": "integer"
-            },
-            "type": "array"
-          },
-          "description": "Mapping of planning horizons to the build years of TYNDP 2024 electricity transmission investment candidates to include in the reference grid for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
-          "type": "object"
-        },
-        "h2_projects": {
-          "additionalProperties": {
-            "items": {
-              "type": "integer"
-            },
-            "type": "array"
-          },
-          "description": "Mapping of planning horizons to the build years of TYNDP 2024 hydrogen transmission investment candidates to include in the reference grid for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
-          "type": "object"
         }
       }
     },
@@ -9729,49 +9587,6 @@
         }
       }
     },
-    "_OffshoreHubsTyndpConfig": {
-      "description": "Configuration for `sector.offshore_hubs_tyndp` settings.",
-      "properties": {
-        "enable": {
-          "default": false,
-          "description": "Add option to include TYNDP offshore hubs.",
-          "type": "boolean"
-        },
-        "patch_crossborder_with_mm": {
-          "default": false,
-          "description": "Add option to patch the Offshore Hubs interconnector capacities with the Market Model output data.",
-          "type": "boolean"
-        },
-        "connect_isolated": {
-          "default": false,
-          "description": "Copperplate isolated wind farms to the grid.",
-          "type": "boolean"
-        },
-        "max_capacity": {
-          "additionalProperties": {
-            "type": "number"
-          },
-          "description": "Maximum transmission capacity between two offshore hubs of a carrier (GW). Keys are carrier names (e.g., 'DC_OH', 'H2 pipeline OH').",
-          "type": "object"
-        }
-      }
-    },
-    "_OffshoreMapsConfig": {
-      "description": "Configuration for `plotting.offshore_maps` settings.",
-      "properties": {
-        "bus_carriers": {
-          "default": [
-            "DC_OH",
-            "H2 pipeline OH"
-          ],
-          "description": "Bus carriers for which offshore network maps are generated.",
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        }
-      }
-    },
     "_OffwindConfig": {
       "description": "Configuration for offshore wind.",
       "properties": {
@@ -10151,11 +9966,42 @@
         }
       }
     },
+    "_PecdHydroProfilesConfig": {
+      "description": "Configuration for `electricity.pecd_hydro_profiles` settings.",
+      "properties": {
+        "enable": {
+          "default": false,
+          "description": "Activate PECD v4.2 hydro inflow profiles from TYNDP 2026 instead of default hydro profiles.",
+          "type": "boolean"
+        },
+        "available_years": {
+          "description": "List of years for which PECD hydro inflows data is available.",
+          "items": {
+            "type": "integer"
+          },
+          "type": "array"
+        },
+        "technologies": {
+          "description": "The hydro technologies for which PECD hydro inflows data is used, as PECD codes: HRR (run of river), HPI (pondage), HRI (reservoir), HOL (open-loop pumped storage), HCL (closed-loop pumped storage).",
+          "items": {
+            "enum": [
+              "HRR",
+              "HPI",
+              "HRI",
+              "HOL",
+              "HCL"
+            ],
+            "type": "string"
+          },
+          "type": "array"
+        }
+      }
+    },
     "_PecdPreBuiltConfig": {
       "description": "Configuration for `electricity.pecd_renewable_profiles.pre_built` settings.",
       "properties": {
-        "cyears": {
-          "description": "List of climate years to filter for when creating the PECD pre-built. Can be any year between 1982 and 2019.",
+        "wscenarios": {
+          "description": "List of weather scenarios to filter for when creating the PECD pre-built. The scenario numbering ranges between 1-120.",
           "items": {
             "type": "integer"
           },
@@ -10174,8 +10020,8 @@
         "pre_built": {
           "description": "Configuration for `electricity.pecd_renewable_profiles.pre_built` settings.",
           "properties": {
-            "cyears": {
-              "description": "List of climate years to filter for when creating the PECD pre-built. Can be any year between 1982 and 2019.",
+            "wscenarios": {
+              "description": "List of weather scenarios to filter for when creating the PECD pre-built. The scenario numbering ranges between 1-120.",
               "items": {
                 "type": "integer"
               },
@@ -10200,11 +10046,10 @@
           "items": {
             "enum": [
               "Wind_Offshore",
-              "LFSolarPVRooftop",
-              "LFSolarPVUtility",
-              "CSP_noStorage",
-              "CSP_withStorage",
-              "Wind_Onshore"
+              "Solar PV Rooftop",
+              "Solar PV Utility",
+              "Wind_Onshore",
+              "CSP_noStorage_0h_dispatched"
             ],
             "type": "string"
           },
@@ -10252,37 +10097,6 @@
               "Electrolyser",
               "Battery",
               "DSR"
-            ],
-            "type": "string"
-          },
-          "type": "array"
-        }
-      }
-    },
-    "_PemmdbHydroProfilesConfig": {
-      "description": "Configuration for `electricity.pemmdb_hydro_profiles` settings.",
-      "properties": {
-        "enable": {
-          "default": false,
-          "description": "Activate PEMMDB hydro inflow profiles from 2024 TYNDP instead of default hydro profiles.",
-          "type": "boolean"
-        },
-        "available_years": {
-          "description": "List of years for which PEMMDB hydro inflows data is available.",
-          "items": {
-            "type": "integer"
-          },
-          "type": "array"
-        },
-        "technologies": {
-          "description": "The hydro technologies for which PEMMDB hydro inflows data is used.",
-          "items": {
-            "enum": [
-              "Run_of_River",
-              "Pondage",
-              "Reservoir",
-              "PS_Open",
-              "PS_Closed"
             ],
             "type": "string"
           },
@@ -11422,13 +11236,28 @@
     },
     "tyndp_scenario": {
       "default": false,
-      "description": "Scenario configuration of the TYNDP data, which is one of NT, DE or GA. False disables the TYNDP-specific rules. Only NT is fully implemented and benchmarked in TYNDP 2024; DE and GA are incomplete, unsupported, and not planned to be supported, and the workflow might fail for them.",
+      "description": "Scenario configuration of the TYNDP data, which is one of NT (National Trends +), HEV (High Economic Variant) or LEV (Low Economic Variant). False disables the TYNDP-specific rules.",
       "enum": [
         "NT",
-        "DE",
-        "GA",
+        "HEV",
+        "LEV",
         false
       ]
+    },
+    "hurdle_costs": {
+      "default": 0.01,
+      "description": "Hurdle cost applied as marginal cost to transmission links (EUR/MWh), used to discourage loop flows. Applied to the electricity and hydrogen grids in Scenario Building and to the DC links in the Cost-Benefit Analysis.",
+      "type": "number"
+    },
+    "wscenarios_tyndp": {
+      "additionalProperties": {
+        "items": {
+          "type": "integer"
+        },
+        "type": "array"
+      },
+      "description": "Mapping of planning horizons to the weather scenarios (climate year column indices, e.g. 3 for `WS003`) to model in the TYNDP 2026 data. Only the first entry per horizon is currently used, falling back to the first entry of `AVAILABLE_WSCENARIOS` in `scripts/sb/_helpers.py` if unavailable (see `get_wscenario`); to be revisited once Scenario Building supports modelling multiple weather years at once.",
+      "type": "object"
     },
     "launch_explorer": {
       "default": false,
@@ -11634,6 +11463,11 @@
           ],
           "type": "string"
         },
+        "tyndp_reference_year": {
+          "default": 2030,
+          "description": "Planning-horizon year of the TYNDP reference grid used to build the static base network topology and its initial NTC, when `base_network` is 'tyndp'. The node/link topology is identical across all TYNDP planning horizons, only NTC differs, so a single fixed year is used here; per-horizon NTC for `tyndp_scenario` runs is instead applied later, in `prepare_sector_network`.",
+          "type": "integer"
+        },
         "gaslimit_enable": {
           "default": false,
           "description": "Add an overall absolute gas limit configured in `electricity: gaslimit`.",
@@ -11835,15 +11669,17 @@
               "solar-pv",
               "solar-pv-utility",
               "solar-pv-rooftop",
+              "solar-pv-utility-sres",
+              "solar-pv-utility-dres",
               "onwind",
-              "offwind-ac-fb-r",
-              "offwind-ac-fl-r",
-              "offwind-dc-fb-r",
-              "offwind-dc-fl-r",
-              "offwind-dc-fb-oh",
-              "offwind-dc-fl-oh",
-              "offwind-h2-fb-oh",
-              "offwind-h2-fl-oh",
+              "onwind-sres",
+              "onwind-dres",
+              "offwind-r",
+              "offwind-oh",
+              "offwind-dres-r",
+              "offwind-dres-oh",
+              "offwind-sres-r",
+              "offwind-sres-oh",
               "other-res",
               "hydro-ror",
               "hydro-reservoir",
@@ -11860,8 +11696,9 @@
           "items": {
             "enum": [
               "battery",
-              "h2_cavern",
-              "h2_tank"
+              "H2 cavern-storage",
+              "H2 tank-storage",
+              "home battery"
             ],
             "type": "string"
           },
@@ -11878,8 +11715,8 @@
             "pre_built": {
               "description": "Configuration for `electricity.pecd_renewable_profiles.pre_built` settings.",
               "properties": {
-                "cyears": {
-                  "description": "List of climate years to filter for when creating the PECD pre-built. Can be any year between 1982 and 2019.",
+                "wscenarios": {
+                  "description": "List of weather scenarios to filter for when creating the PECD pre-built. The scenario numbering ranges between 1-120.",
                   "items": {
                     "type": "integer"
                   },
@@ -11904,11 +11741,10 @@
               "items": {
                 "enum": [
                   "Wind_Offshore",
-                  "LFSolarPVRooftop",
-                  "LFSolarPVUtility",
-                  "CSP_noStorage",
-                  "CSP_withStorage",
-                  "Wind_Onshore"
+                  "Solar PV Rooftop",
+                  "Solar PV Utility",
+                  "Wind_Onshore",
+                  "CSP_noStorage_0h_dispatched"
                 ],
                 "type": "string"
               },
@@ -11916,30 +11752,30 @@
             }
           }
         },
-        "pemmdb_hydro_profiles": {
-          "description": "Configuration for `electricity.pemmdb_hydro_profiles` settings.",
+        "pecd_hydro_profiles": {
+          "description": "Configuration for `electricity.pecd_hydro_profiles` settings.",
           "properties": {
             "enable": {
               "default": false,
-              "description": "Activate PEMMDB hydro inflow profiles from 2024 TYNDP instead of default hydro profiles.",
+              "description": "Activate PECD v4.2 hydro inflow profiles from TYNDP 2026 instead of default hydro profiles.",
               "type": "boolean"
             },
             "available_years": {
-              "description": "List of years for which PEMMDB hydro inflows data is available.",
+              "description": "List of years for which PECD hydro inflows data is available.",
               "items": {
                 "type": "integer"
               },
               "type": "array"
             },
             "technologies": {
-              "description": "The hydro technologies for which PEMMDB hydro inflows data is used.",
+              "description": "The hydro technologies for which PECD hydro inflows data is used, as PECD codes: HRR (run of river), HPI (pondage), HRI (reservoir), HOL (open-loop pumped storage), HCL (closed-loop pumped storage).",
               "items": {
                 "enum": [
-                  "Run_of_River",
-                  "Pondage",
-                  "Reservoir",
-                  "PS_Open",
-                  "PS_Closed"
+                  "HRR",
+                  "HPI",
+                  "HRI",
+                  "HOL",
+                  "HCL"
                 ],
                 "type": "string"
               },
@@ -13435,7 +13271,7 @@
         },
         "tyndp_availability_profiles": {
           "default": false,
-          "description": "Use TYNDP 2024 hourly availability profiles (currently only for nuclear power plants), accounting for maintenance schedules and forced outages.",
+          "description": "Use TYNDP 2026 weekly availability profiles (currently only for nuclear power plants), derived from the TimeSeries Dashboards and accounting for maintenance schedules and forced outages.",
           "type": "boolean"
         }
       }
@@ -13649,36 +13485,6 @@
         }
       }
     },
-    "tyndp_investment_candidates": {
-      "description": "Configuration for top level `tyndp_investment_candidates` settings.",
-      "properties": {
-        "patch_sb_with_annexe": {
-          "default": false,
-          "description": "Whether to apply capacity corrections to SB electricity transmission projects to align them with the CBA reference grid guidelines. Corrections are only relevant for the 2040 horizon.",
-          "type": "boolean"
-        },
-        "elec_projects": {
-          "additionalProperties": {
-            "items": {
-              "type": "integer"
-            },
-            "type": "array"
-          },
-          "description": "Mapping of planning horizons to the build years of TYNDP 2024 electricity transmission investment candidates to include in the reference grid for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
-          "type": "object"
-        },
-        "h2_projects": {
-          "additionalProperties": {
-            "items": {
-              "type": "integer"
-            },
-            "type": "array"
-          },
-          "description": "Mapping of planning horizons to the build years of TYNDP 2024 hydrogen transmission investment candidates to include in the reference grid for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
-          "type": "object"
-        }
-      }
-    },
     "transformers": {
       "description": "Configuration for `transformers` settings.",
       "properties": {
@@ -13731,13 +13537,6 @@
             }
           }
         },
-        "available_years_tyndp": {
-          "description": "List of years for which TYNDP demand data is available.",
-          "items": {
-            "type": "integer"
-          },
-          "type": "array"
-        },
         "manual_adjustments": {
           "default": true,
           "description": "Whether to adjust the load data manually according to the function in `manual_adjustment`.",
@@ -13785,21 +13584,6 @@
               "type": "number"
             }
           }
-        },
-        "patch_demand_with_mm": {
-          "anyOf": [
-            {
-              "type": "boolean"
-            },
-            {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            }
-          ],
-          "default": false,
-          "description": "Whether to patch the electricity demand with Market Model output data. Set to `true` to apply to all nodes, or provide a list of node names to apply selectively."
         }
       }
     },
@@ -14351,6 +14135,13 @@
           "description": "The share of vehicles that uses internal combustion engines (ICE) in a given year. What is not EV or FCEV is oil-fuelled ICE.",
           "type": "object"
         },
+        "land_transport_oil_demand_tyndp": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "description": "EU27 land transport (road and rail) liquids demand in TWh per planning horizon. For TYNDP scenarios, it is added as a flat demand instead of the PyPSA-Eur land transport.",
+          "type": "object"
+        },
         "transport_electric_efficiency": {
           "default": 53.19,
           "description": "The conversion efficiencies of electric vehicles in transport.",
@@ -14893,23 +14684,9 @@
           "description": "Use TYNDP H2 topology for hydrogen network.",
           "type": "boolean"
         },
-        "h2_reference_grid_source": {
-          "default": "entsoe",
-          "description": "Source dataset for the TYNDP hydrogen reference grid. 'entsoe' uses StartingGrid2030.xlsx (from ENTSO-E landing page); 'entsos' uses ReferenceGrid_Hydrogen.xlsx (from ENTSOS Scenarios data Line Data dataset), with added H2 investment candidates.",
-          "enum": [
-            "entsoe",
-            "entsos"
-          ],
-          "type": "string"
-        },
-        "h2_zones_tyndp": {
+        "smr_ramp_limits_tyndp": {
           "default": false,
-          "description": "Add option to split TYNDP H2 nodes into two zones (Z1, Z1), currently only available for DE/GA scenarios.",
-          "type": "boolean"
-        },
-        "h2_demand_patch_with_mm": {
-          "default": false,
-          "description": "Add option to patch the TYNDP H2 demand with the Market Model output data.",
+          "description": "Add TYNDP ramp limits to SMR and SMR CCS links. Only used with `h2_topology_tyndp`.",
           "type": "boolean"
         },
         "gas_network": {
@@ -15173,33 +14950,6 @@
                 "type": "number"
               },
               "description": "Price for importing renewable energy of carrier.",
-              "type": "object"
-            }
-          }
-        },
-        "offshore_hubs_tyndp": {
-          "description": "Configuration for `sector.offshore_hubs_tyndp` settings.",
-          "properties": {
-            "enable": {
-              "default": false,
-              "description": "Add option to include TYNDP offshore hubs.",
-              "type": "boolean"
-            },
-            "patch_crossborder_with_mm": {
-              "default": false,
-              "description": "Add option to patch the Offshore Hubs interconnector capacities with the Market Model output data.",
-              "type": "boolean"
-            },
-            "connect_isolated": {
-              "default": false,
-              "description": "Copperplate isolated wind farms to the grid.",
-              "type": "boolean"
-            },
-            "max_capacity": {
-              "additionalProperties": {
-                "type": "number"
-              },
-              "description": "Maximum transmission capacity between two offshore hubs of a carrier (GW). Keys are carrier names (e.g., 'DC_OH', 'H2 pipeline OH').",
               "type": "object"
             }
           }
@@ -17305,6 +17055,27 @@
             }
           }
         },
+        "tyndp_2026": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "tyndp-archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
         "powerplants": {
           "description": "Configuration for a single data source.",
           "properties": {
@@ -17683,27 +17454,6 @@
             }
           }
         },
-        "tyndp_vis_plfm": {
-          "description": "Configuration for a single data source.",
-          "properties": {
-            "source": {
-              "default": "archive",
-              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
-              "enum": [
-                "archive",
-                "tyndp-archive",
-                "primary",
-                "build"
-              ],
-              "type": "string"
-            },
-            "version": {
-              "default": "latest",
-              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
-              "type": "string"
-            }
-          }
-        },
         "tyndp_cba_projects": {
           "description": "Configuration for a single data source.",
           "properties": {
@@ -17725,49 +17475,7 @@
             }
           }
         },
-        "tyndp_nuclear_profiles": {
-          "description": "Configuration for a single data source.",
-          "properties": {
-            "source": {
-              "default": "archive",
-              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
-              "enum": [
-                "archive",
-                "tyndp-archive",
-                "primary",
-                "build"
-              ],
-              "type": "string"
-            },
-            "version": {
-              "default": "latest",
-              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
-              "type": "string"
-            }
-          }
-        },
         "open_tyndp_prelim": {
-          "description": "Configuration for a single data source.",
-          "properties": {
-            "source": {
-              "default": "archive",
-              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
-              "enum": [
-                "archive",
-                "tyndp-archive",
-                "primary",
-                "build"
-              ],
-              "type": "string"
-            },
-            "version": {
-              "default": "latest",
-              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
-              "type": "string"
-            }
-          }
-        },
-        "countries_centroids": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {
@@ -17834,11 +17542,6 @@
     "cba": {
       "description": "Configuration for top level `cba` (cost-benefit analysis) settings.",
       "properties": {
-        "hurdle_costs": {
-          "default": 0.01,
-          "description": "Marginal cost for transmission lines in cost-benefit analysis networks (EUR/MWh).",
-          "type": "number"
-        },
         "co2_societal_cost": {
           "additionalProperties": {
             "additionalProperties": {
@@ -18634,22 +18337,6 @@
           },
           "description": "Colors used to represent technologies and carriers consistently across all plots. Values must be hex color strings, e.g. ``#235ebc``.",
           "type": "object"
-        },
-        "offshore_maps": {
-          "description": "Configuration for `plotting.offshore_maps` settings.",
-          "properties": {
-            "bus_carriers": {
-              "default": [
-                "DC_OH",
-                "H2 pipeline OH"
-              ],
-              "description": "Bus carriers for which offshore network maps are generated.",
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            }
-          }
         },
         "cba": {
           "description": "Configuration for `plotting.cba` settings.",
