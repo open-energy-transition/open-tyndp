@@ -314,6 +314,28 @@ def compute_benchmark(
             .assign(bus=lambda df: df.bus.map(n.buses.location))
             .set_index(["bus", "carrier"])
         )
+    elif table == "ev_charging":
+        grouper = ["carrier"]
+        charge = n.statistics.withdrawal(
+            comps="Link",
+            carrier="BEV charger",
+            bus_carrier=elec_bus_carrier,
+            groupby=["bus"] + grouper,
+            aggregate_across_components=True,
+        )
+        discharge = n.statistics.supply(
+            comps="Link",
+            carrier="V2G",
+            bus_carrier=elec_bus_carrier,
+            groupby=["bus"] + grouper,
+            aggregate_across_components=True,
+        )
+        df = (
+            pd.concat([charge, discharge])
+            .rename(index=n.buses.location.to_dict(), level="bus")
+            .groupby(["bus"] + grouper)
+            .sum()
+        )
     elif table == "methane_demand":
         grouper = ["carrier"]
         df_countries = (
@@ -366,7 +388,8 @@ def compute_benchmark(
             "DC",
             "load",
             "SRES grid connection",
-            "EV charge",
+            "BEV charger",
+            "V2G",
         ]
         pumps = ["hydro-phs-pump", "hydro-phs-pure-pump"]
         df = (
@@ -399,6 +422,7 @@ def compute_benchmark(
             "hydro-phs-pump",
             "hydro-phs-pure-pump",
             "H2 Electrolysis",
+            "V2G",
         ]
         df = (
             n.statistics.supply(
@@ -733,10 +757,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "build_statistics",
-            opts="",
-            clusters="all",
-            sector_opts="",
-            planning_horizons="2030",
+            horizon="2030",
         )
 
     configure_logging(snakemake)
@@ -750,7 +771,7 @@ if __name__ == "__main__":
     synfuels = snakemake.params["synfuels"]
     cc = coco.CountryConverter()
     eu27 = cc.EU27as("ISO2").ISO2.tolist()
-    planning_horizons = int(snakemake.wildcards.planning_horizons)
+    planning_horizons = int(snakemake.wildcards.horizon)
 
     # Map Open-TYNDP carrier names to benchmarking carrier names
     add_benchmarking_mappings(

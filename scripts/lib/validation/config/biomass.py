@@ -6,7 +6,7 @@
 """
 Biomass configuration.
 
-See docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#biomass
+See docs in https://open-tyndp.readthedocs.io/en/latest/configuration/#biomass_cf
 """
 
 from typing import Literal

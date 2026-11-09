@@ -6,7 +6,7 @@
 """
 Data source configuration.
 
-See docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#data
+See docs in https://open-tyndp.readthedocs.io/en/latest/configuration/#data_cf
 """
 
 from datetime import date
@@ -465,10 +465,6 @@ class DataConfig(BaseModel):
     tyndp_cba_projects: _DataSourceConfig = Field(
         default_factory=_DataSourceConfig,
         description="TYNDP CBA projects data source configuration.",
-    )
-    tyndp_nuclear_profiles: _DataSourceConfig = Field(
-        default_factory=_DataSourceConfig,
-        description="TYNDP nuclear profiles data source configuration.",
     )
     open_tyndp_prelim: _DataSourceConfig = Field(
         default_factory=_DataSourceConfig,

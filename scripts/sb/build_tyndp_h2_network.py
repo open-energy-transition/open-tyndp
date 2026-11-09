@@ -4,7 +4,7 @@
 """
 This script loads and cleans the TYNDP 2026 H2 reference grid for a given wildcard
 planning horizon. The reference grid gives one sheet per planning horizon
-(``Year_{planning_horizons}``); the border topology is identical across all
+(``Year_{horizon}``); the border topology is identical across all
 available planning horizons, only the NTC capacities differ.
 """
 
@@ -50,7 +50,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "build_tyndp_h2_network",
-            planning_horizons=2030,
+            horizon=2030,
             run="NT",
             configfiles=["config/config.tyndp.yaml"],
         )
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     # Parameters
-    planning_horizon = int(snakemake.wildcards.planning_horizons)
+    planning_horizon = int(snakemake.wildcards.horizon)
 
     # Load and clean H2 reference grid
     h2_grid = load_h2_grid(

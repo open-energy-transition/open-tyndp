@@ -41,9 +41,9 @@ jobs:
         shell: bash -l {0}
     steps:
     - uses: actions/checkout@v7
-    - uses: prefix-dev/setup-pixi@v0.11.0
+    - uses: prefix-dev/setup-pixi@v0.11.3
       with:
-        pixi-version: v0.68.1
+        pixi-version: v0.71.0
         environments: open-tyndp
 
     - name: Generate SBOM
@@ -79,7 +79,7 @@ jobs:
 
     - name: Upload SARIF
       if: github.ref == 'refs/heads/master'
-      uses: github/codeql-action/upload-sarif@v4.38.3
+      uses: github/codeql-action/upload-sarif@v4.39.2
       with:
         sarif_file: ${{ steps.scan.outputs.sarif }}
         category: pixi-vuln-scan
@@ -96,7 +96,7 @@ jobs:
     # All PRs gate on new CVEs vs the master baseline
     - name: Download master baseline
       if: github.event_name == 'pull_request'
-      uses: dawidd6/action-download-artifact@v27
+      uses: dawidd6/action-download-artifact@v28
       with:
         workflow: security-scan.yaml
         name: master-sbom

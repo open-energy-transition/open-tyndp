@@ -51,6 +51,10 @@ for the NT+ scenario:
 
 * **Time Series Dashboards** (preferred reference): market model outputs at node level, read for the
   first weather scenario configured in `wscenarios_tyndp` for each planning horizon.
+  Besides the tables shared with the Scenario Report, the `electricity_prosumer_demand` table
+  compares the prosumer demand and the `ev_charging` table compares the grid side EV charging
+  (`BEV charger`) and V2G discharging (`V2G`) per node. V2G is also compared to the Scenario Report
+  (figure 61).
 * **Scenario Report Data Figures**: EU27 metrics complementing the Dashboards:
 
     * Exogenous inputs:
@@ -98,12 +102,12 @@ The SB benchmarking workflow is controlled by `config/benchmarking.default.yaml`
 The full set of benchmarking output files is stored under `results/benchmarks/tyndp-2026/`:
 
 * `resources/` — processed benchmarking inputs from Open-TYNDP, the TYNDP 2026 Scenarios Report and the TYNDP 2026 Time Series Dashboards.
-* `csvs_s_{clusters}_{opts}_{sector_opts}_all_years/` — quantitative tables.
-* `graphics_s_{clusters}_{opts}_{sector_opts}_all_years/` — figures.
-* `kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_bus.csv` — summary table aggregated from bus level KPIs.
-* `kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_country.csv` — summary table aggregated from country level KPIs.
-* `kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_bus.pdf` — summary figure aggregated from bus level KPIs.
-* `kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_country.pdf` — summary figure aggregated from country level KPIs.
+* `csvs_all_years/` — quantitative tables.
+* `graphics_all_years/` — figures.
+* `kpis_all_years_by_bus.csv` — summary table aggregated from bus level KPIs.
+* `kpis_all_years_by_country.csv` — summary table aggregated from country level KPIs.
+* `kpis_all_years_by_bus.pdf` — summary figure aggregated from bus level KPIs.
+* `kpis_all_years_by_country.pdf` — summary figure aggregated from country level KPIs.
 
 The structure of these outputs can be validated in the published preliminary benchmarking results on [Zenodo](https://doi.org/10.5281/zenodo.18608105).
 
@@ -111,7 +115,7 @@ The structure of these outputs can be validated in the published preliminary ben
 
 ### Outputs
 
-Example of indicators extracted from `power_generation_s_all___all_years.csv` by countries
+Example of indicators extracted from `power_generation_ws2009_all_years.csv` by countries
 for the NT scenario with hourly resolution:
 
 | Carrier | sMPE | sMAPE | sMdAPE | RMSLE | Growth Error | Missing countries | reference | version |
@@ -150,7 +154,7 @@ hourly resolution:
 
 ![](img/tyndp/benchmarking_elec_price_NT_2030.png)
 
-Example of summary indicators extracted from `kpis_s_all__all_years_by_country.csv` for the NT
+Example of summary indicators extracted from `kpis_all_years_by_country.csv` for the NT
 scenario with hourly resolution:
 
 | Metric | sMPE | sMAPE | sMdAPE | RMSLE | Growth Error | Missing carriers | Missing countries | reference | version |
@@ -195,7 +199,7 @@ To align naming conventions across data sources, Open-TYNDP uses a mapping table
 * **benchmarking_capacity**: Naming convention for the benchmarking framework's `power_capacity` table.
 * **benchmarking_generation**: Naming convention for the benchmarking framework's `power_generation` table.
 * **benchmarking_fed**: Naming convention for the benchmarking framework's `final_energy_demand` table.
-* **benchmarking_elec_demand**: Naming convention for the benchmarking framework's `electricity_demand` table.
+* **benchmarking_elec_demand**: Naming convention for the benchmarking framework's `electricity_demand`, `electricity_prosumer_demand` and `ev_charging` tables.
 * **benchmarking_ch4_demand**: Naming convention for the benchmarking framework's `methane_demand` table.
 * **benchmarking_h2_demand**: Naming convention for the benchmarking framework's `hydrogen_demand` table.
 * **benchmarking_ch4_supply**: Naming convention for the benchmarking framework's `methane_supply` table.
