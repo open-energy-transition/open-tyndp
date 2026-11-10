@@ -49,6 +49,8 @@
 
 * feat: update the nuclear availability profiles with the TYNDP 2026 NT+ TimeSeries Dashboards ([#1073](https://github.com/open-energy-transition/open-tyndp/pull/1073)). The new rule `build_tyndp_nuclear_profiles` extracts the profiles for each planning horizon from the weather scenario selected in `wscenarios_tyndp`. The pre-built TYNDP 2024 dataset `tyndp_nuclear_profiles` and the rule `retrieve_tyndp_nuclear_profiles` are removed.
 
+* feat: implement the TYNDP 2026 synthetic fuels methodology with domestic production and import of e-liquids and SNG (synthetic natural gas) ([#1098](https://github.com/open-energy-transition/open-tyndp/pull/1098)). The feature is enabled with the new `sector: synfuels_tyndp: enable` option. The TYNDP biogenic CO2 potential caps the domestic production. `shipping_oil_share` now includes the shipping e-fuels and is calibrated to the TYNDP 2026 NT+ liquids demand in navigation.
+
 * feat: add P2G links for offshore nodes, and capacity shares found in the `P2G_emarket_template_corrected_requirecheck.xlsx` file for all e-market and DRES ([#1130](https://github.com/open-energy-transition/open-tyndp/pull/1130)). Electrolyser capacities still come from PEMMDB, whilst this specifies the P2G capacities share for countries with multiple hydrogen zones, and adds missing electrolyser links.
 
 **Changes**
@@ -103,9 +105,16 @@
 
 * Fix read mode of the local cache layer to avoid re-retrieving datasets with directory outputs after filling the cache in the same working directory ([#1008](https://github.com/open-energy-transition/open-tyndp/pull/1008)).
 
+* Fix units for non-CO2 emission factors in CBA ([#1124](https://github.com/open-energy-transition/open-tyndp/pull/1124)).
+
+* Fix stale `mock_snakemake` targets in `plot_benchmark_indicators.py` and `summarize_indicators.py` to point to existing rules ([#1127](https://github.com/open-energy-transition/open-tyndp/pull/1127)).
+
+
 **Documentation**
 
 * Fix the broken links in the documentation ([#997](https://github.com/open-energy-transition/open-tyndp/pull/997)).
+
+* Fix the broken `pixi` link in the README ([#1122](https://github.com/open-energy-transition/open-tyndp/pull/1122)).
 
 
 **Developers Note**
@@ -153,6 +162,7 @@
 * **Breaking:** The linear approximation of AC line losses (`solving: options: transmission_losses`) now uses secants instead of tangents, which underestimates losses less. The option now takes `false`, `true` (PyPSA defaults) or a dict passed to PyPSA (default `{mode: secants, atol: 15, rtol: 0.5}`). Integers are deprecated; use `{mode: tangents, segments: 2}` for the previous behaviour ([#2301](https://github.com/PyPSA/pypsa-eur/pull/2301)).
 
 * Fix: `build_swiss_energy_balances` now reads the October 2026 edition of the Swiss energy balances (data for 2000-2025), which renamed table rows. ([#2380](https://github.com/PyPSA/pypsa-eur/pull/2380)).
+
 
 ## PyPSA-Eur v2026.09.0 (25th September 2026)
 

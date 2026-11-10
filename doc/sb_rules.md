@@ -109,6 +109,10 @@ per-horizon TYNDP electricity market demand onto the clustered network buses, so
 
 ::: clean_tyndp_h2_storages
 
+### Rule `build_tyndp_synfuels`
+
+::: build_tyndp_synfuels
+
 ### Rule `group_tyndp_conventionals`
 
 ::: group_tyndp_conventionals
