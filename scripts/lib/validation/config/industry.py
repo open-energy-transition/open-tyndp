@@ -6,7 +6,7 @@
 """
 Industry configuration.
 
-See docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#industry
+See docs in https://open-tyndp.readthedocs.io/en/latest/configuration/#industry_cf
 """
 
 from pydantic import Field
@@ -47,7 +47,7 @@ class IndustryConfig(ConfigModel):
     )
     elec_DRI: float = Field(
         0.322,
-        description="The electricity consumed in Direct Reduced Iron (DRI) shaft. From `HYBRIT brochure <https://ssabwebsitecdn.azureedge.net/-/media/hybrit/files/hybrit_brochure.pdf>`_.",
+        description="The electricity consumed in Direct Reduced Iron (DRI) shaft. From `HYBRIT brochure <https://web.archive.org/web/20210310021333/https://ssabwebsitecdn.azureedge.net/-/media/hybrit/files/hybrit_brochure.pdf>`_.",
     )
     Al_primary_fraction: dict[int, float] = Field(
         default_factory=lambda: {

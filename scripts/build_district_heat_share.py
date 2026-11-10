@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
 # SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
-# SPDX-FileCopyrightText: Open Energy Transition gGmbH
 #
 # SPDX-License-Identifier: MIT
 """
@@ -8,12 +7,12 @@ Build district heat shares at each node, depending on investment year.
 
 Inputs:
 -------
-- `resources/<run_name>/pop_layout.csv`: Population layout for each node: Total, urban and rural population.
-- `resources/<run_name>/district_heat_share.csv`: Historical district heat share at each country. Output of `scripts/build_energy_totals.py`.
+- `resources/{run}/pop_layout.csv`: Population layout for each node: Total, urban and rural population.
+- `resources/{run}/district_heat_share.csv`: Historical district heat share at each country. Output of `scripts/build_energy_totals.py`.
 
 Outputs:
 --------
-- `resources/<run_name>/district_heat_share.csv`: District heat share at each node, potential for each investment year.
+- `resources/{run}/district_heat_share.csv`: District heat share at each node, potential for each investment year.
 
 Notes
 -----
@@ -38,22 +37,19 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "build_district_heat_share",
-            clusters=60,
-            planning_horizons="2050",
+            horizon="2050",
         )
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    investment_year = int(snakemake.wildcards.planning_horizons)
+    investment_year = int(snakemake.wildcards.horizon)
 
     pop_layout = pd.read_csv(snakemake.input.clustered_pop_layout, index_col=0)
 
     year = str(snakemake.params.energy_totals_year)
-    district_heat_share = pd.read_csv(snakemake.input.district_heat_share, index_col=0)
-    if not district_heat_share.empty:
-        district_heat_share = district_heat_share[year]
-    else:
-        district_heat_share = pd.Series(index=pop_layout.index, data=0)
+    district_heat_share = pd.read_csv(snakemake.input.district_heat_share, index_col=0)[
+        year
+    ]
 
     # make ct-based share nodal
     district_heat_share = district_heat_share.reindex(pop_layout.ct).fillna(0)
@@ -66,9 +62,7 @@ if __name__ == "__main__":
     pop_layout["urban_ct_fraction"] = pop_layout.urban / pop_layout.ct.map(ct_urban.get)
 
     # fraction of node that is urban
-    urban_fraction = (
-        pop_layout.urban / pop_layout[["rural", "urban"]].sum(axis=1)
-    ).fillna(0)
+    urban_fraction = pop_layout.urban / pop_layout[["rural", "urban"]].sum(axis=1)
 
     # maximum potential of urban demand covered by district heating
     central_fraction = snakemake.config["sector"]["district_heating"]["potential"]
@@ -99,7 +93,7 @@ if __name__ == "__main__":
     # district heating share at each node
     dist_fraction_node = (
         district_heat_share * pop_layout["urban_ct_fraction"] / pop_layout["fraction"]
-    ).fillna(0)
+    )
 
     # if district heating share larger than urban fraction -> set urban
     # fraction to district heating share

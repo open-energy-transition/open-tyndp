@@ -17,8 +17,8 @@ Outputs
 -------
 Cleaned CSV file with all NT capacities (p_nom) in long format and NetCDF file containing the must run obligations (p_min_pu) and availability (p_max_pu) for each of the different PEMMDB technologies.
 
-- `resources/pemmdb_capacities_{planning_horizon}.csv` in long format
-- `resources/pemmdb_profiles_{planning_horizon}.nc` with the following structure:
+- `resources/pemmdb_capacities_{horizon}.csv` in long format
+- `resources/pemmdb_profiles_{horizon}.nc` with the following structure:
 
     | Field              | Coordinates                                        | Description                                                          |
     | ------------------ | -------------------------------------------------- | -------------------------------------------------------------------- |
@@ -1301,8 +1301,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "build_tyndp_pemmdb_data",
-            clusters="all",
-            planning_horizons=2040,
+            horizon=2040,
             configfiles="config/test/config.tyndp.yaml",
         )
     configure_logging(snakemake)
@@ -1332,7 +1331,7 @@ if __name__ == "__main__":
     )
 
     # Planning year
-    planning_horizon_i = int(snakemake.wildcards.planning_horizons)
+    planning_horizon_i = int(snakemake.wildcards.horizon)
     planning_horizon = safe_planning_horizon(
         planning_horizon_i,
         available_years=snakemake.params.available_years,

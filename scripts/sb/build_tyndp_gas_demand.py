@@ -18,7 +18,7 @@ Inputs
 Outputs
 -------
 
-- ``gas_demand_tyndp_{planning_horizons}.csv``: Annual exogenous gas demand (MWh)
+- ``gas_demand_tyndp_{horizon}.csv``: Annual exogenous gas demand (MWh)
   per EU27 country for the specified planning horizon.
 """
 
@@ -53,14 +53,14 @@ if __name__ == "__main__":
         snakemake = mock_snakemake(
             "build_tyndp_gas_demand",
             configfiles="config/test/config.tyndp.yaml",
-            planning_horizons=2035,
+            horizon=2035,
             run="NT",
         )
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    planning_horizon = int(snakemake.wildcards.planning_horizons)
+    planning_horizon = int(snakemake.wildcards.horizon)
     fn = Path(snakemake.input.supply_tool, snakemake.params.supply_tool_file)
 
     logger.info(f"Processing gas demand from {fn.name}")
