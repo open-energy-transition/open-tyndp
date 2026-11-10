@@ -5547,7 +5547,7 @@
         },
         "industry": {
           "default": true,
-          "description": "Add industry sector.",
+          "description": "Add industry sector. Cannot be combined with `synfuels_tyndp: enable`.",
           "type": "boolean"
         },
         "shipping": {
@@ -6044,7 +6044,7 @@
         },
         "methanation": {
           "default": true,
-          "description": "Add option for transforming hydrogen and CO2 into methane using methanation.",
+          "description": "Add option for transforming hydrogen and CO2 into methane using methanation. Cannot be combined with `synfuels_tyndp: enable`.",
           "type": "boolean"
         },
         "coal_cc": {
@@ -6384,6 +6384,27 @@
           "default": false,
           "description": "Add TYNDP ramp limits to SMR and SMR CCS links. Only used with `h2_topology_tyndp`.",
           "type": "boolean"
+        },
+        "synfuels_tyndp": {
+          "description": "Configuration for `sector.synfuels_tyndp` settings.",
+          "properties": {
+            "enable": {
+              "default": false,
+              "description": "Add TYNDP 2026 synthetic fuels. Requires `h2_topology_tyndp`. Cannot be combined with `industry` or `methanation`.",
+              "type": "boolean"
+            },
+            "carriers": {
+              "additionalProperties": {
+                "enum": [
+                  "oil",
+                  "gas"
+                ],
+                "type": "string"
+              },
+              "description": "Synthetic fuels and the fossil carrier that each fuel replaces.",
+              "type": "object"
+            }
+          }
         },
         "gas_network": {
           "default": true,
@@ -10862,6 +10883,27 @@
         }
       }
     },
+    "_SynfuelsTyndpConfig": {
+      "description": "Configuration for `sector.synfuels_tyndp` settings.",
+      "properties": {
+        "enable": {
+          "default": false,
+          "description": "Add TYNDP 2026 synthetic fuels. Requires `h2_topology_tyndp`. Cannot be combined with `industry` or `methanation`.",
+          "type": "boolean"
+        },
+        "carriers": {
+          "additionalProperties": {
+            "enum": [
+              "oil",
+              "gas"
+            ],
+            "type": "string"
+          },
+          "description": "Synthetic fuels and the fossil carrier that each fuel replaces.",
+          "type": "object"
+        }
+      }
+    },
     "_TechnologyMappingConfig": {
       "description": "Configuration for `electricity.estimate_renewable_capacities.technology_mapping` settings.",
       "properties": {
@@ -13851,7 +13893,7 @@
         },
         "industry": {
           "default": true,
-          "description": "Add industry sector.",
+          "description": "Add industry sector. Cannot be combined with `synfuels_tyndp: enable`.",
           "type": "boolean"
         },
         "shipping": {
@@ -14348,7 +14390,7 @@
         },
         "methanation": {
           "default": true,
-          "description": "Add option for transforming hydrogen and CO2 into methane using methanation.",
+          "description": "Add option for transforming hydrogen and CO2 into methane using methanation. Cannot be combined with `synfuels_tyndp: enable`.",
           "type": "boolean"
         },
         "coal_cc": {
@@ -14688,6 +14730,27 @@
           "default": false,
           "description": "Add TYNDP ramp limits to SMR and SMR CCS links. Only used with `h2_topology_tyndp`.",
           "type": "boolean"
+        },
+        "synfuels_tyndp": {
+          "description": "Configuration for `sector.synfuels_tyndp` settings.",
+          "properties": {
+            "enable": {
+              "default": false,
+              "description": "Add TYNDP 2026 synthetic fuels. Requires `h2_topology_tyndp`. Cannot be combined with `industry` or `methanation`.",
+              "type": "boolean"
+            },
+            "carriers": {
+              "additionalProperties": {
+                "enum": [
+                  "oil",
+                  "gas"
+                ],
+                "type": "string"
+              },
+              "description": "Synthetic fuels and the fossil carrier that each fuel replaces.",
+              "type": "object"
+            }
+          }
         },
         "gas_network": {
           "default": true,
