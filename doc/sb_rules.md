@@ -34,11 +34,17 @@ data:
     open_tyndp_prelim:
         source:
         version:
+
+cba:
+    cba_scenario_input:
+        use_presolved:
+        sb_version:
 ```
 
 **Outputs**
 
-- `data/open_tyndp_prelim/{source}/{version}/base_s_all___{horizon}.nc`
+- `data/open_tyndp_prelim/{source}/{version}/solved_{horizon}.nc` (releases from v0.10)
+- `data/open_tyndp_prelim/{source}/{version}/base_s_all___{horizon}.nc` (releases before v0.10)
 
 ### Rule `retrieve_countries_centroids`
 
