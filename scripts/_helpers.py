@@ -673,6 +673,53 @@ def get_snapshots(
     return time
 
 
+def sanitize_isolated_buses(n: pypsa.Network) -> None:
+    """
+    Remove AC buses without branches and without assets, together with their one-port components.
+    """
+    branch_buses = pd.concat(
+        [
+            n.lines[["bus0", "bus1"]].stack(),
+            n.transformers[["bus0", "bus1"]].stack(),
+            n.links.filter(regex=r"^bus\d+$").stack(),
+        ]
+    )
+    ac_buses = n.buses.index[n.buses.carrier == "AC"]
+    isolated = ac_buses[~ac_buses.isin(branch_buses)]
+    if isolated.empty:
+        return
+
+    loads = n.loads.index[n.loads.bus.isin(isolated)]
+    load_set = n.get_switchable_as_dense("Load", "p_set", inds=loads)
+    assets = [
+        (n.generators.query("carrier != 'load'"), "p_nom"),
+        (n.storage_units, "p_nom"),
+        (n.stores, "e_nom"),
+    ]
+    asset_buses = [
+        df.bus[(df[nom] > 0) | df[f"{nom}_extendable"]] for df, nom in assets
+    ]
+    asset_buses.append(n.loads.bus[load_set.columns[load_set.ne(0).any()]])
+    active = pd.Index(pd.concat(asset_buses))
+    with_assets = isolated.intersection(active)
+    empty = isolated.difference(active)
+
+    if not with_assets.empty:
+        logger.warning(
+            f"Keeping {len(with_assets)} isolated buses with assets: {', '.join(with_assets)}"
+        )
+    if empty.empty:
+        return
+
+    logger.warning(
+        f"Removing {len(empty)} isolated buses without assets: {', '.join(empty)}"
+    )
+    for c in n.one_port_components:
+        static = n.components[c].static
+        n.remove(c, static.index[static.bus.isin(empty)])
+    n.remove("Bus", empty)
+
+
 def sanitize_custom_columns(n: pypsa.Network):
     """
     Sanitize non-standard columns used throughout the workflow.
