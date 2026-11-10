@@ -1967,9 +1967,9 @@ def _add_h2_dres_capacities(
     p2g_shares: pd.DataFrame,
 ) -> None:
     """
-    Split DRES generators between the DRES buses of their country and add existing DRES electrolyser capacities from PEMMDB.
+    Add existing DRES electrolyser capacities from PEMMDB.
 
-    PEMMDB reports DRES per country, so for countries with several H2 Z2 zones, generator and electrolyser
+    PEMMDB reports DRES per node, so for nodes with several H2 Z2 zones, generator and electrolyser
     capacities are split using the onshore P2G e-market share capacity per zone. In TYNDP 2026, this only includes SK.
 
     Parameters
@@ -3763,7 +3763,7 @@ def add_h2_production_tyndp(
     p2g = pd.read_csv(p2g_shares_fn)
     network_buses = p2g[["bus0", "bus1"]].isin(n.buses.index).all(axis=1)
     if not network_buses.all():
-        logger.warning(
+        logger.info(
             f"Dropping electrolysis links with buses not in the network: "
             f"{(p2g.bus0 + ' -> ' + p2g.bus1)[~network_buses].tolist()}"
         )
