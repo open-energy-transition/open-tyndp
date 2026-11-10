@@ -51,7 +51,7 @@
 
 * feat: implement the TYNDP 2026 synthetic fuels methodology with domestic production and import of e-liquids and SNG (synthetic natural gas) ([#1098](https://github.com/open-energy-transition/open-tyndp/pull/1098)). The feature is enabled with the new `sector: synfuels_tyndp: enable` option. The TYNDP biogenic CO2 potential caps the domestic production. `shipping_oil_share` now includes the shipping e-fuels and is calibrated to the TYNDP 2026 NT+ liquids demand in navigation.
 
-* feat: add P2G links for offshore nodes, and capacity shares found in the `P2G_emarket_template_corrected_requirecheck.xlsx` file for all e-market and DRES ([#1130](https://github.com/open-energy-transition/open-tyndp/pull/1130)). Electrolyser capacities still come from PEMMDB, whilst this specifies the P2G capacities share for countries with multiple hydrogen zones, and adds missing electrolyser links.
+* feat: add P2G links for offshore nodes, and capacity shares found in the `P2G_emarket_template_corrected_requirecheck.xlsx` file for all e-market and DRES ([#1130](https://github.com/open-energy-transition/open-tyndp/pull/1130)). Electrolyser capacities still come from PEMMDB and are split accordingly for countries with multiple hydrogen zones.
 
 **Changes**
 

@@ -1920,7 +1920,7 @@ def _add_electrolyzer_capacities(
     None
         Modifies the network object in-place by adding the electrolyzer capacities.
     """
-    logger.info("Adding PEMMDB capacities to onshore electrolyzers.")
+    logger.info("Adding PEMMDB capacities to onshore and offshore electrolyzers.")
 
     # Get indices for this technology
     electrolyser_i = n.links.query(
@@ -3764,13 +3764,13 @@ def add_h2_production_tyndp(
     network_buses = p2g[["bus0", "bus1"]].isin(n.buses.index).all(axis=1)
     if not network_buses.all():
         logger.warning(
-            f"Dropping P2G links with buses not in the network: "
+            f"Dropping electrolysis links with buses not in the network: "
             f"{(p2g.bus0 + ' -> ' + p2g.bus1)[~network_buses].tolist()}"
         )
     p2g = p2g[network_buses]
     n.add(
         "Link",
-        p2g.bus0.values + " " + p2g.bus1.values + " H2 Z2 Electrolysis",
+        p2g.bus0.values + "-" + p2g.bus1.values + " eMarket Electrolysis",
         bus0=p2g.bus0.values,
         bus1=p2g.bus1.values,
         p_nom_extendable=True,
