@@ -83,6 +83,9 @@
 
 * Remove dead code segments in `build_electricity_demand` and `add_electricity` ([#1129](https://github.com/open-energy-transition/open-tyndp/pull/1129)).
 
+* Add check and logger warning for when a node has capacity data for a technology in the PEMMDB dataset but no capacity factors for the same technology in the PECD dataset ([#1126](https://github.com/open-energy-transition/open-tyndp/pull/1126)).
+
+
 **Breaking Changes**
 
 * Renamed config section `electricity.pemmdb_hydro_profiles` to `electricity.pecd_hydro_profiles`, and its `technologies` now use the PECD codes `HRR`, `HPI`, `HRI`, `HOL` and `HCL` ([#1059](https://github.com/open-energy-transition/open-tyndp/pull/1059)). Therefore, old config names and technology acronyms no longer work.
