@@ -9848,7 +9848,7 @@ def main(
         tyndp_stores=params.electricity["tyndp_stores"],
     )
 
-   if options["synfuels_tyndp"]["enable"]:
+    if options["synfuels_tyndp"]["enable"]:
         synfuel_generators = pd.read_csv(synfuel_generators_fn, index_col=0)
 
     if options["h2_topology_tyndp"] and options["synfuels_tyndp"]["enable"]:
