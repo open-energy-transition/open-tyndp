@@ -106,9 +106,6 @@ snapshots:
     start: "1995-01-01"
     end: "1996-01-01"
 
-atlite:
-    default_cutout: europe-1995-sarah3-era5
-
 cba:
     sb_scenario: NT
 
@@ -118,9 +115,6 @@ NT-ws2008:
 snapshots:
     start: "2008-01-01"
     end: "2009-01-01"
-
-atlite:
-    default_cutout: europe-2008-sarah3-era5
 
 cba:
     sb_scenario: NT
@@ -132,9 +126,6 @@ snapshots:
     start: "2009-01-01"
     end: "2010-01-01"
 
-atlite:
-    default_cutout: europe-2009-sarah3-era5
-
 cba:
     sb_scenario: NT
 
@@ -143,7 +134,7 @@ NT-wscenarios:
     scenarios: [NT-ws2009, NT-ws2008, NT-ws1995]
 ```
 
-Individual child scenarios (e.g., `NT-ws2009`) must define their specific `snapshots`, `atlite.default_cutout`, and the `cba.sb_scenario` used as input.
+Individual child scenarios (e.g., `NT-ws2009`) must define their specific `snapshots` and the `cba.sb_scenario` used as input.
 
 !!! tip
 

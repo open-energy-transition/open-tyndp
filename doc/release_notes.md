@@ -11,6 +11,8 @@
 
 **Features**
 
+* feat: replace the ERA5 weather cutouts with a grid-only `europe-grid` cutout without weather data, retrieved from `tyndp-archive` and only used for the population layouts ([#1133](https://github.com/open-energy-transition/open-tyndp/pull/1133)).
+
 * feat: model TYNDP 2026 passenger EV fleets explicitly (fixed, commuter and non-commuter fleets for street and home charging, with smart charging and V2G) and replace the PyPSA-Eur land transport by a flat TYNDP EU27 land transport oil demand ([#1039](https://github.com/open-energy-transition/open-tyndp/pull/1039)).
 
 * feat: remove DE and GA scenarios from TYNDP 2026; add in HEV and LEV as scenarios and config entries ([#1066](https://github.com/open-energy-transition/open-tyndp/pull/1066) and [#1092](https://github.com/open-energy-transition/open-tyndp/pull/1092)). HEV and LEV currently differ from NT+ only in fuel and CO2 prices. Demand adjustments (electricity market, prosumer demand, EV, H2, thermal energy demand), hydrogen import prices, and benchmarking are not yet included.

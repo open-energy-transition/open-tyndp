@@ -167,8 +167,11 @@ renewable generation, demand, and hydro inflow profiles used:
 
 * `wscenarios_tyndp`: Weather scenarios per planning horizon, e.g. `2030: [3, 21, 29]`.
 
-* `atlite.default_cutout`: ERA5 reanalysis cutout used to compute PECD-compatible
-  capacity factor profiles (e.g. `europe-2009-era5`).
+* `atlite.default_cutout`: Grid-only cutout without weather data (`europe-grid`),
+  retrieved from `tyndp-archive`. It only provides the spatial grid for the population
+  layouts; all weather-dependent inputs come from TYNDP data (PECD, PEMMDB, Heat).
+  Additional PyPSA-Eur features that rely on weather variables (e.g. dynamic line rating)
+  do not work with the `europe-grid` cutout.
 
 ### Solver Settings
 
@@ -201,7 +204,7 @@ of the following ways:
 - Set it in `config/test/config.tyndp.yaml` for test runs.
 
 This loads `config/data.tyndp.yaml`, which switches all mirrored datasets to `tyndp-archive`.
-A small number of archived datasets (`wdpa`, `wdpa_marine`, `cutout`) are not yet available
+A small number of archived datasets (`wdpa`, `wdpa_marine`) are not yet available
 on the GCS bucket and will still be retrieved from their respective sources.
 
 To see which datasets support `tyndp-archive`, check the `source` column in `data/tyndp_versions.csv`.

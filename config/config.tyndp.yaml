@@ -176,15 +176,14 @@ electricity:
   constrain_dsr: true
 
 atlite:
-  default_cutout: europe-2009-sarah3-era5
+  default_cutout: europe-grid
   cutouts:
-    europe-2009-sarah3-era5:
-      module: [sarah, era5] # in priority order
-      x: [-12., 42.]
+    europe-grid:
+      module: era5
+      x: [-12., 40.8]
       y: [33., 72.]
       dx: 0.3
       dy: 0.3
-      time: ['2009', '2009']
 
 conventional:
   tyndp_availability_profiles: true
@@ -401,6 +400,9 @@ solving:
       OptimalityTol: 1.0e-06
 
 data:
+  cutout:
+    source: tyndp-archive
+    version: latest
   version_files:
   - data/versions.csv
   - data/tyndp_versions.csv
