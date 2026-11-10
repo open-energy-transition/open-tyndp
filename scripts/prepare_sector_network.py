@@ -1969,7 +1969,7 @@ def _add_h2_dres_capacities(
     """
     Add existing DRES electrolyser capacities from PEMMDB.
 
-    PEMMDB reports DRES per node, so for nodes with several H2 Z2 zones, generator and electrolyser
+    PEMMDB reports DRES per node, so for nodes with several H2 Z2 zones, electrolyser
     capacities are split using the onshore P2G e-market share capacity per zone. In TYNDP 2026, this only includes SK.
 
     Parameters
@@ -1999,11 +1999,7 @@ def _add_h2_dres_capacities(
         n, carriers=dres_carriers, component_types={"Generator"}
     )
     gens_i = n.generators.query("carrier in @dres_carriers").index
-    n.generators.loc[gens_i, "bus"] = (
-        n.generators.loc[gens_i, "bus"]
-        .map(n.buses.country)
-        .map(pd.Series(dres.index, index=dres.country))
-    )
+    n.generators.loc[gens_i, "bus"] += " DRES" 
 
     # Get indices for this technology
     electrolyser_i = n.links.query("bus0 in @dres.index").index
@@ -2018,11 +2014,18 @@ def _add_h2_dres_capacities(
     )
     caps = (
         pemmdb_capacities.query("index_carrier == 'H2 Electrolysis DRES Z2'")
-        .groupby("country")
-        .p_nom.sum()
+        .p_nom.groupby(level=0)
+        .sum()
     )
+    missing = caps[caps.gt(0) & ~caps.index.isin(dres.location)]
+    if not missing.empty:
+        logger.warning(
+            f"Dropping {missing.sum():.0f} MW of DRES electrolyser capacities "
+            f"without DRES bus: {missing.index.tolist()}"
+        )
+
     n.links.loc[electrolyser_i, "p_nom"] = (
-        links.bus0.map(dres.country).map(caps).fillna(0.0) * share
+        links.bus0.map(dres.location).map(caps).fillna(0.0) * share
     )
 
     # Fix capacities and remove empty assets
@@ -2032,6 +2035,8 @@ def _add_h2_dres_capacities(
         carriers=["H2 Electrolysis"],
         component_types={"Link"},
     )
+    n.remove("Bus", dres.index.difference(n.generators.bus).difference(n.links.bus0))
+
 
 
 def _add_h2_sres_capacities(
@@ -3770,7 +3775,7 @@ def add_h2_production_tyndp(
     p2g = p2g[network_buses]
     n.add(
         "Link",
-        p2g.bus0.values + "-" + p2g.bus1.values + " eMarket Electrolysis",
+        p2g.bus0.values + "-" + p2g.bus1.values + " H2 Z2 Electrolysis",
         bus0=p2g.bus0.values,
         bus1=p2g.bus1.values,
         p_nom_extendable=True,
@@ -3855,10 +3860,11 @@ def add_h2_dres_tyndp(
     spatial: SimpleNamespace,
     buses_h2_z2: SimpleNamespace,
     costs: pd.DataFrame,
+    nodes: pd.DataFrame,
 ) -> None:
     """
-    Adds TYNDP Z2 DRES electricity buses (one per country) and electrolysers to
-    each H2 Z2 zone.
+    Adds TYNDP Z2 DRES electricity buses per node and electrolysers to
+    each H2 Z2 zone of its country.
 
     Parameters
     ----------
@@ -3870,6 +3876,9 @@ def add_h2_dres_tyndp(
         Namespace object with spatial nodes of H2 Z2 buses.
     costs : pd.DataFrame
         Technology cost assumptions.
+    nodes : pd.DataFrame
+        Pandas DataFrame of locations/nodes.
+
 
     Returns
     -------
@@ -3878,21 +3887,22 @@ def add_h2_dres_tyndp(
     """
 
     logger.info("Adding Z2 DRES electricity buses and electrolyzers.")
-    h2z2_country = spatial.h2_tyndp.df.country.loc[buses_h2_z2]
-    country_zone = h2z2_country.drop_duplicates()
     n.add(
         "Bus",
-        country_zone.values + " DRES",
-        location=country_zone.index,
-        country=country_zone.values,
+        nodes.index + " DRES",
+        location=nodes.index,
+        country=nodes.country.values,
         carrier="AC_DRES",
         unit="MWh_el",
     )
+    links = spatial.h2_tyndp.df.loc[buses_h2_z2, ["country"]].join(
+        pd.Series(nodes.index, nodes.country, name="node"), on="country"
+    )
     n.add(
         "Link",
-        buses_h2_z2 + " DRES Electrolysis",
-        bus0=h2z2_country.values + " DRES",
-        bus1=buses_h2_z2,
+        (links.node + " DRES Electrolysis " + links.index).values,
+        bus0=(links.node + " DRES").values,
+        bus1=links.index,
         p_nom_extendable=True,
         carrier="H2 Electrolysis",
         efficiency=costs.at["electrolysis", "efficiency"],
@@ -4372,7 +4382,7 @@ def add_h2_topology_tyndp(
     )
 
     # add H2 DRES electricity nodes and Electrolysis to Z2
-    add_h2_dres_tyndp(n=n, spatial=spatial, buses_h2_z2=buses_h2_z2, costs=costs)
+    add_h2_dres_tyndp(n=n, spatial=spatial, buses_h2_z2=buses_h2_z2, nodes=nodes, costs=costs)
 
     # add H2 SRES electricity nodes, Electrolysis to H2 Z2 and grid connection
     add_h2_sres_tyndp(n=n, nodes=nodes, spatial=spatial, costs=costs)
