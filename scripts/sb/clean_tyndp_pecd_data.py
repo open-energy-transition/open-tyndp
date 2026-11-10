@@ -76,9 +76,8 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "clean_tyndp_pecd_data",
-            clusters="all",
             technology="Wind_Offshore",
-            planning_horizons=2030,
+            horizon=2030,
         )
     configure_logging(snakemake)
     set_scenario_config(snakemake)
@@ -92,7 +91,7 @@ if __name__ == "__main__":
 
     # Planning year (falls back to latest available planning_horizon if not in list of available years)
     planning_horizon = safe_planning_horizon(
-        snakemake.wildcards.planning_horizons,
+        snakemake.wildcards.horizon,
         available_years=snakemake.params.available_years,
         source="PECD",
     )

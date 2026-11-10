@@ -56,8 +56,14 @@ Technologies are identified by PECD codes, see the [Copernicus documentation for
 
 **[Demand Profiles](https://2026-data.entsos-tyndp-scenarios.eu/input/model-input/national-trends/Demand.zip)**
 
-Hourly electricity, hydrogen, synthetic fuel, BTM and EV fixed demand profiles by country, interpolated to the target
-planning horizon.
+Hourly electricity, hydrogen, synthetic fuel, BTM and fixed EV fleet demand profiles by node, for 2030, 2035, 2040
+and 2050.
+
+**[Electric Vehicle](https://2026-data.entsos-tyndp-scenarios.eu/input/model-input/national-trends/Electric-Vehicle.zip)**
+
+Passenger EV fleet inputs: national EV stock and demand, market zone, flexible fleet and V2G shares, charging station
+and battery parameters, and daily availability, driving and minimum state of charge profiles, for 2030, 2035, 2040 and
+2050.
 
 **[Line Data](https://2026-data.entsos-tyndp-scenarios.eu/input/model-input/national-trends/Line-data.zip)**
 
@@ -66,8 +72,8 @@ and wheeling charges. Electricity and H₂ line data are provided for 2030, 2035
 
 **[Hydrogen](https://2026-data.entsos-tyndp-scenarios.eu/input/model-input/national-trends/Hydrogen.zip)**
 
-Hydrogen storage parameters, steam methane reforming (SMR and SMR+CCS) capacities, synthetic fuel generator properties,
-and import pipeline assumptions.
+Hydrogen storage parameters, steam methane reforming (SMR and SMR+CCS) capacities, synthetic fuel production capacities
+and generator properties, and import pipeline assumptions.
 
 **[Supply Tool](https://2026-data.entsos-tyndp-scenarios.eu/output/Supply-Tool.zip)**
 
@@ -106,6 +112,8 @@ Open-TYNDP models the electricity and hydrogen sectors as fully coupled. Cross-s
   Iberian Peninsula) are represented with separate H₂ buses.
 * **SMR and SMR+CCS:** Grey and blue hydrogen production capacities from PEMMDB and TYNDP
   hydrogen datasets.
+* **Synthetic fuels:** E-liquids and SNG are produced from the H₂ Zone 2
+  nodes, with capacities from the TYNDP Hydrogen data, or imported at the TYNDP offer price.
 * **Demand-side electrification:** Where the scenario specifies it, electricity demand
   incorporates direct electrification of heat and transport end-uses.
 

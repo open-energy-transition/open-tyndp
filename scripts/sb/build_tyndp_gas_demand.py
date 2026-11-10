@@ -39,7 +39,7 @@ Inputs
 Outputs
 -------
 
-- `gas_demand_tyndp_{planning_horizons}.csv`: Processed gas demand data (MWh) by country/bus
+- `gas_demand_tyndp_{horizon}.csv`: Processed gas demand data (MWh) by country/bus
   for the specified planning horizon
 """
 
@@ -243,7 +243,7 @@ if __name__ == "__main__":
         snakemake = mock_snakemake(
             "build_tyndp_gas_demand",
             configfiles="config/test/config.tyndp.yaml",
-            planning_horizons=2035,
+            horizon=2035,
             run="NT",
         )
 
@@ -252,7 +252,7 @@ if __name__ == "__main__":
 
     # Parameters
     fn = snakemake.input.supply_tool
-    planning_horizon = int(snakemake.wildcards.planning_horizons)
+    planning_horizon = int(snakemake.wildcards.horizon)
 
     # Load demand with interpolation
     logger.info("Processing gas demand")

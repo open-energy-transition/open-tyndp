@@ -6,7 +6,7 @@
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from scripts.lib.validation.config._base import ConfigModel
 from scripts.lib.validation.config.adjustments import AdjustmentsConfig
@@ -29,10 +29,10 @@ from scripts.lib.validation.config.lines import LinesConfig
 from scripts.lib.validation.config.links import LinksConfig
 from scripts.lib.validation.config.load import LoadConfig
 from scripts.lib.validation.config.overpass_api import OverpassApiConfig
+from scripts.lib.validation.config.plotting import PlottingConfig
 from scripts.lib.validation.config.pypsa_eur import PypsaEurConfig
 from scripts.lib.validation.config.renewable import RenewableConfig
 from scripts.lib.validation.config.run import RunConfig
-from scripts.lib.validation.config.scenario import ScenarioConfig
 from scripts.lib.validation.config.sector import SectorConfig
 from scripts.lib.validation.config.snapshots import SnapshotsConfig
 from scripts.lib.validation.config.solar_thermal import SolarThermalConfig
@@ -90,7 +90,7 @@ class ConfigSchema(BaseModel):
     _name: str = "default"
     """internal attribute to track the config filename following the application of config updates"""
     _docs_url: str = (
-        "https://open-tyndp.readthedocs.io/en/latest/configuration.html#{field_name}"
+        "https://open-tyndp.readthedocs.io/en/latest/configuration/#{field_name}_cf"
     )
 
     # Top-level fields (from TopLevelConfig)
@@ -136,10 +136,18 @@ class ConfigSchema(BaseModel):
         False,
         description="Switch to launch the PyPSA-Explorer with the result networks.",
     )
-    scenario: ScenarioConfig = Field(
-        default_factory=ScenarioConfig,
-        description="Scenario configuration defining wildcards for the workflow.",
+    planning_horizons: list[int] = Field(
+        [2050],
+        description="Planning horizon year(s) for the optimization.",
     )
+
+    @field_validator("planning_horizons", mode="before")
+    @classmethod
+    def normalize_planning_horizons(cls, v):
+        if isinstance(v, (int, str)):
+            return [int(v)]
+        return [int(h) for h in v]
+
     countries: CountriesConfig = Field(
         default_factory=CountriesConfig,
         description="European countries defined by their Two-letter country codes (ISO 3166-1) which should be included in the energy system model.",
@@ -152,7 +160,7 @@ class ConfigSchema(BaseModel):
         default_factory=EnableConfig,
         description="Flags to enable/disable workflow features.",
     )
-    co2_budget: Co2BudgetConfig | None = Field(
+    co2_budget: Co2BudgetConfig = Field(
         default_factory=Co2BudgetConfig,
         description="CO2 budget as fraction of 1990 emissions per planning horizon year.",
     )
@@ -248,6 +256,10 @@ class ConfigSchema(BaseModel):
         default_factory=CbaConfig,
         description="Cost-Benefit Analysis (CBA) configuration.",
     )
+    plotting: PlottingConfig = Field(
+        default_factory=PlottingConfig,
+        description="Plotting and summary settings.",
+    )
 
     @model_validator(mode="before")
     @classmethod
@@ -276,5 +288,26 @@ class ConfigSchema(BaseModel):
                 "also modelled as two unidirectional links carrying wheeling charges; "
                 "splitting them again adds a reverse link per direction that bypasses "
                 "the charge."
+            )
+        return self
+
+    @model_validator(mode="after")
+    def check_tyndp_requires_distribution_grid(self):
+        if self.tyndp_scenario and not self.sector.electricity_distribution_grid:
+            raise ValueError(
+                "'sector:electricity_distribution_grid' must be enabled for a TYNDP "
+                "scenario. The TYNDP prosumer nodes (`RETE`), to which prosumer "
+                "electricity demand and home EV charging are attached, are only "
+                "added with the electricity distribution grid."
+            )
+        return self
+
+    @model_validator(mode="after")
+    def check_tyndp_requires_transport(self):
+        if self.tyndp_scenario and not self.sector.transport:
+            raise ValueError(
+                "'sector:transport' must be enabled for a TYNDP scenario. TYNDP "
+                "capacities are fixed, so omitting the EV fleets and land transport "
+                "demand would leave the system oversupplied."
             )
         return self
