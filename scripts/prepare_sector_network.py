@@ -1999,7 +1999,7 @@ def _add_h2_dres_capacities(
         n, carriers=dres_carriers, component_types={"Generator"}
     )
     gens_i = n.generators.query("carrier in @dres_carriers").index
-    n.generators.loc[gens_i, "bus"] += " DRES" 
+    n.generators.loc[gens_i, "bus"] += " DRES"
 
     # Get indices for this technology
     electrolyser_i = n.links.query("bus0 in @dres.index").index
@@ -2036,7 +2036,6 @@ def _add_h2_dres_capacities(
         component_types={"Link"},
     )
     n.remove("Bus", dres.index.difference(n.generators.bus).difference(n.links.bus0))
-
 
 
 def _add_h2_sres_capacities(
@@ -4382,7 +4381,9 @@ def add_h2_topology_tyndp(
     )
 
     # add H2 DRES electricity nodes and Electrolysis to Z2
-    add_h2_dres_tyndp(n=n, spatial=spatial, buses_h2_z2=buses_h2_z2, nodes=nodes, costs=costs)
+    add_h2_dres_tyndp(
+        n=n, spatial=spatial, buses_h2_z2=buses_h2_z2, nodes=nodes, costs=costs
+    )
 
     # add H2 SRES electricity nodes, Electrolysis to H2 Z2 and grid connection
     add_h2_sres_tyndp(n=n, nodes=nodes, spatial=spatial, costs=costs)
