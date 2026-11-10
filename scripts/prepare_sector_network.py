@@ -1989,7 +1989,7 @@ def _add_h2_dres_capacities(
         Modifies the network object in-place by adding the DRES electrolyzer capacities.
     """
     logger.info(
-        "Splitting DRES generators to the DRES buses and adding PEMMDB capacities to DRES electrolyzers."
+        "Adding DRES generators to the DRES buses and PEMMDB capacities to DRES electrolyzers."
     )
 
     dres = n.buses.query("carrier == 'AC_DRES'")
@@ -4338,6 +4338,7 @@ def add_h2_topology_tyndp(
         spatial.h2_tyndp.df.category.isin(["Z1", "Z2"])
     ].unique()
     nodes = n.buses.loc[electricity_nodes, :].query("country in @h2_zone_countries")
+    dres_nodes = n.buses.query("carrier == 'AC' and country in @h2_zone_countries")
 
     # add H2 Buses
     logger.info("Adding TYNDP H2 nodes.")
@@ -4382,7 +4383,7 @@ def add_h2_topology_tyndp(
 
     # add H2 DRES electricity nodes and Electrolysis to Z2
     add_h2_dres_tyndp(
-        n=n, spatial=spatial, buses_h2_z2=buses_h2_z2, nodes=nodes, costs=costs
+        n=n, spatial=spatial, buses_h2_z2=buses_h2_z2, nodes=dres_nodes, costs=costs
     )
 
     # add H2 SRES electricity nodes, Electrolysis to H2 Z2 and grid connection
