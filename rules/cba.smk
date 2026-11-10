@@ -135,13 +135,6 @@ def input_sb_network(w):
             raise ValueError(
                 "Pre-solved SB networks are only currently available for the NT scenario."
             )
-        # Check that options match the pre-solved network naming convention
-        if config_provider("clustering", "cluster_network", "n_clusters")(w) != "all":
-            raise ValueError(
-                "Pre-solved SB runs from releases < v0.10 require "
-                "clustering.cluster_network.n_clusters='all' to match "
-                "the configuration of the pre-solved SB networks."
-            )
         horizon = _effective_horizon(
             int(w.horizon),
             warn_fn=logger.warning,
