@@ -2682,8 +2682,7 @@
         },
         "remove_unconnected_components": {
           "default": true,
-          "description": "Remove all buses outside the largest connected network component in `base_network`. If `false`, isolated buses are kept and those without any assets are removed at the end of `prepare_sector_network` (used by TYNDP, see `#967 <https://github.com/open-energy-transition/open-tyndp/issues/967>`_).",
-          "markdownDescription": "Remove all buses outside the largest connected network component in `base_network`. If `false`, isolated buses are kept and those without any assets are removed at the end of `prepare_sector_network` (used by TYNDP, see [#967 ](https://github.com/open-energy-transition/open-tyndp/issues/967)).",
+          "description": "Remove all buses outside the largest connected network component in `base_network`. If `false`, isolated buses are kept and those without any assets are removed at the end of `compose_network`.",
           "type": "boolean"
         },
         "tyndp_reference_year": {
@@ -11513,8 +11512,7 @@
         },
         "remove_unconnected_components": {
           "default": true,
-          "description": "Remove all buses outside the largest connected network component in `base_network`. If `false`, isolated buses are kept and those without any assets are removed at the end of `prepare_sector_network` (used by TYNDP, see `#967 <https://github.com/open-energy-transition/open-tyndp/issues/967>`_).",
-          "markdownDescription": "Remove all buses outside the largest connected network component in `base_network`. If `false`, isolated buses are kept and those without any assets are removed at the end of `prepare_sector_network` (used by TYNDP, see [#967 ](https://github.com/open-energy-transition/open-tyndp/issues/967)).",
+          "description": "Remove all buses outside the largest connected network component in `base_network`. If `false`, isolated buses are kept and those without any assets are removed at the end of `compose_network`.",
           "type": "boolean"
         },
         "tyndp_reference_year": {
