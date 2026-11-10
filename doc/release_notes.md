@@ -84,7 +84,7 @@
 
 ## Open-TYNDP v0.9.1 (12th November 2026)
 
-This is an IT security patch release following a screening by ENTSO-E. It contains two minor bug fixes. Results differ from v0.9 only through a marginal (<0.2 %) revision of Swiss road and domestic navigation oil demand in the new edition of the Swiss energy balances. Model results are unchanged with respect to v0.9. Upgrading is recommended for all users of v0.9.
+This is an IT security patch release following a screening by ENTSO-E. It contains two minor bug fixes. The inputs differ from v0.9 only through a marginal (less than 0.2 % each) revision of Swiss road and domestic navigation oil demand in the new edition of the Swiss energy balances. Model results are unchanged with respect to v0.9. Upgrading is recommended for all users of v0.9.
 
 * Apply security patches on top of v0.9 ([#1138](https://github.com/open-energy-transition/open-tyndp/pull/1138)).
 
