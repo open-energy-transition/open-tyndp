@@ -4,9 +4,6 @@
 #
 
 import os
-import shutil
-from pathlib import Path
-from zipfile import ZipFile
 
 import pandas as pd
 from snakemake.logging import logger
@@ -19,7 +16,7 @@ from snakemake.iocontainers import Wildcards
 
 wildcard_constraints:
     cba_project=r"(s|t)\d+",
-    run="(?!None)[-a-zA-Z0-9]+",  # Disallow None as a run wildcard
+    run="(?!None)[-a-zA-Z0-9.]+",  # Disallow None as a run wildcard
 
 
 # Retrieve
@@ -73,49 +70,6 @@ def get_run_name(w):
     return run or ""
 
 
-def presolved_sb_network_path(w, horizon=None):
-    sb_version = config_provider(
-        "cba", "cba_scenario_input", "sb_version", default="latest"
-    )(w)
-    target_horizon = horizon if horizon is not None else w.horizon
-    return RESULTS + f"networks/presolved-{sb_version}/base_s_all___{target_horizon}.nc"
-
-
-if config.get("cba", {}).get("cba_scenario_input", {}).get("use_presolved", False):
-    sb_version = (
-        config.get("cba", {}).get("cba_scenario_input", {}).get("sb_version", "latest")
-    )
-    if (
-        SB_SOLVED_NETWORKS_DATASET := dataset_version(
-            "open_tyndp_prelim", version=sb_version
-        )
-    )["source"] in ARCHIVE_SOURCES:
-
-        rule retrieve_presolved_sb_networks:
-            input:
-                zip_file=storage(SB_SOLVED_NETWORKS_DATASET["url"]),
-            output:
-                network=RESULTS
-                + f"networks/presolved-{config['cba']['cba_scenario_input']['sb_version']}/base_s_all___{{horizon}}.nc",
-            log:
-                logs("cba/retrieve_presolved_sb_networks_{horizon}.log"),
-            run:
-                target_suffix = f"networks/base_s_all___{wildcards.horizon}.nc"
-                with ZipFile(input["zip_file"], "r") as zf:
-                    matches = [
-                        m for m in zf.namelist() if m.endswith(target_suffix)
-                    ]
-                    if not matches:
-                        raise ValueError(
-                            f"Could not find '{target_suffix}' in {input['zip_file']}."
-                        )
-                    member = matches[0]
-                    out_path = Path(output["network"])
-                    out_path.parent.mkdir(parents=True, exist_ok=True)
-                    with zf.open(member) as src, out_path.open("wb") as dst:
-                        shutil.copyfileobj(src, dst)
-
-
 # Build MSV
 ############
 
@@ -167,19 +121,19 @@ rule clean_tyndp_indicators:
         scripts("cba/clean_tyndp_indicators.py")
 
 
+def get_presolved_sb_version(w) -> str:
+    sb_version = config_provider("cba", "cba_scenario_input", "sb_version")(w)
+    if sb_version is None:
+        return PRESOLVED_NETWORKS_DATASET["version"]
+    return dataset_version("open_tyndp_prelim", version=sb_version)["version"]
+
+
 def input_sb_network(w):
     if config_provider("cba", "cba_scenario_input", "use_presolved", default=False)(w):
         scenario_name = config_provider("tyndp_scenario")(w)
         if scenario_name != "NT":
             raise ValueError(
                 "Pre-solved SB networks are only currently available for the NT scenario."
-            )
-        # Check that options match the pre-solved network naming convention
-        if config_provider("clustering", "cluster_network", "n_clusters")(w) != "all":
-            raise ValueError(
-                "Pre-solved SB runs from releases < v0.10 require "
-                "clustering.cluster_network.n_clusters='all' to match their Zenodo "
-                "network naming (base_s_all___{horizon}.nc)."
             )
         horizon = _effective_horizon(
             int(w.horizon),
@@ -189,7 +143,7 @@ def input_sb_network(w):
                 "Falling back to 2040 for CBA planning horizon %s."
             ),
         )
-        return presolved_sb_network_path(w, horizon)
+        return presolved_network(get_presolved_sb_version(w), horizon)
 
     match config_provider("foresight")(w):
         case "perfect":
@@ -855,6 +809,19 @@ rule cba:
         ],
 
 
+def presolved_sb_networks(run: str) -> list[str]:
+    w = Wildcards(fromdict={"run": run})
+    if not config_provider("cba", "cba_scenario_input", "use_presolved", default=False)(
+        w
+    ):
+        return []
+    version = get_presolved_sb_version(w)
+    return [
+        presolved_network(version, horizon)
+        for horizon in config_provider("cba", "planning_horizons")(w)
+    ]
+
+
 # collect rules
 rule prepare_references:
     input:
@@ -867,17 +834,7 @@ rule prepare_references:
 
 rule collect_cba_data:
     input:
-        lambda w: (
-            expand(
-                rules.retrieve_presolved_sb_networks.output.network,
-                horizon=config_provider("cba", "planning_horizons")(w),
-                run=cba_target_runs(w),
-            )
-            if config_provider(
-                "cba", "cba_scenario_input", "use_presolved", default=False
-            )(w)
-            else []
-        ),
+        lambda w: [f for run in cba_target_runs(w) for f in presolved_sb_networks(run)],
         lambda w: expand(
             rules.clean_projects.output,
             run=cba_target_runs(w),

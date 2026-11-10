@@ -490,9 +490,16 @@
               "type": "boolean"
             },
             "sb_version": {
-              "default": "latest",
-              "description": "Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a version tagged as supported in data/tyndp_versions.csv.",
-              "type": "string"
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a version tagged as supported in data/tyndp_versions.csv. If not set, `data: open_tyndp_prelim: version` is used."
             }
           }
         },
@@ -8273,9 +8280,16 @@
           "type": "boolean"
         },
         "sb_version": {
-          "default": "latest",
-          "description": "Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a version tagged as supported in data/tyndp_versions.csv.",
-          "type": "string"
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a version tagged as supported in data/tyndp_versions.csv. If not set, `data: open_tyndp_prelim: version` is used."
         }
       }
     },
@@ -17865,9 +17879,16 @@
               "type": "boolean"
             },
             "sb_version": {
-              "default": "latest",
-              "description": "Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a version tagged as supported in data/tyndp_versions.csv.",
-              "type": "string"
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a version tagged as supported in data/tyndp_versions.csv. If not set, `data: open_tyndp_prelim: version` is used."
             }
           }
         },

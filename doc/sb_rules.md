@@ -25,6 +25,7 @@ Downloads pre-solved networks from a previous Open-TYNDP release (*preliminary o
 published on [Zenodo](https://doi.org/10.5281/zenodo.18608105)) and extracts the solved network
 for each planning horizon. These can be investigated with PyPSA-Explorer's web interface
 using the [`launch_presolved_explorer`](#rule-launch_presolved_explorer) rule without having to re-run the workflow.
+The CBA workflow uses the same networks when `cba.cba_scenario_input.use_presolved` is `true`.
 
 **Relevant Settings**
 
@@ -33,11 +34,17 @@ data:
     open_tyndp_prelim:
         source:
         version:
+
+cba:
+    cba_scenario_input:
+        use_presolved:
+        sb_version:
 ```
 
 **Outputs**
 
-- `data/open_tyndp_prelim/{source}/{version}/base_s_all___{horizon}.nc`
+- `data/open_tyndp_prelim/{source}/{version}/solved_{horizon}.nc` (releases from v0.10)
+- `data/open_tyndp_prelim/{source}/{version}/base_s_all___{horizon}.nc` (releases before v0.10)
 
 ### Rule `retrieve_countries_centroids`
 
