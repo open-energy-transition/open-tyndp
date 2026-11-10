@@ -291,7 +291,7 @@ def load_non_co2_emission_factors(path: str) -> pd.DataFrame:
     Returns
     -------
     pandas.DataFrame
-        A DataFrame containing the mean non-CO2 emission factors for each fuel type.
+        A DataFrame containing the mean non-CO2 emission factors (in kg/MWh) for each fuel type.
     """
     df = pd.read_csv(path, encoding="utf-8-sig")
     df = df[df["Fuel"].notna()]
@@ -311,6 +311,7 @@ def load_non_co2_emission_factors(path: str) -> pd.DataFrame:
     )
     factors["Fuel"] = df["Fuel"]
     df_mean = factors.groupby("Fuel")[list(pollutant_cols.values())].mean()
+    df_mean = df_mean * 3.6  # convert from kg/GJ to kg/MWh (1 MWh = 3.6 GJ)
     return df_mean
 
 
@@ -662,8 +663,7 @@ def calculate_b4_indicator(
     method : str
         Either "pint" or "toot" (case-insensitive).
     emission_factors : pd.DataFrame
-        DataFrame with non-CO2 emission factors (kg/MWh) indexed by carrier and
-        with columns for different pollutants and statistics (min, mean, max).
+        DataFrame with non-CO2 emission factors (kg/MWh) indexed by carrier.
     ac_assets_reference : pandas.Series or None, optional
         Pre-filtered Series of electricity-producing assets on AC buses for the reference network.
         Default is None.
@@ -968,7 +968,7 @@ if __name__ == "__main__":
             "make_indicators",
             run="NT",
             cba_project="t4",
-            planning_horizons="2030",
+            horizon="2030",
             configfiles=["config/config.tyndp.yaml"],
         )
     configure_logging(snakemake)
@@ -984,7 +984,7 @@ if __name__ == "__main__":
     if not n_project.is_solved:
         raise ValueError("Project network is not solved")
 
-    planning_horizon = int(snakemake.wildcards.planning_horizons)
+    planning_horizon = int(snakemake.wildcards.horizon)
     # Detect method from assignments (toot or pint)
     cba_project = snakemake.wildcards.cba_project
     project_id = int(cba_project[1:])

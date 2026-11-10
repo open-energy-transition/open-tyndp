@@ -17,7 +17,7 @@ Inputs
 Outputs
 -------
 
-- `resources/cop_profiles_tyndp_{planning_horizons}.nc`
+- `resources/cop_profiles_tyndp_{horizon}.nc`
 """
 
 import logging
@@ -117,7 +117,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "build_tyndp_cop_profiles",
-            planning_horizons="2030",
+            horizon="2030",
             run="NT",
             configfiles="config/config.tyndp.yaml",
         )
@@ -125,7 +125,7 @@ if __name__ == "__main__":
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    planning_horizon = int(snakemake.wildcards.planning_horizons)
+    planning_horizon = int(snakemake.wildcards.horizon)
     snapshots = get_snapshots(
         snakemake.params.snapshots, snakemake.params.drop_leap_day
     )
