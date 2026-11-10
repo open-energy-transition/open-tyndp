@@ -587,12 +587,25 @@ if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
 
-        snakemake = mock_snakemake("plot_benchmark_indicators")
+        snakemake = mock_snakemake(
+            "plot_cba_benchmark",
+            # "plot_weather_benchmark",
+            run="NT",
+            cba_project="t335",
+            horizon="2030",
+            configfiles=["config/test/config.tyndp.yaml"],
+        )
+        # snakemake = mock_snakemake(
+        #     "plot_summary_projects_benchmark",
+        #     run="NT",
+        #     horizon="2030",
+        #     configfiles=["config/test/config.tyndp.yaml"],
+        # )
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    planning_horizon = snakemake.wildcards.get("planning_horizons")
+    planning_horizon = snakemake.wildcards.get("horizon")
     area = snakemake.params.area
 
     if "cba_project" in snakemake.wildcards.keys():

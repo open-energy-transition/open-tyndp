@@ -70,15 +70,35 @@ def read_pecd_file(
     return cf_pecd
 
 
+def find_pemmdb_nodes_without_pecd(
+    missing_nodes: list[str],
+    pecd_tech: str,
+    carrier_mapping_fn: str,
+    pemmdb_capacities_fn: str,
+) -> list[str]:
+    """Return nodes with PEMMDB capacity for a technology but no PECD capacity factors."""
+    carriers = (
+        pd.read_csv(carrier_mapping_fn)
+        .query("pecd_carrier == @pecd_tech")
+        .open_tyndp_carrier
+    )
+    return (
+        pd.read_csv(pemmdb_capacities_fn)
+        .loc[lambda df: df.carrier.isin(carriers)]
+        .query("bus in @missing_nodes and p_nom > 0")
+        .bus.unique()
+        .tolist()
+    )
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake(
             "clean_tyndp_pecd_data",
-            clusters="all",
             technology="Wind_Offshore",
-            planning_horizons=2030,
+            horizon=2030,
         )
     configure_logging(snakemake)
     set_scenario_config(snakemake)
@@ -92,7 +112,7 @@ if __name__ == "__main__":
 
     # Planning year (falls back to latest available planning_horizon if not in list of available years)
     planning_horizon = safe_planning_horizon(
-        snakemake.wildcards.planning_horizons,
+        snakemake.wildcards.horizon,
         available_years=snakemake.params.available_years,
         source="PECD",
     )
@@ -136,6 +156,19 @@ if __name__ == "__main__":
         raise ValueError(
             f"No PECD data found for {pecd_tech} in {planning_horizon}. Please specify a technology covered within the TYNDP PECD data."
         )
+
+    nodes_without_pecd = find_pemmdb_nodes_without_pecd(
+        missing_nodes=[node for node, data in zip(nodes, pecd) if data is None],
+        pecd_tech=pecd_tech,
+        carrier_mapping_fn=snakemake.input.carrier_mapping,
+        pemmdb_capacities_fn=snakemake.input.pemmdb_capacities,
+    )
+    if nodes_without_pecd:
+        logger.warning(
+            f"No PECD capacity factors for {pecd_tech} in {planning_horizon} at nodes with PEMMDB capacity: "
+            f"{', '.join(nodes_without_pecd)}. Filled with '{snakemake.params.fill_gaps_method}'."
+        )
+
     pecd_df = pd.concat(pecd, axis=1)
     fill_na = (
         pd.Series(0.0, index=pecd_df.index)

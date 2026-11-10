@@ -70,6 +70,7 @@ for the NT+ scenario:
         * Electricity generation by technology, EU27 (TWh), (Fig 58)
         * Methane supply, EU27 (TWh), (Fig 70)
         * Hydrogen supply, EU27 (TWh), (Fig 74)
+        * E-fuel supply, EU27 (TWh), (Fig 79)
         * Biomass supply and utilisation, EU27 (TWh), (Fig 81)
         * Energy imports, EU27 (TWh), (Fig 83)
 
@@ -101,12 +102,12 @@ The SB benchmarking workflow is controlled by `config/benchmarking.default.yaml`
 The full set of benchmarking output files is stored under `results/benchmarks/tyndp-2026/`:
 
 * `resources/` — processed benchmarking inputs from Open-TYNDP, the TYNDP 2026 Scenarios Report and the TYNDP 2026 Time Series Dashboards.
-* `csvs_s_{clusters}_{opts}_{sector_opts}_all_years/` — quantitative tables.
-* `graphics_s_{clusters}_{opts}_{sector_opts}_all_years/` — figures.
-* `kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_bus.csv` — summary table aggregated from bus level KPIs.
-* `kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_country.csv` — summary table aggregated from country level KPIs.
-* `kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_bus.pdf` — summary figure aggregated from bus level KPIs.
-* `kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_country.pdf` — summary figure aggregated from country level KPIs.
+* `csvs_all_years/` — quantitative tables.
+* `graphics_all_years/` — figures.
+* `kpis_all_years_by_bus.csv` — summary table aggregated from bus level KPIs.
+* `kpis_all_years_by_country.csv` — summary table aggregated from country level KPIs.
+* `kpis_all_years_by_bus.pdf` — summary figure aggregated from bus level KPIs.
+* `kpis_all_years_by_country.pdf` — summary figure aggregated from country level KPIs.
 
 The structure of these outputs can be validated in the published preliminary benchmarking results on [Zenodo](https://doi.org/10.5281/zenodo.18608105).
 
@@ -114,7 +115,7 @@ The structure of these outputs can be validated in the published preliminary ben
 
 ### Outputs
 
-Example of indicators extracted from `power_generation_s_all___all_years.csv` by countries
+Example of indicators extracted from `power_generation_ws2009_all_years.csv` by countries
 for the NT scenario with hourly resolution:
 
 | Carrier | sMPE | sMAPE | sMdAPE | RMSLE | Growth Error | Missing countries | reference | version |
@@ -153,7 +154,7 @@ hourly resolution:
 
 ![](img/tyndp/benchmarking_elec_price_NT_2030.png)
 
-Example of summary indicators extracted from `kpis_s_all__all_years_by_country.csv` for the NT
+Example of summary indicators extracted from `kpis_all_years_by_country.csv` for the NT
 scenario with hourly resolution:
 
 | Metric | sMPE | sMAPE | sMdAPE | RMSLE | Growth Error | Missing carriers | Missing countries | reference | version |
@@ -205,6 +206,7 @@ To align naming conventions across data sources, Open-TYNDP uses a mapping table
 * **benchmarking_h2_supply**: Naming convention for the benchmarking framework's `hydrogen_supply` table.
 * **benchmarking_biomass_supply**: Naming convention for the benchmarking framework's `biomass_supply` table.
 * **benchmarking_energy_imports**: Naming convention for the benchmarking framework's `energy_imports` table.
+* **benchmarking_synfuel_supply**: Naming convention for the benchmarking framework's `synfuel_supply` table. Dashboard values are mapped by element (e.g. `sng Imports`) instead of category.
 * **benchmarking_prices**: Naming convention for the benchmarking framework's different `price` tables.
 * **benchmarking_shed_hours**: Naming convention for the benchmarking framework's `electricity_demand_shedding_hours` and `hydrogen_demand_shedding_hours` tables.
 * **open_tyndp_type**: Open-TYNDP technology type for grouping together detailed technologies if `electricity:group_tyndp_conventionals` is enabled in the configuration.

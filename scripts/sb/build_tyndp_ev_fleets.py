@@ -14,21 +14,21 @@ reference calendar (365 days, starting on a Monday).
 Inputs
 ------
 
-- `resources/demand_tyndp_ev_{market,prosumer}_{planning_horizons}.csv`:
+- `resources/demand_tyndp_ev_{market,prosumer}_{horizon}.csv`:
   fixed fleet demand per node.
 - `data/tyndp/.../2026/Electric-Vehicle`: TYNDP 2026 EV modelling inputs.
 
 Outputs
 -------
 
-- `resources/ev_demand_tyndp_{planning_horizons}.csv`: driving demand per
+- `resources/ev_demand_tyndp_{horizon}.csv`: driving demand per
   fleet in MW, before charging losses.
-- `resources/ev_fleets_tyndp_{planning_horizons}.csv`: fleet parameters, i.e.
+- `resources/ev_fleets_tyndp_{horizon}.csv`: fleet parameters, i.e.
   vehicles, grid side charging and V2G capacity, battery size, efficiencies
   and use of system charge.
-- `resources/avail_profile_tyndp_{planning_horizons}.csv`: share of
+- `resources/avail_profile_tyndp_{horizon}.csv`: share of
   connected vehicles per flexible fleet.
-- `resources/dsm_profile_tyndp_{planning_horizons}.csv`: minimum state of
+- `resources/dsm_profile_tyndp_{horizon}.csv`: minimum state of
   charge per flexible fleet.
 """
 
@@ -322,14 +322,14 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "build_tyndp_ev_fleets",
-            planning_horizons="2030",
+            horizon="2030",
             configfiles="config/test/config.tyndp.yaml",
         )
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    planning_horizon = int(snakemake.wildcards.planning_horizons)
+    planning_horizon = int(snakemake.wildcards.horizon)
     ev_dir = Path(snakemake.input.ev_modelling)
 
     fixed_demand = pd.concat(

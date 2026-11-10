@@ -471,11 +471,11 @@ if (COSTS_DATASET := dataset_version("costs"))["source"] in [
 
     rule retrieve_cost_data:
         input:
-            costs=storage(COSTS_DATASET["url"] + "/costs_{planning_horizons}.csv"),
+            costs=storage(COSTS_DATASET["url"] + "/costs_{horizon}.csv"),
         output:
-            costs=COSTS_DATASET["folder"] + "/costs_{planning_horizons}.csv",
+            costs=COSTS_DATASET["folder"] + "/costs_{horizon}.csv",
         message:
-            "Retrieving cost data for {wildcards.planning_horizons}"
+            "Retrieving cost data for {wildcards.horizon}"
         run:
             copy2(input["costs"], output["costs"])
 
@@ -1211,6 +1211,7 @@ if (INSTRAT_CO2_PRICES_DATASET := dataset_version("instrat_co2_prices"))["source
         message:
             "Retrieving CO2 emission allowances price in EU ETS system"
         run:
+            from io import StringIO
             import pandas as pd
 
             url = "https://energy-api.instrat.pl/api/prices/co2?all=1"
@@ -1221,7 +1222,7 @@ if (INSTRAT_CO2_PRICES_DATASET := dataset_version("instrat_co2_prices"))["source
             }
             r = requests.get(url, headers=headers)
             r.raise_for_status()
-            df = pd.read_json(r.text)
+            df = pd.read_json(StringIO(r.text))
             df.to_csv(output["csv"], index=False)
 
 
@@ -1446,6 +1447,8 @@ if (TYNDP_2026_DATASET := dataset_version("tyndp_2026"))["source"] in ARCHIVE_SO
                 h2_import_profiles=f"{TYNDP_2026_DATASET['folder']}/Hydrogen/H2 IMPORT PROFILES.xlsx",
                 h2_storages=f"{TYNDP_2026_DATASET['folder']}/Hydrogen/H2 STORAGES.xlsx",
                 smr=f"{TYNDP_2026_DATASET['folder']}/Hydrogen/SMR.xlsx",
+                synfuel_lines=f"{TYNDP_2026_DATASET['folder']}/Hydrogen/SYNTHETIC FUEL LINES 2026.xlsx",
+                synfuel_generators=f"{TYNDP_2026_DATASET['folder']}/Hydrogen/SYNTHETIC FUEL GENERATORS PROPERTIES.xlsx",
                 p2g_emarket=f"{TYNDP_2026_DATASET['folder']}/Hydrogen/P2G_emarket_template_corrected_requirecheck.xlsx",
                 market_outputs_zip=f"{TYNDP_2026_DATASET['folder']}/NT+_TimeSeriesDashboard.zip",
                 market_outputs=directory(

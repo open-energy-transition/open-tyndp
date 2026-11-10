@@ -37,14 +37,11 @@ logging:
 
 launch_explorer: false
 
-scenario:
-  clusters:
-  - all
-  planning_horizons:
-  - 2030
-  - 2035
-  - 2040
-  - 2050
+planning_horizons:
+- 2030
+- 2035
+- 2040
+- 2050
 
 countries: ['AL', 'AT', 'BA', 'BE', 'BG', 'CH', 'CZ', 'CY', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MD', 'ME', 'MK', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK', 'TR', 'UA']
 
@@ -53,6 +50,9 @@ snapshots:
   end: "2013-03-08"
 
 co2_budget:
+  relative: false
+  upper:
+  lower:
 
 electricity:
   base_network: tyndp
@@ -242,6 +242,7 @@ existing_capacities:
   uniform_renewable_profiles: true
 
 sector:
+  enabled: true
   transport: true
   heating: false
   biomass: true
@@ -266,11 +267,11 @@ sector:
     2035: 0
     2040: 0
     2050: 0
-  shipping_oil_share:  # TYNDP 2026 Supply Tool NT+, FuelEU Maritime-compliant fuel split (not raw ETM demand)
-    2030: 0.875
-    2035: 0.751
-    2040: 0.547
-    2050: 0.138
+  shipping_oil_share:  # TYNDP 2026 NT+ EU27 ETM liquids in navigation incl. e-fuels (int. shipping and domestic: 425.4, 363.0, 294.8, 215.3 TWh) / EU27 all_navigation (503.6 TWh)
+    2030: 0.845
+    2035: 0.721
+    2040: 0.585
+    2050: 0.428
   oil_boilers: false
   biomass_boiler: false
   solar_thermal: false
@@ -279,11 +280,11 @@ sector:
   regional_co2_sequestration_potential:
     enable: false
   co2_sequestration_potential:
-    # Values from TYNDP 2026 Supply Tool NT+ (CCS sheet, "Total CCS")
-    2030: 44
-    2035: 111
-    2040: 142
-    2050: 179
+    # Values from TYNDP 2026 Supply Tool NT+ (Carbon budget sheet, captured CO2 minus CCU); 2050 excludes the "not specified" CCS
+    2030: 35.24
+    2035: 87.41
+    2040: 106.07
+    2050: 99.74
   co2_spatial: false
   co2_network: false
   methanol:
@@ -292,12 +293,18 @@ sector:
     biomass_to_methanol: false
   ammonia: false
   h2_topology_tyndp: true
+  synfuels_tyndp:
+    enable: true
+    carriers:
+      "e-liquids": oil
+      sng: gas
   smr_ramp_limits_tyndp: true
   gas_network: false
   gas_demand_exogenously: true
   biomass_spatial: false
   biomass_to_liquid: true
   biomass_to_liquid_cc: true
+  biogas_upgrading_cc: true
   force_biomass_potential: true
   force_biogas_potential: true
   biomass_final_demand: # in TWh and for 8760h, TYNDP 2026 Supply Tool NT+: ETM final energy demand + for heat production + for biogas not upgraded to biomethane
@@ -313,6 +320,8 @@ sector:
     enable: true
     carriers:
     - H2
+    - e-liquids
+    - sng
 
 costs:
   custom_cost_scn: NT
@@ -329,6 +338,8 @@ clustering:
   mode: administrative
   administrative:
     level: bz
+  cluster_network:
+    n_clusters: all
   build_bidding_zones:
     remove_islands: true
     aggregate_to_tyndp: true
@@ -336,7 +347,7 @@ clustering:
     remove_stubs: false
   temporal:
     # Important note: The segmentation (SEG) option is currently not supported, for details https://github.com/open-energy-transition/open-tyndp/pull/345
-    resolution_sector: 6H
+    averaging: 6h
 
 adjustments:
   electricity: false
@@ -345,7 +356,7 @@ adjustments:
       Generator:
         biogas:
           # Ratio of the TYNDP EU27 biogas potential to the PyPSA-Eur one, both summed
-          # over EU27 buses of resources/biomass_potentials_s_{clusters}_{planning_horizons}.csv
+          # over EU27 buses of resources/biomass_potentials_{horizon}.csv
           p_nom: # EU27 biogas potential for 8760h
             2030: 0.82  # PyPSA-Eur EU27 291.5 TWh vs TYNDP EU27 238.57 TWh
             2035: 1.23  # PyPSA-Eur EU27 293.2 TWh vs TYNDP EU27 360.78 TWh
@@ -363,7 +374,7 @@ adjustments:
             2050: 2.56
         solid biomass:
           # Ratio of the TYNDP EU27 biomass potential to the PyPSA-Eur one, both summed
-          # over EU27 buses of resources/biomass_potentials_s_{clusters}_{planning_horizons}.csv
+          # over EU27 buses of resources/biomass_potentials_{horizon}.csv
           p_nom: # EU27 biomass potential for 8760h
             2030: 1.48  # PyPSA-Eur EU27 973.9 TWh vs TYNDP EU27 1444.85 TWh
             2035: 1.53  # PyPSA-Eur EU27 960.8 TWh vs TYNDP EU27 1474.13 TWh
@@ -402,7 +413,7 @@ solving:
       BarConvTol: 1.0e-06
       FeasibilityTol: 1.0e-06
       OptimalityTol: 1.0e-06
-  mem: 4000
+  mem_mb: 4000
 
 data:
   version_files:
@@ -494,8 +505,9 @@ cba:
   # Marginal storage value extraction settings
   msv_extraction:
     # Temporal resolution for extraction solve
-    # Options: false (use native resolution), "24H", "48H", etc.
-    resolution: false
+    # Options: averaging: false (use native resolution), "24h", "48h", etc.
+    resolution:
+      averaging: false
     # Resampling method: ffill (forward fill), interpolate (linear)
     resample_method: ffill
     # Solve options for MSV extraction
