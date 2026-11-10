@@ -81,7 +81,10 @@
 
 * Add a workflow that closes linked issues when a PR is merged into `tyndp-2026` ([#1040](https://github.com/open-energy-transition/open-tyndp/pull/1040)).
 
+* Remove dead code segments in `build_electricity_demand` and `add_electricity` ([#1129](https://github.com/open-energy-transition/open-tyndp/pull/1129)).
+
 * Replace manual renaming of UK -> GB with `format_bz_names` helper function ([#1128](https://github.com/open-energy-transition/open-tyndp/pull/1128)).
+
 
 **Breaking Changes**
 
