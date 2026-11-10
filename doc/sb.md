@@ -170,6 +170,8 @@ renewable generation, demand, and hydro inflow profiles used:
 * `atlite.default_cutout`: Grid-only cutout without weather data (`europe-grid`),
   retrieved from `tyndp-archive`. It only provides the spatial grid for the population
   layouts; all weather-dependent inputs come from TYNDP data (PECD, PEMMDB, Heat).
+  Additional PyPSA-Eur features that rely on weather variables (e.g. dynamic line rating)
+  do not work with the `europe-grid` cutout.
 
 ### Solver Settings
 
