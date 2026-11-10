@@ -311,3 +311,18 @@ class ConfigSchema(BaseModel):
                 "demand would leave the system oversupplied."
             )
         return self
+
+    @model_validator(mode="after")
+    def check_grid_only_cutout_source(self):
+        default_cutout = self.atlite.default_cutout
+        cutouts = (
+            [default_cutout] if isinstance(default_cutout, str) else default_cutout
+        )
+        uses_grid = "europe-grid" in cutouts
+        on_tyndp_archive = self.data.cutout.source == "tyndp-archive"
+        if uses_grid != on_tyndp_archive or (uses_grid and len(cutouts) > 1):
+            raise ValueError(
+                "'data:cutout:source: tyndp-archive' only hosts the grid-only cutout "
+                "'europe-grid', and 'europe-grid' is only available there."
+            )
+        return self
