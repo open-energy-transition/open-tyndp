@@ -9848,7 +9848,7 @@ def main(
         tyndp_stores=params.electricity["tyndp_stores"],
     )
 
-    if synfuel_generators_fn := inputs.synfuel_generators_tyndp:
+   if options["synfuels_tyndp"]["enable"]:
         synfuel_generators = pd.read_csv(synfuel_generators_fn, index_col=0)
 
     if options["h2_topology_tyndp"] and options["synfuels_tyndp"]["enable"]:
@@ -9894,7 +9894,7 @@ def main(
     if options["h2_topology_tyndp"]:
         smr_capacities = pd.read_csv(inputs.tyndp_smr, index_col=0)
         h2_storage_capacities = pd.read_csv(inputs.tyndp_h2_storages)
-        if synfuel_links_fn := inputs.synfuel_links_tyndp:
+        if options["synfuels_tyndp"]["enable"]:
             synfuel_capacities = pd.read_csv(synfuel_links_fn, index_col=0)
 
     if enable_pemmdb_caps or options["h2_topology_tyndp"]:
