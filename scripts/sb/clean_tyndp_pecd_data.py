@@ -157,7 +157,6 @@ if __name__ == "__main__":
             f"No PECD data found for {pecd_tech} in {planning_horizon}. Please specify a technology covered within the TYNDP PECD data."
         )
 
-    # Check for when a node has capacity data for a technology in PEMMDB dataset but no capacity factors in PECD dataset
     nodes_without_pecd = find_pemmdb_nodes_without_pecd(
         missing_nodes=[node for node, data in zip(nodes, pecd) if data is None],
         pecd_tech=pecd_tech,
