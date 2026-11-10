@@ -612,22 +612,12 @@ rule summarize_all_indicators:
         scripts("cba/summarize_all.py")
 
 
-def cba_target_runs(w):
-    """
-    Return runs explicitly requested through config["run"]["name"].
-    """
-    names = config["run"]["name"]
-    if isinstance(names, str):
-        return [names]
-    return names
-
-
 def cba_collection_scenarios(w):
     """
     Return actual cba collection scenarios, i.e. runs with cba.scenarios.
     """
     scenarios = []
-    for name in cba_target_runs(w):
+    for name in run_names():
         try:
             scn = scenario_config(name)
         except KeyError:
@@ -804,7 +794,7 @@ rule cba:
         cba_ensemble_inputs,
         lambda w: [
             f
-            for run in cba_target_runs(w)
+            for run in run_names()
             for f in collect_cba_scenario_inputs(Wildcards(fromdict={"run": run}))
         ],
 
@@ -834,8 +824,8 @@ rule prepare_references:
 
 rule collect_cba_data:
     input:
-        lambda w: [f for run in cba_target_runs(w) for f in presolved_sb_networks(run)],
+        lambda w: [f for run in run_names() for f in presolved_sb_networks(run)],
         lambda w: expand(
             rules.clean_projects.output,
-            run=cba_target_runs(w),
+            run=run_names(),
         ),

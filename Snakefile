@@ -255,21 +255,19 @@ def get_balance_map_plots(w):
 
 def input_all_tyndp(w):
     files = []
-    if config_provider("tyndp_scenario")(w) and config_provider("sector", "H2_network")(
-        w
-    ):
+    if runs := runs_with("sector", "h2_topology_tyndp"):
         files.extend(
             expand(
                 (resources("maps/base_h2_network_{horizon}.pdf")),
-                run=config["run"]["name"],
+                run=runs,
                 horizon=config["planning_horizons"],
             )
         )
-    if config_provider("sector", "offshore_hubs_tyndp", "enable")(w):
+    if runs := runs_with("sector", "offshore_hubs_tyndp", "enable"):
         files.extend(
             expand(
                 (resources("maps/base_offshore_network_{horizon}_{carrier}.pdf")),
-                run=config["run"]["name"],
+                run=runs,
                 horizon=config["planning_horizons"],
                 carrier=config_provider("plotting", "offshore_maps", "bus_carriers")(w),
             )
@@ -277,30 +275,30 @@ def input_all_tyndp(w):
         files.extend(
             expand(
                 (RESULTS + "maps/static/offshore_network_{carrier}_{horizon}.pdf"),
-                run=config["run"]["name"],
+                run=runs,
                 horizon=config["planning_horizons"],
                 carrier=config_provider("plotting", "offshore_maps", "bus_carriers")(w),
             )
         )
-    if config_provider("benchmarking", "enable")(w):
+    if runs := runs_with("benchmarking", "enable"):
         files.extend(
             expand(
                 rules.plot_benchmark.output.kpis_by_bus,
-                run=config["run"]["name"],
+                run=runs,
             )
         )
         files.extend(
             expand(
                 rules.plot_benchmark.output.kpis_by_country,
-                run=config["run"]["name"],
+                run=runs,
             )
         )
 
-    if config_provider("launch_explorer")(w):
+    if runs := runs_with("launch_explorer"):
         files.extend(
             expand(
                 RESULTS + "logs/explorer_launched.log",
-                run=config["run"]["name"],
+                run=runs,
             )
         )
 

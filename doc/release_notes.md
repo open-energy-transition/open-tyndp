@@ -29,6 +29,7 @@
 
 * Make the retrieval of pre-solved networks version-aware to support the network renaming in [PyPSA-Eur#1838](https://github.com/PyPSA/pypsa-eur/pull/1838), and share it between the SB and CBA workflows ([#1125](https://github.com/open-energy-transition/open-tyndp/pull/1125)). `cba: cba_scenario_input: sb_version` now defaults to `data: open_tyndp_prelim: version`.
 
+* Improve scenario management compatibility by removing top level gating references in `smk` files ([#1136](https://github.com/open-energy-transition/open-tyndp/pull/1136)). The `all` target is also fixed to collect tyndp outputs dependent on run settings.
 
 **Documentation**
 
