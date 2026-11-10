@@ -88,9 +88,9 @@ This is an IT security patch release following a screening by ENTSO-E. It contai
 
 * Apply security patches on top of v0.9 ([#1138](https://github.com/open-energy-transition/open-tyndp/pull/1138)).
 
-* Fix `build_swiss_energy_balances` now reads the October 2026 edition of the Swiss energy balances (data for 2000-2025), which renamed table rows ([#1139](https://github.com/open-energy-transition/open-tyndp/pull/1139)).
+* Fix `build_swiss_energy_balances` to now read the October 2026 edition of the Swiss energy balances (data for 2000-2025), which renamed table rows ([#1139](https://github.com/open-energy-transition/open-tyndp/pull/1139)).
 
-* Fix read mode of the local cache layer to avoid re-retrieving datasets with directory outputs after filling the cache in the same working directory ([#1008](https://github.com/open-energy-transition/open-tyndp/pull/1008)).
+* Fix read mode of the local cache layer to avoid re-retrieving datasets with directory outputs after filling the cache in the same working directory ([#1141](https://github.com/open-energy-transition/open-tyndp/pull/1141)).
 
 ## Open-TYNDP v0.9 (22nd September 2026)
 
