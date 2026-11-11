@@ -1637,9 +1637,7 @@ if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
 
-        snakemake = mock_snakemake(
-            "base_network"
-        )
+        snakemake = mock_snakemake("base_network")
     configure_logging(snakemake)
     set_scenario_config(snakemake)
     mp.set_start_method("spawn", force=True)
