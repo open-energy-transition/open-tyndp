@@ -754,8 +754,9 @@ def assign_country_bus(countries: pd.Series, existing_buses: pd.Index) -> pd.Ser
     Assign each project's country name to a representative electrical bus.
 
     Country names (e.g. "Austria") are converted to ISO2 codes and matched
-    against the bus prefix (e.g. "AT00"). If a country has several buses,
-    the alphabetically first one is used and a warning is logged.
+    against the bus prefix (e.g. "AT00"). Offshore buses are ignored. If a
+    country has several buses, the alphabetically first one is used and a
+    warning is logged.
 
     Parameters
     ----------
@@ -772,7 +773,8 @@ def assign_country_bus(countries: pd.Series, existing_buses: pd.Index) -> pd.Ser
     iso2 = pd.Index(coco.convert(countries.unique().tolist(), to="ISO2"))
     country_to_iso2 = dict(zip(countries.unique(), iso2))
 
-    buses_by_country = existing_buses.to_series().groupby(existing_buses.str[:2])
+    onshore_buses = existing_buses[~existing_buses.str.endswith("_OFF")]
+    buses_by_country = onshore_buses.to_series().groupby(onshore_buses.str[:2])
     representative_bus = buses_by_country.first()
 
     multi_bus_countries = buses_by_country.nunique().loc[lambda s: s > 1]
