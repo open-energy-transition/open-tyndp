@@ -29,7 +29,7 @@ the user can modify existing projects and add new ones. Transmission capacities 
 
 - `data/tyndp_2024_bundle/cba_projects/20250312_export_transmission.xlsx`: Excel file containing CBA transmission projects
 - `data/tyndp_2024_bundle/cba_projects/20250312_export_storage.xlsx`: Excel file containing CBA storage projects
-- `rules.retrieve_tyndp.output.nodes`: TYNDP electricity node list used to validate borders
+- `rules.retrieve_tyndp_2026.output.nodes`: TYNDP 2026 electricity node list (onshore and offshore) used to validate borders
 - `data/cba/table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv`: Table of projects as defined in the Implementation Guidelines Appendix B.1, used to assign the TOOT/PINT method per project and planning horizon
 - `data/cba/cba_project_corrections.csv`: Manually curated bus0/bus1/p_nom corrections for CBA projects, applied in place of the corresponding raw Excel entries
 - `data/cba/custom_projects/transmission_projects.csv`: File used to configure custom transmission projects. With it, the user can modify existing projects and add new ones.
@@ -200,37 +200,30 @@ def read_tyndp_electricity_buses(
     return buses.index.union(virtual_buses)
 
 
-def get_existing_buses(buses_fn: str, offshore_buses_fn: str | list | bool) -> pd.Index:
+def get_existing_buses(buses_fn: str) -> pd.Index:
     """
     Return the electricity buses used to validate CBA project borders.
-    Combines onshore buses with offshore hub buses, if provided, into a
+    Combines onshore and offshore buses of the TYNDP 2026 node list into a
     single index of existing bus names.
 
     Parameters
     ----------
     buses_fn : str
-        Path to the file defining TYNDP electricity buses.
-    offshore_buses_fn : str | list | bool
-        Path(s) to the file(s) defining offshore hub buses. If falsy, only
-        onshore buses are returned.
+        Path to the TYNDP 2026 node list ("LIST OF NODES.xlsx").
 
     Returns
     -------
     pd.Index
         Existing bus names, combining onshore and offshore buses.
     """
-    virtual_buses = [x for pair in AC_VIRTUAL_NODES_IT.items() for x in pair]
-    existing_buses = read_tyndp_electricity_buses(
-        buses_fn, col_name="NODE", virtual_buses=virtual_buses
+    onshore = read_tyndp_electricity_buses(
+        buses_fn, col_name="NODE", sheet_name="Electricity"
+    )
+    offshore = read_tyndp_electricity_buses(
+        buses_fn, col_name="NODE", sheet_name="Electricity_Offshore"
     )
 
-    if offshore_buses_fn:
-        existing_oh_buses = read_tyndp_electricity_buses(
-            offshore_buses_fn, col_name="OFFSHORE_NODE"
-        )
-        existing_buses = existing_buses.union(existing_oh_buses)
-
-    return existing_buses.rename("bus_ID")
+    return onshore.union(offshore).rename("bus_ID")
 
 
 def apply_cba_project_corrections(
@@ -1133,9 +1126,7 @@ if __name__ == "__main__":
     corrections_path = snakemake.input.cba_project_corrections
 
     # Get existing buses
-    existing_buses = get_existing_buses(
-        snakemake.input.buses, snakemake.input.offshore_buses
-    )
+    existing_buses = get_existing_buses(snakemake.input.buses)
 
     # Transmission projects
     transmission_projects = extract_transmission_projects(
