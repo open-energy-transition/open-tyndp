@@ -426,9 +426,9 @@ def _remove_dangling_branches(branches, buses):
 
 
 def _remove_unconnected_components(
-    network: pypsa.Network, config: dict
+    network: pypsa.Network, remove: bool
 ) -> pypsa.Network:
-    if not config["electricity"]["remove_unconnected_components"]:
+    if not remove:
         return network
 
     _, labels = csgraph.connected_components(
@@ -649,7 +649,9 @@ def _adjust_capacities_of_under_construction_branches(n, config):
 
     if lines_mode == "remove" or links_mode == "remove":
         # We might need to remove further unconnected components
-        n = _remove_unconnected_components(n, config)
+        n = _remove_unconnected_components(
+            n, config["electricity"]["remove_unconnected_components"]
+        )
 
     return n
 
@@ -755,7 +757,9 @@ def base_network(
     if config["electricity"].get("base_network") == "entsoegridkit":
         _apply_parameter_corrections(n, parameter_corrections)
 
-    n = _remove_unconnected_components(n, config)
+    n = _remove_unconnected_components(
+        n, config["electricity"]["remove_unconnected_components"]
+    )
 
     _set_countries_and_substations(n, config, country_shapes, offshore_shapes)
 
