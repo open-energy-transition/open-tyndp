@@ -97,14 +97,6 @@ from scripts.sb._helpers import format_bz_names
 
 logger = logging.getLogger(__name__)
 
-# TYNDP 2024 virtual nodes added later in (the now TYNDP-2026-only)
-# build_tyndp_network.py, not present in the raw 2024 node list this
-# CBA-side script still consumes.
-AC_VIRTUAL_NODES_IT = {
-    "ITCO": "FR15",
-    "ITVI": "ITSI",
-}
-
 TRANSMISSION_PROJECTS_COLUMN_MAP = {
     "Project ID": "project_id",
     "Project Name": "project_name",
@@ -159,7 +151,6 @@ def load_storage_technology_carrier_map(carrier_mapping_fn: str) -> pd.Series:
 def read_tyndp_electricity_buses(
     buses_fn: str,
     col_name: str,
-    virtual_buses: list[str] | None = None,
     sheet_name: str | int = 0,
 ) -> pd.Index:
     """
@@ -172,9 +163,6 @@ def read_tyndp_electricity_buses(
         or offshore hubs "NODE.xlsx").
     col_name : str
         Column which is selected from the dataframe.
-    virtual_buses : list
-        List of virtual buses to add, not present in the raw node list
-        (e.g. added later in build_tyndp_network.py).
     sheet_name : str | int
         Sheet to read from `buses_fn`. Defaults to the first sheet.
 
@@ -187,8 +175,6 @@ def read_tyndp_electricity_buses(
     --------
     build_tyndp_network.py : build_buses
     """
-    virtual_buses = virtual_buses if virtual_buses is not None else []
-
     buses = format_bz_names(pd.read_excel(buses_fn, sheet_name=sheet_name)).set_index(
         col_name
     )
@@ -197,7 +183,7 @@ def read_tyndp_electricity_buses(
         # drop radial offshore nodes, which are not built as hub buses
         buses = buses[buses.OFFSHORE_NODE_TYPE != "Radial"]
 
-    return buses.index.union(virtual_buses)
+    return buses.index
 
 
 def get_existing_buses(buses_fn: str) -> pd.Index:
