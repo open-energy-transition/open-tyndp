@@ -1638,7 +1638,7 @@ if __name__ == "__main__":
         from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake(
-            "base_network", configfiles="config/config.tyndp.yaml", run="NT"
+            "base_network"
         )
     configure_logging(snakemake)
     set_scenario_config(snakemake)
