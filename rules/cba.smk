@@ -125,8 +125,7 @@ if config.get("cba", {}).get("cba_scenario_input", {}).get("use_presolved", Fals
 checkpoint clean_projects:
     input:
         dir=rules.retrieve_tyndp_cba_projects.output.dir,
-        buses=rules.retrieve_tyndp.output.nodes,
-        offshore_buses=rules.retrieve_tyndp.output.offshore_nodes,
+        buses=rules.retrieve_tyndp_2026.output.nodes,
         guidelines="data/cba/table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv",
         carrier_mapping="data/tyndp_technology_map.csv",
         cba_project_corrections="data/cba/cba_project_corrections.csv",
