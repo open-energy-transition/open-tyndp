@@ -159,8 +159,7 @@ def read_tyndp_electricity_buses(
     Parameters
     ----------
     buses_fn : str
-        Path to a TYNDP node list Excel file ("LIST OF NODES.xlsx"
-        or offshore hubs "NODE.xlsx").
+        Path to the TYNDP node list Excel file ("LIST OF NODES.xlsx").
     col_name : str
         Column which is selected from the dataframe.
     sheet_name : str | int
@@ -178,11 +177,6 @@ def read_tyndp_electricity_buses(
     buses = format_bz_names(pd.read_excel(buses_fn, sheet_name=sheet_name)).set_index(
         col_name
     )
-
-    if "OFFSHORE_NODE_TYPE" in buses.columns:
-        # drop radial offshore nodes, which are not built as hub buses
-        buses = buses[buses.OFFSHORE_NODE_TYPE != "Radial"]
-
     return buses.index
 
 
