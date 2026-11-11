@@ -63,7 +63,7 @@
 
 **Bugfixes and Compatibility**
 
-* fix: keep the ten isolated TYNDP offshore buses (e.g. `DKN7_OFF`, `NL0R`) that `base_network` silently dropped ([#967](https://github.com/open-energy-transition/open-tyndp/issues/967), [#1135](https://github.com/open-energy-transition/open-tyndp/pull/1135)). The new switch `electricity: remove_unconnected_components` (default `true`, `false` for TYNDP) keeps buses outside the largest connected component. Isolated AC buses without any assets are removed at the end of `compose_network` with a warning. The log message of the removal reports the buses that are actually dropped.
+* fix: keep isolated TYNDP offshore buses (e.g. `DKN7_OFF`) via the new switch `electricity: remove_unconnected_components` (`false` for TYNDP); isolated AC buses without assets are removed in `compose_network` ([#967](https://github.com/open-energy-transition/open-tyndp/issues/967), [#1135](https://github.com/open-energy-transition/open-tyndp/pull/1135)).
 
 * fix: remove hardcoded changes to the emissions factors of AT Other Non-RES gas CCGTs in 2040/2050 ([#1012](https://github.com/open-energy-transition/open-tyndp/pull/1012)). The reported PEMMDB value of 0 is used for 2040/2050 instead.
 
