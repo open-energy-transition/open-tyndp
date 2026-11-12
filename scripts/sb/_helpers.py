@@ -84,6 +84,7 @@ def extract_grid_data_tyndp(
     idx_connector: str = "",
     idx_suffix: str = "",
     idx_separator: str = " ",
+    value_columns: dict = {"p_nom": ("Summary Direction 1", "Summary Direction 2")},
 ):
     """
     Extract TYNDP reference grid data from the raw input table.
@@ -104,6 +105,8 @@ def extract_grid_data_tyndp(
         Suffix to append to generated indices.
     idx_separator : str, optional
         String used to join index components (prefix, bus0, connector, bus1, suffix).
+    value_columns : dict, optional
+        Output column mapped to its input columns for direction bus0 -> bus1 and bus1 -> bus0.
 
     Returns
     -------
@@ -132,13 +135,10 @@ def extract_grid_data_tyndp(
         )
 
     # Create forward and reverse direction dataframes
-    forward_links = links[["bus0", "bus1", "Summary Direction 1"]].rename(
-        columns={"Summary Direction 1": "p_nom"}
-    )
-
-    reverse_links = links[["bus1", "bus0", "Summary Direction 2"]].rename(
-        columns={"bus1": "bus0", "bus0": "bus1", "Summary Direction 2": "p_nom"}
-    )
+    columns = ["bus0", "bus1", *value_columns]
+    forward, reverse = zip(*value_columns.values())
+    forward_links = links[["bus0", "bus1", *forward]].set_axis(columns, axis=1)
+    reverse_links = links[["bus1", "bus0", *reverse]].set_axis(columns, axis=1)
 
     # Combine into unidirectional links and return
     links = pd.concat([forward_links, reverse_links])
