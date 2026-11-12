@@ -626,7 +626,9 @@ rule add_transmission_projects_and_dlr:
 
 def input_class_regions(w):
     return {
-        f"class_regions_{tech}": resources(f"regions_by_class_{tech}.geojson")
+        f"class_regions_{tech}": parent_path(
+            resources(f"regions_by_class_{tech}.geojson"), w
+        )
         for tech in set(config_provider("electricity", "renewable_carriers")(w))
         - {"hydro"}
     }
@@ -634,8 +636,8 @@ def input_class_regions(w):
 
 def input_elec_demand_base(w):
     return {
-        "base_network": resources("networks/simplified.nc"),
-        "regions": resources("onshore_regions_simplified.geojson"),
+        "base_network": parent_path(resources("networks/simplified.nc"), w),
+        "regions": parent_path(resources("onshore_regions_simplified.geojson"), w),
     }
 
 
@@ -873,8 +875,11 @@ rule cluster_electricity_demand:
 
 def input_profile_tech(w):
     return {
-        f"profile_{tech}": resources(
-            "profile_" + tech + ".nc" if tech != "hydro" else f"profile_{tech}.nc"
+        f"profile_{tech}": parent_path(
+            resources(
+                "profile_" + tech + ".nc" if tech != "hydro" else f"profile_{tech}.nc"
+            ),
+            w,
         )
         for tech in set(config_provider("electricity", "renewable_carriers")(w))
     }

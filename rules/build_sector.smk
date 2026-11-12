@@ -1548,7 +1548,9 @@ rule build_egs_potentials:
 def input_heat_source_power(w):
 
     return {
-        heat_source_name: resources("heat_source_power_" + heat_source_name + ".csv")
+        heat_source_name: parent_path(
+            resources("heat_source_power_" + heat_source_name + ".csv"), w
+        )
         for heat_source_name in config_provider(
             "sector", "heat_pump_sources", "urban central"
         )(w)

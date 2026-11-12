@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: MIT
 
 import copy
+from collections.abc import Callable
 from functools import partial, lru_cache
 
 import os, sys, glob
@@ -17,6 +18,7 @@ path = workflow.source_path("../scripts/_helpers.py")
 sys.path.insert(0, os.path.dirname(path))
 
 from scripts._helpers import load_data_versions
+from snakemake.iocontainers import Wildcards
 from snakemake.utils import update_config
 
 
@@ -44,6 +46,26 @@ def merge_configs(base_config, scenario_config):
 def scenario_config(scenario_name):
     """Retrieve a scenario config based on the overrides from the scenario file."""
     return merge_configs(config, scenarios[scenario_name])
+
+
+def parent_run(run: str) -> str:
+    """Return the parent run that builds the weather-independent resources of `run`."""
+    return run_parents.get(run, run)
+
+
+def parent_path(path: str, w: Wildcards) -> str:
+    """Return `path` with its first `{run}` resolved to the parent of the `run` wildcard."""
+    return path.replace("{run}", parent_run(w.get("run", "")), 1)
+
+
+def from_parent(path: str) -> Callable:
+    """Return an input function resolving the first `{run}` of `path` to the parent run."""
+    return partial(parent_path, path)
+
+
+def child_runs(run: str | None) -> list[str]:
+    """Return the weather-cluster child runs of `run`."""
+    return [child for child, parent in run_parents.items() if parent == run]
 
 
 @lru_cache(maxsize=128)
@@ -141,6 +163,30 @@ def config_provider(*keys, default=None):
         return partial(dynamic_getter, keys=keys, default=default)
     else:
         return partial(static_getter, keys=keys, default=default)
+
+
+def run_wildcards(run: str) -> Wildcards:
+    """Return the wildcards of `run` for evaluating input functions and config providers."""
+    return Wildcards(fromdict={"run": run})
+
+
+def last_horizon(w: Wildcards) -> list[int]:
+    """Return the last planning horizon of the `run` wildcard as a list."""
+    return config_provider("planning_horizons")(w)[-1:]
+
+
+def expand_runs(
+    patterns: str | list[str],
+    runs: list[str] = RUNS,
+    horizons: Callable[[Wildcards], list[int]] = config_provider("planning_horizons"),
+    **wildcards,
+) -> list[str]:
+    """Expand `patterns` over `runs` and the `horizons` of each run."""
+    files = []
+    for run_name in runs:
+        horizon = horizons(run_wildcards(run_name))
+        files += expand(patterns, run=run_name, horizon=horizon, **wildcards)
+    return list(dict.fromkeys(files))
 
 
 # Retrieval is disabled while reading from a populated local cache

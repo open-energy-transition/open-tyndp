@@ -172,6 +172,74 @@ def get_rdir(run):
     return RDIR
 
 
+def weather_cluster_scenarios(
+    config: dict, scenarios: dict, bases: list[str]
+) -> dict[str, str]:
+    """
+    Add one single-horizon child scenario per representative weather scenario of each base scenario.
+
+    Each base scenario in ``bases`` and each of its planning horizons listed in
+    the ``weather_clusters`` table yields a child scenario
+    ``{base}-py{horizon}-ws{ws:03d}`` that inherits the base overrides and pins
+    ``planning_horizons`` and ``wscenarios_tyndp``. The children are added to
+    ``scenarios``.
+
+    Returns
+    -------
+    dict[str, str]
+        Mapping of each child scenario to its base (parent) scenario.
+    """
+    clusters = pd.read_csv(config["weather_clusters"]["file"])
+    wscenarios = {
+        int(horizon): [int(ws) for ws in group]
+        for horizon, group in clusters.groupby("target_year")["representative_ws"]
+    }
+    run_parents = {}
+    for base in bases:
+        override = scenarios[base]
+        horizons = override.get("planning_horizons", config["planning_horizons"])
+        for horizon in horizons:
+            if horizon not in wscenarios:
+                raise ValueError(
+                    f"Planning horizon {horizon} of scenario '{base}' has no weather "
+                    f"clusters in {config['weather_clusters']['file']}."
+                )
+            for ws in wscenarios[horizon]:
+                child = f"{base}-py{horizon}-ws{ws:03d}"
+                scenarios[child] = {
+                    **override,
+                    "planning_horizons": [horizon],
+                    "wscenarios_tyndp": {horizon: [ws]},
+                }
+                run_parents[child] = base
+    return run_parents
+
+
+def expand_weather_clusters(config: dict, scenarios: dict) -> dict[str, str]:
+    """
+    Expand the selected scenarios into one single-horizon run per representative weather scenario.
+
+    The children of the scenarios in ``config["run"]["name"]`` (see
+    `weather_cluster_scenarios`) are added to ``scenarios`` and replace
+    ``config["run"]["name"]``.
+
+    Returns
+    -------
+    dict[str, str]
+        Mapping of each child scenario to its base (parent) scenario.
+    """
+    if not config["weather_clusters"]["enable"]:
+        return {}
+    run = config["run"]
+    if not run["scenarios"]["enable"]:
+        raise ValueError("`weather_clusters` requires `run: scenarios: enable: true`.")
+
+    bases = [run["name"]] if isinstance(run["name"], str) else run["name"]
+    run_parents = weather_cluster_scenarios(config, scenarios, bases)
+    run["name"] = list(run_parents)
+    return run_parents
+
+
 def get_run_path(fn, dir, rdir, shared_resources, exclude_from_shared):
     """
     Dynamically provide paths based on shared resources and filename.
@@ -318,6 +386,10 @@ def set_scenario_config(snakemake):
             root_dir = script_dir.parent
             with open(root_dir / scenario["file"]) as f:
                 scenario_config = yaml.safe_load(f)
+        if snakemake.config["weather_clusters"]["enable"]:
+            weather_cluster_scenarios(
+                snakemake.config, scenario_config, list(scenario_config)
+            )
         update_config(snakemake.config, scenario_config[snakemake.wildcards.run])
 
 

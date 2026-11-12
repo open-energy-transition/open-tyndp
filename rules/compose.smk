@@ -29,6 +29,9 @@ def get_tyndp_compose_inputs(w):
     elec = cfg["electricity"]
     h2_tyndp = sector["h2_topology_tyndp"]
 
+    def shared(fn: str) -> str:
+        return parent_path(resources(fn), w)
+
     inputs = {
         "carrier_mapping": "data/tyndp_technology_map.csv",
         "load_tyndp": (
@@ -47,7 +50,7 @@ def get_tyndp_compose_inputs(w):
             else []
         ),
         "tyndp_electricity_ntc": (
-            resources(f"tyndp_electricity_ntc_{horizon}.csv")
+            shared(f"tyndp_electricity_ntc_{horizon}.csv")
             if elec["base_network"] == "tyndp"
             and elec["tyndp_reference_year"] != horizon
             else []
@@ -56,14 +59,14 @@ def get_tyndp_compose_inputs(w):
 
     inputs |= gated_inputs(
         scenario,
-        gas_demand=resources(f"gas_demand_tyndp_{horizon}.csv"),
+        gas_demand=shared(f"gas_demand_tyndp_{horizon}.csv"),
         h2_demand_z1=resources(f"demand_tyndp_h2_z1_{horizon}.csv"),
         h2_demand_z2=resources(f"demand_tyndp_h2_z2_{horizon}.csv"),
         ev_demand=resources(f"ev_demand_tyndp_{horizon}.csv"),
         ev_fleets=resources(f"ev_fleets_tyndp_{horizon}.csv"),
         avail_profile_tyndp=resources(f"avail_profile_tyndp_{horizon}.csv"),
         dsm_profile_tyndp=resources(f"dsm_profile_tyndp_{horizon}.csv"),
-        wheeling_charges=resources("wheeling_charges_tyndp.csv"),
+        wheeling_charges=shared("wheeling_charges_tyndp.csv"),
         elec_demand_prosumer_tyndp=resources(
             f"demand_tyndp_electricity_prosumer_{horizon}.csv"
         ),
@@ -74,19 +77,19 @@ def get_tyndp_compose_inputs(w):
 
     inputs |= gated_inputs(
         h2_tyndp,
-        h2_grid_tyndp=resources(f"h2_reference_grid_tyndp_{horizon}.csv"),
-        buses_h2=resources("tyndp/build/geojson/buses_h2.geojson"),
-        h2_imports_tyndp=resources(f"h2_import_potentials_{horizon}.csv"),
-        h2_import_profiles_tyndp=resources(f"h2_import_profiles_{horizon}.csv"),
-        tyndp_smr=resources(f"smr_data_prepped_{horizon}.csv"),
-        tyndp_h2_storages=resources(f"h2_storages_prepped_{horizon}.csv"),
+        h2_grid_tyndp=shared(f"h2_reference_grid_tyndp_{horizon}.csv"),
+        buses_h2=shared("tyndp/build/geojson/buses_h2.geojson"),
+        h2_imports_tyndp=shared(f"h2_import_potentials_{horizon}.csv"),
+        h2_import_profiles_tyndp=shared(f"h2_import_profiles_{horizon}.csv"),
+        tyndp_smr=shared(f"smr_data_prepped_{horizon}.csv"),
+        tyndp_h2_storages=shared(f"h2_storages_prepped_{horizon}.csv"),
     )
 
     inputs |= gated_inputs(
         h2_tyndp and sector["synfuels_tyndp"]["enable"],
         synfuel_demand_tyndp=resources(f"demand_tyndp_synthetic_fuels_{horizon}.csv"),
-        synfuel_links_tyndp=resources(f"synfuel_links_tyndp_{horizon}.csv"),
-        synfuel_generators_tyndp=resources(f"synfuel_generators_tyndp_{horizon}.csv"),
+        synfuel_links_tyndp=shared(f"synfuel_links_tyndp_{horizon}.csv"),
+        synfuel_generators_tyndp=shared(f"synfuel_generators_tyndp_{horizon}.csv"),
     )
 
     if elec["pecd_renewable_profiles"]["enable"]:
@@ -117,6 +120,10 @@ def get_compose_inputs(w):
     horizons = cfg["planning_horizons"]
     elec = cfg["electricity"]
     sector = cfg["sector"]
+
+    def shared(fn: str) -> str:
+        return parent_path(resources(fn), w)
+
     import_carriers = (
         set(sector["imports"]["carriers"] or sector["imports"]["price"])
         if sector["imports"]["enable"]
@@ -130,9 +137,9 @@ def get_compose_inputs(w):
         **input_profile_tech(w),
         **input_class_regions(w),
         **input_conventional(w),
-        tech_costs=resources(f"costs_{horizon}_processed.csv"),
+        tech_costs=shared(f"costs_{horizon}_processed.csv"),
         powerplants=(
-            resources("powerplants.csv")
+            shared("powerplants.csv")
             if elec["conventional_carriers"]
             or elec["extendable_carriers"]["Generator"]
             or "hydro" in elec["renewable_carriers"]
@@ -151,13 +158,13 @@ def get_compose_inputs(w):
         hydro_capacities=ancient("data/hydro_capacities.csv"),
         unit_commitment="data/unit_commitment.csv",
         fuel_price=(
-            resources("monthly_fuel_price.csv")
+            shared("monthly_fuel_price.csv")
             if cfg["conventional"]["dynamic_fuel_price"]
             else []
         ),
-        co2_price=resources("co2_price.csv"),
+        co2_price=shared("co2_price.csv"),
         eurostat=(
-            resources("eurostat_energy_balances.csv")
+            shared("eurostat_energy_balances.csv")
             if cfg["co2_budget"]["relative"]
             else []
         ),
@@ -167,14 +174,12 @@ def get_compose_inputs(w):
             else []
         ),
         load=(
-            resources("electricity_demand.nc")
-            if cfg["load"]["source"] != "tyndp"
-            else []
+            shared("electricity_demand.nc") if cfg["load"]["source"] != "tyndp" else []
         ),
-        snapshot_weightings=resources("snapshot_weightings.csv"),
-        network=resources("networks/clustered.nc"),
+        snapshot_weightings=shared("snapshot_weightings.csv"),
+        network=shared("networks/clustered.nc"),
         solar_rooftop_potentials=(
-            resources("solar_rooftop_potentials.csv")
+            shared("solar_rooftop_potentials.csv")
             if "solar" in cfg["electricity"]["renewable_carriers"]
             else []
         ),
@@ -185,134 +190,135 @@ def get_compose_inputs(w):
         sector_inputs = dict(
             **input_heat_source_power(w),
             clustered_gas_network=(
-                rules.cluster_gas_network.output.clustered_gas_network
+                parent_path(rules.cluster_gas_network.output.clustered_gas_network, w)
                 if sector["gas_network"] or sector["H2_retrofit"]
                 else []
             ),
             gas_input_nodes_simplified=(
-                rules.build_gas_input_locations.output.gas_input_nodes_simplified
+                parent_path(
+                    rules.build_gas_input_locations.output.gas_input_nodes_simplified,
+                    w,
+                )
                 if sector["gas_network"] or {"gas", "H2"} & set(import_carriers)
                 else []
             ),
-            pop_weighted_energy_totals=resources("pop_weighted_energy_totals.csv"),
+            pop_weighted_energy_totals=shared("pop_weighted_energy_totals.csv"),
             pop_weighted_heat_totals=(
-                resources("pop_weighted_heat_totals.csv") if sector["heating"] else []
+                shared("pop_weighted_heat_totals.csv") if sector["heating"] else []
             ),
-            shipping_demand=resources("shipping_demand.csv"),
+            shipping_demand=shared("shipping_demand.csv"),
             transport_demand=(
-                resources("transport_demand.csv") if not cfg["tyndp_scenario"] else []
+                shared("transport_demand.csv") if not cfg["tyndp_scenario"] else []
             ),
             transport_data=(
-                resources("transport_data.csv") if not cfg["tyndp_scenario"] else []
+                shared("transport_data.csv") if not cfg["tyndp_scenario"] else []
             ),
             avail_profile=(
-                resources("avail_profile.csv") if not cfg["tyndp_scenario"] else []
+                shared("avail_profile.csv") if not cfg["tyndp_scenario"] else []
             ),
             dsm_profile=(
-                resources("dsm_profile.csv") if not cfg["tyndp_scenario"] else []
+                shared("dsm_profile.csv") if not cfg["tyndp_scenario"] else []
             ),
             heat_dsm_profile=(
-                resources("residential_heat_dsm_profile.csv")
+                shared("residential_heat_dsm_profile.csv")
                 if sector["residential_heat"]["dsm"]["enable"]
                 else []
             ),
-            biomass_potentials=resources("biomass_potentials_{horizon}.csv"),
+            biomass_potentials=shared("biomass_potentials_{horizon}.csv"),
             h2_cavern=(
-                resources("salt_cavern_potentials.csv")
+                shared("salt_cavern_potentials.csv")
                 if sector["hydrogen_underground_storage"]
                 and not sector["h2_topology_tyndp"]
                 else []
             ),
-            clustered_pop_layout=resources("pop_layout.csv"),
+            clustered_pop_layout=shared("pop_layout.csv"),
             industrial_demand=(
-                resources("industrial_energy_demand_{horizon}.csv")
+                shared("industrial_energy_demand_{horizon}.csv")
                 if sector["industry"]
                 else []
             ),
             hourly_heat_demand_total=(
-                resources("hourly_heat_demand_total.nc") if sector["heating"] else []
+                shared("hourly_heat_demand_total.nc") if sector["heating"] else []
             ),
             industrial_production=(
-                resources("industrial_production_{horizon}.csv")
+                shared("industrial_production_{horizon}.csv")
                 if sector["industry"]
                 else []
             ),
             district_heat_share=(
-                resources("district_heat_share_{horizon}.csv")
-                if sector["heating"]
-                else []
+                shared("district_heat_share_{horizon}.csv") if sector["heating"] else []
             ),
-            heating_efficiencies=resources("heating_efficiencies.csv"),
-            existing_heating_distribution=resources(
+            heating_efficiencies=shared("heating_efficiencies.csv"),
+            existing_heating_distribution=shared(
                 "existing_heating_distribution_{horizon}.csv"
             ),
-            temp_soil_total=resources("temp_soil_total.nc"),
+            temp_soil_total=shared("temp_soil_total.nc"),
             temp_air_total=(
-                resources("temp_air_total.nc") if not cfg["tyndp_scenario"] else []
+                shared("temp_air_total.nc") if not cfg["tyndp_scenario"] else []
             ),
             cop_profiles=(
-                resources("cop_profiles_{horizon}.nc") if sector["heating"] else []
+                shared("cop_profiles_{horizon}.nc") if sector["heating"] else []
             ),
             direct_heat_source_utilisation_profiles=(
-                resources("direct_heat_source_utilisation_profiles_{horizon}.nc")
+                shared("direct_heat_source_utilisation_profiles_{horizon}.nc")
                 if sector["heating"]
                 else []
             ),
             retro_cost=(
-                resources("retro_cost.csv")
+                shared("retro_cost.csv")
                 if cfg["sector"]["retrofitting"]["retro_endogen"] and sector["heating"]
                 else []
             ),
             floor_area=(
-                resources("floor_area.csv")
+                shared("floor_area.csv")
                 if cfg["sector"]["retrofitting"]["retro_endogen"] and sector["heating"]
                 else []
             ),
             biomass_transport_costs=(
-                resources("biomass_transport_costs.csv")
+                shared("biomass_transport_costs.csv")
                 if cfg["sector"]["biomass_transport"]
                 or cfg["sector"]["biomass_spatial"]
                 else []
             ),
             sequestration_potential=(
-                resources("co2_sequestration_potential.csv")
+                shared("co2_sequestration_potential.csv")
                 if cfg["sector"]["regional_co2_sequestration_potential"]["enable"]
                 else []
             ),
             ptes_e_max_pu_profiles=(
-                resources("ptes_e_max_pu_profiles_{horizon}.nc")
+                shared("ptes_e_max_pu_profiles_{horizon}.nc")
                 if cfg["sector"]["district_heating"]["ptes"]["dynamic_capacity"]
                 else []
             ),
             ptes_direct_utilisation_profiles=(
-                resources("ptes_direct_utilisation_profiles_{horizon}.nc")
+                shared("ptes_direct_utilisation_profiles_{horizon}.nc")
                 if cfg["sector"]["district_heating"]["ptes"]["supplemental_heating"][
                     "enable"
                 ]
                 else []
             ),
             solar_thermal_total=(
-                resources("solar_thermal_total.nc")
+                shared("solar_thermal_total.nc")
                 if cfg["sector"]["solar_thermal"]
                 else []
             ),
             egs_potentials=(
-                resources("egs_potentials.csv")
+                shared("egs_potentials.csv")
                 if cfg["sector"]["enhanced_geothermal"]["enable"]
                 else []
             ),
             egs_overlap=(
-                resources("egs_overlap.csv")
+                shared("egs_overlap.csv")
                 if cfg["sector"]["enhanced_geothermal"]["enable"]
                 else []
             ),
             egs_capacity_factors=(
-                resources("egs_capacity_factors.csv")
+                shared("egs_capacity_factors.csv")
                 if cfg["sector"]["enhanced_geothermal"]["enable"]
                 else []
             ),
             ates_potentials=(
-                resources("ates_potentials_{horizon}.csv")
+                shared("ates_potentials_{horizon}.csv")
                 if cfg["sector"]["district_heating"]["ates"]["enable"]
                 else []
             ),

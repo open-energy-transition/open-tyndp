@@ -11,22 +11,14 @@ localrules:
 
 rule process_costs:
     input:
-        expand(
-            resources("costs_{horizon}_processed.csv"),
-            run=config["run"]["name"],
-            horizon=config["planning_horizons"],
-        ),
+        expand_runs(resources("costs_{horizon}_processed.csv"), runs=BASE_RUNS),
 
 
 rule cluster_networks:
     input:
-        expand(
-            resources("networks/clustered.nc"),
-            run=config["run"]["name"],
-        ),
-        expand(
-            resources("busmap.csv"),
-            run=config["run"]["name"],
+        expand_runs(
+            [resources("networks/clustered.nc"), resources("busmap.csv")],
+            runs=BASE_RUNS,
         ),
     message:
         "Collecting clustered network files"
@@ -34,35 +26,26 @@ rule cluster_networks:
 
 rule compose_networks:
     input:
-        expand(
-            resources("networks/composed_{horizon}.nc"),
-            run=config["run"]["name"],
-            horizon=config["planning_horizons"],
-        ),
+        expand_runs(resources("networks/composed_{horizon}.nc")),
     message:
         "Collecting composed network files"
 
 
 rule solve_networks:
     input:
-        expand(
-            RESULTS + "networks/solved_{horizon}.nc",
-            run=config["run"]["name"],
-            horizon=config["planning_horizons"][-1],
-        ),
+        expand_runs(RESULTS + "networks/solved_{horizon}.nc", horizons=last_horizon),
     message:
         "Collecting solved network files"
 
 
 rule solve_operations_networks:
     input:
-        expand(
+        expand_runs(
             RESULTS + "networks/operations_{horizon}.nc",
-            run=config["run"]["name"],
-            horizon=(
-                config["planning_horizons"][-1]
+            horizons=(
+                last_horizon
                 if config["foresight"] == "perfect"
-                else config["planning_horizons"]
+                else config_provider("planning_horizons")
             ),
         ),
     message:
@@ -79,10 +62,8 @@ def balance_map_paths(kind, w):
     if config["foresight"] == "perfect":
         return []
 
-    return expand(
+    return expand_runs(
         RESULTS + f"maps/{kind}/balance_map_{{carrier}}_{{horizon}}.{ext}",
-        run=config["run"]["name"],
-        horizon=config["planning_horizons"],
         carrier=config_provider("plotting", cfg_key, "bus_carriers")(w),
     )
 
@@ -108,10 +89,7 @@ rule plot_balance_maps_interactive:
 rule plot_power_networks:
     input:
         (
-            expand(
-                resources("maps/clustered_network.pdf"),
-                run=config["run"]["name"],
-            )
+            expand_runs(resources("maps/clustered_network.pdf"), runs=BASE_RUNS)
             if config["foresight"] != "perfect"
             else []
         ),
@@ -121,15 +99,9 @@ rule plot_power_networks:
 
 rule rulegraphs:
     input:
-        expand(
-            resources("dag_rulegraph.pdf"),
-            run=config["run"]["name"],
-        ),
+        expand_runs(resources("dag_rulegraph.pdf"), runs=BASE_RUNS),
 
 
 rule filegraphs:
     input:
-        expand(
-            resources("dag_filegraph.pdf"),
-            run=config["run"]["name"],
-        ),
+        expand_runs(resources("dag_filegraph.pdf"), runs=BASE_RUNS),

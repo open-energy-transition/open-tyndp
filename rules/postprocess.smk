@@ -44,7 +44,7 @@ if config["foresight"] != "perfect":
     rule plot_power_network:
         input:
             network=RESULTS + "networks/solved_{horizon}.nc",
-            regions=resources("onshore_regions.geojson"),
+            regions=from_parent(resources("onshore_regions.geojson")),
         output:
             map=RESULTS + "maps/static/power_network_{horizon}.pdf",
         log:
@@ -67,8 +67,8 @@ if config["foresight"] != "perfect":
             network=RESULTS + "networks/solved_{horizon}.nc",
             regions=branch(
                 config_provider("sector", "h2_topology_tyndp"),
-                resources("country_shapes.geojson"),
-                resources("onshore_regions.geojson"),
+                from_parent(resources("country_shapes.geojson")),
+                from_parent(resources("onshore_regions.geojson")),
             ),
         output:
             map=RESULTS + "maps/static/h2_network_{horizon}.pdf",
@@ -91,7 +91,7 @@ if config["foresight"] != "perfect":
     rule plot_gas_network:
         input:
             network=RESULTS + "networks/solved_{horizon}.nc",
-            regions=resources("onshore_regions.geojson"),
+            regions=from_parent(resources("onshore_regions.geojson")),
         output:
             map=RESULTS + "maps/static/ch4_network_{horizon}.pdf",
         log:
@@ -111,7 +111,7 @@ if config["foresight"] != "perfect":
     rule plot_balance_map:
         input:
             network=RESULTS + "networks/solved_{horizon}.nc",
-            regions=resources("onshore_regions.geojson"),
+            regions=from_parent(resources("onshore_regions.geojson")),
         output:
             RESULTS + "maps/static/balance_map_{carrier}_{horizon}.pdf",
         log:
@@ -132,10 +132,10 @@ if config["foresight"] != "perfect":
     rule plot_balance_map_interactive:
         input:
             network=RESULTS + "networks/solved_{horizon}.nc",
-            regions=resources("onshore_regions.geojson"),
+            regions=from_parent(resources("onshore_regions.geojson")),
             buses_h2=branch(
                 config_provider("sector", "h2_topology_tyndp"),
-                resources("tyndp/build/geojson/buses_h2.geojson"),
+                from_parent(resources("tyndp/build/geojson/buses_h2.geojson")),
                 [],
             ),
         output:
@@ -176,7 +176,7 @@ if config["foresight"] != "perfect":
 
     rule plot_heat_source_map:
         input:
-            regions=resources("onshore_regions.geojson"),
+            regions=from_parent(resources("onshore_regions.geojson")),
             heat_source_temperature=lambda w: (
                 resources("temp_" + w.carrier + "_temporal_aggregate.nc")
                 if w.carrier in ["river_water", "sea_water", "ambient_air"]
@@ -208,13 +208,14 @@ if config["foresight"] != "perfect":
 
 rule make_summary:
     input:
-        networks=lambda w: (
-            [RESULTS + f"networks/solved_{config['planning_horizons'][-1]}.nc"]
-            if config["foresight"] == "perfect"
-            else [
-                RESULTS + f"networks/solved_{h}.nc"
-                for h in config["planning_horizons"]
-            ]
+        networks=lambda w: expand(
+            RESULTS + "networks/solved_{horizon}.nc",
+            horizon=(
+                last_horizon(w)
+                if config["foresight"] == "perfect"
+                else config_provider("planning_horizons")(w)
+            ),
+            allow_missing=True,
         ),
     output:
         nodal_costs=RESULTS + "csvs/nodal_costs.csv",
@@ -253,7 +254,7 @@ rule plot_summary:
         costs=RESULTS + "csvs/costs.csv",
         energy=RESULTS + "csvs/energy.csv",
         balances=RESULTS + "csvs/energy_balance.csv",
-        eurostat=resources("eurostat_energy_balances.csv"),
+        eurostat=from_parent(resources("eurostat_energy_balances.csv")),
         co2=branch(
             lambda w: config_provider("foresight")(w) == "perfect",
             rules.retrieve_ghg_emissions.output["csv"],

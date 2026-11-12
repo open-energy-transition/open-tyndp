@@ -169,6 +169,12 @@ renewable generation, demand, and hydro inflow profiles used:
 
 * `wscenarios_tyndp`: Weather scenarios per planning horizon, e.g. `2030: [3, 21, 29]`.
 
+* `weather_clusters`: When enabled, each selected scenario is expanded into one
+  independent single-horizon run `{scenario}-py{horizon}-ws{ws:03d}` per representative
+  weather scenario listed in `data/tyndp_weather_clusters.csv` (e.g. `NT-py2030-ws029`).
+  Weather-independent resources (base network, clustering, costs, hydrogen, gas, ...)
+  are built once in the directory of the original scenario and shared by its runs.
+
 * `atlite.default_cutout`: ERA5 reanalysis cutout used to compute PECD-compatible
   capacity factor profiles (e.g. `europe-2009-era5`).
 

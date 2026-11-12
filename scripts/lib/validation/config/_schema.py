@@ -77,6 +77,19 @@ class RemoteConfig(ConfigModel):
     )
 
 
+class WeatherClustersConfig(ConfigModel):
+    """Configuration for top level `weather_clusters` settings."""
+
+    enable: bool = Field(
+        False,
+        description="Expand each selected scenario into independent single-horizon runs `{scenario}-py{horizon}-ws{ws:03d}`, one per representative weather scenario of the horizon in `file`. The runs share the weather-independent resources built in the directory of the original scenario. Requires `run: scenarios: enable: true`.",
+    )
+    file: str = Field(
+        "data/tyndp_weather_clusters.csv",
+        description="Table of representative weather scenarios with columns `target_year`, `cluster`, `representative_ws` (climate year column index, e.g. 29 for `WS029`), `weight` and `cluster_size`.",
+    )
+
+
 class ConfigSchema(BaseModel):
     """
     Combined configuration schema for PyPSA-EUR.
@@ -131,6 +144,10 @@ class ConfigSchema(BaseModel):
     wscenarios_tyndp: dict[int, list[int]] = Field(
         default_factory=dict,
         description="Mapping of planning horizons to the weather scenarios (climate year column indices, e.g. 3 for `WS003`) to model in the TYNDP 2026 data. Only the first entry per horizon is currently used, falling back to the first entry of `AVAILABLE_WSCENARIOS` in `scripts/sb/_helpers.py` if unavailable (see `get_wscenario`); to be revisited once Scenario Building supports modelling multiple weather years at once.",
+    )
+    weather_clusters: WeatherClustersConfig = Field(
+        default_factory=WeatherClustersConfig,
+        description="Weather-cluster expansion of the selected scenarios into one run per representative weather scenario and planning horizon.",
     )
     launch_explorer: bool = Field(
         False,

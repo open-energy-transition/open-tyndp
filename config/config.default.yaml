@@ -49,6 +49,11 @@ hurdle_costs: 0.01
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration/#wscenarios_tyndp_cf
 wscenarios_tyndp: {}
 
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration/#weather_clusters_cf
+weather_clusters:
+  enable: false
+  file: data/tyndp_weather_clusters.csv
+
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration/#launch_explorer_cf
 launch_explorer: false
 

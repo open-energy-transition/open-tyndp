@@ -14,7 +14,6 @@ from snakemake.logging import logger
 from scripts.cba._helpers import filter_projects_by_specs
 from scripts._helpers import get_temporal_resolution
 from shutil import unpack_archive, copy2
-from snakemake.iocontainers import Wildcards
 
 
 wildcard_constraints:
@@ -61,16 +60,9 @@ def _effective_horizon(h, warn_fn=None, msg=None):
 
 def get_run_name(w):
     """
-    Return a single run name from Snakemake wildcards or config.
-
-    There are instances when the run name given in the config is a string
-    or a list. This helper is used to ensure we always get a single string
-    (or empty string if no run is given) to work with in the rules.
+    Return the run name from Snakemake wildcards, falling back to the first base run.
     """
-    run = w.get("run", config_provider("run", "name")(w))
-    if isinstance(run, list):
-        return run[0] if run else ""
-    return run or ""
+    return w["run"] if "run" in w.keys() else BASE_RUNS[0]
 
 
 def presolved_sb_network_path(w, horizon=None):
@@ -639,22 +631,12 @@ rule summarize_all_indicators:
         scripts("cba/summarize_all.py")
 
 
-def cba_target_runs(w):
-    """
-    Return runs explicitly requested through config["run"]["name"].
-    """
-    names = config["run"]["name"]
-    if isinstance(names, str):
-        return [names]
-    return names
-
-
 def cba_collection_scenarios(w):
     """
     Return actual cba collection scenarios, i.e. runs with cba.scenarios.
     """
     scenarios = []
-    for name in cba_target_runs(w):
+    for name in BASE_RUNS:
         try:
             scn = scenario_config(name)
         except KeyError:
@@ -835,8 +817,8 @@ rule cba:
         # collect files to be stored in the scenario directory, e.g., NT-ws1995
         lambda w: [
             f
-            for run in cba_target_runs(w)
-            for f in collect_cba_scenario_inputs(Wildcards(fromdict={"run": run}))
+            for run in BASE_RUNS
+            for f in collect_cba_scenario_inputs(run_wildcards(run))
         ],
 
 
@@ -846,7 +828,7 @@ rule prepare_references:
         lambda w: expand(
             resources("cba/networks/reference_{horizon}.nc"),
             horizon=config_provider("cba", "planning_horizons")(w),
-            run=config["run"]["name"],
+            run=BASE_RUNS,
         ),
 
 
@@ -856,7 +838,7 @@ rule collect_cba_data:
             expand(
                 rules.retrieve_presolved_sb_networks.output.network,
                 horizon=config_provider("cba", "planning_horizons")(w),
-                run=cba_target_runs(w),
+                run=BASE_RUNS,
             )
             if config_provider(
                 "cba", "cba_scenario_input", "use_presolved", default=False
@@ -865,5 +847,5 @@ rule collect_cba_data:
         ),
         lambda w: expand(
             rules.clean_projects.output,
-            run=cba_target_runs(w),
+            run=BASE_RUNS,
         ),

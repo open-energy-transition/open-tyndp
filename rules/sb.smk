@@ -156,7 +156,7 @@ def get_pecd_prebuilt(w):
 rule clean_tyndp_pecd_data:
     input:
         pecd_prebuilt=get_pecd_prebuilt,
-        buses_tyndp=rules.build_tyndp_network.output.substations,
+        buses_tyndp=from_parent(rules.build_tyndp_network.output.substations),
         pemmdb_capacities=resources("pemmdb_capacities_{horizon}.csv"),
         carrier_mapping="data/tyndp_technology_map.csv",
     output:
@@ -232,7 +232,7 @@ rule build_tyndp_pemmdb_data:
     input:
         pemmdb_dir=rules.retrieve_tyndp_2026.output.pemmdb,
         carrier_mapping="data/tyndp_technology_map.csv",
-        buses_tyndp=rules.build_tyndp_network.output.substations,
+        buses_tyndp=from_parent(rules.build_tyndp_network.output.substations),
     output:
         pemmdb_capacities=resources("pemmdb_capacities_{horizon}.csv"),
         pemmdb_profiles=resources("pemmdb_profiles_{horizon}.nc"),
@@ -277,7 +277,7 @@ rule build_tyndp_nuclear_profiles:
 rule clean_tyndp_hydro_inflows:
     input:
         hydro_inflows_dir=rules.retrieve_tyndp_2026.output.hydro_inflows,
-        busmap=resources("busmap_cluster_network.csv"),
+        busmap=from_parent(resources("busmap_cluster_network.csv")),
     output:
         hydro_inflows_tyndp=resources("hydro_inflows_tyndp_{tech}_{horizon}.csv"),
     log:
@@ -368,7 +368,7 @@ use rule build_electricity_demand_base as build_electricity_demand_base_tyndp wi
 use rule cluster_electricity_demand as cluster_electricity_demand_tyndp with:
     input:
         load=resources("electricity_demand_simplified_{horizon}.nc"),
-        busmap=resources("busmap_cluster_network.csv"),
+        busmap=from_parent(resources("busmap_cluster_network.csv")),
     output:
         resources("electricity_demand_clustered_{horizon}.nc"),
     log:
@@ -579,7 +579,7 @@ if config["foresight"] != "perfect":
     rule plot_base_hydrogen_network:
         input:
             network=resources("networks/composed_{horizon}.nc"),
-            regions_onshore=resources("onshore_regions.geojson"),
+            regions_onshore=from_parent(resources("onshore_regions.geojson")),
         output:
             map=resources("maps/base_h2_network_{horizon}.pdf"),
         log:
@@ -678,7 +678,9 @@ if config["benchmarking"]["enable"]:
                 horizon=config_provider("planning_horizons"),
                 allow_missing=True,
             ),
-            benchmarks=RESULTS + "benchmarks/tyndp-2026/resources/benchmarks_tyndp.csv",
+            benchmarks=from_parent(
+                RESULTS + "benchmarks/tyndp-2026/resources/benchmarks_tyndp.csv"
+            ),
             dashboard_data=lambda w: (
                 expand(
                     RESULTS
@@ -729,7 +731,9 @@ if config["benchmarking"]["enable"]:
                 == "NT"  # Only NT has dashboard files for now
                 else []
             ),
-            benchmarks=RESULTS + "benchmarks/tyndp-2026/resources/benchmarks_tyndp.csv",
+            benchmarks=from_parent(
+                RESULTS + "benchmarks/tyndp-2026/resources/benchmarks_tyndp.csv"
+            ),
             kpis_by_bus=RESULTS + "benchmarks/tyndp-2026/kpis_all_years_by_bus.csv",
             kpis_by_country=RESULTS
             + "benchmarks/tyndp-2026/kpis_all_years_by_country.csv",
@@ -762,10 +766,8 @@ if config["benchmarking"]["enable"]:
 
 rule clean_pecd_datas:
     input:
-        lambda w: expand(
+        lambda w: expand_runs(
             resources("pecd_data_{technology}_{horizon}.csv"),
-            horizon=config["planning_horizons"],
-            run=config["run"]["name"],
             technology=config_provider(
                 "electricity", "pecd_renewable_profiles", "technologies"
             )(w),
@@ -776,7 +778,7 @@ rule build_renewable_profiles_pecds:
     input:
         lambda w: expand(
             resources("pecd_profile_{technology}.nc"),
-            run=config["run"]["name"],
+            run=RUNS,
             technology=config_provider(
                 "electricity", "pecd_renewable_profiles", "technologies"
             )(w),
@@ -785,14 +787,12 @@ rule build_renewable_profiles_pecds:
 
 rule prepare_benchmarks:
     input:
-        expand(
-            RESULTS + "benchmarks/tyndp-2026/resources/benchmarks_{horizon}.csv",
-            horizon=config["planning_horizons"],
-            run=config["run"]["name"],
+        expand_runs(
+            RESULTS + "benchmarks/tyndp-2026/resources/benchmarks_{horizon}.csv"
         ),
         expand(
             RESULTS + "benchmarks/tyndp-2026/resources/benchmarks_tyndp.csv",
-            run=config["run"]["name"],
+            run=BASE_RUNS,
         ),
 
 
@@ -800,11 +800,11 @@ rule make_benchmarks:
     input:
         kpis_by_bus=expand(
             rules.make_benchmark.output.kpis_by_bus,
-            run=config["run"]["name"],
+            run=RUNS,
         ),
         kpis_by_country=expand(
             rules.make_benchmark.output.kpis_by_country,
-            run=config["run"]["name"],
+            run=RUNS,
         ),
 
 
@@ -812,15 +812,15 @@ rule plot_benchmarks:
     input:
         kpis_by_bus=expand(
             rules.plot_benchmark.output.kpis_by_bus,
-            run=config["run"]["name"],
+            run=RUNS,
         ),
         kpis_by_country=expand(
             rules.plot_benchmark.output.kpis_by_country,
-            run=config["run"]["name"],
+            run=RUNS,
         ),
 
 
-def input_pemmdb_datas(w):
+def pemmdb_horizons(w: Wildcards) -> list[int]:
     available_years = config_provider(
         "electricity", "pemmdb_capacities", "available_years"
     )(w)
@@ -834,20 +834,15 @@ def input_pemmdb_datas(w):
 
 rule build_tyndp_pemmdb_datas:
     input:
-        expand(
+        expand_runs(
             rules.build_tyndp_pemmdb_data.output.pemmdb_capacities,
-            horizon=input_pemmdb_datas,
-            run=config["run"]["name"],
+            horizons=pemmdb_horizons,
         ),
 
 
 rule build_tyndp_gas_demands:
     input:
-        expand(
-            resources("gas_demand_tyndp_{horizon}.csv"),
-            horizon=config["planning_horizons"],
-            run=config["run"]["name"],
-        ),
+        expand_runs(resources("gas_demand_tyndp_{horizon}.csv"), runs=BASE_RUNS),
 
 
 # Explore
@@ -856,10 +851,9 @@ rule build_tyndp_gas_demands:
 
 rule launch_explorer:
     input:
-        expand(
+        lambda w: expand_runs(
             RESULTS + "networks/solved_{horizon}.nc",
-            run=config["run"]["name"],
-            horizon=config["planning_horizons"],
+            runs=child_runs(w.get("run")) or RUNS,
         ),
     output:
         RESULTS + "logs/explorer_launched.log",

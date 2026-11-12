@@ -11,6 +11,8 @@
 
 **Features**
 
+* feat: model several representative weather scenarios per planning horizon in Scenario Building. With the new `weather_clusters` config option (enabled in `config/config.tyndp.yaml`), each selected scenario is expanded into independent single-horizon runs `{scenario}-py{horizon}-ws{ws:03d}`, one per representative weather scenario listed in `data/tyndp_weather_clusters.csv`. Weather-independent resources are built once in the directory of the original scenario and shared by its runs, which read them via `from_parent(...)` and `parent_path(...)` (`rules/common.smk`). The CBA workflow keeps using the original scenarios. Scenarios in `run.scenarios` may now restrict `planning_horizons` to a subset of the top-level list, and the default and collection targets expand over each run's own horizons.
+
 * feat: model TYNDP 2026 passenger EV fleets explicitly (fixed, commuter and non-commuter fleets for street and home charging, with smart charging and V2G) and replace the PyPSA-Eur land transport by a flat TYNDP EU27 land transport oil demand ([#1039](https://github.com/open-energy-transition/open-tyndp/pull/1039)).
 
 * feat: remove DE and GA scenarios from TYNDP 2026; add in HEV and LEV as scenarios and config entries ([#1066](https://github.com/open-energy-transition/open-tyndp/pull/1066) and [#1092](https://github.com/open-energy-transition/open-tyndp/pull/1092)). HEV and LEV currently differ from NT+ only in fuel and CO2 prices. Demand adjustments (electricity market, prosumer demand, EV, H2, thermal energy demand), hydrogen import prices, and benchmarking are not yet included.

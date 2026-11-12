@@ -152,17 +152,25 @@ class TestPlanningHorizonsNormalization:
 
 
 class TestValidateScenarios:
-    base = {"foresight": "overnight", "planning_horizons": [2050]}
+    base = {"foresight": "myopic", "planning_horizons": [2030, 2050]}
 
-    def test_accepts_compatible_override(self):
-        validate_scenarios(self.base, {"s1": {"countries": ["DE"]}})
+    @pytest.mark.parametrize(
+        "override",
+        [
+            {"countries": ["DE"]},
+            {"planning_horizons": [2050], "wscenarios_tyndp": {2050: [91]}},
+        ],
+    )
+    def test_accepts_compatible_override(self, override):
+        validate_scenarios(self.base, {"s1": override})
 
     @pytest.mark.parametrize(
         ("override", "match"),
         [
             ({"data": {}}, "overrides the 'data' block"),
             ({"foresight": "perfect"}, "changes 'foresight'"),
-            ({"planning_horizons": [2030]}, "changes 'planning_horizons'"),
+            ({"planning_horizons": [2040]}, "must be a list and a subset"),
+            ({"planning_horizons": 2050}, "must be a list and a subset"),
             ({"countries": "not-a-list"}, "failed config validation"),
         ],
     )

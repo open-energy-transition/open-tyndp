@@ -18,6 +18,7 @@ load_dotenv()
 min_version("8.11")
 
 from scripts._helpers import (
+    expand_weather_clusters,
     get_rdir,
     get_scenarios,
     get_shadow,
@@ -59,7 +60,11 @@ normalize_config(config, validated_config)
 run = config["run"]
 scenarios = get_scenarios(run)
 
+run_parents = expand_weather_clusters(config, scenarios)
 validate_scenarios(config, scenarios)
+
+RUNS = run["name"] if isinstance(run["name"], list) else [run["name"]]
+BASE_RUNS = list(dict.fromkeys(run_parents.get(name, name) for name in RUNS))
 
 RDIR = get_rdir(run)
 PROJ_DIR = Path(workflow.snakefile).parent
@@ -152,13 +157,13 @@ CORE_OUTPUTS = [
 
 # Network and timeseries plots (excluded for perfect foresight)
 if config["foresight"] != "perfect":
-    NETWORK_PLOT_OUTPUTS = [
+    NETWORK_PLOT_OUTPUTS = [RESULTS + "maps/static/power_network_{horizon}.pdf"]
+    BASE_PLOT_OUTPUTS = [
         resources("maps/base_network.pdf"),
         resources("maps/clustered_network.pdf"),
-        RESULTS + "maps/static/power_network_{horizon}.pdf",
     ]
     if config["sector"]["enabled"]:
-        NETWORK_PLOT_OUTPUTS.append(RESULTS + "graphs/cop_profiles_{horizon}.html")
+        BASE_PLOT_OUTPUTS.append(RESULTS + "graphs/cop_profiles_{horizon}.html")
     TIMESERIES_OUTPUTS = [
         RESULTS + "graphs/balance_timeseries_{horizon}",
         RESULTS + "graphs/heatmap_timeseries_{horizon}",
@@ -166,6 +171,7 @@ if config["foresight"] != "perfect":
 else:
     NETWORK_PLOT_OUTPUTS = []
     TIMESERIES_OUTPUTS = []
+    BASE_PLOT_OUTPUTS = []
 
 # Myopic-specific outputs
 if config["foresight"] == "myopic":
@@ -181,21 +187,9 @@ def get_sector_network_plots(w):
 
     plots = []
     if config_provider("sector", "H2_network")(w):
-        plots.extend(
-            expand(
-                RESULTS + "maps/static/h2_network_{horizon}.pdf",
-                horizon=config["planning_horizons"],
-                run=config["run"]["name"],
-            )
-        )
+        plots.extend(expand_runs(RESULTS + "maps/static/h2_network_{horizon}.pdf"))
     if config_provider("sector", "gas_network")(w):
-        plots.extend(
-            expand(
-                RESULTS + "maps/static/ch4_network_{horizon}.pdf",
-                horizon=config["planning_horizons"],
-                run=config["run"]["name"],
-            )
-        )
+        plots.extend(expand_runs(RESULTS + "maps/static/ch4_network_{horizon}.pdf"))
     return plots
 
 
@@ -210,10 +204,8 @@ def get_balance_map_plots(w):
     static_carriers = config_provider("plotting", "balance_map", "bus_carriers")(w)
     if static_carriers:
         plots.extend(
-            expand(
+            expand_runs(
                 RESULTS + "maps/static/balance_map_{carrier}_{horizon}.pdf",
-                horizon=config["planning_horizons"],
-                run=config["run"]["name"],
                 carrier=static_carriers,
             )
         )
@@ -224,10 +216,8 @@ def get_balance_map_plots(w):
     )(w)
     if interactive_carriers:
         plots.extend(
-            expand(
+            expand_runs(
                 RESULTS + "maps/interactive/balance_map_{carrier}_{horizon}.html",
-                horizon=config["planning_horizons"],
-                run=config["run"]["name"],
                 carrier=interactive_carriers,
             )
         )
@@ -240,17 +230,9 @@ def input_all_tyndp(w):
     if config_provider("tyndp_scenario")(w) and config_provider("sector", "H2_network")(
         w
     ):
-        files.extend(
-            expand(
-                (resources("maps/base_h2_network_{horizon}.pdf")),
-                run=config["run"]["name"],
-                horizon=config["planning_horizons"],
-            )
-        )
-    run_names = config["run"]["name"]
-    for run_name in run_names if isinstance(run_names, list) else [run_names]:
-        scen = scenario_config(run_name) if run_name in scenarios else config
-        if not navigate_config(scen, ("benchmarking", "enable")):
+        files.extend(expand_runs(resources("maps/base_h2_network_{horizon}.pdf")))
+    for run_name in RUNS:
+        if not config_provider("benchmarking", "enable")(run_wildcards(run_name)):
             continue
         files.extend(
             expand(
@@ -266,12 +248,7 @@ def input_all_tyndp(w):
         )
 
     if config_provider("launch_explorer")(w):
-        files.extend(
-            expand(
-                RESULTS + "logs/explorer_launched.log",
-                run=config["run"]["name"],
-            )
-        )
+        files.extend(expand(RESULTS + "logs/explorer_launched.log", run=BASE_RUNS))
 
     return files
 
@@ -279,26 +256,11 @@ def input_all_tyndp(w):
 rule all:
     input:
         input_all_tyndp,
-        expand(CORE_OUTPUTS, run=config["run"]["name"]),
-        (
-            expand(
-                NETWORK_PLOT_OUTPUTS,
-                run=config["run"]["name"],
-                horizon=config["planning_horizons"],
-            )
-            if NETWORK_PLOT_OUTPUTS
-            else []
-        ),
-        (
-            expand(
-                TIMESERIES_OUTPUTS,
-                run=config["run"]["name"],
-                horizon=config["planning_horizons"],
-            )
-            if TIMESERIES_OUTPUTS
-            else []
-        ),
-        (expand(MYOPIC_OUTPUTS, run=config["run"]["name"]) if MYOPIC_OUTPUTS else []),
+        expand_runs(CORE_OUTPUTS),
+        expand_runs(NETWORK_PLOT_OUTPUTS),
+        expand_runs(BASE_PLOT_OUTPUTS, runs=BASE_RUNS),
+        expand_runs(TIMESERIES_OUTPUTS),
+        expand_runs(MYOPIC_OUTPUTS),
         get_sector_network_plots,
         get_balance_map_plots,
 
@@ -437,7 +399,7 @@ rule doc:
 
 
 def remote_run_dirs():
-    names = run["name"] if isinstance(run["name"], list) else [run["name"]]
+    names = list(dict.fromkeys(RUNS + BASE_RUNS))
     return [get_rdir(run).replace("{run}", n) for n in names]
 
 

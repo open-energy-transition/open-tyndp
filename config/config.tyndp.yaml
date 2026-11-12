@@ -31,6 +31,8 @@ wscenarios_tyndp:
   - 91
   - 92
   - 106
+weather_clusters:
+  enable: true
 data_config:   # change to 'tyndp' to use tyndp-archive where available
 logging:
   level: INFO

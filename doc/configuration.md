@@ -248,12 +248,47 @@ Configuration for top level `planning_horizons` settings.
   the previous year's `results/{run}/networks/solved_{horizon}.nc`.
 - Perfect foresight also iterates over the list but reuses the previous year's
   `resources/{run}/networks/composed_{horizon}.nc` as the brownfield seed.
+- A scenario in `run.scenarios` may restrict `planning_horizons` to a subset of
+  the top-level list.
 
 !!! note
     Earlier releases derived planning horizons from `scenario` wildcard
     entries. That block is ignored now; define `planning_horizons` at the top
     level and keep scenario sweeps inside `run.scenarios`. See
     [migration](migration.md) for detailed conversion steps.
+
+## `wscenarios_tyndp` {#wscenarios_tyndp_cf}
+
+Mapping of planning horizons to the weather scenarios (climate year column
+indices, e.g. `3` for `WS003`) to model in the TYNDP 2026 data. Only the first
+entry per horizon is currently used.
+
+**YAML Syntax**
+
+```yaml
+{{ yaml_section("wscenarios_tyndp", source="config.tyndp.yaml") }}
+```
+
+## `weather_clusters` {#weather_clusters_cf}
+
+Expand each scenario in `run.name` into independent single-horizon runs
+`{scenario}-py{horizon}-ws{ws:03d}`, one per representative weather scenario
+listed for the horizon in `file` (e.g. `NT-py2030-ws029`). Each run pins
+`planning_horizons` to its horizon and `wscenarios_tyndp` to its weather
+scenario. Weather-independent resources are built once in the directory of the
+original scenario and shared by its runs. See [Scenario Building](sb.md).
+
+{{ schema_table("weather_clusters") }}
+
+**YAML Syntax**
+
+```yaml
+{{ yaml_section("weather_clusters") }}
+```
+
+!!! note
+    The CBA workflow (`cba` target) keeps reading the solved networks of the
+    original scenarios in `run.name` and is not expanded into weather-cluster runs.
 
 
 ## `countries` {#countries_cf}

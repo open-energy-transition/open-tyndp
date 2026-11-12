@@ -166,10 +166,11 @@ former `clusters: [adm]`.
     independently. Use `run.scenarios` for that now.
 
 !!! warning "What a scenario may not change"
-    The collection targets and the default target are built from the *base* config.
-    Therefore `foresight` and `planning_horizons` must be identical in every
-    scenario. Set them at the top level, and run different foresight modes or
-    horizon sets as separate workflows with their own `run.name`. Everything that
+    `foresight` must be identical in every scenario. Set it at the top level, and
+    run different foresight modes as separate workflows with their own `run.name`.
+    A scenario may restrict `planning_horizons` to a subset of the top-level list;
+    the collection targets and the default target expand over each scenario's own
+    horizons. Everything that
     rules read through `config_provider` may vary per scenario, including
     `clustering.cluster_network.n_clusters`, `co2_budget`, `sector` and `solving`.
 

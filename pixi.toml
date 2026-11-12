@@ -220,7 +220,8 @@ tyndp-cba-test = """bash -c '
     ' --
 """
 tyndp-wscenarios-test = """bash -c '
-    snakemake -call --configfile config/test/config.wscenarios.yaml "$@"
+    snakemake -call --configfile config/test/config.wscenarios.yaml "$@" && \
+    snakemake -call --configfile config/test/config.wscenarios.yaml config/test/config.weather_clusters.yaml -n
     ' --
 """
 create-tyndp-graphs = """

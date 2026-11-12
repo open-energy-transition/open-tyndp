@@ -2,12 +2,20 @@
 #
 # SPDX-License-Identifier: MIT
 
+from types import SimpleNamespace
+
 import pandas as pd
 import pypsa
 import pytest
 from pydantic import ValidationError
+from snakemake.iocontainers import Wildcards
 
-from scripts._helpers import get_temporal_resolution, rename_network_component
+from scripts._helpers import (
+    expand_weather_clusters,
+    get_temporal_resolution,
+    rename_network_component,
+    set_scenario_config,
+)
 from scripts.lib.validation.config.clustering import _TemporalConfig
 
 
@@ -80,3 +88,93 @@ def test_get_temporal_resolution(temporal, expected):
 def test_temporal_config_rejects_invalid_settings(temporal):
     with pytest.raises(ValidationError):
         _TemporalConfig(**temporal)
+
+
+def _weather_cluster_config(tmp_path, enable=True, scenarios=True) -> dict:
+    clusters = tmp_path / "clusters.csv"
+    clusters.write_text(
+        "target_year,cluster,representative_ws,weight,cluster_size\n"
+        "2030,0,29,0.3,9\n2030,1,3,0.7,21\n2040,0,65,1.0,30\n2050,0,91,1.0,30\n"
+    )
+    scenario_file = tmp_path / "scenarios.yaml"
+    scenario_file.write_text("NT:\n  tyndp_scenario: NT\n")
+    return {
+        "run": {
+            "name": "NT",
+            "scenarios": {"enable": scenarios, "file": scenario_file},
+        },
+        "planning_horizons": [2030, 2040],
+        "weather_clusters": {"enable": enable, "file": clusters},
+    }
+
+
+def test_expand_weather_clusters(tmp_path):
+    config = _weather_cluster_config(tmp_path)
+    scenarios = {"NT": {"tyndp_scenario": "NT"}}
+
+    run_parents = expand_weather_clusters(config, scenarios)
+
+    assert run_parents == {
+        "NT-py2030-ws029": "NT",
+        "NT-py2030-ws003": "NT",
+        "NT-py2040-ws065": "NT",
+    }
+    assert config["run"]["name"] == list(run_parents)
+    assert scenarios["NT-py2040-ws065"] == {
+        "tyndp_scenario": "NT",
+        "planning_horizons": [2040],
+        "wscenarios_tyndp": {2040: [65]},
+    }
+
+
+def test_expand_weather_clusters_disabled(tmp_path):
+    config = _weather_cluster_config(tmp_path, enable=False)
+
+    assert expand_weather_clusters(config, {"NT": {}}) == {}
+    assert config["run"]["name"] == "NT"
+
+
+@pytest.mark.parametrize(
+    ("scenarios", "override", "match"),
+    [
+        (False, {}, "requires `run: scenarios: enable: true`"),
+        (
+            True,
+            {"planning_horizons": [2030, 2035]},
+            "Planning horizon 2035 of scenario 'NT' has no weather clusters",
+        ),
+    ],
+)
+def test_expand_weather_clusters_raises(tmp_path, scenarios, override, match):
+    config = _weather_cluster_config(tmp_path, scenarios=scenarios)
+
+    with pytest.raises(ValueError, match=match):
+        expand_weather_clusters(config, {"NT": override})
+
+
+@pytest.mark.parametrize(
+    ("enable", "run", "horizons", "wscenarios"),
+    [
+        (True, "NT-py2030-ws029", [2030], {2030: [29]}),
+        (True, "NT", [2030, 2040], None),
+        (False, "NT", [2030, 2040], None),
+    ],
+)
+def test_set_scenario_config(tmp_path, enable, run, horizons, wscenarios):
+    config = _weather_cluster_config(tmp_path, enable=enable)
+
+    set_scenario_config(
+        SimpleNamespace(config=config, wildcards=Wildcards(fromdict={"run": run}))
+    )
+
+    assert config["tyndp_scenario"] == "NT"
+    assert config["planning_horizons"] == horizons
+    assert config.get("wscenarios_tyndp") == wscenarios
+
+
+def test_set_scenario_config_disabled_child(tmp_path):
+    config = _weather_cluster_config(tmp_path, enable=False)
+    wildcards = Wildcards(fromdict={"run": "NT-py2030-ws029"})
+
+    with pytest.raises(KeyError):
+        set_scenario_config(SimpleNamespace(config=config, wildcards=wildcards))
