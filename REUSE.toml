@@ -68,11 +68,13 @@ path = [
 SPDX-FileCopyrightText = "Open Energy Transition gGmbH"
 SPDX-License-Identifier = "MIT"
 
-# Tables extracted from the TYNDP 2024 CBA Implementation Guidelines report
+# Tables extracted from the TYNDP 2024 CBA Implementation Guidelines report,
+# and TYNDP 2026 project data from https://tyndp2026.entsoe.eu/projects-map
 [[annotations]]
 path = [
     "data/cba/a.3_non-co2-emissions.csv",
     "data/cba/table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv",
+    "data/cba/tyndp_2026_cba_projects/*.xlsx",
 ]
 SPDX-FileCopyrightText = "ENTSO-E"
 SPDX-License-Identifier = "CC-BY-4.0"
