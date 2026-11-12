@@ -96,7 +96,7 @@ import pandas as pd
 
 from scripts._helpers import configure_logging, set_scenario_config
 from scripts.cba._helpers import get_pypsa_dynamic_attributes, read_csv_or_excel
-from scripts.sb._helpers import format_bz_names
+from scripts.sb._helpers import extract_grid_data_tyndp, format_bz_names
 
 logger = logging.getLogger(__name__)
 
@@ -854,6 +854,37 @@ def normalize_yes_no(value: str) -> str:
 
 def compute_method(flag: str) -> str:
     return "toot" if flag == "yes" else "pint"
+
+
+def read_reference_grid(grid_fn: str, horizon: int) -> pd.DataFrame:
+    """
+    Read the TYNDP 2026 electricity reference grid of a planning horizon per direction.
+
+    Parameters
+    ----------
+    grid_fn : str
+        Path to the TYNDP 2026 electricity reference grid workbook.
+    horizon : int
+        Planning horizon, selecting the sheet `Year_{horizon}`.
+
+    Returns
+    -------
+    pd.DataFrame
+        Table indexed by directed link ID (`{bus0}-{bus1}-DC`) with the 2025 NTC
+        (`ntc25`), the reference grid total (`total`) and one column per tagged
+        project ID ("p<id>_d" or "p<id>_in") with its capacity.
+    """
+    grid = pd.read_excel(grid_fn, sheet_name=f"Year_{horizon}")
+    grid["Border"] = format_bz_names(grid["Border"])
+    tags = grid.columns[grid.columns.str.fullmatch(r"P\d+_d")].str[1:-2]
+    value_columns = {
+        "ntc25": ("TY2026_2025TY Direct NTC (MW)", "TY2026_2025TY Indirect NTC (MW)"),
+        "total": ("Summary Direction 1", "Summary Direction 2"),
+    } | {int(t): (f"P{t}_d", f"P{t}_in") for t in tags}
+    grid = extract_grid_data_tyndp(
+        grid, idx_suffix="DC", idx_separator="-", value_columns=value_columns
+    )
+    return grid.drop(columns=["bus0", "bus1"]).fillna(0).rename_axis("link_id")
 
 
 def build_transmission_method_assignments(
