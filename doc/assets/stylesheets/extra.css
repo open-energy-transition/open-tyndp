@@ -27,3 +27,8 @@
   background-color: var(--md-default-bg-color);
   z-index: 1;
 }
+
+/* Allow Mermaid diagrams to scroll sideways rather than shrink the text (Mermaid diagrams render at natural size) */
+.md-typeset .mermaid {
+  overflow-x: auto;
+}
