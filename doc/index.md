@@ -23,7 +23,7 @@
 
 
 This repository introduces the open-source model of the Open-TYNDP research and innovation project, which is a collaboration between [Open Energy Transition (OET)](https://openenergytransition.org/) and the European Network of Transmission System Operators for Electricity (ENTSO-E).
-The project's aim is to explore the capabilities of an open-source tool to replicate the Ten-Year Network Development Plan (TYNDP) 2024 by building a workflow based on [PyPSA-Eur](https://github.com/pypsa/pypsa-eur).
+The project's aim is to explore the capabilities of an open-source tool to replicate the Ten-Year Network Development Plan (TYNDP) 2026 by building a workflow based on [PyPSA-Eur](https://github.com/pypsa/pypsa-eur).
 It seeks to complement the tools currently used in the TYNDP cycles, especially for Scenario Building (SB) and Cost-Benefit Analysis (CBA). This approach is designed to enhance transparency and lower barriers to stakeholder participation in European energy planning. Beyond Europe, the project aspires to demonstrate the viability of open-source (OS) frameworks in energy planning, encouraging broader global adoption.
 
 To build trust in and ensure reproducibility with the new open-source toolchain, the project first focuses on replicating key figures from the 2024 TYNDP cycle, before aligning with the current 2026 TYNDP cycle. This process involves developing new features within the open-source domain to address existing gaps, integrating tools for data interoperability and dynamic visualizations, and publishing best practices to encourage the adoption of open energy models. Additionally, the project emphasizes stakeholder consultations and [interactive workshops](https://open-energy-transition.github.io/open-tyndp-workshops/intro.html) alongside the development of the open-source tool, further promoting collaboration and transparency throughout the process.
@@ -35,13 +35,13 @@ This repository is a soft-fork of [OET/PyPSA-Eur](https://github.com/open-energy
 ## Why Open-TYNDP?
 
 - **Transparency** — Not only assumptions and inputs are visible and auditable, but the models themselves are fully open.
-- **Reproducibility** — Any stakeholder is able to re-run the TYNDP 2024 National Trends scenario independently.
+- **Reproducibility** — Any stakeholder is able to re-run the TYNDP 2026 National Trends+ scenario independently.
 - **Additional Resource** — Facilitates broader expert contribution and peer review.
 - **Automated Workflow** — The entire modelling process runs automatically from raw inputs to final outputs via [Snakemake](https://snakemake.readthedocs.io/) and [pixi](https://pixi.prefix.dev/).
 
 ## What Can You Do Now?
 
-- **Independently reproduce** and examine the official TYNDP 2024 National Trends scenario.
+- **Independently reproduce** and examine the official TYNDP 2026 National Trends scenario.
 - **Test custom scenarios** (e.g., alternative demand or RES assumptions) without starting from scratch.
 - **Directly compare** open-source model results with ENTSO-E outputs in a transparent framework.
 - **Collaborate** more easily across organizations using a shared, community-maintained codebase.
@@ -51,7 +51,7 @@ This repository is a soft-fork of [OET/PyPSA-Eur](https://github.com/open-energy
 
 - **TSO planners** — Faster iteration on grid investment scenarios and easier sensitivity analysis.
 - **ENTSO-E leadership** — Credible, independent benchmarking builds process legitimacy.
-- **Researchers & policymakers** — Full access to a pan-European model calibrated to official TYNDP 2024 data.
+- **Researchers & policymakers** — Full access to a pan-European model calibrated to official TYNDP 2026 data.
 - **Grid planners beyond Europe** — A reusable framework for regional energy planning.
 
 ## Open-Source ecosystem

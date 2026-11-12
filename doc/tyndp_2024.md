@@ -3,7 +3,7 @@
 
 # TYNDP 2024 data
 
-The TYNDP 2024 data is downloaded and extracted using the `retrieve_tyndp`, `retrieve_tyndp_pecd` and `retrieve_tyndp_cba_projects` rules. Originally published by ENTSO-E and ENTSOG under
+The TYNDP 2024 data is downloaded and extracted using the `retrieve_tyndp` and `retrieve_tyndp_cba_projects` rules. Originally published by ENTSO-E and ENTSOG under
 Creative Commons Attribution 4.0 International License (CC-BY 4.0).
 The original data files can be found under <https://2024.entsos-tyndp-scenarios.eu/download/>.
 
@@ -12,12 +12,6 @@ The original data files can be found under <https://2024.entsos-tyndp-scenarios.
 - **Source:** TYNDP 2024 Project Sheets, <https://tyndp2024.entsoe.eu/projects-map>
 - **Link:** <https://storage.googleapis.com/open-tyndp-data-store/2024/CBA_projects.zip>
 - **Description:** Contains 177 transmission and 33 storage projects, which have been assessed by TYNDP 2024 in its Cost-Benefit Analysis.
-
-## `Market Model Outputs for NT`
-
-- **Source:** TYNDP 2024 Scenarios, <https://2024.entsos-tyndp-scenarios.eu/download/>
-- **Link:** `https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-outputs/MMStandardOutputFile_NT{planning_horizons}_Plexos_CY2009_2.5_v40.xlsx.zip`
-- **Description:** Contains market model standard output files for the National Trends (NT) scenario and climate year 2009 (available for both 2030 and 2040 planning horizons).
 
 ## `Nodes`
 
@@ -32,30 +26,11 @@ The original data files can be found under <https://2024.entsos-tyndp-scenarios.
 - **Description:** Contains generators, electrolysers, nodes and grid information used in the
   modelling of offshore hubs.
 
-## `PECD/PECD_{pecd_version}`
-
-- **Source:** TYNDP 2024 Scenarios, <https://2024.entsos-tyndp-scenarios.eu/download/>
-- **Link:** `https://storage.googleapis.com/open-tyndp-data-store/PECD/PECD_{pecd_version}.zip`
-- **Description:** Contains hourly PECD v3.1 capacity factor time series for Solar PV rooftop,
-  Solar PV utility, Onshore Wind, Offshore Wind and Solar CSP.
-
-## `PECD/PECD_{pecd_prebuilt_version}`
-
-- **Source:** TYNDP 2024 Scenarios, <https://2024.entsos-tyndp-scenarios.eu/download/>
-- **Link:** `https://storage.googleapis.com/open-tyndp-data-store/PECD/PECD_{pecd_prebuilt_version}.zip`
-- **Description:** Contains pre-built hourly PECD v3.1 capacity factor time series for climate years 1995, 2008, and 2009, covering Solar PV rooftop, Solar PV utility, Onshore Wind, Offshore Wind and Solar CSP.
-
 ## `Supply Tool`
 
 - **Source:** TYNDP 2024 Scenarios, <https://2024.entsos-tyndp-scenarios.eu/download/>
 - **Link:** <https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-outputs/20240518-Supply-Tool.xlsm.zip>
 - **Description:** Contains the TYNDP 2024 Supply Tool.
-
-## `TYNDP-2024-Scenarios-Package/TYNDP_2024-Scenario-Report-Data-Figures_240522.xlsx`
-
-- **Source:** TYNDP 2024 Scenarios, <https://2024.entsos-tyndp-scenarios.eu/download/>
-- **Link:** <https://2024-data.entsos-tyndp-scenarios.eu/files/reports/TYNDP-2024-Scenarios-Package-20250128.zip>
-- **Description:** Contains the TYNDP Scenarios Report Data Figures data and calculations used to produce the figures in the Scenarios Report.
 
 ## `data/cba/a.3_non-co2-emissions.csv`
 
