@@ -12,8 +12,10 @@ when the format does not match, when either bus is absent from the TYNDP node li
 when no capacity is reported in either direction.
 
 Reads storage projects from the "Stor.Projects" sheet. Each project's country is mapped
-to a representative electricity bus. All storage projects are assessed with PINT (see
-`build_storage_method_assignments`).
+to a representative electricity bus. The TYNDP 2026 data export has no reference-grid flags for
+storage projects, so TOOT or PINT is approximated from the project status and commissioning
+year (see `build_storage_method_assignments`). TOOT storage projects are not yet supported
+downstream and are passed through unchanged (see `prepare_project.py`).
 
 Custom PINT transmission projects can be configured using `data/cba/custom_projects/transmission_projects.csv`. With it,
 the user can modify existing projects and add new ones. Transmission capacities are in MW.
@@ -62,6 +64,8 @@ the user can modify existing projects and add new ones. Transmission capacities 
   - `lifetime_years`: Operational lifetime (years); missing or zero values are replaced with `cba.storage.default_lifetime`
   - `carrier`: PyPSA carrier name for the storage technology
   - `bus`: Representative electricity bus for the project's country
+  - `status`: Project status
+  - `commissioning_year`: First year found in the commissioning date estimated by the promoter
 
 - `resources/cba/cba_project_methods.csv`: Table defining the assignment method of each project.
 
@@ -110,6 +114,8 @@ STORAGE_PROJECTS_COLUMN_MAP = {
     "Project Name": "project_name",
     "Country": "country",
     "Storage technology": "technology",
+    "Commissioning year estimated by the promoter(s)": "commissioning_year",
+    "Status": "status",
     "Estimated CAPEX (Meuro)": "capex_meur",
     "Estimated OPEX (Meuro/year)": "opex_meur_per_year",
     "Total turbining capacity (MW)": "p_nom_discharge",
@@ -117,6 +123,14 @@ STORAGE_PROJECTS_COLUMN_MAP = {
     "Storage Capacity (GWh)": "e_nom_gwh",
     "Roundtrip efficiency (%)": "roundtrip_efficiency",
     "Operational lifetime (Years)": "lifetime_years",
+}
+
+STORAGE_TOOT_CRITERIA = {
+    2030: ({"Under Construction", "In Permitting"}, 2030),
+    2040: (
+        {"Under Construction", "In Permitting", "Planned But Not Yet Permitting"},
+        2035,
+    ),
 }
 
 
@@ -748,6 +762,13 @@ def extract_storage_projects(
     )
     projects["project_id"] = projects["project_id"].astype(int)
     projects["roundtrip_efficiency"] = projects["roundtrip_efficiency"] / 100.0
+    projects["status"] = projects["status"].str.strip()
+    projects["commissioning_year"] = (
+        projects["commissioning_year"]
+        .astype(str)
+        .str.extract(r"(20\d\d)", expand=False)
+        .astype(float)
+    )
 
     unknown_technology = ~projects["technology"].isin(technology_carrier_map.index)
     if unknown_technology.any():
@@ -785,15 +806,21 @@ def build_storage_method_assignments(
     """
     Define the assignment method of storage projects.
 
-    All storage projects are assessed with PINT, as the TYNDP 2026 Draft CBA
-    Implementation Guidelines (p. 57) assess storage projects by a market
-    simulation without and with the project. TOOT is not implemented for storage
-    projects (see `prepare_project.py`).
+    The TYNDP 2026 export has no reference-grid flags for storage projects.
+    Therefore, the CBA method is approximated from the project status and commissioning
+    year, following the reference grid definition in the TYNDP 2026 Draft CBA
+    Implementation Guidelines (p. 45):
+
+    - 2030: TOOT if under construction or in permitting, and commissioned by 2030.
+    - 2040 (uses the 2035 reference grid): TOOT if not under consideration, and
+      commissioned by 2035.
+    - Otherwise PINT.
 
     Parameters
     ----------
     storage_projects : pd.DataFrame
-        List of storage projects with their detailed characteristics.
+        List of storage projects, along with their detailed characteristics,
+        including the status and commissioning_year columns.
     planning_horizons : list[int]
         Planning horizons for which to assign a method.
 
@@ -802,16 +829,19 @@ def build_storage_method_assignments(
     pd.DataFrame
         Table defining the assignment method of each storage project.
     """
-    # TODO: for now, setting all storage projects as PINT until TOOT methodology is implemented
-    methods = pd.concat(
-        [
+    rows = []
+    for horizon in planning_horizons:
+        statuses, max_year = STORAGE_TOOT_CRITERIA[horizon]
+        is_toot = storage_projects["status"].isin(statuses) & (
+            storage_projects["commissioning_year"] <= max_year
+        )
+        rows.append(
             storage_projects[["project_id", "project_name"]].assign(
-                planning_horizon=horizon, method="pint"
+                planning_horizon=horizon,
+                method=is_toot.map({True: "toot", False: "pint"}),
             )
-            for horizon in planning_horizons
-        ],
-        ignore_index=True,
-    )
+        )
+    methods = pd.concat(rows, ignore_index=True)
     methods["project_type"] = "storage"
     return methods
 
