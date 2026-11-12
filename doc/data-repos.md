@@ -202,12 +202,26 @@ New data should generally not be added to the data, but externally retrieved in 
 - **License:** CC-BY 4.0
 - **Description:** Contains manual corrections to raw TYNDP cost-benefit analysis (CBA) project data, including fixes to malformed or missing border/bus codes (e.g. mapping blank or ambiguous codes to offshore hub buses), splitting single malformed rows into their correct per-investment legs, and correcting transfer capacities (`p_nom`) between project endpoints. Used to override erroneous entries in the raw CBA project list before building CBA networks.
 
+`data/cba/table_3_CBA_Implementation_Guidelines_TYNDP2026.csv`
+
+- **Source:** ENTSO-E, draft TYNDP 2026 CBA Implementation Guidelines (for public consultation), Appendix Table 3, p. 112-117
+- **Link:** TODO
+- **License:** CC-BY 4.0
+- **Description:** Overview of the transmission projects included in the reference grids, with border, transfer capacities, status and commissioning year, extracted from the TYNDP 2026 Draft CBA Implementation Guidelines in the same format as Table B.1 was from the TYNDP 2024 CBA Implementation Guidelines. Used to assign the TOOT/PINT assessment method to each transmission project per planning horizon. Some cleaning was done when extracting the data from the PDF tables to CSV: duplicated methods (`PINTPINT`) and free text (projects 1046 and 1185) are reduced to the method, and line breaks are removed from names and borders.
+
 `data/cba/table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv`
 
 - **Source:** ENTSO-E, TYNDP 2024 Methodology: CBA Implementation Guidelines, Table B.1
 - **Link:** https://tyndp.entsoe.eu/resources/tyndp-2024-methodology-cba-implementation-guidelines-for-consultation-1
 - **License:** CC-BY 4.0
 - **Description:** Overview of the transmission projects included in the reference grids for the 2030 and 2040 time horizons, with border, transfer capacities and commissioning year, extracted manually from the CBA Implementation Guidelines. Used to assign the TOOT/PINT assessment method to each transmission project per planning horizon and patch the CBA reference grid.
+
+`data/cba/tyndp_2026_cba_projects/{transmission,storage}.xlsx`
+
+- **Source:** ENTSO-E, TYNDP 2026 project export
+- **Link:** https://tyndp2026.entsoe.eu/projects-map
+- **License:** CC-BY 4.0
+- **Description:** TYNDP 2026 transmission projects (sheets `Trans.Projects` and `Trans.Investments`) and storage projects (sheet `Stor.Projects`), with borders, transfer capacities, storage capacities, costs, status and commissioning year. Used by `clean_projects` to build the CBA transmission and storage projects. Unlike the TYNDP 2024 export, it has no route lengths and no reference-grid flags.
 
 ## User-editable files
 
