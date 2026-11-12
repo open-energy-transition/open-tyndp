@@ -3,17 +3,20 @@
 # SPDX-License-Identifier: MIT
 
 """
-Prepare CBA reference network with all TOOT projects included.
+Prepare the CBA reference network of a planning horizon.
 
-Placeholder: currently passes the simplified network through unchanged.
-Once published TYNDP 2026 CBA results are available to build against, the
-logic for adding TOOT/PINT projects and reference-grid corrections to the
-SB base network belongs here.
+Applies the capacity corrections from the SB to the CBA reference grid
+(see `clean_projects.reconcile_reference_grid`) to the simplified SB network.
 """
 
+import logging
+
+import pandas as pd
 import pypsa
 
 from scripts._helpers import configure_logging, set_scenario_config
+
+logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
     if "snakemake" not in globals():
@@ -31,7 +34,19 @@ if __name__ == "__main__":
 
     n = pypsa.Network(snakemake.input.network)
 
-    # TODO: apply CBA project-addition / reference-grid corrections here
-    # once published TYNDP 2026 CBA results are available to build against.
+    horizon = snakemake.params.horizon
+    corrections = pd.read_csv(snakemake.input.corrections, index_col="link_id").query(
+        "planning_horizon == @horizon"
+    )["p_nom"]
+
+    missing = corrections.index.difference(n.links.index)
+    if not missing.empty:
+        logger.warning(
+            f"Skipping reference grid corrections for links not in the network: {', '.join(missing)}"
+        )
+    corrections = corrections.drop(missing)
+
+    logger.info(f"Reference grid corrections for {horizon} (MW):\n{corrections}")
+    n.links.loc[corrections.index, "p_nom"] += corrections
 
     n.export_to_netcdf(snakemake.output.network)
