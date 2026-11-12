@@ -89,7 +89,7 @@ if not "pre-built" in PECD_DATASET["version"]:
         log:
             "logs/prepare_tyndp_pecd_release.log",
         benchmark:
-            benchmarks("performances/prepare_tyndp_pecd_release")
+            "benchmarks/performances/prepare_tyndp_pecd_release"
         threads: 4
         resources:
             mem_mb=1000,
@@ -483,6 +483,23 @@ if config["sector"]["h2_topology_tyndp"]:
             drop_leap_day=config_provider("enable", "drop_leap_day"),
         script:
             scripts("sb/build_tyndp_h2_imports.py")
+
+    rule build_tyndp_p2g_shares:
+        input:
+            p2g_emarket=rules.retrieve_tyndp_2026.output.p2g_emarket,
+        output:
+            p2g_shares=resources("p2g_shares_{horizon}.csv"),
+        log:
+            logs("build_tyndp_p2g_shares_{horizon}.log"),
+        benchmark:
+            benchmarks("performances/build_tyndp_p2g_shares_{horizon}")
+        conda:
+            "../envs/environment.yaml"
+        threads: 1
+        resources:
+            mem_mb=4000,
+        script:
+            scripts("sb/build_tyndp_p2g_shares.py")
 
     rule clean_tyndp_smr:
         input:

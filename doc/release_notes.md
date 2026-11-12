@@ -11,6 +11,8 @@
 
 **Features**
 
+* feat: update the TYNDP 2026 data bundle to ENTSO-E's reference dataset of 2026-11-11 ([#1148](https://github.com/open-energy-transition/open-tyndp/pull/1148)). This includes the updated PECD `4.2.1` with IE00 2040 wind capacity factors, from which the pre-built PECD `4.2.1+pre-built.0.1` is now derived.
+
 * feat: model TYNDP 2026 passenger EV fleets explicitly (fixed, commuter and non-commuter fleets for street and home charging, with smart charging and V2G) and replace the PyPSA-Eur land transport by a flat TYNDP EU27 land transport oil demand ([#1039](https://github.com/open-energy-transition/open-tyndp/pull/1039)).
 
 * feat: remove DE and GA scenarios from TYNDP 2026; add in HEV and LEV as scenarios and config entries ([#1066](https://github.com/open-energy-transition/open-tyndp/pull/1066) and [#1092](https://github.com/open-energy-transition/open-tyndp/pull/1092)). HEV and LEV currently differ from NT+ only in fuel and CO2 prices. Demand adjustments (electricity market, prosumer demand, EV, H2, thermal energy demand), hydrogen import prices, and benchmarking are not yet included.
@@ -51,6 +53,8 @@
 
 * feat: implement the TYNDP 2026 synthetic fuels methodology with domestic production and import of e-liquids and SNG (synthetic natural gas) ([#1098](https://github.com/open-energy-transition/open-tyndp/pull/1098)). The feature is enabled with the new `sector: synfuels_tyndp: enable` option. The TYNDP biogenic CO2 potential caps the domestic production. `shipping_oil_share` now includes the shipping e-fuels and is calibrated to the TYNDP 2026 NT+ liquids demand in navigation.
 
+* feat: add P2G links for offshore nodes, and capacity shares found in the `P2G_emarket_template_corrected_requirecheck.xlsx` file for all e-market and DRES ([#1130](https://github.com/open-energy-transition/open-tyndp/pull/1130)). Electrolyser capacities still come from PEMMDB and are split accordingly for nodes with multiple hydrogen zones.
+
 * feat: add Shared RES generation profiles ([#1083](https://github.com/open-energy-transition/open-tyndp/pull/1083)). The TYNDP 2026 cycle adds SRES nodes which are connected to the e-market node and to the H2Z2 node via electrolysers. The generation from the SRES generators are used as input for the electrolysers first, and any extra generation above the electrolyser capacity is residual electricity made available to the e-market node.
 
 **Changes**
@@ -74,6 +78,8 @@
 * fix: remove the TYNDP 2024 trajectories and unused TYNDP 2024 inputs ([#1051](https://github.com/open-energy-transition/open-tyndp/pull/1051)). Generation capacities now follow PEMMDB in all planning horizons. The `build_tyndp_trajectories` rule is removed and `build_pemmdb_and_trajectories` is renamed to `build_tyndp_pemmdb_datas`. Unused TYNDP 2024 inputs are no longer retrieved.
 
 **Documentation**
+
+* doc: update documentation to TYNDP 2026 ([#1123](https://github.com/open-energy-transition/open-tyndp/pull/1123)).
 
 **Developers Note**
 
