@@ -245,17 +245,20 @@ rule fix_reference_sb_to_cba:
         scripts("cba/fix_reference_sb_to_cba.py")
 
 
-# Build reference network with all TOOT projects included
+# Build reference network
 # Ensures MSV extraction and rolling horizon use the same baseline
 rule prepare_reference:
     input:
         network=rules.simplify_sb_network.output.network,
+        corrections=rules.clean_projects.output.reference_sb_to_cba,
     output:
         network=resources("cba/networks/reference_{horizon}.nc"),
     log:
         logs("cba/prepare_reference_{horizon}.log"),
     benchmark:
         benchmarks("performances/cba/prepare_reference_{horizon}")
+    params:
+        horizon=lambda w: _effective_horizon(int(w.horizon)),
     script:
         scripts("cba/prepare_reference.py")
 
