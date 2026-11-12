@@ -3916,7 +3916,7 @@ def add_h2_sres_tyndp(
     costs: pd.DataFrame,
 ) -> None:
     """
-    Adds TYNDP SRES buses, with electrolyzers to H2 Z2 and a copperplated unidirectional connection to the e-market node.
+    Adds TYNDP SRES buses, with electrolyzers to H2 Z2 and a unidirectional connection to the e-market node.
 
     Parameters
     ----------
@@ -3964,7 +3964,6 @@ def add_h2_sres_tyndp(
         lifetime=costs.at["electrolysis", "lifetime"],
     )
 
-    # Copperplated link from SRES node to the e-market node
     n.add(
         "Link",
         nodes.index + " SRES grid connection",
