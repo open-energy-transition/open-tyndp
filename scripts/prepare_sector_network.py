@@ -1913,7 +1913,7 @@ def _add_electrolyzer_capacities(
     pemmdb_capacities : pd.DataFrame
         All PEMMDB capacities.
     p2g_shares : pd.DataFrame
-        Share of the total electrolyser capacity from bus0 to bus1.
+        Share of the total electrolyser capacity per `bus0` and `bus1` pair.
 
     Returns
     -------
@@ -1967,10 +1967,12 @@ def _add_h2_dres_capacities(
     p2g_shares: pd.DataFrame,
 ) -> None:
     """
-    Add existing DRES electrolyser capacities from PEMMDB.
+    Connect DRES generators to the DRES bus of their node and add existing DRES
+    electrolyser capacities from PEMMDB.
 
     PEMMDB reports DRES per node, so for nodes with several H2 Z2 zones, electrolyser
-    capacities are split using the onshore P2G e-market share capacity per zone. In TYNDP 2026, this only includes SK.
+    capacities are split by the share of P2G e-market capacity of each zone.
+    In TYNDP 2026, this only includes SK. DRES buses without generators and electrolysers are removed.
 
     Parameters
     ----------
@@ -1981,7 +1983,7 @@ def _add_h2_dres_capacities(
     dres_carriers : list[str]
         TYNDP DRES generator carriers.
     p2g_shares : pd.DataFrame
-        Share of the total electrolyser capacity from bus0 to bus1.
+        Share of the total electrolyser capacity per `bus0` and `bus1` pair.
 
     Returns
     -------
@@ -2851,6 +2853,8 @@ def add_existing_tyndp_capacities(
         DataFrame containing H2 to synthetic fuel capacities.
     synfuel_carriers : dict[str, str]
         Fossil carrier substituted by each synthetic fuel.
+    p2g_shares : pd.DataFrame
+        P2G e-market capacities (`p_nom`) and shares (`share`) per `bus0` and `bus1` pair.
     tyndp_renewable_carriers : list[str]
         List of TYNDP renewable carriers.
     tyndp_conventional_thermals : list[str]
@@ -2863,8 +2867,6 @@ def add_existing_tyndp_capacities(
         List of TYNDP storage technologies that were added to the network.
     costs : pd.DataFrame
         DataFrame containing the cost data.
-    p2g_shares : pd.DataFrame
-        DataFrame containing the shares of P2G capacities per H2Z2 zone.
     profiles_pecd : dict[str, str]
         Dictionary containing the paths to the PECD renewable profiles.
     nuclear_profiles : pd.DataFrame | None
@@ -3857,7 +3859,7 @@ def add_h2_production_tyndp(
 def add_h2_dres_tyndp(
     n: pypsa.Network,
     spatial: SimpleNamespace,
-    buses_h2_z2: SimpleNamespace,
+    buses_h2_z2: pd.Index,
     costs: pd.DataFrame,
     nodes: pd.DataFrame,
 ) -> None:
@@ -3871,12 +3873,12 @@ def add_h2_dres_tyndp(
         The PyPSA network container object.
     spatial : SimpleNamespace
         Namespace object with spatial nodes for different carriers such as `h2_tyndp`.
-    buses_h2_z2 : SimpleNamespace
-        Namespace object with spatial nodes of H2 Z2 buses.
+    buses_h2_z2 : pd.Index
+        H2 Z2 buses.
     costs : pd.DataFrame
         Technology cost assumptions.
     nodes : pd.DataFrame
-        Pandas DataFrame of locations/nodes.
+        Pandas DataFrame of locations/nodes to add DRES components for.
 
 
     Returns
