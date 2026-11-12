@@ -86,3 +86,7 @@ The `{version}`, `{pecd_version}` and `{pecd_prebuilt_version}` placeholders ref
 - **Source:** TYNDP 2026 Scenarios, <https://2026.entsos-tyndp-scenarios.eu/download/>
 - **Link:** `https://storage.googleapis.com/open-tyndp-data-store/2026/{version}/additional/TYNDP_2026_Scenario_Report_Data_Figures.xlsx`
 - **Description:** Contains the data used to produce the figures in the TYNDP 2026 Scenarios Report. Used for benchmarking.
+
+
+# TYNDP Migration guide (2024 -> 2026)
+
