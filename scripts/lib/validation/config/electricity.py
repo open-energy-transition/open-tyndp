@@ -307,6 +307,10 @@ class ElectricityConfig(BaseModel):
         "osm",
         description="Specify the underlying base network, i.e. GridKit (based on ENTSO-E web map extract), OpenStreetMap (OSM), or TYNDP.",
     )
+    remove_unconnected_components: bool = Field(
+        True,
+        description="If `true`, buses not connected to the main grid are removed in `base_network`; if `false`, they are kept and only isolated AC buses without load, generation or storage are removed in `compose_network`.",
+    )
     tyndp_reference_year: int = Field(
         2030,
         description="Planning-horizon year of the TYNDP reference grid used to build the static base network topology and its initial NTC, when `base_network` is 'tyndp'. The node/link topology is identical across all TYNDP planning horizons, only NTC differs, so a single fixed year is used here; per-horizon NTC for `tyndp_scenario` runs is instead applied later, in `prepare_sector_network`.",

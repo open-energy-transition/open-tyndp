@@ -128,6 +128,7 @@ electricity:
   - 500.0
   - 750.0
   base_network: osm
+  remove_unconnected_components: true
   tyndp_reference_year: 2030
   gaslimit_enable: false
   gaslimit: false

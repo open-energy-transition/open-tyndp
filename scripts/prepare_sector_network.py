@@ -2867,6 +2867,8 @@ def add_existing_tyndp_capacities(
         List of TYNDP storage technologies that were added to the network.
     costs : pd.DataFrame
         DataFrame containing the cost data.
+    p2g_shares : pd.DataFrame
+        DataFrame containing the shares of P2G capacities per H2Z2 zone.
     profiles_pecd : dict[str, str]
         Dictionary containing the paths to the PECD renewable profiles.
     nuclear_profiles : pd.DataFrame | None

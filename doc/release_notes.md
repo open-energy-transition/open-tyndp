@@ -65,6 +65,8 @@
 
 **Bugfixes and Compatibility**
 
+* fix: keep isolated TYNDP offshore buses (e.g. `DKN7_OFF`) via the new switch `electricity: remove_unconnected_components` (`false` for TYNDP); isolated AC buses without assets are removed in `compose_network` ([#967](https://github.com/open-energy-transition/open-tyndp/issues/967), [#1135](https://github.com/open-energy-transition/open-tyndp/pull/1135)).
+
 * fix: remove hardcoded changes to the emissions factors of AT Other Non-RES gas CCGTs in 2040/2050 ([#1012](https://github.com/open-energy-transition/open-tyndp/pull/1012)). The reported PEMMDB value of 0 is used for 2040/2050 instead.
 
 * fix: do not scale `e_sum_min` of the biogas and solid biomass generators twice with `nyears` ([#941](https://github.com/open-energy-transition/open-tyndp/pull/941), re-merged in [#1041](https://github.com/open-energy-transition/open-tyndp/pull/1041)). The biomass potentials are already scaled when they are read, so `force_biogas_potential` and `force_biomass_potential` forced a slightly lower dispatch than `e_sum_max` allowed, and would have made any run with `nyears > 1` infeasible.
