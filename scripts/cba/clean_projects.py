@@ -327,7 +327,7 @@ def remove_unclear_border(
 
 def remove_no_capacity(projects: pd.DataFrame) -> pd.DataFrame:
     """
-    Remove projects with no capacity from the list of projects.
+    Remove projects with no capacity (missing or zero in both directions) from the list of projects.
 
     Parameters
     ----------
@@ -339,7 +339,7 @@ def remove_no_capacity(projects: pd.DataFrame) -> pd.DataFrame:
     pd.DataFrame
         Curated list of projects with a defined capacity.
     """
-    empty_capacity = projects["p_nom 0->1"].isna() & projects["p_nom 1->0"].isna()
+    empty_capacity = projects[["p_nom 0->1", "p_nom 1->0"]].fillna(0).eq(0).all(axis=1)
     if empty_capacity.sum() > 0:
         logger.warning(
             "%d out of %d extensions have no capacity, ignoring them:\n%s",
@@ -408,9 +408,8 @@ def extract_transmission_projects(
     # Apply manual CBA project corrections
     projects = apply_cba_project_corrections(corrections_path, projects)
 
-    # Clean the project list by removing projects with unclear borders or no capacity
+    # Clean the project list by removing projects with unclear borders
     projects = remove_unclear_border(projects, existing_buses)
-    projects = remove_no_capacity(projects)
 
     # Several projects have capacities with "Up to ..."
     cols = ["p_nom 0->1", "p_nom 1->0"]
@@ -428,6 +427,9 @@ def extract_transmission_projects(
 
     # convert to numeric
     projects[cols] = projects[cols].apply(pd.to_numeric, errors="coerce")
+
+    # Remove projects with no or zero capacity
+    projects = remove_no_capacity(projects)
 
     return projects.assign(
         length_km=float("nan"),
