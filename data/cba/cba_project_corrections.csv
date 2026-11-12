@@ -1,1 +1,17 @@
 project_id,project_name,is_crossborder,p_nom 0->1,p_nom 1->0,bus0,bus1,notes
+33,Central Northern Italy,False,500,500,ITCN,ITN1,DATA: border and capacity from WB26; T3 and RG26 tag P33 agree
+33,Central Northern Italy,False,400,400,ITCN,ITCS,DATA: WB26 lists TNIS-TN00 (the TNIS leg of 283/1230) instead; border and capacity from T3 and RG26 tag P33
+120,Princess Elisabeth Island (MOG 2),False,1400,1400,BE00,BEO1_OFF,DATA: WB26 lists internalBE00 0/0 and T3 0/0; border and capacity from RG26 (BE00-BEO1_OFF 1400 MW from 2035) and the TYNDP 2024 export (1400 MW)
+150,Italy-Slovenia,True,600,600,ITN1,SI00,INFERRED: WB26 lists MAIS-MA00 (the MAIS leg of 1215/1257); border from RG26 tag P150 (2050) and the TYNDP 2024 export; capacity from WB26 (equal to RG26 tag)
+176,Interconnector DE – SWE I [HPB I],True,700,700,DE00,SE04,INFERRED: WB26 lists TNIS-TN00 (the TNIS leg of 283/1230); border from RG26 tag P176 (2050) and the TYNDP 2024 export; capacity from WB26 (equal to RG26 tag)
+228,Muhlbach - Eichstetten,True,300,300,DE00,FR00,"DATA: WB26 lists RO00-RS00; border from T3, RG26 tag P228 and the TYNDP 2024 export; capacity from WB26 (equal to T3)"
+239,Fenno-Skan 3,True,800,800,FI00,SE03,INFERRED: WB26 lists MAIS-MA00 (the MAIS leg of 1215/1257); border from RG26 tag P239 (2050) and the TYNDP 2024 export; capacity from WB26 (equal to RG26 tag)
+1088,Latvia and Estonia Hybrid Off-Shore interconnector,True,1000,1000,EE00,LV00,INFERRED: WB26 and T3 list EE00-OBZ 1000 MW; no EE or LV offshore node exists; RG26 adds EE00-LV00 +1000 MW from 2040 (tagged P1211)
+1092,TritonLink: offshore hybrid HVDC interconnector Belgium – Denmark,True,2000,2000,BE00,DKNS_OFF,INFERRED: WB26 lists BE00-DKOBZ 2000 MW; DKOBZ mapped to DKNS_OFF from RG26 (BE00-DKNS_OFF 2000 MW from 2040)
+1092,TritonLink: offshore hybrid HVDC interconnector Belgium – Denmark,True,2000,2000,DKNS_OFF,DKW1,INFERRED: leg missing in WB26 (TYNDP 2024 export: 1400 MW); border and capacity from RG26 (DKNS_OFF-DKW1 2000 MW from 2040)
+1106,Bornholm Energy Island (BEI),True,2000,2000,DE00,DKBH_OFF,DATA: WB26 lists DE00-BolEnergy 0/0 and T3 0/0; border and capacity from RG26 (from 2035) and the TYNDP 2024 export
+1106,Bornholm Energy Island (BEI),True,1200,1200,DKBH_OFF,DKE1,DATA: leg missing in WB26; border and capacity from RG26 (from 2035) and the TYNDP 2024 export
+1200,"Hybrid interconnector Norway-Sørvest F Windfarm-Continent (DK, DE, BE or NL)",True,1400,1400,NOSF_OFF,NOS2,"INFERRED: WB26 lists four alternatives (Norway to DE/BE/NL/DK) at 1400 MW; RG26 models the Germany alternative (NOSF_OFF-NOS2 1400 MW from 2035), as did the TYNDP 2024 export"
+1200,"Hybrid interconnector Norway-Sørvest F Windfarm-Continent (DK, DE, BE or NL)",True,1400,1400,DE00,NOSF_OFF,INFERRED: second leg of the Germany alternative; border and capacity from RG26 (DE00-NOSF_OFF 1400 MW from 2035)
+1201,Reinvestment of Skagerrak 1 and 2,True,200,200,DKW1,NOS2,"INFERRED: WB26 lists DKW1-NOS0 700 MW (NOS0 is not a node); RG26 raises DKW1-NOS2 from 1632 to 1832 MW in 2040, so the capacity increase is 200 MW"
+1217,Further Development of Offshore Renewables (MOG 3),False,2000,2000,BE00,BEO2_OFF,DATA: WB26 lists BE00 0/0; border and capacity from RG26 (BE00-BEO2_OFF 2000 MW from 2040) and the TYNDP 2024 corrections (2000 MW)
