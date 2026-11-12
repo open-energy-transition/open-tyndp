@@ -887,6 +887,78 @@ def read_reference_grid(grid_fn: str, horizon: int) -> pd.DataFrame:
     return grid.drop(columns=["bus0", "bus1"]).fillna(0).rename_axis("link_id")
 
 
+def reconcile_reference_grid(
+    grid: pd.DataFrame, projects: pd.DataFrame, t3_methods: pd.Series
+) -> tuple[pd.Series, list[int]]:
+    """
+    Reconcile the reference grid between the data bundle and the CBA Implementation Guidelines reference grid projects table.
+
+    On links with TOOT projects in the CBA Implementation Guidelines table, capacity missing from the reference grid total
+    is added. The capacity above the 2025 NTC and CBA Implementation Guidelines table TOOT projects is then assigned,
+    in project ID order, first to tagged T3 PINT projects (removed from the reference)
+    and then to projects not in the CBA Implementation Guidelines table (kept in the reference).
+    A project is assigned only if its capacity fits on all its directed links.
+
+    Parameters
+    ----------
+    grid : pd.DataFrame
+        Reference grid per directed link, see `read_reference_grid`.
+    projects : pd.DataFrame
+        Transmission projects with `bus0`, `bus1`, `p_nom 0->1` and `p_nom 1->0`.
+    t3_methods : pd.Series
+        Table 3 (from the draft CBA Implementation Guidelines table) method (`toot` or `pint`) of the planning horizon, indexed by project ID.
+
+    Returns
+    -------
+    pd.Series
+        Capacity corrections per directed link ID.
+    list[int]
+        IDs of projects not in T3 that the reference grid contains.
+    """
+    directions = [("bus0", "bus1", "p_nom 0->1"), ("bus1", "bus0", "p_nom 1->0")]
+    directed = (
+        pd.concat(
+            projects.assign(
+                link_id=projects[bus0] + "-" + projects[bus1] + "-DC",
+                capacity=projects[p_nom],
+            )
+            for bus0, bus1, p_nom in directions
+        )
+        .query("capacity > 0")
+        .groupby(["project_id", "link_id"])["capacity"]
+        .sum()
+    )
+
+    method = directed.index.get_level_values("project_id").map(t3_methods)
+    toot = directed[method == "toot"].groupby("link_id").sum()
+    excess = (grid["total"] - grid["ntc25"]).sub(toot, fill_value=0)
+    corrections = (-excess).clip(lower=0).reindex(toot.index)
+    available = excess.clip(lower=0)
+
+    tags = grid.drop(columns=["ntc25", "total"])
+    project_ids = directed.index.unique("project_id")
+    t3_pint = t3_methods.index[t3_methods.eq("pint")].intersection(
+        tags.columns[tags.gt(0).any()]
+    )
+    candidates = [
+        *project_ids.intersection(t3_pint).sort_values(),
+        *project_ids.difference(t3_methods.index).sort_values(),
+    ]
+
+    in_reference = []
+    for project_id in candidates:
+        capacity = directed[project_id]
+        if capacity.gt(available.reindex(capacity.index, fill_value=0)).any():
+            continue
+        available = available.sub(capacity, fill_value=0)
+        if project_id in t3_pint:
+            corrections = corrections.sub(capacity, fill_value=0)
+        else:
+            in_reference.append(project_id)
+
+    return corrections[corrections.ne(0)].rename("p_nom"), in_reference
+
+
 def build_transmission_method_assignments(
     guidelines_fn: str,
     projects: pd.DataFrame,
