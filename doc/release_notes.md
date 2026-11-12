@@ -11,6 +11,8 @@
 
 **Features**
 
+* feat: update the TYNDP 2026 data bundle to ENTSO-E's reference dataset of 2026-11-11 ([#1148](https://github.com/open-energy-transition/open-tyndp/pull/1148)). This includes the updated PECD `4.2.1` with IE00 2040 wind capacity factors, from which the pre-built PECD `4.2.1+pre-built.0.1` is now derived.
+
 * feat: model TYNDP 2026 passenger EV fleets explicitly (fixed, commuter and non-commuter fleets for street and home charging, with smart charging and V2G) and replace the PyPSA-Eur land transport by a flat TYNDP EU27 land transport oil demand ([#1039](https://github.com/open-energy-transition/open-tyndp/pull/1039)).
 
 * feat: remove DE and GA scenarios from TYNDP 2026; add in HEV and LEV as scenarios and config entries ([#1066](https://github.com/open-energy-transition/open-tyndp/pull/1066) and [#1092](https://github.com/open-energy-transition/open-tyndp/pull/1092)). HEV and LEV currently differ from NT+ only in fuel and CO2 prices. Demand adjustments (electricity market, prosumer demand, EV, H2, thermal energy demand), hydrogen import prices, and benchmarking are not yet included.
@@ -77,6 +79,8 @@
 
 **Documentation**
 
+* doc: update documentation to TYNDP 2026 ([#1123](https://github.com/open-energy-transition/open-tyndp/pull/1123)).
+
 **Developers Note**
 
 * Rename `pyear` to `planning_horizon` and `cyear` to `wscenario` ([#878](https://github.com/open-energy-transition/open-tyndp/pull/878)). The CBA scenarios {NT,DE,GA}-ws{1995,2008,2009} still align with the TYNDP 2024 climate years; only the prefix has been changed. They are not TYNDP 2026 weather scenarios, which are indices (WS003, WS021, ...) configured through the `wscenarios_tyndp` config option (renamed from `weather_scenarios_tyndp`). The `ws` prefix is now shared by both numbering schemes in 2024 and 2026, but `ws1995` should not be read as a 2026 weather scenario. Additionally, some functions were renamed as well (e.g., `safe_pyear` to `safe_planning_horizon`).
@@ -84,6 +88,11 @@
 * ci: run the TYNDP Scenario Building and CBA test workflows past `prepare_sector_network` again, covering the solve and benchmark steps ([#1044](https://github.com/open-energy-transition/open-tyndp/pull/1044)). These steps were skipped in CI since [#865](https://github.com/open-energy-transition/open-tyndp/pull/865) and run through again since [#920](https://github.com/open-energy-transition/open-tyndp/pull/920).
 
 * Add a workflow that closes linked issues when a PR is merged into `tyndp-2026` ([#1040](https://github.com/open-energy-transition/open-tyndp/pull/1040)).
+
+* Remove dead code segments in `build_electricity_demand` and `add_electricity` ([#1129](https://github.com/open-energy-transition/open-tyndp/pull/1129)).
+
+* Add check and logger warning for when a node has capacity data for a technology in the PEMMDB dataset but no capacity factors for the same technology in the PECD dataset ([#1126](https://github.com/open-energy-transition/open-tyndp/pull/1126)).
+
 
 **Breaking Changes**
 

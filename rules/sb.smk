@@ -89,7 +89,7 @@ if not "pre-built" in PECD_DATASET["version"]:
         log:
             "logs/prepare_tyndp_pecd_release.log",
         benchmark:
-            benchmarks("performances/prepare_tyndp_pecd_release")
+            "benchmarks/performances/prepare_tyndp_pecd_release"
         threads: 4
         resources:
             mem_mb=1000,
@@ -157,6 +157,8 @@ rule clean_tyndp_pecd_data:
     input:
         pecd_prebuilt=get_pecd_prebuilt,
         buses_tyndp=rules.build_tyndp_network.output.substations,
+        pemmdb_capacities=resources("pemmdb_capacities_{horizon}.csv"),
+        carrier_mapping="data/tyndp_technology_map.csv",
     output:
         pecd_data_clean=resources("pecd_data_{technology}_{horizon}.csv"),
     log:
