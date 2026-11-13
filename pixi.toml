@@ -16,9 +16,6 @@ linopy = "0d"
 pypsa = "0d"
 atlite = "0d"
 
-# added to pull tornado 6.6
-tornado = "0d"
-
 [target.win-64.activation.env]
 
 # Local snakemake jobs often fail with status code 120, due to stdout/stderr interleaving
