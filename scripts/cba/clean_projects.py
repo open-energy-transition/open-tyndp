@@ -937,10 +937,20 @@ def reconcile_reference_grid(
     available = unassigned.clip(lower=0)
 
     tags = grid.drop(columns=["ntc25", "total"])
+    tagged = tags.columns[tags.gt(0).any()]
     project_ids = directed.index.unique("project_id")
-    t3_pint = t3_methods.index[t3_methods.eq("pint")].intersection(
-        tags.columns[tags.gt(0).any()]
+    t3_pint = t3_methods.index[t3_methods.eq("pint")].intersection(tagged)
+
+    missing_toot = (
+        t3_methods.index[t3_methods.eq("toot")]
+        .intersection(tagged)
+        .difference(project_ids)
     )
+    if not missing_toot.empty:
+        logger.warning(
+            f"TOOT projects {missing_toot.tolist()} (from CBA Implementation Guide Appendix Table 3) are tagged in the reference grid but not in the cleaned transmission projects (e.g. dropped for unknown bus codes), so their capacity is treated as unassigned."
+        )
+
     candidates = [
         *project_ids.intersection(t3_pint).sort_values(),
         *project_ids.difference(t3_methods.index).sort_values(),
