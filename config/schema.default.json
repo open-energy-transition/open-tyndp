@@ -491,6 +491,11 @@
             }
           }
         },
+        "patch_sb_reference_grid": {
+          "default": false,
+          "description": "If true, apply the CBA reference grid corrections to the SB network in `prepare_sector_network` instead of to the CBA reference network in `prepare_reference`, so that SB and CBA use the same grid.",
+          "type": "boolean"
+        },
         "sb_scenario": {
           "anyOf": [
             {
@@ -17646,6 +17651,11 @@
               "type": "string"
             }
           }
+        },
+        "patch_sb_reference_grid": {
+          "default": false,
+          "description": "If true, apply the CBA reference grid corrections to the SB network in `prepare_sector_network` instead of to the CBA reference network in `prepare_reference`, so that SB and CBA use the same grid.",
+          "type": "boolean"
         },
         "sb_scenario": {
           "anyOf": [

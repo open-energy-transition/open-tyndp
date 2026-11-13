@@ -182,6 +182,10 @@ class CbaConfig(BaseModel):
         default_factory=_CbaSbToCbaConfig,
         description="Settings for using pre-solved SB networks as inputs to the CBA workflow.",
     )
+    patch_sb_reference_grid: bool = Field(
+        False,
+        description="If true, apply the CBA reference grid corrections to the SB network in `prepare_sector_network` instead of to the CBA reference network in `prepare_reference`, so that SB and CBA use the same grid.",
+    )
     sb_scenario: str | None = Field(
         default=None,
         description="Scenario building scenario (e.g. 'NT') whose TYNDP results are used as benchmark in the CBA indicators.",

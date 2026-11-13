@@ -1733,6 +1733,7 @@ cba:
   cba_scenario_input:
     use_presolved: false
     sb_version: latest
+  patch_sb_reference_grid: false
   sb_scenario:
   scenarios: []
   projects: []

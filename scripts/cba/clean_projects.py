@@ -862,8 +862,8 @@ def build_transmission_method_assignments(
     custom_transmission_projects: pd.DataFrame,
 ) -> pd.DataFrame:
     """
-    Determine the CBA assessment method for each project. The method is PINT (default) or TOOT and
-    depends on the planning horizon (2030 or 2040).
+    Determine the CBA assessment method for each project. The method is PINT (default) or TOOT,
+    depending on the planning horizon (2030 or 2040).
 
     Parameters
     ----------

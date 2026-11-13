@@ -30,10 +30,6 @@ when `cba.cba_scenario_input.use_presolved` is `true`.
 
 ::: simplify_sb_network
 
-### Rule `fix_reference_sb_to_cba`
-
-::: fix_reference_sb_to_cba
-
 ### Rule `prepare_reference`
 
 ::: prepare_reference

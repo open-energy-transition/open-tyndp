@@ -38,6 +38,7 @@ from scripts.add_electricity import (
 from scripts.build_co2_totals import build_co2_totals, build_eea_co2, build_eurostat_co2
 from scripts.build_transport_demand import transport_degree_factor
 from scripts.build_tyndp_electricity_ntc import apply_tyndp_electricity_ntc
+from scripts.cba.prepare_reference import apply_reference_corrections
 from scripts.definitions.heat_sector import HeatSector
 from scripts.definitions.heat_system import HeatSystem
 from scripts.sb._helpers import (
@@ -9734,6 +9735,9 @@ def main(
             f"Overlaying TYNDP electricity NTC for planning horizon {current_horizon}"
         )
         apply_tyndp_electricity_ntc(n, inputs.tyndp_electricity_ntc, current_horizon)
+
+    if inputs.reference_corrections:
+        apply_reference_corrections(n, inputs.reference_corrections, current_horizon)
 
     if params.load["source"] == "tyndp":
         logger.info(

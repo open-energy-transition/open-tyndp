@@ -52,6 +52,13 @@ def get_tyndp_compose_inputs(w):
             and elec["tyndp_reference_year"] != horizon
             else []
         ),
+        "reference_corrections": (
+            resources(f"cba/reference_sb_to_cba_{horizon}.csv")
+            if scenario
+            and cfg["cba"]["patch_sb_reference_grid"]
+            and horizon in [2030, 2040]
+            else []
+        ),
     }
 
     inputs |= gated_inputs(
