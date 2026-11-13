@@ -89,6 +89,14 @@ per-horizon TYNDP electricity market demand onto the clustered network buses, so
 
 ::: build_tyndp_gas_demand
 
+### Rule `build_tyndp_cop_profiles`
+
+::: build_tyndp_cop_profiles
+
+### Rule `build_tyndp_hybrid_heating`
+
+::: build_tyndp_hybrid_heating
+
 ### Rule `build_tyndp_wheeling_charges`
 
 ::: build_tyndp_wheeling_charges

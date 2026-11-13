@@ -157,7 +157,7 @@ if config["foresight"] != "perfect":
         resources("maps/clustered_network.pdf"),
         RESULTS + "maps/static/power_network_{horizon}.pdf",
     ]
-    if config["sector"]["enabled"]:
+    if config["sector"]["enabled"] and not config["tyndp_scenario"]:
         NETWORK_PLOT_OUTPUTS.append(RESULTS + "graphs/cop_profiles_{horizon}.html")
     TIMESERIES_OUTPUTS = [
         RESULTS + "graphs/balance_timeseries_{horizon}",

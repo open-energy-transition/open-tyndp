@@ -5253,6 +5253,128 @@ def attach_gas_load(
     )
 
 
+def add_hybrid_heating_tyndp(
+    n: pypsa.Network,
+    costs: pd.DataFrame,
+    cop_profiles_file: str,
+    thermal_demand_files: dict[str, str],
+    hybrid_heating_boilers_file: str,
+    spatial: SimpleNamespace,
+) -> None:
+    """
+    Add TYNDP hybrid heat pumps with their exogenous heat demand.
+
+    Independent of ``sector.heating``. Per backup fuel (CH4, H2) and node, a
+    heat bus with the TYNDP thermal demand is supplied by an air heat pump or
+    a CH4 or H2 boiler. Capacities are fixed and infinite, not optimised.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object.
+    costs : pd.DataFrame
+        Technology costs, providing ``hybrid gas boiler`` and
+        ``hybrid H2 boiler`` efficiencies and the gas CO2 intensity.
+    cop_profiles_file : str
+        Path to the TYNDP COP profiles (`build_tyndp_cop_profiles`).
+    thermal_demand_files : dict[str, str]
+        Paths to the thermal demand time series in MW_th per node, keyed by
+        backup fuel (``"CH4"``, ``"H2"``).
+    hybrid_heating_boilers_file : str
+        Path to the hybrid heat pump boiler topology
+        (`build_tyndp_hybrid_heating`).
+    spatial : SimpleNamespace
+        Spatial resolution of the gas buses.
+    """
+    logger.info("Add TYNDP hybrid heat pumps")
+
+    cop = (
+        xr.open_dataarray(cop_profiles_file)
+        .sel(heat_system="hybrid", heat_source="air")
+        .to_pandas()
+        .reindex(n.snapshots)
+    )
+    boilers = pd.read_csv(hybrid_heating_boilers_file, index_col="node")
+
+    for fuel, demand_file in thermal_demand_files.items():
+        heat_system = f"{fuel} hybrid"
+        boiler = "gas boiler" if fuel == "CH4" else "H2 boiler"
+        fuel_boilers = boilers.query("fuel == @fuel")
+
+        demand = pd.read_csv(demand_file, index_col=0, parse_dates=True).reindex(
+            n.snapshots
+        )
+        unknown = demand.columns.difference(fuel_boilers.index)
+        if not unknown.empty:
+            logger.warning(
+                f"Dropping {fuel} hybrid heat demand of nodes without TYNDP hybrid heat pump: {unknown.tolist()}"
+            )
+        nodes = demand.columns.intersection(fuel_boilers.index)
+        elec_nodes = pd.Index(fuel_boilers.bus.groupby(level="node").first().loc[nodes])
+        heat_buses = nodes + f" {heat_system} heat"
+        n.add(
+            "Carrier",
+            [
+                f"{heat_system} heat",
+                f"{heat_system} air heat pump",
+                f"{heat_system} {boiler}",
+            ],
+        )
+        n.add(
+            "Bus",
+            heat_buses,
+            location=elec_nodes,
+            carrier=f"{heat_system} heat",
+            unit="MWh_th",
+        )
+        n.add(
+            "Load",
+            heat_buses,
+            bus=heat_buses,
+            carrier=f"{heat_system} heat",
+            p_set=demand[nodes].set_axis(heat_buses, axis=1),
+        )
+
+        heat_pumps = nodes + f" {heat_system} air heat pump"
+        n.add(
+            "Link",
+            heat_pumps,
+            bus0=heat_buses,
+            bus1=elec_nodes,
+            carrier=f"{heat_system} air heat pump",
+            efficiency=(1 / cop[elec_nodes]).set_axis(heat_pumps, axis=1),
+            p_nom=np.inf,
+            p_min_pu=-1,
+            p_max_pu=0,
+        )
+
+        node_boilers = fuel_boilers.loc[nodes]
+        boiler_nodes = node_boilers.index
+        boiler_attrs = dict(
+            bus1=boiler_nodes + f" {heat_system} heat",
+            carrier=f"{heat_system} {boiler}",
+            efficiency=costs.at[f"hybrid {boiler}", "efficiency"],
+            p_nom=np.inf,
+        )
+        if fuel == "CH4":
+            n.add(
+                "Link",
+                boiler_nodes + f" {heat_system} {boiler}",
+                bus0=spatial.gas.df.loc[node_boilers.bus, "nodes"].values,
+                bus2="co2 atmosphere",
+                efficiency2=costs.at["gas", "CO2 intensity"],
+                **boiler_attrs,
+            )
+        else:
+            fuel_nodes = node_boilers.fuel_bus.values
+            n.add(
+                "Link",
+                boiler_nodes + f" {heat_system} {boiler} " + fuel_nodes,
+                bus0=fuel_nodes,
+                **boiler_attrs,
+            )
+
+
 def check_land_transport_shares(shares):
     # Sums up the shares, ignoring None values
     total_share = sum(filter(None, shares))
@@ -9989,6 +10111,19 @@ def main(
             gas_demand_fn=inputs.gas_demand,
             options=options,
             costs=costs,
+            spatial=spatial,
+        )
+
+    if tyndp_scenario:
+        add_hybrid_heating_tyndp(
+            n=n,
+            costs=costs,
+            cop_profiles_file=inputs.cop_profiles,
+            thermal_demand_files={
+                "CH4": inputs.thermal_demand_ch4,
+                "H2": inputs.thermal_demand_h2,
+            },
+            hybrid_heating_boilers_file=inputs.hybrid_heating_boilers,
             spatial=spatial,
         )
 
