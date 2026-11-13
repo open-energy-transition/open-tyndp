@@ -85,6 +85,14 @@ def get_tyndp_compose_inputs(w):
         h2_import_profiles_tyndp=resources(f"h2_import_profiles_{horizon}.csv"),
         tyndp_smr=resources(f"smr_data_prepped_{horizon}.csv"),
         tyndp_h2_storages=resources(f"h2_storages_prepped_{horizon}.csv"),
+        p2g_shares=resources(f"p2g_shares_{horizon}.csv"),
+    )
+
+    inputs |= gated_inputs(
+        h2_tyndp and sector["synfuels_tyndp"]["enable"],
+        synfuel_demand_tyndp=resources(f"demand_tyndp_synthetic_fuels_{horizon}.csv"),
+        synfuel_links_tyndp=resources(f"synfuel_links_tyndp_{horizon}.csv"),
+        synfuel_generators_tyndp=resources(f"synfuel_generators_tyndp_{horizon}.csv"),
     )
 
     if elec["pecd_renewable_profiles"]["enable"]:

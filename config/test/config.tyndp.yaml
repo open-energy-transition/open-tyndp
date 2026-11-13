@@ -56,6 +56,7 @@ co2_budget:
 
 electricity:
   base_network: tyndp
+  remove_unconnected_components: false
 
   extendable_carriers:
     Generator: []
@@ -267,11 +268,11 @@ sector:
     2035: 0
     2040: 0
     2050: 0
-  shipping_oil_share:  # TYNDP 2026 Supply Tool NT+, FuelEU Maritime-compliant fuel split (not raw ETM demand)
-    2030: 0.875
-    2035: 0.751
-    2040: 0.547
-    2050: 0.138
+  shipping_oil_share:  # TYNDP 2026 NT+ EU27 ETM liquids in navigation incl. e-fuels (int. shipping and domestic: 425.4, 363.0, 294.8, 215.3 TWh) / EU27 all_navigation (503.6 TWh)
+    2030: 0.845
+    2035: 0.721
+    2040: 0.585
+    2050: 0.428
   oil_boilers: false
   biomass_boiler: false
   solar_thermal: false
@@ -280,11 +281,11 @@ sector:
   regional_co2_sequestration_potential:
     enable: false
   co2_sequestration_potential:
-    # Values from TYNDP 2026 Supply Tool NT+ (CCS sheet, "Total CCS")
-    2030: 44
-    2035: 111
-    2040: 142
-    2050: 179
+    # Values from TYNDP 2026 Supply Tool NT+ (Carbon budget sheet, captured CO2 minus CCU); 2050 excludes the "not specified" CCS
+    2030: 35.24
+    2035: 87.41
+    2040: 106.07
+    2050: 99.74
   co2_spatial: false
   co2_network: false
   methanol:
@@ -293,6 +294,11 @@ sector:
     biomass_to_methanol: false
   ammonia: false
   h2_topology_tyndp: true
+  synfuels_tyndp:
+    enable: true
+    carriers:
+      "e-liquids": oil
+      sng: gas
   smr_ramp_limits_tyndp: true
   gas_network: false
   gas_distribution_grid: false
@@ -300,6 +306,7 @@ sector:
   biomass_spatial: false
   biomass_to_liquid: true
   biomass_to_liquid_cc: true
+  biogas_upgrading_cc: true
   force_biomass_potential: true
   force_biogas_potential: true
   biomass_final_demand: # in TWh and for 8760h, TYNDP 2026 Supply Tool NT+: ETM final energy demand + for heat production + for biogas not upgraded to biomethane
@@ -315,6 +322,8 @@ sector:
     enable: true
     carriers:
     - H2
+    - e-liquids
+    - sng
 
 costs:
   custom_cost_scn: NT

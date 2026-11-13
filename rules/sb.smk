@@ -89,7 +89,7 @@ if not "pre-built" in PECD_DATASET["version"]:
         log:
             "logs/prepare_tyndp_pecd_release.log",
         benchmark:
-            benchmarks("performances/prepare_tyndp_pecd_release")
+            "benchmarks/performances/prepare_tyndp_pecd_release"
         threads: 4
         resources:
             mem_mb=1000,
@@ -177,6 +177,8 @@ rule clean_tyndp_pecd_data:
     input:
         pecd_prebuilt=get_pecd_prebuilt,
         buses_tyndp=rules.build_tyndp_network.output.substations,
+        pemmdb_capacities=resources("pemmdb_capacities_{horizon}.csv"),
+        carrier_mapping="data/tyndp_technology_map.csv",
     output:
         pecd_data_clean=resources("pecd_data_{technology}_{horizon}.csv"),
     log:
@@ -504,6 +506,23 @@ if config["sector"]["h2_topology_tyndp"]:
         script:
             scripts("sb/build_tyndp_h2_imports.py")
 
+    rule build_tyndp_p2g_shares:
+        input:
+            p2g_emarket=rules.retrieve_tyndp_2026.output.p2g_emarket,
+        output:
+            p2g_shares=resources("p2g_shares_{horizon}.csv"),
+        log:
+            logs("build_tyndp_p2g_shares_{horizon}.log"),
+        benchmark:
+            benchmarks("performances/build_tyndp_p2g_shares_{horizon}")
+        conda:
+            "../envs/environment.yaml"
+        threads: 1
+        resources:
+            mem_mb=4000,
+        script:
+            scripts("sb/build_tyndp_p2g_shares.py")
+
     rule clean_tyndp_smr:
         input:
             smr=rules.retrieve_tyndp_2026.output.smr,
@@ -537,6 +556,33 @@ if config["sector"]["h2_topology_tyndp"]:
             mem_mb=4000,
         script:
             scripts("sb/clean_tyndp_h2_storages.py")
+
+
+if (
+    config["sector"]["h2_topology_tyndp"]
+    and config["sector"]["synfuels_tyndp"]["enable"]
+):
+
+    rule build_tyndp_synfuels:
+        input:
+            synfuel_lines=rules.retrieve_tyndp_2026.output.synfuel_lines,
+            synfuel_generators=rules.retrieve_tyndp_2026.output.synfuel_generators,
+        output:
+            synfuel_links=resources("synfuel_links_tyndp_{horizon}.csv"),
+            synfuel_generators=resources("synfuel_generators_tyndp_{horizon}.csv"),
+        log:
+            logs("build_tyndp_synfuels_{horizon}.log"),
+        benchmark:
+            benchmarks("performances/build_tyndp_synfuels_{horizon}")
+        conda:
+            "../envs/environment.yaml"
+        threads: 1
+        resources:
+            mem_mb=1000,
+        params:
+            synfuels=config_provider("sector", "synfuels_tyndp", "carriers"),
+        script:
+            scripts("sb/build_tyndp_synfuels.py")
 
 
 rule group_tyndp_conventionals:
@@ -660,6 +706,7 @@ if config["benchmarking"]["enable"]:
             group_tyndp_conventionals=config_provider(
                 "electricity", "group_tyndp_conventionals"
             ),
+            synfuels=config_provider("sector", "synfuels_tyndp", "carriers"),
         script:
             scripts("sb/build_statistics.py")
 
