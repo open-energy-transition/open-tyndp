@@ -106,7 +106,7 @@ implementations, and custom extensions all observe the same precedence rules.
 Version of Open-TYNDP. Descriptive only.
 
 - **Type:** string
-- **Default:** `v2026.09.0`
+- **Default:** `v0.9.1`
 
 **YAML Syntax**
 

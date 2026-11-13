@@ -11249,7 +11249,7 @@
   "description": "Combined configuration schema for PyPSA-EUR.",
   "properties": {
     "version": {
-      "default": "v0.9",
+      "default": "v0.9.1",
       "description": "Version of Open-TYNDP. Descriptive only.",
       "type": "string"
     },
