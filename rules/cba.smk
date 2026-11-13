@@ -246,14 +246,22 @@ rule fix_reference_sb_to_cba:
         scripts("cba/fix_reference_sb_to_cba.py")
 
 
+def input_reference_corrections(w):
+    """Return the reference grid corrections, unless the SB network already has them."""
+    patched_in_sb = config_provider("cba", "patch_sb_reference_grid")(w)
+    presolved = config_provider("cba", "cba_scenario_input", "use_presolved")(w)
+    if patched_in_sb and not presolved:
+        return []
+    horizon = _effective_horizon(int(w.horizon))
+    return resources(f"cba/reference_sb_to_cba_{horizon}.csv")
+
+
 # Build reference network
 # Ensures MSV extraction and rolling horizon use the same baseline
 rule prepare_reference:
     input:
         network=rules.simplify_sb_network.output.network,
-        corrections=lambda w: resources(
-            f"cba/reference_sb_to_cba_{_effective_horizon(int(w.horizon))}.csv"
-        ),
+        corrections=input_reference_corrections,
     output:
         network=resources("cba/networks/reference_{horizon}.nc"),
     log:
