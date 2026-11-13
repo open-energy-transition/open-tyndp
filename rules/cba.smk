@@ -253,15 +253,15 @@ rule fix_reference_sb_to_cba:
 rule prepare_reference:
     input:
         network=rules.simplify_sb_network.output.network,
-        corrections=rules.clean_projects.output.reference_sb_to_cba,
+        corrections=lambda w: resources(
+            f"cba/reference_sb_to_cba_{_effective_horizon(int(w.horizon))}.csv"
+        ),
     output:
         network=resources("cba/networks/reference_{horizon}.nc"),
     log:
         logs("cba/prepare_reference_{horizon}.log"),
     benchmark:
         benchmarks("performances/cba/prepare_reference_{horizon}")
-    params:
-        horizon=lambda w: _effective_horizon(int(w.horizon)),
     script:
         scripts("cba/prepare_reference.py")
 

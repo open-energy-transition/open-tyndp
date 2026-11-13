@@ -6,7 +6,7 @@
 Prepare the CBA reference network of a planning horizon.
 
 Applies the capacity corrections from the SB to the CBA reference grid
-(see `clean_projects.reconcile_reference_grid`) to the simplified SB network.
+(see `fix_reference_sb_to_cba.reconcile_reference_grid`) to the simplified SB network.
 """
 
 import logging
@@ -34,10 +34,7 @@ if __name__ == "__main__":
 
     n = pypsa.Network(snakemake.input.network)
 
-    horizon = snakemake.params.horizon
-    corrections = pd.read_csv(snakemake.input.corrections, index_col="link_id").query(
-        "planning_horizon == @horizon"
-    )["p_nom"]
+    corrections = pd.read_csv(snakemake.input.corrections, index_col="link_id")["p_nom"]
 
     missing = corrections.index.difference(n.links.index)
     if not missing.empty:
@@ -46,7 +43,9 @@ if __name__ == "__main__":
         )
     corrections = corrections.drop(missing)
 
-    logger.info(f"Reference grid corrections for {horizon} (MW):\n{corrections}")
+    logger.info(
+        f"Reference grid corrections for {snakemake.wildcards.horizon} (MW):\n{corrections}"
+    )
     n.links.loc[corrections.index, "p_nom"] += corrections
 
     n.export_to_netcdf(snakemake.output.network)
