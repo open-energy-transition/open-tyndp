@@ -469,6 +469,7 @@ cba:
   cba_scenario_input:
     use_presolved: false
     sb_version: latest # use 'latest' or a supported version from data/tyndp_versions.csv for pre-solved SB network input in CBA; only applies if use_presolved is true
+  patch_sb_reference_grid: true # apply the CBA reference grid corrections in SB, so SB and CBA use the same grid
   projects:
   - t225 # PINT
   - t339 # TOOT
