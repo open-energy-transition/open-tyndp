@@ -6,7 +6,7 @@
 # Specify the name of the scenario(s) you want to run from config/scenarios.tyndp.yaml
 run:
   name:
-  - NT
+  - NT-20261113
 
 remote:
   # Project-specific files to pull with sync_file rule

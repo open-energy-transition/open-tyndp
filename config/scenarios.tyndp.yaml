@@ -4,7 +4,7 @@
 
 
 # NT Scenario - Defined in config/config.tyndp.yaml
-NT:
+NT-20261113:
   tyndp_scenario: NT
 
 # HEV: same inputs as NT, with fuel and CO2 prices +10% (TYNDP 2026 Scenarios Methodology Report, ch. 10, p. 65)
