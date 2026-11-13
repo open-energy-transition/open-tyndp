@@ -51,6 +51,12 @@ set-resources:
     mem_mb: 32000
   simplify_sb_network:
     mem_mb: 8000
+  prepare_reference:
+    mem_mb: 8000
+  prepare_project:
+    mem_mb: 8000
+  prepare_rolling_horizon:
+    mem_mb: 8000
   solve_network:
     solver_license: 1
   solve_cba_msv_extraction:
