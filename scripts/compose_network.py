@@ -14,6 +14,7 @@ from scripts._helpers import (
     configure_logging,
     load_costs,
     sanitize_custom_columns,
+    sanitize_isolated_buses,
     set_scenario_config,
 )
 from scripts.add_brownfield import adjust_renewable_capacity_limits
@@ -115,6 +116,9 @@ if __name__ == "__main__":
     adjustments = params.adjustments
     maybe_adjust_costs_and_potentials(n, adjustments["electricity"], current_horizon)
     maybe_adjust_costs_and_potentials(n, adjustments["sector"], current_horizon)
+
+    if not params.electricity["remove_unconnected_components"]:
+        sanitize_isolated_buses(n)
 
     sanitize_custom_columns(n)
     sanitize_carriers(n, config)
