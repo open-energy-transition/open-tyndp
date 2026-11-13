@@ -86,3 +86,13 @@ The `{version}`, `{pecd_version}` and `{pecd_prebuilt_version}` placeholders ref
 - **Source:** TYNDP 2026 Scenarios, <https://2026.entsos-tyndp-scenarios.eu/download/>
 - **Link:** `https://storage.googleapis.com/open-tyndp-data-store/2026/{version}/additional/TYNDP_2026_Scenario_Report_Data_Figures.xlsx`
 - **Description:** Contains the data used to produce the figures in the TYNDP 2026 Scenarios Report. Used for benchmarking.
+
+## `data/cba/table_3_CBA_Implementation_Guidelines_TYNDP2026.csv`
+
+- **Source:** draft TYNDP 2026 CBA Implementation Guidelines (for public consultation), Appendix Table 3, <https://eepublicdownloads.blob.core.windows.net/public-cdn-container/tyndp-documents/TYNDP2026/Draft_TYNDP_2026_CBA_ImpG_for_PC.pdf>
+- **Link:** On repository (not retrieved/downloaded). Full provenance and description are documented under [Data Repositories](data-repos.md).
+
+## `data/cba/tyndp_2026_cba_projects/{transmission,storage}.xlsx`
+
+- **Source:** TYNDP 2026 projects export, <https://tyndp2026.entsoe.eu/projects-map>
+- **Link:** On repository (not retrieved/downloaded). Full provenance and description are documented under [Data Repositories](data-repos.md).

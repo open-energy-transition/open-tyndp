@@ -12,9 +12,10 @@ when the format does not match, when either bus is absent from the TYNDP node li
 when no capacity is reported in either direction.
 
 Reads storage projects from the "Stor.Projects" sheet. Each project's country is mapped
-to a representative electricity bus. Storage projects are assigned TOOT or PINT based on
-whether they are already part of the reference grid, same as transmission projects; TOOT
-storage projects are not yet supported downstream (see `prepare_project.py`).
+to a representative electricity bus. The TYNDP 2026 data export has no reference-grid flags for
+storage projects, so TOOT or PINT is approximated from the project status and commissioning
+year (see `build_storage_method_assignments`). TOOT storage projects are not yet supported
+downstream and are passed through unchanged (see `prepare_project.py`).
 
 Custom PINT transmission projects can be configured using `data/cba/custom_projects/transmission_projects.csv`. With it,
 the user can modify existing projects and add new ones. Transmission capacities are in MW.
@@ -27,10 +28,10 @@ the user can modify existing projects and add new ones. Transmission capacities 
 
 **Inputs**
 
-- `data/tyndp_2024_bundle/cba_projects/20250312_export_transmission.xlsx`: Excel file containing CBA transmission projects
-- `data/tyndp_2024_bundle/cba_projects/20250312_export_storage.xlsx`: Excel file containing CBA storage projects
-- `rules.retrieve_tyndp.output.nodes`: TYNDP electricity node list used to validate borders
-- `data/cba/table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv`: Table of projects as defined in the Implementation Guidelines Appendix B.1, used to assign the TOOT/PINT method per project and planning horizon
+- `data/cba/tyndp_2026_cba_projects/transmission.xlsx`: TYNDP 2026 Excel export of the transmission projects
+- `data/cba/tyndp_2026_cba_projects/storage.xlsx`: TYNDP 2026 Excel export of the storage projects
+- `rules.retrieve_tyndp_2026.output.nodes`: TYNDP 2026 electricity node list (onshore and offshore) used to validate borders
+- `data/cba/table_3_CBA_Implementation_Guidelines_TYNDP2026.csv`: Table of projects as defined in the draft TYNDP 2026 Implementation Guidelines Appendix Table 3, used to assign the TOOT/PINT method per project and planning horizon. The 2035 reference grid of the guidelines is used for the 2040 planning horizon
 - `data/cba/cba_project_corrections.csv`: Manually curated bus0/bus1/p_nom corrections for CBA projects, applied in place of the corresponding raw Excel entries
 - `data/cba/custom_projects/transmission_projects.csv`: File used to configure custom transmission projects. With it, the user can modify existing projects and add new ones.
 - `data/cba/custom_projects/generators_static.csv`: File used to configure custom generators. With it, user can modify static attributes of existing or new generators attached to a transmission / storage project.
@@ -45,11 +46,11 @@ the user can modify existing projects and add new ones. Transmission capacities 
   - `border`: Border string in format "BUS0-BUS1"
   - `p_nom 0->1`: Transfer capacity increase from bus0 to bus1 (MW)
   - `p_nom 1->0`: Transfer capacity increase from bus1 to bus0 (MW)
-  - `bus0`: Source bus code (4 alphanumeric characters)
-  - `bus1`: Destination bus code (4 alphanumeric characters)
-  - `length_km`: Total route length in km (from Trans.Investments)
-  - `capex_meur`: Total estimated CAPEX in MEUR (from Trans.Investments)
-  - `underwater_fraction`: Fraction of route that is offshore cable
+  - `bus0`: Source bus code
+  - `bus1`: Destination bus code
+  - `length_km`: Total route length in km; only set by custom projects, as the TYNDP 2026 export reports no lengths
+  - `capex_meur`: Total estimated CAPEX in MEUR; only set by custom projects
+  - `underwater_fraction`: Fraction of route that is offshore cable; only set by custom projects
 
 - `resources/cba/storage_projects.csv`: Cleaned CSV with columns:
   - `project_id`: Integer project identifier
@@ -63,6 +64,8 @@ the user can modify existing projects and add new ones. Transmission capacities 
   - `lifetime_years`: Operational lifetime (years); missing or zero values are replaced with `cba.storage.default_lifetime`
   - `carrier`: PyPSA carrier name for the storage technology
   - `bus`: Representative electricity bus for the project's country
+  - `status`: Project status
+  - `commissioning_year`: First year found in the commissioning date estimated by the promoter
 
 - `resources/cba/cba_project_methods.csv`: Table defining the assignment method of each project.
 
@@ -97,14 +100,6 @@ from scripts.sb._helpers import format_bz_names
 
 logger = logging.getLogger(__name__)
 
-# TYNDP 2024 virtual nodes added later in (the now TYNDP-2026-only)
-# build_tyndp_network.py, not present in the raw 2024 node list this
-# CBA-side script still consumes.
-AC_VIRTUAL_NODES_IT = {
-    "ITCO": "FR15",
-    "ITVI": "ITSI",
-}
-
 TRANSMISSION_PROJECTS_COLUMN_MAP = {
     "Project ID": "project_id",
     "Project Name": "project_name",
@@ -114,25 +109,28 @@ TRANSMISSION_PROJECTS_COLUMN_MAP = {
     "Transfer capacity increase B-A (MW)": "p_nom 1->0",
 }
 
-OFFSHORE_ELEMENT_TYPES = {
-    "OffshoreDCTransmissionCable",
-    "OffshoreACTransmissionCable",
-}
-
 STORAGE_PROJECTS_COLUMN_MAP = {
     "Project ID": "project_id",
     "Project Name": "project_name",
     "Country": "country",
     "Storage technology": "technology",
-    "Estimated CAPEX (MEUR)": "capex_meur",
-    "Estimated OPEX (MEUR/year)": "opex_meur_per_year",
+    "Commissioning year estimated by the promoter(s)": "commissioning_year",
+    "Status": "status",
+    "Estimated CAPEX (Meuro)": "capex_meur",
+    "Estimated OPEX (Meuro/year)": "opex_meur_per_year",
     "Total turbining capacity (MW)": "p_nom_discharge",
     "Total Pumping Capacity of Pump Storage (MW)": "p_nom_charge",
     "Storage Capacity (GWh)": "e_nom_gwh",
     "Roundtrip efficiency (%)": "roundtrip_efficiency",
     "Operational lifetime (Years)": "lifetime_years",
-    "Is the project in the reference grid 2030?": "in_ref_grid_2030",
-    "Is the project in the reference grid 2035?": "in_ref_grid_2035",
+}
+
+STORAGE_TOOT_CRITERIA = {
+    2030: ({"Under Construction", "In Permitting"}, 2030),
+    2040: (
+        {"Under Construction", "In Permitting", "Planned But Not Yet Permitting"},
+        2035,
+    ),
 }
 
 
@@ -159,7 +157,6 @@ def load_storage_technology_carrier_map(carrier_mapping_fn: str) -> pd.Series:
 def read_tyndp_electricity_buses(
     buses_fn: str,
     col_name: str,
-    virtual_buses: list[str] | None = None,
     sheet_name: str | int = 0,
 ) -> pd.Index:
     """
@@ -168,13 +165,9 @@ def read_tyndp_electricity_buses(
     Parameters
     ----------
     buses_fn : str
-        Path to a TYNDP node list Excel file ("LIST OF NODES.xlsx"
-        or offshore hubs "NODE.xlsx").
+        Path to the TYNDP node list Excel file ("LIST OF NODES.xlsx").
     col_name : str
         Column which is selected from the dataframe.
-    virtual_buses : list
-        List of virtual buses to add, not present in the raw node list
-        (e.g. added later in build_tyndp_network.py).
     sheet_name : str | int
         Sheet to read from `buses_fn`. Defaults to the first sheet.
 
@@ -187,50 +180,36 @@ def read_tyndp_electricity_buses(
     --------
     build_tyndp_network.py : build_buses
     """
-    virtual_buses = virtual_buses if virtual_buses is not None else []
-
     buses = format_bz_names(pd.read_excel(buses_fn, sheet_name=sheet_name)).set_index(
         col_name
     )
-
-    if "OFFSHORE_NODE_TYPE" in buses.columns:
-        # drop radial offshore nodes, which are not built as hub buses
-        buses = buses[buses.OFFSHORE_NODE_TYPE != "Radial"]
-
-    return buses.index.union(virtual_buses)
+    return buses.index
 
 
-def get_existing_buses(buses_fn: str, offshore_buses_fn: str | list | bool) -> pd.Index:
+def get_existing_buses(buses_fn: str) -> pd.Index:
     """
     Return the electricity buses used to validate CBA project borders.
-    Combines onshore buses with offshore hub buses, if provided, into a
+    Combines onshore and offshore buses of the TYNDP 2026 node list into a
     single index of existing bus names.
 
     Parameters
     ----------
     buses_fn : str
-        Path to the file defining TYNDP electricity buses.
-    offshore_buses_fn : str | list | bool
-        Path(s) to the file(s) defining offshore hub buses. If falsy, only
-        onshore buses are returned.
+        Path to the TYNDP 2026 node list ("LIST OF NODES.xlsx").
 
     Returns
     -------
     pd.Index
         Existing bus names, combining onshore and offshore buses.
     """
-    virtual_buses = [x for pair in AC_VIRTUAL_NODES_IT.items() for x in pair]
-    existing_buses = read_tyndp_electricity_buses(
-        buses_fn, col_name="NODE", virtual_buses=virtual_buses
+    onshore = read_tyndp_electricity_buses(
+        buses_fn, col_name="NODE", sheet_name="Electricity"
+    )
+    offshore = read_tyndp_electricity_buses(
+        buses_fn, col_name="NODE", sheet_name="Electricity_Offshore"
     )
 
-    if offshore_buses_fn:
-        existing_oh_buses = read_tyndp_electricity_buses(
-            offshore_buses_fn, col_name="OFFSHORE_NODE"
-        )
-        existing_buses = existing_buses.union(existing_oh_buses)
-
-    return existing_buses.rename("bus_ID")
+    return onshore.union(offshore).rename("bus_ID")
 
 
 def apply_cba_project_corrections(
@@ -348,7 +327,7 @@ def remove_unclear_border(
 
 def remove_no_capacity(projects: pd.DataFrame) -> pd.DataFrame:
     """
-    Remove projects with no capacity from the list of projects.
+    Remove projects with no capacity (missing or zero in both directions) from the list of projects.
 
     Parameters
     ----------
@@ -360,7 +339,7 @@ def remove_no_capacity(projects: pd.DataFrame) -> pd.DataFrame:
     pd.DataFrame
         Curated list of projects with a defined capacity.
     """
-    empty_capacity = projects["p_nom 0->1"].isna() & projects["p_nom 1->0"].isna()
+    empty_capacity = projects[["p_nom 0->1", "p_nom 1->0"]].fillna(0).eq(0).all(axis=1)
     if empty_capacity.sum() > 0:
         logger.warning(
             "%d out of %d extensions have no capacity, ignoring them:\n%s",
@@ -422,28 +401,15 @@ def extract_transmission_projects(
 
     projects = projects.assign(
         **format_bz_names(projects["border"]).str.extract(
-            r"(?P<bus0>[A-Za-z0-9]{4,}) ?- ?(?P<bus1>[A-Za-z0-9]{4,})$"
+            r"(?P<bus0>[A-Za-z0-9_]{4,}) ?- ?(?P<bus1>[A-Za-z0-9_]{4,})$"
         )
-    )
-
-    # For project t339, the border is given as ITCS-ITSI and ITSA-ITSI, when it should be connected to the virtual node ITVI instead: ITCS-ITVI and ITSA-ITVI
-    # Manually fixing this here (changing the border and bus1 columns)
-    t339_mask = projects.loc[projects["project_id"] == 339].index
-    projects.loc[t339_mask, ["border", "bus1"]] = projects.loc[
-        t339_mask, ["border", "bus1"]
-    ].replace(
-        {
-            "border": {"ITCS-ITSI": "ITCS-ITVI", "ITSA-ITSI": "ITSA-ITVI"},
-            "bus1": {"ITSI": "ITVI"},
-        }
     )
 
     # Apply manual CBA project corrections
     projects = apply_cba_project_corrections(corrections_path, projects)
 
-    # Clean the project list by removing projects with unclear borders or no capacity
+    # Clean the project list by removing projects with unclear borders
     projects = remove_unclear_border(projects, existing_buses)
-    projects = remove_no_capacity(projects)
 
     # Several projects have capacities with "Up to ..."
     cols = ["p_nom 0->1", "p_nom 1->0"]
@@ -462,7 +428,14 @@ def extract_transmission_projects(
     # convert to numeric
     projects[cols] = projects[cols].apply(pd.to_numeric, errors="coerce")
 
-    return projects
+    # Remove projects with no or zero capacity
+    projects = remove_no_capacity(projects)
+
+    return projects.assign(
+        length_km=float("nan"),
+        capex_meur=float("nan"),
+        underwater_fraction=float("nan"),
+    )
 
 
 def extract_custom_transmission_projects(
@@ -699,63 +672,14 @@ def extract_custom_generators(
     return custom_gens_static, custom_gens_dynamic
 
 
-def extract_investment_attributes(transmission_path: Path) -> pd.DataFrame:
-    """
-    Extract length, CAPEX, and underwater fraction from Trans.Investments sheet.
-
-    Aggregates investment-level data to the project level by summing route
-    lengths and CAPEX, and computing the underwater fraction from offshore
-    cable lengths.
-
-    Parameters
-    ----------
-    transmission_path : Path
-       Path to the Excel export defining the transmission projects and their investment attributes.
-
-    Returns
-    -------
-    pd.DataFrame
-       Route length, CAPEX and underwater fraction per project, indexed by ``project_id``.
-
-    """
-    inv = pd.read_excel(
-        transmission_path,
-        sheet_name="Trans.Investments",
-        skiprows=1,
-        usecols=[
-            "This investment belongs to project number…",
-            "Total route length (km)",
-            "Estimated CAPEX (MEUR)",
-            "Type of Element",
-        ],
-    ).rename(
-        columns={
-            "This investment belongs to project number…": "project_id",
-            "Total route length (km)": "length_km",
-            "Estimated CAPEX (MEUR)": "capex_meur",
-            "Type of Element": "element_type",
-        }
-    )
-
-    is_offshore = inv["element_type"].isin(OFFSHORE_ELEMENT_TYPES)
-
-    agg = inv.groupby("project_id").agg(
-        length_km=("length_km", "sum"),
-        capex_meur=("capex_meur", "sum"),
-    )
-    offshore_km = inv.loc[is_offshore].groupby("project_id")["length_km"].sum()
-    agg["underwater_fraction"] = (offshore_km / agg["length_km"]).fillna(0).round(3)
-
-    return agg
-
-
 def assign_country_bus(countries: pd.Series, existing_buses: pd.Index) -> pd.Series:
     """
     Assign each project's country name to a representative electrical bus.
 
     Country names (e.g. "Austria") are converted to ISO2 codes and matched
-    against the bus prefix (e.g. "AT00"). If a country has several buses,
-    the alphabetically first one is used and a warning is logged.
+    against the bus prefix (e.g. "AT00"). Offshore buses are ignored. If a
+    country has several buses, the alphabetically first one is used and a
+    warning is logged.
 
     Parameters
     ----------
@@ -772,7 +696,8 @@ def assign_country_bus(countries: pd.Series, existing_buses: pd.Index) -> pd.Ser
     iso2 = pd.Index(coco.convert(countries.unique().tolist(), to="ISO2"))
     country_to_iso2 = dict(zip(countries.unique(), iso2))
 
-    buses_by_country = existing_buses.to_series().groupby(existing_buses.str[:2])
+    onshore_buses = existing_buses[~existing_buses.str.endswith("_OFF")]
+    buses_by_country = onshore_buses.to_series().groupby(onshore_buses.str[:2])
     representative_bus = buses_by_country.first()
 
     multi_bus_countries = buses_by_country.nunique().loc[lambda s: s > 1]
@@ -839,6 +764,13 @@ def extract_storage_projects(
     )
     projects["project_id"] = projects["project_id"].astype(int)
     projects["roundtrip_efficiency"] = projects["roundtrip_efficiency"] / 100.0
+    projects["status"] = projects["status"].str.strip()
+    projects["commissioning_year"] = (
+        projects["commissioning_year"]
+        .astype(str)
+        .str.extract(r"(20\d\d)", expand=False)
+        .astype(float)
+    )
 
     unknown_technology = ~projects["technology"].isin(technology_carrier_map.index)
     if unknown_technology.any():
@@ -869,11 +801,6 @@ def extract_storage_projects(
     return projects.drop(columns=["technology", "country"])
 
 
-# The Stor.Projects sheet only reports reference-grid flags for 2030 and 2035;
-# 2035 is used as the nearest available proxy for the 2040 planning horizon.
-STORAGE_REF_GRID_HORIZON_COLUMN = {2030: "in_ref_grid_2030", 2040: "in_ref_grid_2035"}
-
-
 def build_storage_method_assignments(
     storage_projects: pd.DataFrame,
     planning_horizons: list[int],
@@ -881,17 +808,21 @@ def build_storage_method_assignments(
     """
     Define the assignment method of storage projects.
 
-    A storage project is assigned TOOT if it is reported as already part of
-    the reference grid for the given planning horizon, and PINT otherwise
-    (i.e. it represents a new capacity addition). The reference-grid flag is
-    only reported for 2030 and 2035 in the Excel; 2035 is used as a proxy for
-    the 2040 planning horizon.
+    The TYNDP 2026 export has no reference-grid flags for storage projects.
+    Therefore, the CBA method is approximated from the project status and commissioning
+    year, following the reference grid definition in the TYNDP 2026 Draft CBA
+    Implementation Guidelines (p. 45):
+
+    - 2030: TOOT if under construction or in permitting, and commissioned by 2030.
+    - 2040 (uses the 2035 reference grid): TOOT if not under consideration, and
+      commissioned by 2035.
+    - Otherwise PINT.
 
     Parameters
     ----------
     storage_projects : pd.DataFrame
-        List of storage projects with their detailed characteristics,
-        including the in_ref_grid_2030/in_ref_grid_2035 boolean columns.
+        List of storage projects, along with their detailed characteristics,
+        including the status and commissioning_year columns.
     planning_horizons : list[int]
         Planning horizons for which to assign a method.
 
@@ -902,47 +833,19 @@ def build_storage_method_assignments(
     """
     rows = []
     for horizon in planning_horizons:
+        statuses, max_year = STORAGE_TOOT_CRITERIA[horizon]
+        is_toot = storage_projects["status"].isin(statuses) & (
+            storage_projects["commissioning_year"] <= max_year
+        )
         rows.append(
             storage_projects[["project_id", "project_name"]].assign(
                 planning_horizon=horizon,
-                method=storage_projects[STORAGE_REF_GRID_HORIZON_COLUMN[horizon]].map(
-                    {True: "toot", False: "pint"}
-                ),
+                method=is_toot.map({True: "toot", False: "pint"}),
             )
         )
     methods = pd.concat(rows, ignore_index=True)
     methods["project_type"] = "storage"
     return methods
-
-
-def split_investment_attributes_per_line(
-    investment_attrs: pd.DataFrame, transmission_projects: pd.DataFrame
-) -> pd.DataFrame:
-    """
-    Split investment costs and length evenly across transmission lines.
-
-    Investment costs and length are given per project and not per
-    transmission line, therefore these attributes need to be split before
-    merging.
-
-    Parameters
-    ----------
-    investment_attrs : pd.DataFrame
-        Investment attributes indexed by project_id.
-    transmission_projects : pd.DataFrame
-        Transmission projects with a project_id column.
-
-    Returns
-    -------
-    pd.DataFrame
-        investment_attrs with length_km and capex_meur divided by the number
-        of lines per project.
-    """
-    link_counts = transmission_projects.groupby("project_id").size()
-    return investment_attrs.assign(
-        length_km=lambda d: d.length_km / d.index.map(link_counts).fillna(1),
-        capex_meur=lambda d: d.capex_meur / d.index.map(link_counts).fillna(1),
-    )
 
 
 def normalize_yes_no(value: str) -> str:
@@ -965,7 +868,7 @@ def build_transmission_method_assignments(
     Parameters
     ----------
     guidelines_fn : str
-        Path to the table of projects as defined in the Implementation Guidelines Appendix B.1.
+        Path to the table of projects as defined in the Implementation Guidelines Appendix Table 3.
     projects: pd.DataFrame
         List of projects with their detailed characteristics.
     custom_transmission_projects: pd.DataFrame
@@ -1123,17 +1026,15 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     # File paths
-    transmission_path = Path(snakemake.input.dir, "20250312_export_transmission.xlsx")
-    storage_path = Path(snakemake.input.dir, "20250312_export_storage.xlsx")
+    transmission_path = Path(snakemake.input.transmission)
+    storage_path = Path(snakemake.input.storage)
     custom_transmission_path = Path(snakemake.input.custom_transmission)
     custom_generators_static_path = Path(snakemake.input.custom_generators_static)
     custom_generators_dynamic_path = Path(snakemake.input.custom_generators_dynamic)
     corrections_path = snakemake.input.cba_project_corrections
 
     # Get existing buses
-    existing_buses = get_existing_buses(
-        snakemake.input.buses, snakemake.input.offshore_buses
-    )
+    existing_buses = get_existing_buses(snakemake.input.buses)
 
     # Transmission projects
     transmission_projects = extract_transmission_projects(
@@ -1152,16 +1053,6 @@ if __name__ == "__main__":
         custom_generators_dynamic_path,
         existing_buses,
         pd.Timestamp(snakemake.params.snapshots["start"]).year,
-    )
-
-    # Investment costs and length transmission
-    investment_attrs = extract_investment_attributes(transmission_path)
-    investment_attrs_per_line = split_investment_attributes_per_line(
-        investment_attrs, transmission_projects
-    )
-
-    transmission_projects = transmission_projects.merge(
-        investment_attrs_per_line, on="project_id", how="left"
     )
 
     # Method definition (PINT / TOOT) for transmission projects
