@@ -56,6 +56,7 @@ co2_budget:
 
 electricity:
   base_network: tyndp
+  remove_unconnected_components: false
 
   extendable_carriers:
     Generator: []
