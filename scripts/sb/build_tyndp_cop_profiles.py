@@ -40,9 +40,7 @@ from scripts.sb.build_tyndp_demand import multiindex_to_datetimeindex
 
 logger = logging.getLogger(__name__)
 
-HEAT_SYSTEM = "hybrid"
-HEAT_SOURCE = "air"
-COP_BOUNDS = (1.0, 10.0)
+COP_BOUNDS = (1.0, 7.0)
 
 
 def read_cop(
@@ -105,7 +103,7 @@ def drop_invalid_cop(cop: pd.DataFrame) -> pd.DataFrame:
     invalid = cop.columns[cop.isna().any() | (cop.min() < lower) | (cop.max() > upper)]
     if not invalid.empty:
         logger.warning(
-            f"Dropping nodes with incomplete or implausible COP data: {invalid.tolist()}"
+            f"Dropping COP columns for nodes with incomplete or implausible COP data: {invalid.tolist()}"
         )
 
     return cop.drop(columns=invalid)
@@ -136,5 +134,5 @@ if __name__ == "__main__":
     cop = drop_invalid_cop(cop)
 
     xr.DataArray(cop).expand_dims(
-        heat_system=[HEAT_SYSTEM], heat_source=[HEAT_SOURCE]
+        heat_system=["hybrid"], heat_source=["air"]
     ).to_netcdf(snakemake.output.cop_profiles)
