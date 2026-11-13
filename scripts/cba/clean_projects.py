@@ -889,14 +889,14 @@ def read_reference_grid(grid_fn: str, horizon: int) -> pd.DataFrame:
 
 def reconcile_reference_grid(
     grid: pd.DataFrame, projects: pd.DataFrame, t3_methods: pd.Series
-) -> tuple[pd.Series, list[int]]:
+) -> pd.Series:
     """
     Reconcile the reference grid between the data bundle and the CBA Implementation Guidelines reference grid projects table.
 
     On links with TOOT projects in the CBA Implementation Guidelines table, capacity missing from the reference grid total
     is added. The capacity above the 2025 NTC and CBA Implementation Guidelines table TOOT projects is then assigned,
-    in project ID order, first to tagged T3 PINT projects (removed from the reference)
-    and then to projects not in the CBA Implementation Guidelines table (kept in the reference).
+    in project ID order, first to tagged T3 PINT projects and then to projects not in the
+    CBA Implementation Guidelines table. Assigned projects are removed from the reference and stay PINT.
     A project is assigned only if its capacity fits on all its directed links.
 
     Parameters
@@ -912,8 +912,6 @@ def reconcile_reference_grid(
     -------
     pd.Series
         Capacity corrections per directed link ID.
-    list[int]
-        IDs of projects not in T3 that the reference grid contains.
     """
     directions = [("bus0", "bus1", "p_nom 0->1"), ("bus1", "bus0", "p_nom 1->0")]
     directed = (
@@ -945,18 +943,14 @@ def reconcile_reference_grid(
         *project_ids.difference(t3_methods.index).sort_values(),
     ]
 
-    in_reference = []
     for project_id in candidates:
         capacity = directed[project_id]
         if capacity.gt(available.reindex(capacity.index, fill_value=0)).any():
             continue
         available = available.sub(capacity, fill_value=0)
-        if project_id in t3_pint:
-            corrections = corrections.sub(capacity, fill_value=0)
-        else:
-            in_reference.append(project_id)
+        corrections = corrections.sub(capacity, fill_value=0)
 
-    return corrections[corrections.ne(0)].rename("p_nom"), in_reference
+    return corrections[corrections.ne(0)].rename("p_nom")
 
 
 def build_transmission_method_assignments(
@@ -970,8 +964,7 @@ def build_transmission_method_assignments(
 
     The method is PINT (default) or TOOT, depending on the planning horizon (2030 or 2040).
 
-    Projects not in Appendix Table 3 of the draft 2026 CBA Implementation Guide are TOOT
-    if the reference grid contains them (see `reconcile_reference_grid`).
+    Projects not in Appendix Table 3 of the draft 2026 CBA Implementation Guide are PINT.
 
     Parameters
     ----------
@@ -1032,12 +1025,11 @@ def build_transmission_method_assignments(
         )
 
         grid = read_reference_grid(reference_grid_fn, horizon)
-        correction, in_reference = reconcile_reference_grid(
+        correction = reconcile_reference_grid(
             grid, projects, rows.set_index("project_id")["method"]
         )
         logger.info(
-            f"Reference grid corrections for {horizon} (MW):\n{correction.to_string()}\n"
-            f"Projects not in T3 found in the reference grid of {horizon} (TOOT): {in_reference}"
+            f"Reference grid corrections for {horizon} (MW):\n{correction.to_string()}"
         )
         corrections.append(correction.to_frame().assign(planning_horizon=horizon))
 
@@ -1049,9 +1041,7 @@ def build_transmission_method_assignments(
                     "in_ref_grid_2030": "no",
                     "in_ref_grid_2040": "no",
                     "planning_horizon": horizon,
-                    "method": [
-                        "toot" if i in in_reference else "pint" for i in missing_ids
-                    ],
+                    "method": "pint",
                 }
             )
             rows = pd.concat([rows, missing_rows], ignore_index=True)
