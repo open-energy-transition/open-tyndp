@@ -23,7 +23,7 @@
 
 **Developers Note**
 
-* Apply security patches on top of v0.9 ([#1138](https://github.com/open-energy-transition/open-tyndp/pull/1138)).
+* Apply security patches on top of v0.9 ([#1138](https://github.com/open-energy-transition/open-tyndp/pull/1138), [#1158](https://github.com/open-energy-transition/open-tyndp/pull/1158)).
 
 ## Upcoming PyPSA-Eur Release
 
