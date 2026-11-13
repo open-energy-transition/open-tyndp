@@ -2041,6 +2041,46 @@ def _add_h2_dres_capacities(
     n.remove("Bus", dres.index.difference(n.generators.bus).difference(n.links.bus0))
 
 
+def _add_h2_sres_profiles(
+    n: pypsa.Network,
+    gens_i: pd.Index,
+    electrolyser_i: pd.Index,
+) -> None:
+    """
+    Add SRES links profiles to the network.
+    SRES generation can be supplied to the H2 electrolysers and the e-market node.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object.
+    gens_i : pd.Index
+        Index of SRES generators.
+    electrolyser_i : pd.Index
+        Index of SRES electrolysers.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by setting the SRES grid connection capacities and profiles.
+    """
+    gens = n.generators.loc[gens_i]
+    gens_p_nom = gens.groupby("bus").p_nom.sum()
+    electrolyser_p_nom = (
+        n.links.loc[electrolyser_i].set_index("bus0").p_nom[gens_p_nom.index]
+    )
+
+    sres_supply = (
+        n.generators_t.p_max_pu[gens_i].mul(gens.p_nom).T.groupby(gens.bus).sum().T
+    )
+    residual = sres_supply.sub(electrolyser_p_nom, axis=1).clip(lower=0)
+
+    n.links.loc[gens_p_nom.index + " grid connection", "p_nom"] = gens_p_nom.values
+    _add_new_profiles_to_existing(
+        n.links_t, "p_max_pu", residual.div(gens_p_nom).add_suffix(" grid connection")
+    )
+
+
 def _add_h2_sres_capacities(
     n: pypsa.Network,
     pemmdb_capacities: pd.DataFrame,
@@ -2096,6 +2136,8 @@ def _add_h2_sres_capacities(
         carriers=["H2 Electrolysis"],
         component_types={"Link"},
     )
+
+    _add_h2_sres_profiles(n, gens_i, electrolyser_i.intersection(n.links.index))
 
 
 def _extract_inflows(
@@ -3922,7 +3964,7 @@ def add_h2_sres_tyndp(
     costs: pd.DataFrame,
 ) -> None:
     """
-    Adds TYNDP SRES buses, with electrolyzers to H2 Z2 and a copperplated unidirectional connection to the e-market node.
+    Adds TYNDP SRES buses, with electrolyzers to H2 Z2 and a unidirectional connection to the e-market node.
 
     Parameters
     ----------
@@ -3970,7 +4012,6 @@ def add_h2_sres_tyndp(
         lifetime=costs.at["electrolysis", "lifetime"],
     )
 
-    # Copperplated link from SRES node to the e-market node
     n.add(
         "Link",
         nodes.index + " SRES grid connection",
