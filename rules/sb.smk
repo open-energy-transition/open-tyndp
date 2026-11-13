@@ -166,6 +166,22 @@ rule build_tyndp_cop_profiles:
         scripts("sb/build_tyndp_cop_profiles.py")
 
 
+rule build_tyndp_hybrid_heating:
+    input:
+        heat=rules.retrieve_tyndp_2026.output.hybrid_hp_modelling,
+    output:
+        boilers=resources("hybrid_heating_boilers_{horizon}.csv"),
+    log:
+        logs("build_tyndp_hybrid_heating_{horizon}.log"),
+    benchmark:
+        benchmarks("performances/build_tyndp_hybrid_heating_{horizon}")
+    threads: 1
+    resources:
+        mem_mb=1000,
+    script:
+        scripts("sb/build_tyndp_hybrid_heating.py")
+
+
 def get_pecd_prebuilt(w):
     if "pre-built" in PECD_DATASET["version"]:
         return rules.retrieve_tyndp_pecd.output.dir

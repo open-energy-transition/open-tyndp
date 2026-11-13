@@ -72,9 +72,7 @@ def get_tyndp_compose_inputs(w):
         ),
         thermal_demand_ch4=resources(f"demand_tyndp_thermal_ch4_{horizon}.csv"),
         thermal_demand_h2=resources(f"demand_tyndp_thermal_h2_{horizon}.csv"),
-        hybrid_heating_tyndp=(
-            rules.retrieve_tyndp_2026.output.hybrid_hp_modelling if scenario else []
-        ),
+        hybrid_heating_boilers=resources(f"hybrid_heating_boilers_{horizon}.csv"),
     )
 
     inputs |= gated_inputs(

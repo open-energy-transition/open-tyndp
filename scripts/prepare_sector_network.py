@@ -14,7 +14,6 @@ technologies for the buildings, transport and industry sectors.
 
 import logging
 from itertools import product
-from pathlib import Path
 from types import SimpleNamespace
 
 import geopandas as gpd
@@ -5254,42 +5253,13 @@ def attach_gas_load(
     )
 
 
-def read_hybrid_heating_boilers(
-    hybrid_heating_dir: str, fuel: str, investment_year: int
-) -> pd.Series:
-    """
-    Read the TYNDP hybrid heat pump boiler topology for one backup fuel.
-
-    Parameters
-    ----------
-    hybrid_heating_dir : str
-        Path to the TYNDP 2026 ``Heat`` directory.
-    fuel : str
-        Backup fuel of the hybrid heat pump, ``"CH4"`` or ``"H2"``.
-    investment_year : int
-        Planning horizon to select from the ``YEAR`` column.
-
-    Returns
-    -------
-    pd.Series
-        Fuel source bus (``NODE_FROM``) indexed by hybrid heat pump node. A node
-        appears several times if its boiler draws from several source buses.
-    """
-    boilers = pd.read_excel(
-        Path(hybrid_heating_dir, f"HHP_{fuel}_BOILERS.xlsx"), engine="calamine"
-    ).query("YEAR == @investment_year")
-
-    return boilers.set_index(boilers.NODE.str.replace("UK", "GB"))["NODE_FROM"]
-
-
 def add_hybrid_heating_tyndp(
     n: pypsa.Network,
     costs: pd.DataFrame,
     cop_profiles_file: str,
     thermal_demand_files: dict[str, str],
-    hybrid_heating_dir: str,
+    hybrid_heating_boilers_file: str,
     spatial: SimpleNamespace,
-    investment_year: int,
 ) -> None:
     """
     Add TYNDP hybrid heat pumps with their exogenous heat demand.
@@ -5310,13 +5280,11 @@ def add_hybrid_heating_tyndp(
     thermal_demand_files : dict[str, str]
         Paths to the thermal demand time series in MW_th per node, keyed by
         backup fuel (``"CH4"``, ``"H2"``).
-    hybrid_heating_dir : str
-        Path to the TYNDP 2026 ``Heat`` directory with the hybrid heat pump
-        topology files.
+    hybrid_heating_boilers_file : str
+        Path to the hybrid heat pump boiler topology
+        (`build_tyndp_hybrid_heating`).
     spatial : SimpleNamespace
         Spatial resolution of the gas buses.
-    investment_year : int
-        Planning horizon.
     """
     logger.info("Add TYNDP hybrid heat pumps")
 
@@ -5326,25 +5294,23 @@ def add_hybrid_heating_tyndp(
         .to_pandas()
         .reindex(n.snapshots)
     )
+    boilers = pd.read_csv(hybrid_heating_boilers_file, index_col="node")
 
     for fuel, demand_file in thermal_demand_files.items():
         heat_system = f"{fuel} hybrid"
         boiler = "gas boiler" if fuel == "CH4" else "H2 boiler"
-        boilers = read_hybrid_heating_boilers(hybrid_heating_dir, fuel, investment_year)
+        fuel_boilers = boilers.query("fuel == @fuel")
 
         demand = pd.read_csv(demand_file, index_col=0, parse_dates=True).reindex(
             n.snapshots
         )
-        unknown = demand.columns.difference(boilers.index)
+        unknown = demand.columns.difference(fuel_boilers.index)
         if not unknown.empty:
             logger.warning(
                 f"Dropping {fuel} hybrid heat demand of nodes without TYNDP hybrid heat pump: {unknown.tolist()}"
             )
-        nodes = demand.columns.intersection(boilers.index)
-        # SK0E and SK0W have no own electricity bus and are mapped to SK00
-        elec_nodes = pd.Index(
-            [node if node in n.buses.index else f"{node[:2]}00" for node in nodes]
-        )
+        nodes = demand.columns.intersection(fuel_boilers.index)
+        elec_nodes = pd.Index(fuel_boilers.bus.groupby(level="node").first().loc[nodes])
         heat_buses = nodes + f" {heat_system} heat"
         n.add(
             "Carrier",
@@ -5382,8 +5348,8 @@ def add_hybrid_heating_tyndp(
             p_max_pu=0,
         )
 
-        sources = boilers.loc[nodes]
-        boiler_nodes = sources.index
+        node_boilers = fuel_boilers.loc[nodes]
+        boiler_nodes = node_boilers.index
         boiler_attrs = dict(
             bus1=boiler_nodes + f" {heat_system} heat",
             carrier=f"{heat_system} {boiler}",
@@ -5394,18 +5360,17 @@ def add_hybrid_heating_tyndp(
             n.add(
                 "Link",
                 boiler_nodes + f" {heat_system} {boiler}",
-                bus0=spatial.gas.df.loc[
-                    elec_nodes.to_series(index=nodes).loc[boiler_nodes], "nodes"
-                ].values,
+                bus0=spatial.gas.df.loc[node_boilers.bus, "nodes"].values,
                 bus2="co2 atmosphere",
                 efficiency2=costs.at["gas", "CO2 intensity"],
                 **boiler_attrs,
             )
         else:
+            fuel_nodes = node_boilers.fuel_bus.values
             n.add(
                 "Link",
-                boiler_nodes + f" {heat_system} {boiler} " + sources.values,
-                bus0=sources.values,
+                boiler_nodes + f" {heat_system} {boiler} " + fuel_nodes,
+                bus0=fuel_nodes,
                 **boiler_attrs,
             )
 
@@ -10158,9 +10123,8 @@ def main(
                 "CH4": inputs.thermal_demand_ch4,
                 "H2": inputs.thermal_demand_h2,
             },
-            hybrid_heating_dir=inputs.hybrid_heating_tyndp,
+            hybrid_heating_boilers_file=inputs.hybrid_heating_boilers,
             spatial=spatial,
-            investment_year=current_horizon,
         )
 
     if options["transport"] and not tyndp_scenario:
