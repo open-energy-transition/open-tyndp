@@ -10,6 +10,7 @@ import logging
 
 import pandas as pd
 
+from scripts._helpers import configure_logging, set_scenario_config
 from scripts.sb._helpers import extract_grid_data_tyndp, format_bz_names
 
 logger = logging.getLogger(__name__)
@@ -131,3 +132,33 @@ def reconcile_reference_grid(
         )
 
     return corrections[corrections.ne(0)].rename("p_nom")
+
+
+if __name__ == "__main__":
+    if "snakemake" not in globals():
+        from scripts._helpers import mock_snakemake
+
+        snakemake = mock_snakemake(
+            "fix_reference_sb_to_cba",
+            horizon="2040",
+            run="NT",
+            configfiles=["config/config.tyndp.yaml"],
+        )
+
+    configure_logging(snakemake)
+    set_scenario_config(snakemake)
+
+    horizon = int(snakemake.wildcards.horizon)
+    projects = pd.read_csv(snakemake.input.transmission_projects)
+    in_ref = pd.read_csv(snakemake.input.guidelines).set_index("ID")[
+        f"In_ref_grid_{horizon}"
+    ]
+    is_toot = in_ref.str.strip().str.lower().eq("yes").groupby(level=0).any()
+    t3_methods = is_toot.map({True: "toot", False: "pint"})
+
+    grid = read_reference_grid(snakemake.input.elec_reference_grid, horizon)
+    corrections = reconcile_reference_grid(grid, projects, t3_methods)
+    logger.info(
+        f"Reference grid corrections for {horizon} (MW):\n{corrections.to_string()}"
+    )
+    corrections.to_csv(snakemake.output.corrections)

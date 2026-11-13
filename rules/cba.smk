@@ -231,6 +231,23 @@ rule simplify_sb_network:
         scripts("cba/simplify_sb_network.py")
 
 
+# Capacity corrections from the reference grid total to the CBA reference grid
+# following the draft CBA Implementation Guidelines Appendix Table 3
+rule fix_reference_sb_to_cba:
+    input:
+        transmission_projects=rules.clean_projects.output.transmission_projects,
+        guidelines="data/cba/table_3_CBA_Implementation_Guidelines_TYNDP2026.csv",
+        elec_reference_grid=rules.retrieve_tyndp_2026.output.elec_reference_grid,
+    output:
+        corrections=resources("cba/reference_sb_to_cba_{horizon}.csv"),
+    log:
+        logs("cba/fix_reference_sb_to_cba_{horizon}.log"),
+    benchmark:
+        benchmarks("performances/cba/fix_reference_sb_to_cba_{horizon}")
+    script:
+        scripts("cba/fix_reference_sb_to_cba.py")
+
+
 # Build reference network
 # Ensures MSV extraction and rolling horizon use the same baseline
 rule prepare_reference:
