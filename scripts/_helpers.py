@@ -26,6 +26,7 @@ import pytz
 import xarray as xr
 import yaml
 from dask.distributed import Client, LocalCluster
+from pypsa.descriptors import nominal_attrs
 from snakemake.utils import update_config
 
 from scripts.lib.validation.config.data import VersionsSchema
@@ -671,6 +672,31 @@ def get_snapshots(
         time = time[~((time.month == 2) & (time.day == 29))]
 
     return time
+
+
+def sanitize_isolated_buses(n: pypsa.Network) -> None:
+    """
+    Remove AC buses without branches and without assets, together with their one-port components.
+    """
+    connected = n.branches().filter(regex=r"^bus\d+$").stack()
+    isolated = n.buses.index[n.buses.carrier.eq("AC") & ~n.buses.index.isin(connected)]
+    loads = n.loads.bus[n.loads.bus.isin(isolated)]
+    p_set = n.get_switchable_as_dense("Load", "p_set", inds=loads.index)
+    active = [loads[p_set.ne(0).any()]]
+    for c in ["Generator", "StorageUnit", "Store"]:
+        static = n.static(c).query("carrier != 'load'")
+        nom = nominal_attrs[c]
+        active.append(static.bus[static[nom].gt(0) | static[f"{nom}_extendable"]])
+    empty = isolated.difference(pd.concat(active))
+    if empty.empty:
+        return
+
+    logger.warning(
+        f"Removing {len(empty)} isolated buses without assets: {', '.join(empty)}"
+    )
+    for c in n.one_port_components:
+        n.remove(c, n.static(c).index[n.static(c).bus.isin(empty)])
+    n.remove("Bus", empty)
 
 
 def sanitize_custom_columns(n: pypsa.Network):
