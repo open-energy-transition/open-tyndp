@@ -23,7 +23,6 @@
 
 **Developers Note**
 
-* Apply security patches on top of v0.9 ([#1138](https://github.com/open-energy-transition/open-tyndp/pull/1138), [#1158](https://github.com/open-energy-transition/open-tyndp/pull/1158)).
 
 ## Upcoming PyPSA-Eur Release
 
@@ -84,6 +83,16 @@
 
 * Fix: `build_swiss_energy_balances` now reads the October 2026 edition of the Swiss energy balances (data for 2000-2025), which renamed table rows. ([#2380](https://github.com/PyPSA/pypsa-eur/pull/2380)).
 
+
+## Open-TYNDP v0.9.1 (13th November 2026)
+
+This is an IT security patch release following a screening by ENTSO-E. It contains two minor bug fixes. The inputs differ from v0.9 only through a marginal (less than 0.2 % each) revision of Swiss road and domestic navigation oil demand in the new edition of the Swiss energy balances. Model results are not materially affected with respect to v0.9. Upgrading is recommended for all users of v0.9.
+
+* Apply security patches on top of v0.9 ([#1138](https://github.com/open-energy-transition/open-tyndp/pull/1138), [#1158](https://github.com/open-energy-transition/open-tyndp/pull/1158)).
+
+* Fix `build_swiss_energy_balances` to read the October 2026 edition of the Swiss energy balances (data for 2000-2025), which renamed table rows ([#1139](https://github.com/open-energy-transition/open-tyndp/pull/1139)).
+
+* Fix read mode of the local cache layer to avoid re-retrieving datasets with directory outputs after filling the cache in the same working directory ([#1141](https://github.com/open-energy-transition/open-tyndp/pull/1141)).
 
 ## Open-TYNDP v0.9 (22nd September 2026)
 
