@@ -44,10 +44,14 @@ solving:
   runtime: 2h
 
 cba:
-  # Default high-res CBA projects
+  # Test high-res CBA projects
   projects:
-  - t*
-  - s*
+  - t225   # PINT
+  - t339   # TOOT
+  - s1001   # PHS
+  - s1004   # Storage promoter project
+  - s1013   # CAES
+  - s1035   # battery
   # MSV solver settings
   msv_extraction:
     solving:
