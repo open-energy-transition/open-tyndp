@@ -60,7 +60,8 @@ def reconcile_reference_grid(
     - PINT projects must not be in the reference grid. The capacity above the 2025 NTC and the TOOT projects
       is unassigned. In project ID order, PINT projects tagged in the reference grid and then projects not
       in Table 3 are removed from the reference grid, if their capacity is not larger than the unassigned
-      capacity left on each of their links.
+      capacity left on each of their links. Projects with links to offshore hubs (`*_OFF` buses) are never
+      removed, as their offshore wind would be cut off from the grid.
 
     Parameters
     ----------
@@ -115,6 +116,15 @@ def reconcile_reference_grid(
         *project_ids.intersection(t3_pint).sort_values(),
         *project_ids.difference(t3_methods.index).sort_values(),
     ]
+
+    to_hub = projects[["bus0", "bus1"]].apply(lambda bus: bus.str.endswith("_OFF"))
+    hub_ids = set(projects.loc[to_hub.any(axis=1), "project_id"])
+    hub_projects = [i for i in candidates if i in hub_ids]
+    if hub_projects:
+        logger.info(
+            f"Not removing projects {hub_projects} from the reference grid, as they connect offshore hubs and removing them would cut off offshore wind."
+        )
+    candidates = [i for i in candidates if i not in hub_projects]
 
     not_removed = []
     for project_id in candidates:
