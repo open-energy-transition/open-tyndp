@@ -891,13 +891,16 @@ def reconcile_reference_grid(
     grid: pd.DataFrame, projects: pd.DataFrame, t3_methods: pd.Series
 ) -> pd.Series:
     """
-    Reconcile the reference grid between the data bundle and the CBA Implementation Guidelines reference grid projects table.
+    Compute the capacity corrections from the reference grid total to the CBA reference grid.
 
-    On links with TOOT projects in the CBA Implementation Guidelines table, capacity missing from the reference grid total
-    is added. The capacity above the 2025 NTC and CBA Implementation Guidelines table TOOT projects is then assigned,
-    in project ID order, first to tagged T3 PINT projects and then to projects not in the
-    CBA Implementation Guidelines table. Assigned projects are removed from the reference and stay PINT.
-    A project is assigned only if its capacity fits on all its directed links.
+    The CBA reference grid follows the Implementation Guidelines Appendix Table 3:
+
+    - TOOT projects must be in the reference grid. If the reference grid total is lower than the 2025 NTC
+      plus the TOOT projects on a link, the missing capacity is added.
+    - PINT projects must not be in the reference grid. The capacity above the 2025 NTC and the TOOT projects
+      is unassigned. In project ID order, PINT projects tagged in the reference grid and then projects not
+      in Table 3 are removed from the reference grid, if their capacity is not larger than the unassigned
+      capacity left on each of their links.
 
     Parameters
     ----------
@@ -906,7 +909,7 @@ def reconcile_reference_grid(
     projects : pd.DataFrame
         Transmission projects with `bus0`, `bus1`, `p_nom 0->1` and `p_nom 1->0`.
     t3_methods : pd.Series
-        Table 3 (from the draft CBA Implementation Guidelines table) method (`toot` or `pint`) of the planning horizon, indexed by project ID.
+        Method (`toot` or `pint`) per project ID from draft CBA Implementation Guidelines Appendix Table 3, for the planning horizon.
 
     Returns
     -------
@@ -929,9 +932,9 @@ def reconcile_reference_grid(
 
     method = directed.index.get_level_values("project_id").map(t3_methods)
     toot = directed[method == "toot"].groupby("link_id").sum()
-    excess = (grid["total"] - grid["ntc25"]).sub(toot, fill_value=0)
-    corrections = (-excess).clip(lower=0).reindex(toot.index)
-    available = excess.clip(lower=0)
+    unassigned = (grid["total"] - grid["ntc25"]).sub(toot, fill_value=0)
+    corrections = (-unassigned).clip(lower=0).reindex(toot.index)
+    available = unassigned.clip(lower=0)
 
     tags = grid.drop(columns=["ntc25", "total"])
     project_ids = directed.index.unique("project_id")
@@ -943,12 +946,20 @@ def reconcile_reference_grid(
         *project_ids.difference(t3_methods.index).sort_values(),
     ]
 
+    not_removed = []
     for project_id in candidates:
         capacity = directed[project_id]
         if capacity.gt(available.reindex(capacity.index, fill_value=0)).any():
+            if project_id in t3_pint:
+                not_removed.append(project_id)
             continue
         available = available.sub(capacity, fill_value=0)
         corrections = corrections.sub(capacity, fill_value=0)
+
+    if not_removed:
+        logger.warning(
+            f"Not removing PINT projects {not_removed} from the reference grid, as their capacity is larger than the unassigned capacity on their links."
+        )
 
     return corrections[corrections.ne(0)].rename("p_nom")
 
