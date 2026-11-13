@@ -93,6 +93,8 @@
 
 * Add check and logger warning for when a node has capacity data for a technology in the PEMMDB dataset but no capacity factors for the same technology in the PECD dataset ([#1126](https://github.com/open-energy-transition/open-tyndp/pull/1126)).
 
+* Replace manual renaming of UK -> GB with `format_bz_names` helper function ([#1128](https://github.com/open-energy-transition/open-tyndp/pull/1128)).
+
 
 **Breaking Changes**
 
