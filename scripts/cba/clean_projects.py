@@ -96,10 +96,6 @@ import pandas as pd
 
 from scripts._helpers import configure_logging, set_scenario_config
 from scripts.cba._helpers import get_pypsa_dynamic_attributes, read_csv_or_excel
-from scripts.cba.fix_reference_sb_to_cba import (
-    read_reference_grid,
-    reconcile_reference_grid,
-)
 from scripts.sb._helpers import format_bz_names
 
 logger = logging.getLogger(__name__)
@@ -864,14 +860,10 @@ def build_transmission_method_assignments(
     guidelines_fn: str,
     projects: pd.DataFrame,
     custom_transmission_projects: pd.DataFrame,
-    reference_grid_fn: str,
-) -> tuple[pd.DataFrame, pd.DataFrame]:
+) -> pd.DataFrame:
     """
-    Determine the CBA assessment method for each project.
-
-    The method is PINT (default) or TOOT, depending on the planning horizon (2030 or 2040).
-
-    Projects not in Appendix Table 3 of the draft 2026 CBA Implementation Guide are PINT.
+    Determine the CBA assessment method for each project. The method is PINT (default) or TOOT,
+    depending on the planning horizon (2030 or 2040).
 
     Parameters
     ----------
@@ -881,15 +873,11 @@ def build_transmission_method_assignments(
         List of projects with their detailed characteristics.
     custom_transmission_projects: pd.DataFrame
         List of custom projects with their detailed characteristics.
-    reference_grid_fn : str
-        Path to the TYNDP 2026 electricity reference grid workbook.
 
     Returns
     -------
     pd.DataFrame
         Table defining the assignment method of each project.
-    pd.DataFrame
-        Capacity corrections from the SB to the CBA reference grid per directed link and planning horizon.
     """
     guidelines = pd.read_csv(guidelines_fn).rename(
         columns={
@@ -919,7 +907,6 @@ def build_transmission_method_assignments(
     )
 
     assigned = []
-    corrections = []
     for horizon, col in [(2030, "in_ref_2030"), (2040, "in_ref_2040")]:
         rows = agg[["project_id", "in_ref_2030", "in_ref_2040"]].copy()
         rows["planning_horizon"] = horizon
@@ -931,20 +918,11 @@ def build_transmission_method_assignments(
             }
         )
 
-        grid = read_reference_grid(reference_grid_fn, horizon)
-        correction = reconcile_reference_grid(
-            grid, projects, rows.set_index("project_id")["method"]
-        )
-        logger.info(
-            f"Reference grid corrections for {horizon} (MW):\n{correction.to_string()}"
-        )
-        corrections.append(correction.to_frame().assign(planning_horizon=horizon))
-
-        missing_ids = sorted(all_project_ids - set(rows["project_id"]))
+        missing_ids = all_project_ids - set(rows["project_id"])
         if missing_ids:
             missing_rows = pd.DataFrame(
                 {
-                    "project_id": missing_ids,
+                    "project_id": list(missing_ids),
                     "in_ref_grid_2030": "no",
                     "in_ref_grid_2040": "no",
                     "planning_horizon": horizon,
@@ -959,7 +937,7 @@ def build_transmission_method_assignments(
     )
     assigned["project_type"] = "transmission"
 
-    return assigned, pd.concat(corrections)
+    return assigned
 
 
 def apply_custom_projects(
@@ -1078,13 +1056,11 @@ if __name__ == "__main__":
     )
 
     # Method definition (PINT / TOOT) for transmission projects
-    transmission_methods, reference_sb_to_cba = build_transmission_method_assignments(
+    transmission_methods = build_transmission_method_assignments(
         snakemake.input.guidelines,
         transmission_projects,
         custom_transmission_projects,
-        snakemake.input.elec_reference_grid,
     )
-    reference_sb_to_cba.to_csv(snakemake.output.reference_sb_to_cba)
 
     # Apply custom projects
     transmission_projects = apply_custom_projects(

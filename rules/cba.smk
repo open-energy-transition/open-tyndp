@@ -127,7 +127,6 @@ checkpoint clean_projects:
         transmission="data/cba/tyndp_2026_cba_projects/transmission.xlsx",
         storage="data/cba/tyndp_2026_cba_projects/storage.xlsx",
         buses=rules.retrieve_tyndp_2026.output.nodes,
-        elec_reference_grid=rules.retrieve_tyndp_2026.output.elec_reference_grid,
         guidelines="data/cba/table_3_CBA_Implementation_Guidelines_TYNDP2026.csv",
         carrier_mapping="data/tyndp_technology_map.csv",
         cba_project_corrections="data/cba/cba_project_corrections.csv",
@@ -138,7 +137,6 @@ checkpoint clean_projects:
         transmission_projects=resources("cba/transmission_projects.csv"),
         storage_projects=resources("cba/storage_projects.csv"),
         methods=resources("cba/cba_project_methods.csv"),
-        reference_sb_to_cba=resources("cba/reference_sb_to_cba.csv"),
         generator_projects_static=resources("cba/generator_projects_static.csv"),
         generator_projects_dynamic=resources("cba/generator_projects_dynamic.csv"),
     log:
