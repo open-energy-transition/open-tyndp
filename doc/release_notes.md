@@ -23,9 +23,19 @@
 
 * Fix read mode of the local cache layer to avoid re-retrieving datasets with directory outputs after filling the cache in the same working directory ([#1008](https://github.com/open-energy-transition/open-tyndp/pull/1008)).
 
+* Fix units for non-CO2 emission factors in CBA ([#1124](https://github.com/open-energy-transition/open-tyndp/pull/1124)).
+
+* Fix stale `mock_snakemake` targets in `plot_benchmark_indicators.py` and `summarize_indicators.py` to point to existing rules ([#1127](https://github.com/open-energy-transition/open-tyndp/pull/1127)).
+
+* Make the retrieval of pre-solved networks version-aware to support the network renaming in [PyPSA-Eur#1838](https://github.com/PyPSA/pypsa-eur/pull/1838), and share it between the SB and CBA workflows ([#1125](https://github.com/open-energy-transition/open-tyndp/pull/1125)). `cba: cba_scenario_input: sb_version` now defaults to `data: open_tyndp_prelim: version`.
+
+* Improve scenario management compatibility by removing top level gating references in `smk` files ([#1136](https://github.com/open-energy-transition/open-tyndp/pull/1136)). The `all` target is also fixed to collect tyndp outputs dependent on run settings.
+
 **Documentation**
 
 * Fix the broken links in the documentation ([#997](https://github.com/open-energy-transition/open-tyndp/pull/997)).
+
+* Fix the broken `pixi` link in the README ([#1122](https://github.com/open-energy-transition/open-tyndp/pull/1122)).
 
 
 **Developers Note**
@@ -71,6 +81,9 @@
 * Documentation: removed stale wildcard-era instructions and links to the old PyPSA-Eur-Sec configuration, corrected paths and commands in the tutorials, installation, foresight and retrieve pages, and restored the rule documentation for scripts in subdirectories (`build_cop_profiles`, `build_ptes_operations`, ...). The installation page now recommends checking out a release. The `sector`, `data` and new `pypsa_eur` configuration tables are generated from the schema, all wildcards and the collection targets are documented, the retrieve page now focuses on rules needing credentials, and the data inventory is complete and checked against `data/versions.csv` by a unit test.
 
 * **Breaking:** The linear approximation of AC line losses (`solving: options: transmission_losses`) now uses secants instead of tangents, which underestimates losses less. The option now takes `false`, `true` (PyPSA defaults) or a dict passed to PyPSA (default `{mode: secants, atol: 15, rtol: 0.5}`). Integers are deprecated; use `{mode: tangents, segments: 2}` for the previous behaviour ([#2301](https://github.com/PyPSA/pypsa-eur/pull/2301)).
+
+* Fix: `build_swiss_energy_balances` now reads the October 2026 edition of the Swiss energy balances (data for 2000-2025), which renamed table rows. ([#2380](https://github.com/PyPSA/pypsa-eur/pull/2380)).
+
 
 ## PyPSA-Eur v2026.09.0 (25th September 2026)
 

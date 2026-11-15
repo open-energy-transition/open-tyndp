@@ -456,7 +456,7 @@ cba:
   - 2040
   cba_scenario_input:
     use_presolved: false
-    sb_version: latest # use 'latest' or a supported version from data/tyndp_versions.csv for pre-solved SB network input in CBA; only applies if use_presolved is true
+    sb_version: # use 'latest' or a supported version for pre-solved SB network input in CBA; defaults to data:open_tyndp_prelim:version
   projects:
   - t335 # PINT
   - t339 # TOOT

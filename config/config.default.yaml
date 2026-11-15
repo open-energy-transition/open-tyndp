@@ -1732,7 +1732,7 @@ cba:
   planning_horizons: []
   cba_scenario_input:
     use_presolved: false
-    sb_version: latest
+    sb_version:
   sb_scenario:
   scenarios: []
   projects: []

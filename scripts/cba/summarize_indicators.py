@@ -376,7 +376,12 @@ if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
 
-        snakemake = mock_snakemake("summarize_indicators")
+        snakemake = mock_snakemake(
+            "summarize_indicators_per_project",
+            run="NT",
+            cba_project="t335",
+            configfiles=["config/test/config.tyndp.yaml"],
+        )
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
