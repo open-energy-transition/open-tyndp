@@ -83,8 +83,10 @@ the user can modify existing projects and add new ones. Transmission capacities 
   - `bus_name`: Electricity bus the store is connected to
   - `carrier`: PyPSA carrier name of the store
   - `e_nom`: Energy capacity (MWh)
-  - `p_nom`: Capacity of the connection to `bus_name` (MW), used for both the charge and the discharge direction
-  - `efficiency`: Efficiency of the charge and of the discharge link (fraction); missing values are replaced with 1
+  - `p_nom_charge`: Charge capacity of the connection to `bus_name` (MW)
+  - `p_nom_discharge`: Discharge capacity of the connection to `bus_name` (MW)
+  - `round_trip_efficiency`: Round trip efficiency (fraction), split evenly between the charge and the discharge link; missing values are replaced with 1
+  - `capital_cost`: Annualised capital cost of the store (EUR/MWh/a); missing values are replaced with 0
   - `marginal_cost`: Marginal cost (EUR/MWh); missing values are replaced with 0
   - `cyclic`: Whether the state of charge is cyclic over the snapshots; missing values are replaced with `True`
   - `mapping_id`: Identifier of the store, having the format `<project_type><project_id>_<bus_name>_<carrier>`
@@ -904,10 +906,10 @@ def extract_custom_storage_projects(
     """
     Extract custom stores associated with a transmission / storage project.
 
-    `e_nom` is the energy capacity of the store in MWh and `p_nom` the capacity of
-    its connection to `bus_name` in MW, used for both the charge and the discharge
-    direction, as is `efficiency`. Entries are identified by the bus and carrier they
-    are attached to, as the input file defines no store name.
+    `e_nom` is the energy capacity of the store in MWh, `p_nom_charge` and
+    `p_nom_discharge` the capacities of its connection to `bus_name` in MW, and
+    `capital_cost` its annualised capital cost in EUR/MWh/a. Entries are identified by
+    the bus and carrier they are attached to, as the input file defines no store name.
 
     Parameters
     ----------
@@ -929,16 +931,20 @@ def extract_custom_storage_projects(
         logger.debug("No custom stores found.")
         return custom_stores
 
-    # Remove stores without bus name, carrier, e_nom, p_nom or associated project
-    mask_not_null = (
-        custom_stores[["bus_name", "carrier", "e_nom", "p_nom", "project_id"]]
-        .notnull()
-        .all(axis=1)
-    )
+    # Remove stores without bus name, carrier, capacities or associated project
+    required_cols = [
+        "bus_name",
+        "carrier",
+        "e_nom",
+        "p_nom_charge",
+        "p_nom_discharge",
+        "project_id",
+    ]
+    mask_not_null = custom_stores[required_cols].notnull().all(axis=1)
     custom_stores = _drop_invalid(
         custom_stores,
         mask_not_null,
-        "one of `bus_name`, `carrier`, `e_nom`, `p_nom` or `project_id` is missing",
+        f"one of {', '.join(f'`{c}`' for c in required_cols)} is missing",
         "custom store(s)",
     )
 
@@ -979,27 +985,48 @@ def extract_custom_storage_projects(
 
     # Convert capacities and costs to numeric, as a non-numeric entry would otherwise
     # reach the network unnoticed
-    numeric_cols = ["e_nom", "p_nom", "efficiency", "marginal_cost"]
+    numeric_cols = [
+        "e_nom",
+        "p_nom_charge",
+        "p_nom_discharge",
+        "round_trip_efficiency",
+        "capital_cost",
+        "marginal_cost",
+    ]
     custom_stores[numeric_cols] = custom_stores[numeric_cols].apply(
         pd.to_numeric, errors="coerce"
     )
 
-    # Set default efficiency and marginal cost if these columns have no entries
-    custom_stores = custom_stores.fillna({"efficiency": 1, "marginal_cost": 0})
+    # Set default efficiency and costs if these columns have no entries
+    custom_stores = custom_stores.fillna(
+        {"round_trip_efficiency": 1, "capital_cost": 0, "marginal_cost": 0}
+    )
 
-    # Remove stores without an energy or charge/discharge capacity
+    # Remove stores without an energy capacity, or that can neither charge nor discharge
     custom_stores = _drop_invalid(
         custom_stores,
-        (custom_stores.e_nom > 0) & (custom_stores.p_nom > 0),
-        "`e_nom` or `p_nom` is not a positive number",
+        (custom_stores.e_nom > 0)
+        & (custom_stores.p_nom_charge >= 0)
+        & (custom_stores.p_nom_discharge >= 0)
+        & (custom_stores[["p_nom_charge", "p_nom_discharge"]].max(axis=1) > 0),
+        "`e_nom` is not a positive number, or `p_nom_charge` and `p_nom_discharge` are "
+        "not both non-negative with at least one of them positive",
         "custom store(s)",
     )
 
-    # An efficiency above one would create energy in the charge or discharge link
+    # A round trip efficiency above one would create energy in the charge/discharge links
     custom_stores = _drop_invalid(
         custom_stores,
-        custom_stores.efficiency.between(0, 1, inclusive="right"),
-        "`efficiency` is not within (0, 1]",
+        custom_stores.round_trip_efficiency.between(0, 1, inclusive="right"),
+        "`round_trip_efficiency` is not within (0, 1]",
+        "custom store(s)",
+    )
+
+    # A negative annualised capital cost would book a negative investment in the CBA
+    custom_stores = _drop_invalid(
+        custom_stores,
+        custom_stores.capital_cost >= 0,
+        "`capital_cost` is negative",
         "custom store(s)",
     )
 

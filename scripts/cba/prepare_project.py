@@ -467,7 +467,11 @@ def apply_toot_generator(
 def apply_pint_storage(
     n: pypsa.Network,
     storage_project: pd.Series,
-    discount_rate: float,
+    discount_rate: float | None,
+    attrs: dict | None = None,
+    storage_bus: str | None = None,
+    e_cyclic: bool = True,
+    marginal_cost: float = 0.0,
 ) -> None:
     """
     Add a new CBA storage project as a Bus/Store/Link triple.
@@ -475,14 +479,39 @@ def apply_pint_storage(
     Creates a dedicated storage bus attached to the project's electricity
     bus, a Store sized in MWh, and two Links (charge and discharge) sized in
     MW, using capacities and costs taken from the storage project row.
+
+    Custom stores reuse this function with their own `attrs`, `storage_bus`,
+    `e_cyclic` and `marginal_cost`, since their input file reports an already
+    annualised capital cost instead of the CAPEX, OPEX and lifetime of the CBA
+    export.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        Network to modify.
+    storage_project : pd.Series
+        Storage project row, providing `project_id`, `project_name`, `carrier` and `bus`.
+    discount_rate : float or None
+        Discount rate used to annualize the project's CAPEX. Unused when `attrs` is given.
+    attrs : dict, optional
+        Sized store and link attributes, as returned by `get_storage_attrs`. Computed
+        from `storage_project` when not given.
+    storage_bus : str, optional
+        Name of the storage bus and of the Store. Derived from the project when not given.
+    e_cyclic : bool, default True
+        Whether the state of charge of the Store is cyclic over the snapshots.
+    marginal_cost : float, default 0.0
+        Marginal cost of the Store in EUR/MWh.
     """
     project_id = storage_project["project_id"]
     project_name = storage_project["project_name"]
     carrier = storage_project["carrier"]
     ac_bus = storage_project["bus"]
-    storage_bus = f"{ac_bus} cba s{project_id} storage"
+    if storage_bus is None:
+        storage_bus = f"{ac_bus} cba s{project_id} storage"
 
-    attrs = get_storage_attrs(storage_project, discount_rate)
+    if attrs is None:
+        attrs = get_storage_attrs(storage_project, discount_rate)
 
     if carrier not in n.carriers.index:
         n.add("Carrier", carrier)
@@ -493,8 +522,9 @@ def apply_pint_storage(
         bus=storage_bus,
         carrier=carrier,
         e_nom=attrs["e_nom"],
-        e_cyclic=True,
+        e_cyclic=e_cyclic,
         capital_cost=attrs["capital_cost_per_mwh"],
+        marginal_cost=marginal_cost,
     )
     n.add(
         "Link",
@@ -515,10 +545,11 @@ def apply_pint_storage(
         efficiency=attrs["efficiency"],
     )
     logger.info(
-        "Added storage project %s (%s) at bus %s: %.1f MWh, %.1f/%.1f MW charge/discharge",
+        "Added storage project %s (%s) at bus %s as %s: %.1f MWh, %.1f/%.1f MW charge/discharge",
         project_id,
         project_name,
         ac_bus,
+        storage_bus,
         attrs["e_nom"],
         attrs["p_nom_charge"],
         attrs["p_nom_discharge"],
@@ -635,19 +666,16 @@ def prepare_custom_buses(
         raise ValueError(f"Unknown method {method} for project {prefix_pid}")
 
 
-def apply_pint_store(
-    n: pypsa.Network, store_df: pd.DataFrame, tech_colors: dict
-) -> None:
+def apply_pint_store(n: pypsa.Network, store_df: pd.DataFrame) -> None:
     """
     Apply custom stores as PINT.
 
-    Each store is added as a Bus/Store/Link quadruple, mirroring how the storage
-    projects of the CBA export are added in `apply_pint_storage`: a dedicated
-    storage bus attached to the electricity bus of the entry, a Store sized in MWh,
-    and a charger and a discharger Link both sized with `p_nom` and `efficiency`.
-
-    The Store has no capital cost, as `data/cba/custom_projects/stores.csv` defines
-    none.
+    Each store is added by `apply_pint_storage`, so a custom store is built exactly
+    like a storage project of the CBA export. Only the attributes differ: the input
+    file reports the energy capacity in MWh and an already annualised capital cost in
+    EUR/MWh/a, where the export reports GWh and a CAPEX, OPEX and lifetime to
+    annualise. As in the export, `round_trip_efficiency` is split evenly between the
+    charge and the discharge link.
 
     Parameters
     ----------
@@ -655,63 +683,24 @@ def apply_pint_store(
         Network to modify.
     store_df : pd.DataFrame
         Custom stores of the project, as cleaned by `clean_projects.py`.
-    tech_colors : dict
-        Dictionary of technology colors for plotting.
     """
 
     for _, store in store_df.iterrows():
-        storage_bus = f"{store.mapping_id} storage"
-
-        if store.carrier not in n.carriers.index:
-            n.add(
-                "Carrier",
-                store.carrier,
-                color=tech_colors.get(
-                    store.carrier,
-                    generate_unique_hex(store.carrier, n.carriers.color.tolist()),
-                ),  # Use the configured color, or assign a new one
-            )
-            logger.info(
-                f"Adding a new carrier {store.carrier} required to add custom store {store.mapping_id} to the network."
-            )
-
-        n.add("Bus", storage_bus, location=store.bus_name, carrier=store.carrier)
-        n.add(
-            "Store",
-            storage_bus,
-            bus=storage_bus,
-            carrier=store.carrier,
+        attrs = dict(
             e_nom=store.e_nom,
+            p_nom_charge=store.p_nom_charge,
+            p_nom_discharge=store.p_nom_discharge,
+            efficiency=store.round_trip_efficiency**0.5,
+            capital_cost_per_mwh=store.capital_cost,
+        )
+        apply_pint_storage(
+            n,
+            store.rename({"bus_name": "bus"}),
+            discount_rate=None,
+            attrs=attrs,
+            storage_bus=f"{store.mapping_id} storage",
             e_cyclic=store.cyclic,
             marginal_cost=store.marginal_cost,
-        )
-        # `p_nom` and `efficiency` size both directions of the connection to the
-        # electricity bus, so the roundtrip efficiency is `efficiency` squared
-        n.add(
-            "Link",
-            f"{storage_bus} charger",
-            bus0=store.bus_name,
-            bus1=storage_bus,
-            carrier=store.carrier,
-            p_nom=store.p_nom,
-            efficiency=store.efficiency,
-        )
-        n.add(
-            "Link",
-            f"{storage_bus} discharger",
-            bus0=storage_bus,
-            bus1=store.bus_name,
-            carrier=store.carrier,
-            p_nom=store.p_nom,
-            efficiency=store.efficiency,
-        )
-
-        logger.info(
-            "Added custom store %s at bus %s: %.1f MWh, %.1f MW charge/discharge",
-            store.mapping_id,
-            store.bus_name,
-            store.e_nom,
-            store.p_nom,
         )
 
 
@@ -758,7 +747,7 @@ def prepare_custom_stores(
         )
         return
     elif method == "pint":
-        apply_pint_store(n, store_df, snakemake.params.tech_colors)
+        apply_pint_store(n, store_df)
     else:
         raise ValueError(f"Unknown method {method} for project {prefix_pid}")
 

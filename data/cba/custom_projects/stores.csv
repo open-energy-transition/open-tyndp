@@ -1,1 +1,1 @@
-project_name,project_type,project_id,bus_name,e_nom,p_nom,efficiency,marginal_cost,carrier,cyclic,source,further description
+project_name,project_type,project_id,bus_name,e_nom,p_nom_charge,p_nom_discharge,round_trip_efficiency,capital_cost,marginal_cost,carrier,cyclic,source,further description
