@@ -1,0 +1,3 @@
+project_name,project_type,project_id,bus_name,e_nom,p_nom,marginal_cost,carrier,cyclic,source,further description
+Example store at a custom bus,t,1530,new_bus,2000,500,0.01,battery,TRUE,,Adds a battery at the custom bus new_bus of buses.csv as part of project 1530
+Example store at an existing bus,t,9001,ES00,4000,1000,,battery,,,Adds a battery at an existing bus: the empty marginal_cost defaults to 0 and the empty cyclic to TRUE

@@ -9,6 +9,8 @@
 
 **Features**
 
+* Add an option to specify custom buses and custom stores associated with transmission or storage projects in the CBA assessment ([#XXXX](https://github.com/open-energy-transition/open-tyndp/pull/XXXX)). A custom bus is defined in `data/cba/custom_projects/buses.csv` and connected to the network by a row of `data/cba/custom_projects/transmission_projects.csv` that carries the same `project_id` and names it as `bus0` or `bus1`. A custom store is defined in `data/cba/custom_projects/stores.csv` and added as a `Store` on its own storage bus, with a charge and a discharge link sized by `p_nom`. Both are supported for PINT projects only.
+
 * Allow the `sync_file` and `sync_file_dry` rules to retrieve files by pattern. The `sync` and `sync_dry` rules now skip the `results`, `resources` and `logs` subdirectories of runs that are not configured in `run.name`, and still retrieve shared files ([#996](https://github.com/open-energy-transition/open-tyndp/pull/996)). With `config/config.hpc.yaml`, they retrieve all the scenario data including the reference networks and skip only the project networks. The `remote.sync_exclude` configuration no longer applies to `sync_file` and `sync_file_dry`.
 
 
