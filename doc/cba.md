@@ -250,7 +250,7 @@ When applied, the project network is searched for a generator with the same `bus
 
 If several generators share the same `bus` and `carrier`, the first one is updated and a warning is logged.
 
-A filled-in template with a few examples for custom transmission projects and generators are available at `data/cba/custom_projects/examples/`.
+A filled-in template with a few examples for custom transmission projects, buses, stores and generators are available at `data/cba/custom_projects/examples/`.
 
 A user can optionally provide the same files as `.xlsx` format for each input file; if detected this will take precedence over given csv files.
 

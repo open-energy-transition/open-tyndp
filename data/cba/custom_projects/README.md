@@ -27,5 +27,6 @@ The files are read and cleaned by [`scripts/cba/clean_projects.py`](../../../scr
 whose module docstring describes the resulting tables in `resources/cba/`. One can optionally provide the same files as `.xlsx` format for each input file; if detected this will take precedence over given csv files.
 
 Filled-in versions of each file are available in [`examples/`](examples), covering a modified
-project, a new project, a new bus and a pair of identical projects used to assess two generator
-variants separately. They cover the temporal resolution of the test config `config/test/config.tyndp.yaml` and are not read by the workflow.
+project, a new project, a new bus with the project row connecting it, a store at that bus and at an
+existing one, and a pair of identical projects used to assess two generator variants separately.
+They cover the temporal resolution of the test config `config/test/config.tyndp.yaml` and are not read by the workflow.
