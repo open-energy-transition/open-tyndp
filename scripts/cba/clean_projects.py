@@ -1046,6 +1046,7 @@ def extract_custom_storage_projects(
 
     return custom_stores
 
+
 def extract_investment_attributes(transmission_path: Path) -> pd.DataFrame:
     """
     Extract length, CAPEX, and underwater fraction from Trans.Investments sheet.
