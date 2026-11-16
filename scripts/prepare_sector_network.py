@@ -2061,7 +2061,7 @@ def _add_h2_sres_profiles(
     Returns
     -------
     None
-        Modifies the network object in-place by setting the SRES grid connection capacities and profiles.
+        Modifies the network object in-place by adding SRES electrolyser and grid connection profiles.
     """
     gens = n.generators.loc[gens_i]
     gens_p_nom = gens.groupby("bus").p_nom.sum()
@@ -2072,9 +2072,15 @@ def _add_h2_sres_profiles(
     sres_supply = (
         n.generators_t.p_max_pu[gens_i].mul(gens.p_nom).T.groupby(gens.bus).sum().T
     )
-    residual = sres_supply.sub(electrolyser_p_nom, axis=1).clip(lower=0)
+    h2_supply = sres_supply.clip(upper=electrolyser_p_nom, axis=1)
+    residual = sres_supply - h2_supply
 
     n.links.loc[gens_p_nom.index + " grid connection", "p_nom"] = gens_p_nom.values
+    _add_new_profiles_to_existing(
+        n.links_t,
+        "p_max_pu",
+        h2_supply.div(electrolyser_p_nom).add_suffix(" Electrolysis"),
+    )
     _add_new_profiles_to_existing(
         n.links_t, "p_max_pu", residual.div(gens_p_nom).add_suffix(" grid connection")
     )
