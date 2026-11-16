@@ -88,6 +88,7 @@ checkpoint clean_projects:
         custom_buses="data/cba/custom_projects/buses.csv",
         custom_generators_static="data/cba/custom_projects/generators_static.csv",
         custom_generators_dynamic="data/cba/custom_projects/generators_dynamic.csv",
+        custom_stores="data/cba/custom_projects/stores.csv",
     output:
         transmission_projects=resources("cba/transmission_projects.csv"),
         storage_projects=resources("cba/storage_projects.csv"),
@@ -95,6 +96,7 @@ checkpoint clean_projects:
         generator_projects_static=resources("cba/generator_projects_static.csv"),
         generator_projects_dynamic=resources("cba/generator_projects_dynamic.csv"),
         buses=resources("cba/buses.csv"),
+        stores=resources("cba/stores.csv"),
     log:
         logs("cba/clean_projects.log"),
     benchmark:
