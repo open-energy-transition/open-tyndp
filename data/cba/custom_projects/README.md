@@ -4,18 +4,19 @@
 # Custom CBA projects
 
 Templates for evaluating user-defined projects with the CBA workflow. Each file ships with its
-header only; add one row per project, bus or generator to include it in a run.
+header only; add one row per project, bus, store or generator to include it in a run.
 
 | File | Purpose |
 | --- | --- |
 | `transmission_projects.csv` | Modify an existing transmission project, add a new one, or connect a bus of `buses.csv` |
 | `buses.csv` | Buses added for a custom project, for components that do not connect to an existing bus |
+| `stores.csv` | Storage capacity added for a custom project, as a store with a charge and a discharge link |
 | `generators_static.csv` | Static attributes of custom generators associated with a transmission or storage project |
 | `generators_dynamic.csv` | Time-varying attributes of the custom generators added in `generators_static.csv` (two-row header, snapshots as index) |
 
 A bus of `buses.csv` is connected to the network by a row of `transmission_projects.csv` that
 carries the same `project_id` and names it as `bus0` or `bus1`. Custom buses are added before the
-project and its custom generators, so both can refer to them.
+project, and the custom stores and generators after it, so each can refer to what came before.
 
 Columns, validation rules and defaults are documented under
 [Evaluation of custom projects](../../../doc/cba.md#evaluation-of-custom-projects); which projects
