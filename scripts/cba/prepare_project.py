@@ -644,11 +644,10 @@ def apply_pint_store(
     Each store is added as a Bus/Store/Link quadruple, mirroring how the storage
     projects of the CBA export are added in `apply_pint_storage`: a dedicated
     storage bus attached to the electricity bus of the entry, a Store sized in MWh,
-    and a charger and a discharger Link both sized with `p_nom`.
+    and a charger and a discharger Link both sized with `p_nom` and `efficiency`.
 
-    The charge and discharge links are lossless and the Store has no capital cost,
-    as `data/cba/custom_projects/stores.csv` defines neither an efficiency nor a
-    capital cost.
+    The Store has no capital cost, as `data/cba/custom_projects/stores.csv` defines
+    none.
 
     Parameters
     ----------
@@ -686,7 +685,8 @@ def apply_pint_store(
             e_cyclic=store.cyclic,
             marginal_cost=store.marginal_cost,
         )
-        # `p_nom` sizes both directions of the connection to the electricity bus
+        # `p_nom` and `efficiency` size both directions of the connection to the
+        # electricity bus, so the roundtrip efficiency is `efficiency` squared
         n.add(
             "Link",
             f"{storage_bus} charger",
@@ -694,6 +694,7 @@ def apply_pint_store(
             bus1=storage_bus,
             carrier=store.carrier,
             p_nom=store.p_nom,
+            efficiency=store.efficiency,
         )
         n.add(
             "Link",
@@ -702,6 +703,7 @@ def apply_pint_store(
             bus1=store.bus_name,
             carrier=store.carrier,
             p_nom=store.p_nom,
+            efficiency=store.efficiency,
         )
 
         logger.info(

@@ -221,12 +221,13 @@ Each store is defined in `data/cba/custom_projects/stores.csv`, with one row per
 - `carrier`: PyPSA carrier of the store, e.g. `battery`. If it does not yet exist in the network, it is added.
 - `e_nom`: energy capacity of the store in MWh.
 - `p_nom`: capacity of the connection to `bus_name` in MW, applied to both the charge and the discharge direction.
+- `efficiency`: efficiency of the charge and of the discharge link, as a fraction. It is applied to each of the two links, so the roundtrip efficiency of the store is `efficiency` squared. Left empty it defaults to 1.
 - `marginal_cost`: marginal cost of the store in EUR/MWh. Left empty it defaults to 0.
 - `cyclic`: whether the state of charge at the last snapshot must match the first, written as `TRUE`/`FALSE`. Left empty it defaults to `TRUE`, matching the storage projects of the CBA export.
 
-Entries are dropped with a warning when `bus_name`, `carrier`, `e_nom`, `p_nom` or `project_id` is missing, when `bus_name` is not an existing bus, when `project_type` is neither `s` nor `t`, and when `e_nom` or `p_nom` is not a positive number. A store is identified by the project, bus and carrier it belongs to, as the file defines no store name; rows repeating that combination are reduced to the first occurrence.
+Entries are dropped with a warning when `bus_name`, `carrier`, `e_nom`, `p_nom` or `project_id` is missing, when `bus_name` is not an existing bus, when `project_type` is neither `s` nor `t`, when `e_nom` or `p_nom` is not a positive number, and when `efficiency` lies outside `(0, 1]`. A store is identified by the project, bus and carrier it belongs to, as the file defines no store name; rows repeating that combination are reduced to the first occurrence.
 
-When applied, the storage bus, the `Store` and the two links are named after that identifier, `<project_type><project_id>_<bus_name>_<carrier>`. The charge and discharge links are lossless and the `Store` carries no capital cost, since the file defines neither an efficiency nor a capital cost: a custom store is therefore free and roundtrip-lossless in the cost comparison, which overstates its benefit.
+When applied, the storage bus, the `Store` and the two links are named after that identifier, `<project_type><project_id>_<bus_name>_<carrier>`. The `Store` carries no capital cost, since the file defines none: a custom store is therefore free in the cost comparison, which overstates its benefit.
 
 ### Custom generators
 

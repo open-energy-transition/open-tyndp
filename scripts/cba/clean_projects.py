@@ -84,6 +84,7 @@ the user can modify existing projects and add new ones. Transmission capacities 
   - `carrier`: PyPSA carrier name of the store
   - `e_nom`: Energy capacity (MWh)
   - `p_nom`: Capacity of the connection to `bus_name` (MW), used for both the charge and the discharge direction
+  - `efficiency`: Efficiency of the charge and of the discharge link (fraction); missing values are replaced with 1
   - `marginal_cost`: Marginal cost (EUR/MWh); missing values are replaced with 0
   - `cyclic`: Whether the state of charge is cyclic over the snapshots; missing values are replaced with `True`
   - `mapping_id`: Identifier of the store, having the format `<project_type><project_id>_<bus_name>_<carrier>`
@@ -905,8 +906,8 @@ def extract_custom_storage_projects(
 
     `e_nom` is the energy capacity of the store in MWh and `p_nom` the capacity of
     its connection to `bus_name` in MW, used for both the charge and the discharge
-    direction. Entries are identified by the bus and carrier they are attached to,
-    as the input file defines no store name.
+    direction, as is `efficiency`. Entries are identified by the bus and carrier they
+    are attached to, as the input file defines no store name.
 
     Parameters
     ----------
@@ -978,19 +979,27 @@ def extract_custom_storage_projects(
 
     # Convert capacities and costs to numeric, as a non-numeric entry would otherwise
     # reach the network unnoticed
-    numeric_cols = ["e_nom", "p_nom", "marginal_cost"]
+    numeric_cols = ["e_nom", "p_nom", "efficiency", "marginal_cost"]
     custom_stores[numeric_cols] = custom_stores[numeric_cols].apply(
         pd.to_numeric, errors="coerce"
     )
 
-    # Set default marginal cost if the column has no entries
-    custom_stores = custom_stores.fillna({"marginal_cost": 0})
+    # Set default efficiency and marginal cost if these columns have no entries
+    custom_stores = custom_stores.fillna({"efficiency": 1, "marginal_cost": 0})
 
     # Remove stores without an energy or charge/discharge capacity
     custom_stores = _drop_invalid(
         custom_stores,
         (custom_stores.e_nom > 0) & (custom_stores.p_nom > 0),
         "`e_nom` or `p_nom` is not a positive number",
+        "custom store(s)",
+    )
+
+    # An efficiency above one would create energy in the charge or discharge link
+    custom_stores = _drop_invalid(
+        custom_stores,
+        custom_stores.efficiency.between(0, 1, inclusive="right"),
+        "`efficiency` is not within (0, 1]",
         "custom store(s)",
     )
 
