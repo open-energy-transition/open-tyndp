@@ -79,6 +79,8 @@
 
 * doc: update documentation to TYNDP 2026 ([#1123](https://github.com/open-energy-transition/open-tyndp/pull/1123)).
 
+* doc: add the [TYNDP 2024 to 2026 migration guide](tyndp_2026.md#migration-tyndp-2026) ([#1100](https://github.com/open-energy-transition/open-tyndp/issues/1100)).
+
 **Developers Note**
 
 * Rename `pyear` to `planning_horizon` and `cyear` to `wscenario` ([#878](https://github.com/open-energy-transition/open-tyndp/pull/878)). The CBA scenarios {NT,DE,GA}-ws{1995,2008,2009} still align with the TYNDP 2024 climate years; only the prefix has been changed. They are not TYNDP 2026 weather scenarios, which are indices (WS003, WS021, ...) configured through the `wscenarios_tyndp` config option (renamed from `weather_scenarios_tyndp`). The `ws` prefix is now shared by both numbering schemes in 2024 and 2026, but `ws1995` should not be read as a 2026 weather scenario. Additionally, some functions were renamed as well (e.g., `safe_pyear` to `safe_planning_horizon`).
@@ -93,6 +95,8 @@
 
 
 **Breaking Changes**
+
+The [TYNDP 2024 to 2026 migration guide](tyndp_2026.md#migration-tyndp-2026) lists all breaking changes of the TYNDP 2026 cycle.
 
 * Renamed config section `electricity.pemmdb_hydro_profiles` to `electricity.pecd_hydro_profiles`, and its `technologies` now use the PECD codes `HRR`, `HPI`, `HRI`, `HOL` and `HCL` ([#1059](https://github.com/open-energy-transition/open-tyndp/pull/1059)). Therefore, old config names and technology acronyms no longer work.
 
