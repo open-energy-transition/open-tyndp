@@ -73,7 +73,7 @@ Clone the repository:
 git clone https://github.com/open-energy-transition/open-tyndp
 ```
 PyPSA-Eur, and consequently Open-TYNDP, relies on a set of other Python packages to function.
-We manage these using [pixi](https://pixi.sh/latest/>).
+We manage these using [pixi](https://pixi.sh/latest/).
 Once pixi is installed, you can activate the project environment for your operating system and have access to all the PyPSA-Eur dependencies from the command line:
 
 ```sh
