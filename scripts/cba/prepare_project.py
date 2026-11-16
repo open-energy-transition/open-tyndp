@@ -635,6 +635,132 @@ def prepare_custom_buses(
         raise ValueError(f"Unknown method {method} for project {prefix_pid}")
 
 
+def apply_pint_store(
+    n: pypsa.Network, store_df: pd.DataFrame, tech_colors: dict
+) -> None:
+    """
+    Apply custom stores as PINT.
+
+    Each store is added as a Bus/Store/Link quadruple, mirroring how the storage
+    projects of the CBA export are added in `apply_pint_storage`: a dedicated
+    storage bus attached to the electricity bus of the entry, a Store sized in MWh,
+    and a charger and a discharger Link both sized with `p_nom`.
+
+    The charge and discharge links are lossless and the Store has no capital cost,
+    as `data/cba/custom_projects/stores.csv` defines neither an efficiency nor a
+    capital cost.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        Network to modify.
+    store_df : pd.DataFrame
+        Custom stores of the project, as cleaned by `clean_projects.py`.
+    tech_colors : dict
+        Dictionary of technology colors for plotting.
+    """
+
+    for _, store in store_df.iterrows():
+        storage_bus = f"{store.mapping_id} storage"
+
+        if store.carrier not in n.carriers.index:
+            n.add(
+                "Carrier",
+                store.carrier,
+                color=tech_colors.get(
+                    store.carrier,
+                    generate_unique_hex(store.carrier, n.carriers.color.tolist()),
+                ),  # Use the configured color, or assign a new one
+            )
+            logger.info(
+                f"Adding a new carrier {store.carrier} required to add custom store {store.mapping_id} to the network."
+            )
+
+        n.add("Bus", storage_bus, location=store.bus_name, carrier=store.carrier)
+        n.add(
+            "Store",
+            storage_bus,
+            bus=storage_bus,
+            carrier=store.carrier,
+            e_nom=store.e_nom,
+            e_cyclic=store.cyclic,
+            marginal_cost=store.marginal_cost,
+        )
+        # `p_nom` sizes both directions of the connection to the electricity bus
+        n.add(
+            "Link",
+            f"{storage_bus} charger",
+            bus0=store.bus_name,
+            bus1=storage_bus,
+            carrier=store.carrier,
+            p_nom=store.p_nom,
+        )
+        n.add(
+            "Link",
+            f"{storage_bus} discharger",
+            bus0=storage_bus,
+            bus1=store.bus_name,
+            carrier=store.carrier,
+            p_nom=store.p_nom,
+        )
+
+        logger.info(
+            "Added custom store %s at bus %s: %.1f MWh, %.1f MW charge/discharge",
+            store.mapping_id,
+            store.bus_name,
+            store.e_nom,
+            store.p_nom,
+        )
+
+
+def prepare_custom_stores(
+    n: pypsa.Network, snakemake, prefix_pid: str, method: str
+) -> None:
+    """
+    Add custom stores accompanying a storage or transmission project.
+
+    Like the storage projects of the CBA export, custom stores are supported for
+    PINT only: the reference network contains no matching store to take out.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        Network to modify.
+    snakemake : snakemake object
+        Snakemake object containing input/output paths and parameters.
+    prefix_pid : str
+        Project ID with prefix (e.g. "s1500" or "t1500")
+    method : str
+        Method (toot/pint) to apply the project.
+
+    Raises
+    ------
+    ValueError
+        If `method` is neither "pint" nor "toot".
+    """
+    custom_stores = pd.read_csv(snakemake.input.stores)
+
+    store_df = custom_stores[
+        (custom_stores["project_id"] == int(prefix_pid[1:]))
+        & (custom_stores["project_type"] == prefix_pid[0])
+    ]
+    if store_df.empty:
+        logger.debug(f"No custom stores found for project {prefix_pid}")
+        return
+
+    if method == "toot":
+        logger.warning(
+            "Custom stores are not applicable for TOOT projects: no matching "
+            f"reference-grid store to remove. Skipping {len(store_df)} custom store(s) "
+            f"of project {prefix_pid}."
+        )
+        return
+    elif method == "pint":
+        apply_pint_store(n, store_df, snakemake.params.tech_colors)
+    else:
+        raise ValueError(f"Unknown method {method} for project {prefix_pid}")
+
+
 def prepare_custom_generators(
     n: pypsa.Network, snakemake, prefix_pid: str, method: str
 ) -> None:
@@ -748,6 +874,7 @@ if __name__ == "__main__":
             f"Unknown project type {project_type} for project {cba_project}"
         )
 
+    prepare_custom_stores(n, snakemake, cba_project, method)
     prepare_custom_generators(n, snakemake, cba_project, method)
     n.consistency_check()
 
