@@ -561,7 +561,17 @@ def prepare_storage_project(
 ) -> None:
     storage_projects = pd.read_csv(snakemake.input.storage_projects)
     storage_project = storage_projects[storage_projects["project_id"] == project_id]
-    assert not storage_project.empty, f"Storage project {project_id} not found."
+
+    if storage_project.empty:
+        # The project is not part of the CBA export and only exists through the custom
+        # stores and generators that `prepare_custom_stores` and
+        # `prepare_custom_generators` add to the network afterwards
+        logger.info(
+            "Storage project %s is not part of the CBA export; it is built from its "
+            "custom components only.",
+            project_id,
+        )
+        return
 
     if method == "toot":
         raise NotImplementedError(

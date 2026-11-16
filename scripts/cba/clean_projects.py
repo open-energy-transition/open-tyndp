@@ -1224,6 +1224,7 @@ STORAGE_REF_GRID_HORIZON_COLUMN = {2030: "in_ref_grid_2030", 2040: "in_ref_grid_
 def build_storage_method_assignments(
     storage_projects: pd.DataFrame,
     planning_horizons: list[int],
+    custom_stores: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
     """
     Define the assignment method of storage projects.
@@ -1234,6 +1235,10 @@ def build_storage_method_assignments(
     only reported for 2030 and 2035 in the Excel; 2035 is used as a proxy for
     the 2040 planning horizon.
 
+    A custom store may refer to a storage project that the CBA export does not
+    contain. Such a project only exists through its custom stores, and is assigned
+    PINT for every planning horizon.
+
     Parameters
     ----------
     storage_projects : pd.DataFrame
@@ -1241,6 +1246,9 @@ def build_storage_method_assignments(
         including the in_ref_grid_2030/in_ref_grid_2035 boolean columns.
     planning_horizons : list[int]
         Planning horizons for which to assign a method.
+    custom_stores : pd.DataFrame, optional
+        Curated list of custom stores, used to register the storage projects that
+        only exist through them.
 
     Returns
     -------
@@ -1259,7 +1267,31 @@ def build_storage_method_assignments(
         )
     methods = pd.concat(rows, ignore_index=True)
     methods["project_type"] = "storage"
-    return methods
+
+    if custom_stores is None or custom_stores.empty:
+        return methods
+
+    # Storage projects that only exist through their custom stores are new, hence PINT
+    new_projects = custom_stores[
+        (custom_stores.project_type == "s")
+        & ~custom_stores.project_id.isin(methods.project_id)
+    ].drop_duplicates(subset=["project_id"])
+
+    if new_projects.empty:
+        return methods
+
+    logger.info(
+        "Assigning the PINT method to %d storage project(s) defined by custom stores only: %s",
+        len(new_projects),
+        new_projects.project_id.tolist(),
+    )
+    new_methods = (
+        new_projects[["project_id", "project_name"]]
+        .merge(pd.DataFrame({"planning_horizon": planning_horizons}), how="cross")
+        .assign(method="pint", project_type="storage")
+    )
+
+    return pd.concat([methods, new_methods], ignore_index=True)
 
 
 def split_investment_attributes_per_line(
@@ -1557,7 +1589,7 @@ if __name__ == "__main__":
 
     # Method definition (PINT / TOOT) for storage projects
     storage_methods = build_storage_method_assignments(
-        storage_projects, snakemake.params.planning_horizons
+        storage_projects, snakemake.params.planning_horizons, custom_stores
     )
 
     methods = pd.concat([transmission_methods, storage_methods], ignore_index=True)
