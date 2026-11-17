@@ -235,7 +235,8 @@ rule fix_reference_sb_to_cba:
     input:
         transmission_projects=rules.clean_projects.output.transmission_projects,
         guidelines="data/cba/table_3_CBA_Implementation_Guidelines_TYNDP2026.csv",
-        elec_reference_grid=rules.retrieve_tyndp_2026.output.elec_reference_grid,
+        elec_reference_grid_cba=rules.retrieve_tyndp_2026_cba_reference_grid.output.elec_reference_grid,
+        elec_reference_grid_sb=rules.retrieve_tyndp_2026.output.elec_reference_grid,
     output:
         corrections=resources("cba/reference_sb_to_cba_{horizon}.csv"),
     log:

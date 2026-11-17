@@ -166,8 +166,15 @@ if __name__ == "__main__":
     is_toot = in_ref.str.strip().str.lower().eq("yes").groupby(level=0).any()
     t3_methods = is_toot.map({True: "toot", False: "pint"})
 
-    grid = read_reference_grid(snakemake.input.elec_reference_grid, horizon)
-    corrections = reconcile_reference_grid(grid, projects, t3_methods)
+    grid_cba = read_reference_grid(snakemake.input.elec_reference_grid_cba, horizon)
+    grid_sb = read_reference_grid(snakemake.input.elec_reference_grid_sb, horizon)
+    sb_to_cba = grid_cba["total"].sub(grid_sb["total"], fill_value=0)
+    sb_to_cba = sb_to_cba[sb_to_cba.ne(0)]
+    logger.info(f"CBA and SB reference grids differ on {len(sb_to_cba)} links")
+
+    corrections = reconcile_reference_grid(grid_cba, projects, t3_methods)
+    corrections = corrections.add(sb_to_cba, fill_value=0)
+    corrections = corrections[corrections.ne(0)].rename("p_nom")
     logger.info(
         f"Reference grid corrections for {horizon} (MW):\n{corrections.to_string()}"
     )
