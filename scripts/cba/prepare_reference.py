@@ -79,11 +79,8 @@ if __name__ == "__main__":
 
     n = pypsa.Network(snakemake.input.network)
 
-    if snakemake.input.corrections:
-        apply_reference_corrections(
-            n, snakemake.input.corrections, snakemake.wildcards.horizon
-        )
-    else:
-        logger.info("Reference grid corrections already applied in the SB network")
+    apply_reference_corrections(
+        n, snakemake.input.corrections, snakemake.wildcards.horizon
+    )
 
     n.export_to_netcdf(snakemake.output.network)
