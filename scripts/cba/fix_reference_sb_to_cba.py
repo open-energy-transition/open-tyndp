@@ -2,8 +2,29 @@
 #
 # SPDX-License-Identifier: MIT
 """
-Compute the capacity corrections from the TYNDP 2026 reference grid total to the CBA reference grid
-of a planning horizon, following the Implementation Guidelines Appendix Table 3.
+Compute the capacity corrections from the SB network to the CBA reference grid of a planning horizon.
+
+The SB network is built from the TYNDP 2026 electricity reference grid (`inputs/Line-data.zip`).
+There is also the CBA reference grid: the grid in `cba_corrections/Line-data.zip` (at times it is the
+same reference grid as the SB reference grid).
+The CBA referencr grid contains PINT projects but does not contain TOOT projects of the draft CBA
+Implementation Guidelines Appendix Table 3.
+
+The corrections per directed link are therefore the sum of:
+
+- the difference of the reference grid totals between the CBA and the SB grid (could be zero), and
+- the reconciliation of the CBA grid with Appendix Table 3 (see `reconcile_reference_grid`).
+
+**Inputs**
+
+- `rules.retrieve_tyndp_2026_cba_reference_grid.output.elec_reference_grid`: TYNDP 2026 electricity reference grid from `cba_corrections/Line-data.zip`
+- `rules.retrieve_tyndp_2026.output.elec_reference_grid`: TYNDP 2026 electricity reference grid used to build the SB network
+- `rules.clean_projects.output.transmission_projects`: Cleaned CBA transmission projects
+- `data/cba/table_3_CBA_Implementation_Guidelines_TYNDP2026.csv`: Projects of the draft TYNDP 2026 CBA Implementation Guidelines Appendix Table 3, with the TOOT/PINT method per planning horizon
+
+**Outputs**
+
+- `resources/cba/reference_sb_to_cba_{horizon}.csv`: Capacity corrections (`p_nom`, MW) per directed link ID (`{bus0}-{bus1}-DC`)
 """
 
 import logging

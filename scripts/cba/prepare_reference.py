@@ -5,8 +5,17 @@
 """
 Prepare the CBA reference network of a planning horizon.
 
-Applies the capacity corrections from the SB to the CBA reference grid
-(see `fix_reference_sb_to_cba.reconcile_reference_grid`) to the simplified SB network.
+Applies the capacity corrections from the SB network to the CBA reference grid (see `fix_reference_sb_to_cba`) to the simplified SB network. Planning horizons other than 2030 and
+2040 use the corrections of 2040.
+
+**Inputs**
+
+- `rules.simplify_sb_network.output.network`: Simplified SB network
+- `resources/cba/reference_sb_to_cba_{horizon}.csv`: Capacity corrections per directed link ID
+
+**Outputs**
+
+- `resources/cba/networks/reference_{horizon}.nc`: CBA reference network
 """
 
 import logging
