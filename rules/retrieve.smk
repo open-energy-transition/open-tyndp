@@ -1488,6 +1488,25 @@ if (TYNDP_2026_DATASET := dataset_version("tyndp_2026"))["source"] in ARCHIVE_SO
                 for key in input.keys():
                     copy2(input[key], output[key])
 
+        rule retrieve_tyndp_2026_cba_reference_grid:
+            input:
+                line_data=storage(
+                    TYNDP_2026_DATASET["url"] + "/cba_corrections/Line-data.zip"
+                ),
+            output:
+                elec_reference_grid=f"{TYNDP_2026_DATASET['folder']}/cba_corrections/ReferenceGrid_Electricity.xlsx",
+            log:
+                "logs/retrieve_tyndp_2026_cba_reference_grid.log",
+            message:
+                "Retrieving TYNDP 2026 CBA electricity reference grid"
+            run:
+                with ZipFile(input.line_data) as archive:
+                    Path(output.elec_reference_grid).write_bytes(
+                        archive.read(
+                            "Line-data/Line-data/ReferenceGrid_Electricity.xlsx"
+                        )
+                    )
+
 
 def get_osm_archive_files(version):
     return [
