@@ -5,9 +5,9 @@
 Compute the capacity corrections from the SB network to the CBA reference grid of a planning horizon.
 
 The SB network is built from the TYNDP 2026 electricity reference grid (`inputs/Line-data.zip`).
-There is also the CBA reference grid: the grid in `cba_corrections/Line-data.zip` (at times it is the
-same reference grid as the SB reference grid).
-The CBA referencr grid contains PINT projects but does not contain TOOT projects of the draft CBA
+This script also uses the CBA reference grid data: the grid in `cba_corrections/Line-data.zip` (at times it is the
+same file as the SB reference grid mentioned above, so there are no differences between the two).
+The CBA reference grid contains PINT projects but does not contain TOOT projects that are in the draft CBA
 Implementation Guidelines Appendix Table 3.
 
 The corrections per directed link are therefore the sum of:
