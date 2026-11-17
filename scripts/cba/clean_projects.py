@@ -28,8 +28,8 @@ the user can modify existing projects and add new ones. Transmission capacities 
 
 **Inputs**
 
-- `data/cba/tyndp_2026_cba_projects/transmission.xlsx`: TYNDP 2026 Excel export of the transmission projects
-- `data/cba/tyndp_2026_cba_projects/storage.xlsx`: TYNDP 2026 Excel export of the storage projects
+- `rules.retrieve_tyndp_2026_cba_projects.output.transmission`: TYNDP 2026 Excel export of the transmission projects
+- `rules.retrieve_tyndp_2026_cba_projects.output.storage`: TYNDP 2026 Excel export of the storage projects
 - `rules.retrieve_tyndp_2026.output.nodes`: TYNDP 2026 electricity node list (onshore and offshore) used to validate borders
 - `data/cba/table_3_CBA_Implementation_Guidelines_TYNDP2026.csv`: Table of projects as defined in the draft TYNDP 2026 Implementation Guidelines Appendix Table 3, used to assign the TOOT/PINT method per project and planning horizon. The 2035 reference grid of the guidelines is used for the 2040 planning horizon
 - `data/cba/cba_project_corrections.csv`: Manually curated bus0/bus1/p_nom corrections for CBA projects, applied in place of the corresponding raw Excel entries

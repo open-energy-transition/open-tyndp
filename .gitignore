@@ -86,7 +86,6 @@ report/*.toc
 *.pyc
 
 *.xlsx
-!data/cba/tyndp_2026_cba_projects/*.xlsx
 
 *.xls
 
