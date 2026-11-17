@@ -3,7 +3,7 @@
 
 # TYNDP 2026 data
 
-The TYNDP 2026 data is downloaded and extracted using the `retrieve_tyndp_2026` and `retrieve_tyndp_pecd` rules. Originally published by ENTSO-E and ENTSOG under
+The TYNDP 2026 data is downloaded and extracted using the `retrieve_tyndp_2026`, `retrieve_tyndp_2026_cba_projects` and `retrieve_tyndp_pecd` rules. Originally published by ENTSO-E and ENTSOG under
 Creative Commons Attribution 4.0 International License (CC-BY 4.0).
 The original data files can be found under <https://2026.entsos-tyndp-scenarios.eu/download/>.
 The `{version}`, `{pecd_version}` and `{pecd_prebuilt_version}` placeholders refer to the dataset versions listed in `data/tyndp_versions.csv`.
@@ -92,7 +92,8 @@ The `{version}`, `{pecd_version}` and `{pecd_prebuilt_version}` placeholders ref
 - **Source:** draft TYNDP 2026 CBA Implementation Guidelines (for public consultation), Appendix Table 3, <https://eepublicdownloads.blob.core.windows.net/public-cdn-container/tyndp-documents/TYNDP2026/Draft_TYNDP_2026_CBA_ImpG_for_PC.pdf>
 - **Link:** On repository (not retrieved/downloaded). Full provenance and description are documented under [Data Repositories](data-repos.md).
 
-## `data/cba/tyndp_2026_cba_projects/{transmission,storage}.xlsx`
+## `cba/{transmission,storage}_projects_CBA.xlsx`
 
 - **Source:** TYNDP 2026 projects export, <https://tyndp2026.entsoe.eu/projects-map>
-- **Link:** On repository (not retrieved/downloaded). Full provenance and description are documented under [Data Repositories](data-repos.md).
+- **Link:** `https://storage.googleapis.com/open-tyndp-data-store/2026/{version}/inputs/cba/transmission_projects_CBA.xlsx` and `.../storage_projects_CBA.xlsx`
+- **Description:** Contains the TYNDP 2026 transmission projects (sheets `Trans.Projects` and `Trans.Investments`) and storage projects (sheet `Stor.Projects`), with borders, transfer capacities, storage capacities, costs, status and commissioning year. Retrieved by `retrieve_tyndp_2026_cba_projects` and used by `clean_projects` to build the CBA transmission and storage projects. Unlike the TYNDP 2024 export, it has no route lengths and no reference-grid flags.
