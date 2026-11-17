@@ -1481,7 +1481,7 @@ if (TYNDP_2026_DATASET := dataset_version("tyndp_2026"))["source"] in ARCHIVE_SO
                 transmission=f"{TYNDP_2026_DATASET['folder']}/cba/transmission_projects_CBA.xlsx",
                 storage=f"{TYNDP_2026_DATASET['folder']}/cba/storage_projects_CBA.xlsx",
             log:
-                "logs/retrieve_tyndp_2026_cba.log",
+                "logs/retrieve_tyndp_2026_cba_projects.log",
             message:
                 "Retrieving TYNDP 2026 CBA projects (tranmission and storage) data"
             run:
