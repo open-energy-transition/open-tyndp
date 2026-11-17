@@ -1468,6 +1468,26 @@ if (TYNDP_2026_DATASET := dataset_version("tyndp_2026"))["source"] in ARCHIVE_SO
                         )
                     )
 
+        rule retrieve_tyndp_2026_cba_projects:
+            input:
+                transmission=storage(
+                    TYNDP_2026_DATASET["url"]
+                    + "/inputs/cba/transmission_projects_CBA.xlsx"
+                ),
+                storage=storage(
+                    TYNDP_2026_DATASET["url"] + "/inputs/cba/storage_projects_CBA.xlsx"
+                ),
+            output:
+                transmission=f"{TYNDP_2026_DATASET['folder']}/cba/transmission_projects_CBA.xlsx",
+                storage=f"{TYNDP_2026_DATASET['folder']}/cba/storage_projects_CBA.xlsx",
+            log:
+                "logs/retrieve_tyndp_2026_cba_projects.log",
+            message:
+                "Retrieving TYNDP 2026 CBA projects (tranmission and storage) data"
+            run:
+                for key in input.keys():
+                    copy2(input[key], output[key])
+
 
 def get_osm_archive_files(version):
     return [

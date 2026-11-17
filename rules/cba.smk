@@ -124,8 +124,8 @@ if config.get("cba", {}).get("cba_scenario_input", {}).get("use_presolved", Fals
 #
 checkpoint clean_projects:
     input:
-        transmission="data/cba/tyndp_2026_cba_projects/transmission.xlsx",
-        storage="data/cba/tyndp_2026_cba_projects/storage.xlsx",
+        transmission=rules.retrieve_tyndp_2026_cba_projects.output.transmission,
+        storage=rules.retrieve_tyndp_2026_cba_projects.output.storage,
         buses=rules.retrieve_tyndp_2026.output.nodes,
         guidelines="data/cba/table_3_CBA_Implementation_Guidelines_TYNDP2026.csv",
         carrier_mapping="data/tyndp_technology_map.csv",
