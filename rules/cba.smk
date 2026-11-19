@@ -429,6 +429,8 @@ rule make_indicators:
         non_co2_emissions="data/cba/a.3_non-co2-emissions.csv",
         benchmark=rules.clean_tyndp_indicators.output.indicators,
         methods=rules.clean_projects.output.methods,
+        storage_projects=rules.clean_projects.output.storage_projects,
+        costs=resources("costs_{horizon}_processed.csv"),
     output:
         indicators=RESULTS + "cba/results/{horizon}/project_{cba_project}_{horizon}.csv",
     log:
@@ -447,6 +449,8 @@ rule make_indicators:
         ),
         sb_scenario=config_provider("cba", "sb_scenario", default=None),
         tyndp_scenario=config_provider("tyndp_scenario"),
+        capacity_credit=config_provider("cba", "storage", "capacity_credit"),
+        peaker_technology=config_provider("cba", "storage", "peaker_technology"),
     script:
         scripts("cba/make_indicators.py")
 
