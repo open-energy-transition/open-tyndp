@@ -11,7 +11,6 @@ See docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#cba
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_validator
-
 from scripts.lib.validation.config._base import ConfigModel
 from scripts.lib.validation.config.clustering import _TemporalConfig
 from scripts.lib.validation.config.solving import _SolvingOptionsConfig
@@ -57,6 +56,14 @@ class _CbaStorageConfig(ConfigModel):
     default_lifetime: float = Field(
         default=25,
         description="Lifetime (years) used for storage projects with missing or zero operational lifetime.",
+    )
+    capacity_credit: dict[float, float] = Field(
+        default_factory=lambda: {0: 1.0},
+        description="Capacity credit (p.u.) of storage projects by storage duration (h), linearly interpolated, used for the B9 indicator firm capacity. Assumed value (no derating).",
+    )
+    peaker_technology: str = Field(
+        "OCGT",
+        description="Technology in the processed cost data used as best new entrant peaking unit to monetise the B9 indicator.",
     )
 
 
