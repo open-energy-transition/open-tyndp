@@ -123,7 +123,7 @@ This guide is for users who ran Open-TYNDP on TYNDP 2024 data, up to release `v0
 
 **Grid.** Reference grids keep one topology in all horizons, and only the NTCs change ([#920](https://github.com/open-energy-transition/open-tyndp/pull/920)). The network is therefore built once from `electricity.tyndp_reference_year`. Hurdle costs now also apply in Scenario Building, on `DC` and `H2 pipeline` links ([#935](https://github.com/open-energy-transition/open-tyndp/pull/935)). Move `cba.hurdle_costs` to the top-level `hurdle_costs`.
 
-**Benchmarking.** Benchmarks now compare against the 2026 Time Series Dashboards and Scenario Report figures ([#960](https://github.com/open-energy-transition/open-tyndp/pull/960)). The `generation_profiles` table served only DE and GA and is removed ([#1066](https://github.com/open-energy-transition/open-tyndp/pull/1066)). New tables cover prosumer demand, EV charging and synthetic fuels, and HEV and LEV are not benchmarked. Rename `market_out` to `dashboard_out` and remove `vp` and `generation_profiles`. Read outputs from `benchmarks/tyndp-2026/`.
+**Benchmarking.** Benchmarks now compare against the 2026 Time Series Dashboards and Scenario Report figures ([#960](https://github.com/open-energy-transition/open-tyndp/pull/960)). The `generation_profiles` table served only DE and GA and is removed ([#1066](https://github.com/open-energy-transition/open-tyndp/pull/1066)). New tables cover prosumer demand, EV charging and synthetic fuels. Rename `market_out` to `dashboard_out` and remove `vp` and `generation_profiles`. Read outputs from `benchmarks/tyndp-2026/`.
 
 **CBA.** The CBA still runs on the 2024 project list, and its reference grid corrections are now placeholders. Run names changed their prefix from `cy` to `ws` ([#878](https://github.com/open-energy-transition/open-tyndp/pull/878)). `t335` becomes `t225` and `t1106` is removed for now, as both use 2024 offshore hub buses ([#1079](https://github.com/open-energy-transition/open-tyndp/pull/1079)). Rename runs such as `NT-cy2009` to `NT-ws2009`.
 
@@ -359,7 +359,7 @@ Upstream wildcard and network file changes, such as `{planning_horizons}` to `{h
 
 | Limitation |
 |---|
-| Benchmarking is disabled for HEV and LEV. These scenarios differ from NT+ only in fuel and CO2 prices. |
+| HEV and LEV are not benchmarked yet. Benchmarking for them is planned. These scenarios differ from NT+ only in fuel and CO2 prices. |
 | The CBA run names `NT-ws1995`, `NT-ws2008`, `NT-ws2009` and `NT-wscenarios` keep the 2024 calendar years. They are not TYNDP 2026 weather scenarios. They change only the snapshots and cutout years, and all use the same 2026 weather scenario profiles. |
 | The CBA still uses the TYNDP 2024 project list and bus corrections with 2024 offshore hub buses. |
 | **TODO (placeholder, depends on [#1125](https://github.com/open-energy-transition/open-tyndp/pull/1125)):** describe how to use pre-solved Scenario Building networks of releases before v0.10, which use the old network file names, with the CBA. |
