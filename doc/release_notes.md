@@ -79,7 +79,7 @@
 
 * doc: update documentation to TYNDP 2026 ([#1123](https://github.com/open-energy-transition/open-tyndp/pull/1123)).
 
-* doc: add the [TYNDP 2024 to 2026 migration guide](tyndp_2026.md#migration-tyndp-2026) ([#1100](https://github.com/open-energy-transition/open-tyndp/issues/1100)).
+* doc: add the [TYNDP 2024 to 2026 migration guide](tyndp_2026.md#migration-tyndp-2026) ([#1164](https://github.com/open-energy-transition/open-tyndp/pull/1164)).
 
 **Developers Note**
 
