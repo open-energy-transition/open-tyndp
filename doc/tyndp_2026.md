@@ -260,7 +260,9 @@ Columns of `data/tyndp_technology_map.csv`:
 | `EV-Modelling-Inputs.zip` | `inputs/Electric-Vehicle.zip` | [#816](https://github.com/open-energy-transition/open-tyndp/pull/816) |
 | `Hybrid-Heat-Pump-Modelling-Inputs.zip` | `inputs/Heat.zip` | [#816](https://github.com/open-energy-transition/open-tyndp/pull/816) |
 | `Line-data.zip`, `Nodes.zip`, `Hydrogen.zip` | `inputs/Line-data.zip`, `inputs/Nodes.zip`, `inputs/Hydrogen.zip` | [#816](https://github.com/open-energy-transition/open-tyndp/pull/816) |
-| none | `outputs/Supply-Tool.zip`, `outputs/NT+_TimeSeriesDashboard.zip`, `additional/TYNDP_2026_Scenario_Report_Data_Figures.xlsx` | [#960](https://github.com/open-energy-transition/open-tyndp/pull/960) |
+| `20240518-Supply-Tool.xlsm.zip` | `outputs/Supply-Tool.zip` | [#816](https://github.com/open-energy-transition/open-tyndp/pull/816) |
+| 2024 market model output files | `outputs/NT+_TimeSeriesDashboard.zip` | [#816](https://github.com/open-energy-transition/open-tyndp/pull/816) |
+| `TYNDP-2024-Scenarios-Package-20250128.zip` (benchmarking) | `additional/TYNDP_2026_Scenario_Report_Data_Figures.xlsx` | [#960](https://github.com/open-energy-transition/open-tyndp/pull/960) |
 | none | `cba_corrections/Hydrogen.zip`, only for the P2G shares | [#1055](https://github.com/open-energy-transition/open-tyndp/pull/1055) |
 | `Investment-Datasets.zip`, `StartingGrid2030.xlsx.zip` | no longer retrieved | [#1051](https://github.com/open-energy-transition/open-tyndp/pull/1051) |
 | `tyndp_nuclear_profiles` | no longer retrieved | [#1073](https://github.com/open-energy-transition/open-tyndp/pull/1073) |
