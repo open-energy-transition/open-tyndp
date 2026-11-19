@@ -1236,6 +1236,32 @@ if __name__ == "__main__":
     indicators.update(b4_indicators)
     units.update(b4_units)
 
+    if project_type == "storage":
+        if n_project.snapshot_weightings.generators.max() > 1:
+            logger.warning(
+                "B9 peaks are computed from snapshots longer than 1 h, so they are "
+                "snapshot means and not hourly peaks."
+            )
+        storage_projects = pd.read_csv(
+            snakemake.input.storage_projects, index_col="project_id"
+        )
+        costs = pd.read_csv(snakemake.input.costs, index_col=0)
+        b9_indicators, b9_units = calculate_b9_indicator(
+            n_reference,
+            n_project,
+            method=method,
+            storage_project=storage_projects.loc[project_id],
+            project_code=cba_project,
+            res_carriers=res_carriers,
+            thermal_carriers=[*conventional_carriers, "H2"],
+            capacity_credit=snakemake.params.capacity_credit,
+            peaker_cost=calculate_peaker_annualised_cost(
+                costs, snakemake.params.peaker_technology
+            ),
+        )
+        indicators.update(b9_indicators)
+        units.update(b9_units)
+
     # Add project metadata
     project_type = "storage" if cba_project.startswith("s") else "transmission"
     indicators["planning_horizon"] = planning_horizon
