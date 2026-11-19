@@ -11,6 +11,7 @@ See docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#cba
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_validator
+
 from scripts.lib.validation.config._base import ConfigModel
 from scripts.lib.validation.config.clustering import _TemporalConfig
 from scripts.lib.validation.config.solving import _SolvingOptionsConfig
