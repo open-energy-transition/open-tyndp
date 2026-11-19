@@ -90,7 +90,7 @@ The `{version}`, `{pecd_version}` and `{pecd_prebuilt_version}` placeholders ref
 - **Description:** Contains the data used to produce the figures in the TYNDP 2026 Scenarios Report. Used for benchmarking.
 
 
-# TYNDP Migration guide (2024 -> 2026) {#migration-tyndp-2026}
+# Migration guide from open-tyndp 2024 to 2026 {#migration-tyndp-2026}
 
 This guide is for users who ran Open-TYNDP on TYNDP 2024 data, up to release `v0.9`. It explains what changed for the TYNDP 2026 cycle and lists all renamed, added and removed names. Read the upstream [Migration Guide](migration.md) first, as it covers the workflow restructuring of the same release.
 
