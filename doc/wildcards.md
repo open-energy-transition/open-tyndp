@@ -5,7 +5,8 @@
 
 !!! note
     If you are migrating from an earlier release, see [migration](migration.md) for
-    guidance on translating legacy wildcards and targets.
+    guidance on translating legacy wildcards and targets. For the TYNDP 2026
+    wildcards and rule names, see the [Open-TYNDP cycle migration guide](tyndp_2026.md#rules-wildcards-and-files).
 
 Wildcards allow to generalise a rule to produce all files that follow a regular expression pattern
 which e.g. defines one particular scenario. One can think of a wildcard as a parameter that shows
