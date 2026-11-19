@@ -10,6 +10,8 @@ and generates plots comparing Open-TYNDP values
 to the 2024 TYNDP values.
 """
 
+from __future__ import annotations
+
 import logging
 from pathlib import Path
 
@@ -165,8 +167,7 @@ def plot_project_benchmarks(
             continue
 
         model_val = select_model_value(df, indicator)
-        bench = benchmark_range(df, indicator, source="TYNDP 2024")
-        if model_val is None or bench is None:
+        if model_val is None:
             continue
         plot_items.append(indicator)
 
@@ -243,32 +244,38 @@ def plot_project_benchmarks(
             ax.set_xticks([])
         else:
             model_range = benchmark_range(df, indicator, source="Open-TYNDP")
+            bench_range = benchmark_range(df, indicator, source="TYNDP 2024")
+
+            # Handle missing model_range via single-value fallback (should be rare,
+            # since plot_items already required model_val).
             if model_range is None:
-                model_min_val, model_mean_val, model_max_val = (0, 0, 0)
+                fallback_val = select_model_value(df, indicator)
+                if fallback_val is None:
+                    continue
+                model_min_val = model_mean_val = model_max_val = float(fallback_val)
             else:
                 model_min_val, model_mean_val, model_max_val = model_range
 
-            min_val, mean_val, max_val = benchmark_range(
-                df, indicator, source="TYNDP 2024"
-            )
-
-            ax.errorbar(
-                [-0.1],
-                [mean_val],
-                yerr=[[abs(mean_val - min_val)], [abs(max_val - mean_val)]],
-                fmt="x",
-                color="gray",
-                ecolor="lightgray",
-                capsize=3,
-            )
-
-            label = "2024 TYNDP (mean ± min/max)"
-            if label not in legend_labels:
-                legend_handles.append(
-                    Line2D([0], [0], marker="x", color="gray", linestyle="None")
+            # Draw TYNDP benchmark only if present
+            if bench_range is not None:
+                min_val, mean_val, max_val = bench_range
+                ax.errorbar(
+                    [-0.1],
+                    [mean_val],
+                    yerr=[[abs(mean_val - min_val)], [abs(max_val - mean_val)]],
+                    fmt="x",
+                    color="gray",
+                    ecolor="lightgray",
+                    capsize=3,
                 )
-                legend_labels.append(label)
+                label = "2024 TYNDP (mean ± min/max)"
+                if label not in legend_labels:
+                    legend_handles.append(
+                        Line2D([0], [0], marker="x", color="gray", linestyle="None")
+                    )
+                    legend_labels.append(label)
 
+            # Draw Open-TYNDP (always expected for plot_items)
             ax.errorbar(
                 [0.1],
                 [model_mean_val],
@@ -282,7 +289,6 @@ def plot_project_benchmarks(
                 capsize=3,
             )
             ax.set_xlim(xmin=-0.5, xmax=0.5)
-
             label = "Open-TYNDP (mean ± min/max)"
             if label not in legend_labels:
                 legend_handles.append(
