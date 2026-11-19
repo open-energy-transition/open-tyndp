@@ -103,7 +103,7 @@ This guide is for users who ran Open-TYNDP on TYNDP 2024 data, up to release `v0
 
 ## Part A: What changed and why
 
-**Data cycle.** TYNDP 2026 is a new dataset under `data: tyndp_2026:`, with version `2026-11-11` ([#893](https://github.com/open-energy-transition/open-tyndp/pull/893), [#1148](https://github.com/open-energy-transition/open-tyndp/pull/1148)). PECD moves from `3.1` to `4.2.1`. The 2024 dataset is still used for the methane demand and the CBA project list. With the default data config, no change is needed. If you pin versions, keep both `data: tyndp:` and `data: tyndp_2026:`.
+**Data cycle.** TYNDP 2026 is a new dataset under `data: tyndp_2026:` ([#893](https://github.com/open-energy-transition/open-tyndp/pull/893)). Its version is the date on which Open-TYNDP retrieved the data from the official download page. ENTSO-E does not version these datasets and updates them now and then. Open-TYNDP therefore keeps each retrieval in its own data bucket, so results stay reproducible. The supported versions are listed in `data/tyndp_versions.csv`. PECD also moves to the release of the 2026 cycle. The 2024 dataset is still used for the methane demand and the CBA project list. With the default data config, no change is needed. If you pin versions, keep both `data: tyndp:` and `data: tyndp_2026:`.
 
 **Scenarios.** HEV and LEV replace the DE and GA scenarios ([#1066](https://github.com/open-energy-transition/open-tyndp/pull/1066)). Following the TYNDP 2026 methodology, they add +10 % and -10 % to the NT+ fuel and CO2 prices. In Open-TYNDP, they differ from NT+ only in these prices. Replace `DE` or `GA` with `NT`, `HEV` or `LEV` in `tyndp_scenario` and your scenario files.
 
@@ -250,8 +250,8 @@ Columns of `data/tyndp_technology_map.csv`:
 
 | Before | Now | PR |
 |---|---|---|
-| none | dataset `tyndp_2026`, version `2026-11-11` | [#1148](https://github.com/open-energy-transition/open-tyndp/pull/1148) |
-| `tyndp_pecd` `3.1+pre-built.0.1` | `4.2.1+pre-built.0.1` | [#1148](https://github.com/open-energy-transition/open-tyndp/pull/1148) |
+| none | dataset `tyndp_2026`, versions in `data/tyndp_versions.csv` | [#893](https://github.com/open-energy-transition/open-tyndp/pull/893) |
+| PECD release of the 2024 cycle | PECD release of the 2026 cycle, versions in `data/tyndp_versions.csv` | [#887](https://github.com/open-energy-transition/open-tyndp/pull/887) |
 | `Hydro-Inflows.zip` | `inputs/Hydro-Inflow.zip` | [#816](https://github.com/open-energy-transition/open-tyndp/pull/816), [#1059](https://github.com/open-energy-transition/open-tyndp/pull/1059) |
 | `PEMMDB2.zip` | `inputs/PEMMDB_2.X.zip` | [#816](https://github.com/open-energy-transition/open-tyndp/pull/816) |
 | `Demand-Profiles.zip` | `inputs/Demand.zip` | [#816](https://github.com/open-energy-transition/open-tyndp/pull/816) |
@@ -323,7 +323,7 @@ Upstream wildcard and network file changes, such as `{planning_horizons}` to `{h
 |---|---|
 | Planning horizons 2035 and 2050 | [#887](https://github.com/open-energy-transition/open-tyndp/pull/887), [#1041](https://github.com/open-energy-transition/open-tyndp/pull/1041) |
 | Weather scenarios per planning horizon (`wscenarios_tyndp`) | [#878](https://github.com/open-energy-transition/open-tyndp/pull/878) |
-| PECD v4.2.1 renewable profiles, including CSP | [#887](https://github.com/open-energy-transition/open-tyndp/pull/887), [#1148](https://github.com/open-energy-transition/open-tyndp/pull/1148) |
+| PECD renewable profiles of the 2026 cycle, including CSP | [#887](https://github.com/open-energy-transition/open-tyndp/pull/887) |
 | SRES and DRES generation with own buses feeding electrolysers | [#999](https://github.com/open-energy-transition/open-tyndp/pull/999) |
 | Market, prosumer and BTM electricity demand | [#944](https://github.com/open-energy-transition/open-tyndp/pull/944) |
 | Prosumer buses and distribution grid with wheeling charges | [#935](https://github.com/open-energy-transition/open-tyndp/pull/935) |
