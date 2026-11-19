@@ -103,9 +103,11 @@ This guide is for users who ran Open-TYNDP on TYNDP 2024 data, up to release `v0
 
 ## Part A: What changed and why
 
-**Data cycle.** TYNDP 2026 is a new dataset under `data: tyndp_2026:` ([#893](https://github.com/open-energy-transition/open-tyndp/pull/893)). Its version is the date on which Open-TYNDP retrieved the data from the official download page. ENTSO-E does not version these datasets and updates them now and then. Open-TYNDP therefore keeps each retrieval in its own data bucket, so results stay reproducible. The supported versions are listed in `data/tyndp_versions.csv`. PECD also moves to the release of the 2026 cycle. The 2024 dataset is still used for the methane demand and the CBA project list. With the default data config, no change is needed. If you pin versions, keep both `data: tyndp:` and `data: tyndp_2026:`.
+**Data cycle.** TYNDP 2026 is a new dataset under `data: tyndp_2026:` ([#893](https://github.com/open-energy-transition/open-tyndp/pull/893)). Its version is the date on which Open-TYNDP retrieved the data from the official download page. ENTSO-E does not version these datasets and updates them now and then. Open-TYNDP therefore keeps each retrieval in its own data bucket, so results stay reproducible. The supported versions are listed in `data/tyndp_versions.csv`. PECD also moves to the release of the 2026 cycle. With the default data config, no change is needed. If you pin versions, keep both `data: tyndp:` and `data: tyndp_2026:`.
 
-**Scenarios.** HEV and LEV replace the DE and GA scenarios ([#1066](https://github.com/open-energy-transition/open-tyndp/pull/1066)). Following the TYNDP 2026 methodology, they add +10 % and -10 % to the NT+ fuel and CO2 prices. In Open-TYNDP, they differ from NT+ only in these prices. Replace `DE` or `GA` with `NT`, `HEV` or `LEV` in `tyndp_scenario` and your scenario files.
+**Naming conventions.** Bus names now follow the TYNDP 2026 node codes instead of the PyPSA-Eur defaults, for example `DEh2Z1`, `BEO1_OFF` or `{node}RETE`. Carrier names keep the PyPSA-Eur convention. Update analyses that select components by bus name.
+
+**Scenarios.** HEV and LEV replace the DE and GA scenarios ([#1066](https://github.com/open-energy-transition/open-tyndp/pull/1066)). Following the TYNDP 2026 methodology, they add +10 % and -10 % to the NT+ fuel and CO2 prices. Replace `DE` or `GA` with `NT`, `HEV` or `LEV` in `tyndp_scenario` and your scenario files.
 
 **Weather scenarios and full year.** Numbered weather scenarios per horizon replace the 2024 climate years, and `cyear` became `wscenario` ([#878](https://github.com/open-energy-transition/open-tyndp/pull/878)). TYNDP 2026 models the full year, so snapshots cover 8760 h instead of 52 weeks ([#1065](https://github.com/open-energy-transition/open-tyndp/pull/1065)). Set `wscenarios_tyndp` and rename `pecd_renewable_profiles.pre_built.cyears` to `wscenarios`. Set `snapshots.end` to the first day of the next year.
 
@@ -125,7 +127,7 @@ This guide is for users who ran Open-TYNDP on TYNDP 2024 data, up to release `v0
 
 **Benchmarking.** Benchmarks now compare against the 2026 Time Series Dashboards and Scenario Report figures ([#960](https://github.com/open-energy-transition/open-tyndp/pull/960)). The `generation_profiles` table served only DE and GA and is removed ([#1066](https://github.com/open-energy-transition/open-tyndp/pull/1066)). New tables cover prosumer demand, EV charging and synthetic fuels. Rename `market_out` to `dashboard_out` and remove `vp` and `generation_profiles`. Read outputs from `benchmarks/tyndp-2026/`.
 
-**CBA.** The CBA still runs on the 2024 project list, and its reference grid corrections are now placeholders. Run names changed their prefix from `cy` to `ws` ([#878](https://github.com/open-energy-transition/open-tyndp/pull/878)). `t335` becomes `t225` and `t1106` is removed for now, as both use 2024 offshore hub buses ([#1079](https://github.com/open-energy-transition/open-tyndp/pull/1079)). Rename runs such as `NT-cy2009` to `NT-ws2009`.
+**CBA.** Run names changed their prefix from `cy` to `ws` ([#878](https://github.com/open-energy-transition/open-tyndp/pull/878)). In `cba.projects`, replace `t335` with `t225` and remove `t1106`, as both used 2024 offshore hub buses ([#1079](https://github.com/open-energy-transition/open-tyndp/pull/1079)). Rename runs such as `NT-cy2009` to `NT-ws2009`.
 
 **Workflow.** TYNDP rules and files now use the `tyndp` prefix and 2026 names. One rule builds all TYNDP demand with the new `{demand_type}` wildcard ([#808](https://github.com/open-energy-transition/open-tyndp/pull/808)). The weather scenario test config and its pixi task were renamed. Update custom Snakemake targets, scripts that read resource files and calls of the test task.
 
@@ -351,7 +353,6 @@ Upstream wildcard and network file changes, such as `{planning_horizons}` to `{h
 | DE and GA scenarios | [#1066](https://github.com/open-energy-transition/open-tyndp/pull/1066) |
 | ENTSO-E H2 starting grid | [#920](https://github.com/open-energy-transition/open-tyndp/pull/920) |
 | Toggle for H2 zoning (`h2_zones_tyndp`) | [#920](https://github.com/open-energy-transition/open-tyndp/pull/920) |
-| CBA reference grid corrections (now placeholders) | [#920](https://github.com/open-energy-transition/open-tyndp/pull/920) |
 | Visualisation Platform benchmarking | [#960](https://github.com/open-energy-transition/open-tyndp/pull/960) |
 | PyPSA-Eur land transport in TYNDP runs (replaced by a flat EU27 oil demand) | [#1039](https://github.com/open-energy-transition/open-tyndp/pull/1039) |
 
@@ -359,7 +360,10 @@ Upstream wildcard and network file changes, such as `{planning_horizons}` to `{h
 
 | Limitation |
 |---|
-| HEV and LEV are not benchmarked yet. Benchmarking for them is planned. These scenarios differ from NT+ only in fuel and CO2 prices. |
+| HEV and LEV differ from NT+ only in fuel and CO2 prices. Their demand adjustments and hydrogen import prices are not yet included. |
+| HEV and LEV are not benchmarked yet. Benchmarking for them is planned. |
 | The CBA run names `NT-ws1995`, `NT-ws2008`, `NT-ws2009` and `NT-wscenarios` keep the 2024 calendar years. They are not TYNDP 2026 weather scenarios. They change only the snapshots and cutout years, and all use the same 2026 weather scenario profiles. |
-| The CBA still uses the TYNDP 2024 project list and bus corrections with 2024 offshore hub buses. |
+| The CBA still uses the TYNDP 2024 project list and bus corrections with 2024 offshore hub buses. Its reference grid corrections are placeholders. |
+| `t1106` is temporarily removed from `cba.projects`. |
+| Parts of the TYNDP 2024 dataset are still used: the 2024 Supply Tool for the methane demand and the 2024 node list for the CBA projects. |
 | **TODO (placeholder, depends on [#1125](https://github.com/open-energy-transition/open-tyndp/pull/1125)):** describe how to use pre-solved Scenario Building networks of releases before v0.10, which use the old network file names, with the CBA. |
