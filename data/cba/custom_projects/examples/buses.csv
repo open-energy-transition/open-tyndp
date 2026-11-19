@@ -1,0 +1,2 @@
+project_name,project_type,project_id,bus_name,country,lat,lon,source,further description
+Example for custom buses,t,1530,new_bus,GB,51.089748,9.246651,,Connected to the network by the new_bus-GB00 row of transmission_projects.csv

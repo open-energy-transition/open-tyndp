@@ -175,7 +175,11 @@ $ pixi run tyndp-cba --config run='{"name":"NT-cy2009"}'
 
 ## Evaluation of custom projects
 
-Custom projects can be evaluated with the CBA workflow, either as **transmission** or **generator** projects.
+Custom projects can be evaluated with the CBA workflow, as **transmission** projects. Adding custom **buses** and **generators** grouped with such a project is also possible.
+
+Custom buses and generators are never assessed on their own: each one is grouped with a transmission or storage project and added alongside it in the same project network. The grouping is expressed by two columns, `project_type` (`t` for transmission, `s` for storage) and `project_id` (the ID of that project, without the project type, e.g. `project_type = t` and `project_id = 1500` for project `t1500`), and the bus or generator inherits the assessment method of the project it is grouped with. Entries whose `project_type` is neither `s` nor `t`, or that do not define a `project_id`, are dropped with a warning. Custom buses of a project are added before its custom generators.
+
+All custom project files live in `data/cba/custom_projects/`, with filled-in examples in `data/cba/custom_projects/examples/`. Each file can optionally be provided as `.xlsx` instead; if a file of that format is found, it takes precedence over the CSV.
 
 ### Custom transmission projects
 
@@ -187,11 +191,29 @@ Custom PINT transmission projects can be evaluated with the CBA workflow. Each p
 
 Every entry must define `project_id`, `bus0`, `bus1` and at least one capacity (`p_nom 0->1` or `p_nom 1->0`), and the resulting combinations must be unique. Entries referring to TOOT projects are not supported and are ignored with a warning. Transmission capacities are in MW.
 
+`bus0` and `bus1` are normally existing buses, but either of them can also be a custom bus of the same project, in which case the entry connects that bus to the network (see [Custom buses](#custom-buses)).
+
+### Custom buses
+
+A custom bus is a node that does not exist in the TYNDP network, added so that components of a custom project can be attached to it. Custom buses are supported for **PINT** projects only; an entry grouped with a TOOT project is ignored with a warning, since the reference network does not contain the bus in the first place.
+
+Custom buses are electricity nodes: they are added with the `AC` carrier and connected to an existing electricity bus. Nodes of other carriers, such as hydrogen, are not supported.
+
+A custom bus is not connected on its own. Its connection to the rest of the network is a custom transmission project: a row of `data/cba/custom_projects/transmission_projects.csv` that carries the same `project_id` and names the bus as `bus0` or `bus1`. The connection therefore uses the same columns, capacities, costs and hurdle costs as any other custom transmission project. As a consequence, custom buses can only be grouped with transmission projects (`project_type = t`).
+
+Each bus is defined in `data/cba/custom_projects/buses.csv`, with one row per bus:
+
+- `bus_name`: name of the new bus, used as is in the network and as `bus0` or `bus1` of the custom transmission project connecting it. It must not be the name of an existing bus.
+- `country`: country code of the bus.
+- `lat`, `lon`: coordinates of the bus, used as the `y` and `x` attributes.
+
+Entries are dropped with a warning when `bus_name`, `lat`, `lon` or `project_id` is missing, when the coordinates are outside their valid range, when `bus_name` is already an existing bus, when `project_type` is neither `s` nor `t`, and when no custom transmission project of the same `project_id` refers to the bus. Coordinates are rounded to four decimals, and rows repeating the same `bus_name` within one project are reduced to the first occurrence. A custom transmission project that refers to a custom bus of another project is dropped with a warning as well, since that bus only exists in its own project network.
+
+When applied, the bus is added to the project network as an AC `Bus` before the project itself, so that the links of the custom transmission project can connect it.
+
 ### Custom generators
 
-Custom generators can also be evaluated with the CBA workflow.
-
-Custom generators are never assessed on their own: each one is grouped with either a transmission or a storage project, which it is added alongside in the same project network. The grouping is expressed by two columns, `project_type` (`t` for transmission, `s` for storage) and `project_id` (the ID of that project), and the generator inherits the assessment method of the project it is grouped with. 
+Custom generators are used to define either a new generator / capacity update to an existing generator as part of a custom project. Unlike custom buses, custom generators are supported for both **PINT** and **TOOT** projects. Custom generators can also be defined at custom buses, by setting `bus` to the `bus_name` of a bus defined in `data/cba/custom_projects/buses.csv`.
 
 Each project is defined across two files:
 
