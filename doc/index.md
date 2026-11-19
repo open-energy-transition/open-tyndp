@@ -78,7 +78,7 @@ Feel free to check out our explainer video on ["What is Open Energy Modelling"](
 !!! warning
     Open-TYNDP is under active development and is not yet feature-complete. The current development status and the general [limitations](limitations.md) are important to understand before using the model. Benchmarking against the TYNDP 2024 cycle is complete, and the outcomes can be viewed [online](https://open-tyndp.openenergytransition.org). The development is now moving forward to align with the TYNDP 2026 cycle, covering the National Trends+ (NT+) scenario and its High Economic Variant (HEV) and Low Economic Variant (LEV). The GitHub repository's [issues](https://github.com/open-energy-transition/open-tyndp/issues) collect known topics we are working on (please feel free to help or make suggestions). The fact that this project relies on a soft-fork strategy implies that [upstream issues](https://github.com/PyPSA/PyPSA-Eur/issues) need to be addressed in the PyPSA-Eur repository. The [documentation](https://open-tyndp.readthedocs.io/) also remains work in progress.
 
-If you used Open-TYNDP with TYNDP 2024 data, the [TYNDP 2024 to 2026 migration guide](tyndp_2026.md#migration-tyndp-2026) explains what changed and what you have to change.
+If you used Open-TYNDP for the TYNDP 2024 cycle, the [Open-TYNDP cycle migration guide](tyndp_2026.md#migration-tyndp-2026) explains what changed and what you have to change.
 
 ### Already implemented features
 

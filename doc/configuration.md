@@ -253,7 +253,7 @@ Configuration for top level `planning_horizons` settings.
     Earlier releases derived planning horizons from `scenario` wildcard
     entries. That block is ignored now; define `planning_horizons` at the top
     level and keep scenario sweeps inside `run.scenarios`. See
-    [migration](migration.md) for detailed conversion steps. For the move from
+    [migration](migration.md) for detailed conversion steps.
     For details on switching from the 2024 to the 2026 cycle, see the [Open-TYNDP cycle migration guide](tyndp_2026.md#migration-tyndp-2026).
 
 
