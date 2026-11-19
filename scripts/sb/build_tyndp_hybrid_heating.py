@@ -6,11 +6,12 @@ Builds the TYNDP 2026 hybrid heat pump boiler topology.
 
 Reads the CH4 and H2 hybrid heat pump boilers of the planning horizon from
 ``HHP_{CH4,H2}_BOILERS.xlsx`` and maps them to Open-TYNDP bus names. Each row
-is one boiler with its hybrid heat pump node, the electricity bus of the node
-and, for H2, the H2 bus it draws from. A node appears several times if its
-boiler draws from several H2 buses. ``SK0E`` and ``SK0W`` have no electricity
-bus of their own and are connected to ``SK00``. CH4 boilers have no
-``fuel_bus``, as they draw from the gas bus of the node.
+is one boiler with its hybrid heat pump node (``heat_node``), the electricity
+bus of the node (``elec_bus``) and, for H2, the H2 bus it draws from
+(``fuel_bus``). A node appears several times if its boiler draws from several
+H2 buses. ``SK0E`` and ``SK0W`` have no electricity bus of their own and are
+connected to ``SK00``. CH4 boilers have no ``fuel_bus``, as they draw from the
+gas bus of the node.
 
 Inputs
 ------
@@ -23,15 +24,12 @@ Outputs
 - ``resources/hybrid_heating_boilers_{horizon}.csv``
 """
 
-import logging
 from pathlib import Path
 
 import pandas as pd
 
 from scripts._helpers import configure_logging, set_scenario_config
 from scripts.sb._helpers import format_bz_names
-
-logger = logging.getLogger(__name__)
 
 
 def read_boilers(heat_dir: str, fuel: str, planning_horizon: int) -> pd.DataFrame:
@@ -50,18 +48,18 @@ def read_boilers(heat_dir: str, fuel: str, planning_horizon: int) -> pd.DataFram
     Returns
     -------
     pd.DataFrame
-        Boilers with columns ``fuel``, ``node``, ``bus`` and ``fuel_bus``.
+        Boilers with columns ``fuel``, ``heat_node``, ``elec_bus`` and ``fuel_bus``.
     """
     boilers = pd.read_excel(
         Path(heat_dir, f"HHP_{fuel}_BOILERS.xlsx"), engine="calamine"
     ).query("YEAR == @planning_horizon")
-    node = format_bz_names(boilers.NODE)
+    heat_node = format_bz_names(boilers.NODE)
 
     return pd.DataFrame(
         {
             "fuel": fuel,
-            "node": node,
-            "bus": node.replace({"SK0E": "SK00", "SK0W": "SK00"}),
+            "heat_node": heat_node,
+            "elec_bus": heat_node.replace({"SK0E": "SK00", "SK0W": "SK00"}),
             "fuel_bus": boilers.NODE_FROM if fuel == "H2" else None,
         }
     )
