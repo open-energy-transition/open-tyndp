@@ -25,16 +25,19 @@ References:
 
 - [CBA guidelines](https://eepublicdownloads.blob.core.windows.net/public-cdn-container/clean-documents/news/2024/entso-e_4th_CBA_Guideline_240409.pdf), section 3.2.2: TOOT and PINT, page 23-24
 - [CBA implementation guidelines](https://eepublicdownloads.blob.core.windows.net/public-cdn-container/tyndp-documents/TYNDP2024/foropinion/CBA_Implementation_Guidelines.pdf), section 5.1: B1 - SEW, page 58-59
+- JRC, Electricity storage CBA methodology under the TEN-E Regulation (EU) 2022/869, section 3.1.9: B9 - Generation capacity deferral
 
 """  # noqa: D412
 
 import logging
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import pypsa
 
 from scripts._helpers import configure_logging, set_scenario_config
+from scripts.add_electricity import calculate_annuity
 from scripts.cba.prepare_project import load_method
 from scripts.prepare_sector_network import get
 from scripts.sb._helpers import get_version
@@ -758,6 +761,180 @@ def calculate_b4_indicator(
         )  # report indicators to align with guideline sign convention (negative means reduction in emissions)
         units[pollutant_key] = "ton/year"
 
+    return results, units
+
+
+def calculate_peak_residual_load(
+    n: pypsa.Network, bus: str, project_code: str, res_carriers: list[str]
+) -> float:
+    """
+    Calculate the peak residual load (MW) at a bus.
+
+    The residual load is the load minus the variable RES generation and minus
+    the net injection of the storage project links added by PINT.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        PyPSA network (solved).
+    bus : str
+        Electricity bus of the project's bidding zone.
+    project_code : str
+        Project code (e.g. "s1004") used in the names of the project links.
+    res_carriers : list[str]
+        Carriers of the variable RES generators.
+
+    Returns
+    -------
+    float
+        Peak residual load over all snapshots (MW).
+    """
+    load = n.loads_t.p.loc[:, n.loads.bus == bus].sum(axis=1)
+    is_res = (n.generators.bus == bus) & n.generators.carrier.isin(res_carriers)
+    res = n.generators_t.p.loc[:, is_res[is_res].index].sum(axis=1)
+    project = n.links[n.links.index.str.startswith(f"{bus} cba {project_code} ")]
+    injection = -n.links_t.p0.loc[:, project.index[project.bus0 == bus]].sum(
+        axis=1
+    ) - n.links_t.p1.loc[:, project.index[project.bus1 == bus]].sum(axis=1)
+    return float((load - res - injection).max())
+
+
+def calculate_peak_thermal_dispatch(
+    n: pypsa.Network, bus: str, thermal_carriers: list[str]
+) -> float:
+    """
+    Calculate the peak thermal dispatch (MW) at a bus.
+
+    Thermal units are links from a fuel bus with a carrier in `thermal_carriers`
+    to the electricity bus.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        PyPSA network (solved).
+    bus : str
+        Electricity bus of the project's bidding zone.
+    thermal_carriers : list[str]
+        Carriers of the fuel buses feeding thermal units.
+
+    Returns
+    -------
+    float
+        Peak thermal dispatch over all snapshots (MW).
+    """
+    fuel = n.links.bus0.map(n.buses.carrier)
+    thermal = n.links.index[(n.links.bus1 == bus) & fuel.isin(thermal_carriers)]
+    return float((-n.links_t.p1.loc[:, thermal].sum(axis=1)).max())
+
+
+def calculate_peaker_annualised_cost(costs: pd.DataFrame, technology: str) -> float:
+    """
+    Calculate the annualised investment and fixed O&M cost of a peaking unit.
+
+    Parameters
+    ----------
+    costs : pd.DataFrame
+        Processed cost data indexed by technology.
+    technology : str
+        Technology used as best new entrant peaking unit.
+
+    Returns
+    -------
+    float
+        Annualised cost (EUR/MW/year).
+    """
+    tech = costs.loc[technology]
+    annuity = calculate_annuity(tech["lifetime"], tech["discount rate"])
+    return float((annuity + tech["FOM"] / 100) * tech["investment"])
+
+
+def calculate_b9_indicator(
+    n_reference: pypsa.Network,
+    n_project: pypsa.Network,
+    method: str,
+    storage_project: pd.Series,
+    project_code: str,
+    res_carriers: list[str],
+    thermal_carriers: list[str],
+    capacity_credit: dict[float, float],
+    peaker_cost: float,
+) -> tuple[dict, dict]:
+    """
+    Calculate B9 indicator: generation capacity deferral of a storage project.
+
+    The deferred capacity is the smallest of:
+
+    - the firm capacity: capacity credit (by storage duration) x discharge capacity,
+    - the reduction in peak residual load at the project's bus,
+    - the reduction in peak thermal dispatch at the project's bus.
+
+    It is monetised with the annualised cost of the best new entrant peaking unit.
+
+    Parameters
+    ----------
+    n_reference : pypsa.Network
+        Reference network.
+    n_project : pypsa.Network
+        Project network.
+    method : str
+        Either "pint" or "toot".
+    storage_project : pd.Series
+        Row from storage_projects with columns bus, p_nom_discharge and e_nom_gwh.
+    project_code : str
+        Project code (e.g. "s1004").
+    res_carriers : list[str]
+        Carriers of the variable RES generators.
+    thermal_carriers : list[str]
+        Carriers of the fuel buses feeding thermal units.
+    capacity_credit : dict[float, float]
+        Capacity credit (p.u.) by storage duration (h), linearly interpolated.
+    peaker_cost : float
+        Annualised cost of the best new entrant peaking unit (EUR/MW/year).
+
+    Returns
+    -------
+    tuple[dict, dict]
+        Tuple of (results, units) dictionaries with B9 indicators.
+    """
+    bus = storage_project["bus"]
+    p_nom_discharge = float(storage_project["p_nom_discharge"])
+    duration = float(storage_project["e_nom_gwh"]) * 1e3 / p_nom_discharge
+    hours, credits = zip(*sorted(capacity_credit.items()))
+    credit = float(np.interp(duration, hours, credits))
+    firm_capacity = credit * p_nom_discharge
+
+    residual_load_reduction = difference_by_method(
+        calculate_peak_residual_load(n_reference, bus, project_code, res_carriers),
+        calculate_peak_residual_load(n_project, bus, project_code, res_carriers),
+        method,
+    )
+    thermal_dispatch_reduction = difference_by_method(
+        calculate_peak_thermal_dispatch(n_reference, bus, thermal_carriers),
+        calculate_peak_thermal_dispatch(n_project, bus, thermal_carriers),
+        method,
+    )
+    deferred_capacity = min(
+        firm_capacity, residual_load_reduction, thermal_dispatch_reduction
+    )
+
+    results = {
+        "B9_capacity_credit": credit,
+        "B9_firm_capacity": firm_capacity,
+        "B9_peak_residual_load_reduction": residual_load_reduction,
+        "B9_peak_thermal_dispatch_reduction": thermal_dispatch_reduction,
+        "B9a_deferred_capacity": deferred_capacity,
+        "peaker_annualised_cost": peaker_cost,
+        "B9_generation_capacity_deferral": deferred_capacity * peaker_cost / 1e6,
+    }
+    units = {
+        "B9_capacity_credit": "p.u.",
+        "B9_firm_capacity": "MW",
+        "B9_peak_residual_load_reduction": "MW",
+        "B9_peak_thermal_dispatch_reduction": "MW",
+        "B9a_deferred_capacity": "MW",
+        "peaker_annualised_cost": "EUR/MW/year",
+        "B9_generation_capacity_deferral": "Meuro/year",
+    }
     return results, units
 
 
