@@ -78,10 +78,10 @@ def get_run_name(w):
 #
 checkpoint clean_projects:
     input:
-        dir=rules.retrieve_tyndp_cba_projects.output.dir,
-        buses=rules.retrieve_tyndp.output.nodes,
-        offshore_buses=rules.retrieve_tyndp.output.offshore_nodes,
-        guidelines="data/cba/table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv",
+        transmission=rules.retrieve_tyndp_2026_cba_projects.output.transmission,
+        storage=rules.retrieve_tyndp_2026_cba_projects.output.storage,
+        buses=rules.retrieve_tyndp_2026.output.nodes,
+        guidelines="data/cba/table_3_CBA_Implementation_Guidelines_TYNDP2026.csv",
         carrier_mapping="data/tyndp_technology_map.csv",
         cba_project_corrections="data/cba/cba_project_corrections.csv",
         custom_transmission="data/cba/custom_projects/transmission_projects.csv",

@@ -202,6 +202,13 @@ New data should generally not be added to the data, but externally retrieved in 
 - **License:** CC-BY 4.0
 - **Description:** Contains manual corrections to raw TYNDP cost-benefit analysis (CBA) project data, including fixes to malformed or missing border/bus codes (e.g. mapping blank or ambiguous codes to offshore hub buses), splitting single malformed rows into their correct per-investment legs, and correcting transfer capacities (`p_nom`) between project endpoints. Used to override erroneous entries in the raw CBA project list before building CBA networks.
 
+`data/cba/table_3_CBA_Implementation_Guidelines_TYNDP2026.csv`
+
+- **Source:** ENTSO-E, draft TYNDP 2026 CBA Implementation Guidelines (for public consultation), Appendix Table 3, p. 112-117
+- **Link:** TODO
+- **License:** CC-BY 4.0
+- **Description:** Overview of the transmission projects included in the reference grids, with border, transfer capacities, status and commissioning year, extracted from the TYNDP 2026 Draft CBA Implementation Guidelines in the same format as Table B.1 was from the TYNDP 2024 CBA Implementation Guidelines. Used to assign the TOOT/PINT assessment method to each transmission project per planning horizon. Some cleaning was done when extracting the data from the PDF tables to CSV: duplicated methods (`PINTPINT`) and free text (projects 1046 and 1185) are reduced to the method, and line breaks are removed from names and borders.
+
 `data/cba/table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv`
 
 - **Source:** ENTSO-E, TYNDP 2024 Methodology: CBA Implementation Guidelines, Table B.1

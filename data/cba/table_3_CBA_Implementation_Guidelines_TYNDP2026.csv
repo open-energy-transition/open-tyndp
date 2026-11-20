@@ -1,0 +1,114 @@
+ID,Project_name,Border,A_B_MW,B_A_MW,In_ref_grid_2030,In_ref_grid_2040,Commissioning_year,Project_Status_ID
+1,RES in north of Portugal,internalPT00,0,0,yes,yes,2026,4
+4,Interconnection Portugal-Spain,ES00-PT00,1800,700,yes,yes,2025,4
+16,Biscay Gulf,ES00-FR00,2200,2200,yes,yes,2028,4
+28,Italy-Montenegro,ITCS-ME00,600,600,no,yes,2032,4
+29,Italy-Tunisia,ITSI-TN00,600,600,yes,yes,2028,4
+33,Central Northern Italy,ITCN-ITN1,500,500,yes,yes,2026,4
+33,Central Northern Italy,ITCN-ITCS,400,400,yes,yes,2026,4
+35,CZ Southwest-east corridor,CZ00-DE00,500,500,yes,yes,2029,3
+47,Westtirol (AT) - Vöhringen (DE),AT00-DE00,750,250,no,yes,2030,2
+81,North South Interconnector,IE00-UKNI,981,993,no,yes,2031,4
+85,Integration of RES in Alentejo,internalPT00,0,0,yes,yes,2026,3
+107,Celtic Interconnector,FR00-IE00,700,700,yes,yes,2028,4
+120,Princess Elisabeth Island (MOG 2),internalBE00,0,0,no,yes,2032,3
+121,Nautilus: multi-purpose interconnector Belgium - UK,BE00-UK00,1400,1400,no,yes,2032,2
+127,Central Southern Italy,ITCS-ITS1,500,500,yes,yes,2029,3
+130,HVDC SuedOstLink Wolmirstedt to area Isar,DE00-PLI0,150,250,yes,yes,2027,3
+130,HVDC SuedOstLink Wolmirstedt to area Isar,CZ00-DE00,350,100,yes,yes,2027,3
+130,HVDC SuedOstLink Wolmirstedt to area Isar,CZ00-PLI0,0,150,yes,yes,2027,3
+130,HVDC SuedOstLink Wolmirstedt to area Isar,AT00-CZ00,50,400,yes,yes,2027,3
+132,HVDC Line A-North,BE00-DE00,1400,0,yes,yes,2027,3
+132,HVDC Line A-North,DE00-NL00,250,400,yes,yes,2027,3
+138,Black Sea Corridor,BG00-RO00,300,200,yes,yes,2026,4
+144,Mid Continental East corridor,RO00-RS00,900,800,yes,yes,2029,3
+144,Mid Continental East corridor,HU00-RO00,450,1650,yes,yes,2029,3
+170,Baltic States Synchronization with Continental Europe,LT00-PL00,700,700,no,yes,2030,3
+187,St. Peter (AT) - Pleinting (DE),AT00-DE00,2500,2500,yes,yes,2030,3
+210,Würmlach (AT) - Somplago (IT) interconnection,AT00-ITN1,150,150,yes,yes,2029,3
+219,Great Sea Interconnector,CY00-GR03,1000,1000,yes,yes,2029,4
+219,Great Sea Interconnector,CY00-IL00,1000,1000,yes,yes,2029,4
+227,Transbalkan Corridor,BA00-RS00,1050,450,yes,yes,2028,3
+227,Transbalkan Corridor,ME00-RS00,600,550,yes,yes,2028,3
+228,Muhlbach - Eichstetten,DE00-FR00,300,300,yes,yes,2030,3
+231,Beznau - Tiengen,CH00-DE00,100,450,no,yes,2035,2
+235,HVDC SuedLink Brunsbüttel/Wilster to Großgartach/Bergrheinfeld West,DE00-DKW1,550,1750,no,yes,2028,3
+235,HVDC SuedLink Brunsbüttel/Wilster to Großgartach/Bergrheinfeld West,DE00-NL00,0,500,no,yes,2028,3
+235,HVDC SuedLink Brunsbüttel/Wilster to Großgartach/Bergrheinfeld West,DE00-FR00,1300,300,no,yes,2028,3
+235,HVDC SuedLink Brunsbüttel/Wilster to Großgartach/Bergrheinfeld West,AT00-DE00,0,200,no,yes,2028,3
+244,Vigy - Uchtelfangen area,DE00-FR00,1500,1500,yes,yes,2029,3
+254,HVDC Ultranet Osterath to Philippsburg,DE00-FR00,650,100,yes,yes,2026,3
+259,HU-RO,HU00-RO00,2150,1050,no,yes,2030,2
+260,Project 260 – Multi-purpose HVDC interconnection between Great Britain and The Netherlands,NL00-UK00,1800,2000,no,yes,2032,2
+280,FR-BE: Lonny-Achene-Gramme,BE00-FR00,1000,1000,no,yes,2032,3
+299,SACOI 3,FR15-ITCO,100,100,yes,yes,2029,4
+299,SACOI 3,ITCO-ITSA,100,100,yes,yes,2029,4
+299,SACOI 3,ITCN-ITCO,400,400,yes,yes,2029,4
+309,NeuConnect,DE00-UK00,1400,1400,yes,yes,2027,2
+313,Isar/Altheim/Ottenhofen (DE) - St.Peter (AT),AT00-DE00,1400,1400,yes,yes,2027,3
+323,Dekani (SI) - Zaule (IT) interconnection,ITN1-SI00,40,7,no,yes,2026,3
+324,Redipuglia (IT) - Vrtojba (SI) interconnection,ITN1-SI00,65,93,no,yes,2026,3
+328,Interconnector DE-LUX,DE00-LUG1,1000,800,no,yes,2029,2
+329,Stevin-Izegem/Avelgem (Ventilus): new corridor,internalBE00,0,0,yes,yes,2029,3
+338,Adriatic HVDC link,ITN1-ITCN,600,1000,yes,yes,2029,4
+338,Adriatic HVDC link,ITCN-ITCS,1000,1000,yes,yes,2029,4
+339,Tyrrhenian link,ITCS-ITSIvirt,1000,1000,yes,yes,2029,4
+339,Tyrrhenian link,ITSA-ITSIvirt,1000,1000,yes,yes,2029,4
+339,Tyrrhenian link,ITSI-ITSIvirt,1500,1500,yes,yes,2029,4
+340,Avelgem-Courcelles (Boucle du Hainaut): new corridor,internalBE00,0,0,no,yes,2032,3
+341,North CSE Corridor,RO00-RS00,850,550,yes,yes,2029,3
+342,Central Balkan Corridor,BG00-RS00,550,350,no,yes,2034,2
+343,CSE1 New,BA00-HR00,450,850,no,yes,2035,2
+346,ZuidWest380 NL Oost,BE00-NL00,1074,447,no,yes,2031,4
+349,MaresConnect,IE00-UK00,750,750,yes,yes,2029,3
+350,South Balkan Corridor,AL00-MK00,298,581,yes,yes,2027,4
+1034,HVDC corridor from Northern Germany to Western Germany,BE00-DE00,0,100,no,yes,2032,2
+1034,HVDC corridor from Northern Germany to Western Germany,DE00-NL00,500,0,no,yes,2032,2
+1046,Finnish North-South reinforcement,internalFI00,0,0,no,yes,2032,3
+1052,Lienz (AT) - Malta (AT) - Obersielach (AT),AT00-SI00,1000,450,no,yes,2034,2
+1052,Lienz (AT) - Malta (AT) - Obersielach (AT),AT00-ITN1,500,500,no,yes,2034,2
+1054,220-kV Westtirol (AT) - Zell/Ziller (AT),AT00-DE00,750,250,no,yes,2032,2
+1059,Southern Italy,ITCS-ITS1,200,200,no,yes,2032,3
+1059,Southern Italy,ITS1-ITCA,900,900,no,yes,2032,3
+1074,Pannonian Corridor,HU00-RS00,250,500,no,yes,2030,3
+1086,Internal grid reinforcements in Estonia to increase RES connection capability (RRF project),EE00internal,0,0,yes,yes,2026,4
+1088,Latvia and Estonia Hybrid Off- Shore interconnector,EE00-OBZ,1000,1000,no,yes,2035,2
+1095,Aurora line 2 (4th AC Finland-Sweden north),FI00-SE01,701,883,no,yes,2034,2
+1096,Beznau - Mettlen,CH00-DE00,200,1300,no,yes,2033,3
+1098,Offshore Wind LT 2,LTOffshore,1466,0,yes,yes,2030,2
+1100,Reinforcement of the existing CZ-DE interconnector (Hradec - Röhrsdorf) on the CZ side,CZ00-DE00,500,500,yes,yes,2028,3
+1103,Bickigen - Chippis,CH00-DE00,400,400,no,yes,2031,3
+1104,Bauler - Roost,DE00-LUG1,800,800,no,yes,2027,2
+1106,Bornholm Energy Island (BEI),DE00-BolEnergy,0,0,no,yes,2033,2
+1110,Sicily - Calabria,ITCA-ITSI,450,700,yes,yes,2027,3
+1112,GRITA 2,ITS1-GR00,1000,1000,no,yes,2033,2
+1121,220-kV Hessenberg (AT) - Weißenbach (AT),ATInternal,0,0,no,yes,2031,2
+1122,Offshore Wind connection Centre Manche 1,FROffshore,0,0,no,yes,2032,3
+1123,Offshore Wind connection Centre Manche 2,FROffshore,0,0,no,yes,2033,3
+1124,Offshore Wind Connection South Brittany,FROffshore,0,0,no,yes,2032,3
+1125,Offshore Wind Connection Occitanie (Narbonnaise),FROffshore,0,0,no,yes,2032,2
+1126,Offshore Wind Connection PACA (Golfe de Fos),FROffshore,0,0,no,yes,2032,2
+1127,Offshore Wind Connection South Atlantic Oléron 1,FROffshore,0,0,no,yes,2033,2
+1138,400 kV OHL Suceava (RO) - Balti (MD),MD00-RO00,300,300,no,yes,2030,2
+1153,PST romands,CH00-FR00,800,800,no,yes,2033,2
+1155,380-kV Burgenland North (AT) - Sarasdorf (AT) - Greater Vienna (AT),ATInternal,0,0,no,yes,2033,2
+1157,HG North Tyrrhenian Corridor,ITCS-ITN1,2100,2100,no,yes,2034,2
+1157,HG North Tyrrhenian Corridor,ITCS-ITCN,800,0,no,yes,2034,2
+1159,220-kV Bisamberg (AT) – Wien Südost (AT),ATInternal,0,0,no,yes,2027,2
+1160,PST Riddes,CH00-ITN1,150,100,yes,yes,2029,4
+1161,Offshore Wind Connection South Atlantic Oléron 2,FR00Offshore,0,0,no,yes,2035,1
+1162,Offshore Wind Connection Fécamp-Grand Large 1,FR00Offshore,0,0,no,yes,2035,1
+1166,HG Adriatic Corridor,ITCN-ITN1,700,700,no,yes,2034,2
+1166,HG Adriatic Corridor,ITCS-ITS1,600,600,no,yes,2034,2
+1166,HG Adriatic Corridor,ITS1-ITN1,2100,2100,no,yes,2034,2
+1167,HG Central link,ITCS-ITCN,600,600,no,yes,2031,2
+1182,EHV S/S Thesprotias and its connection to the 400 kV System,AL00-GR00,1160,1590,no,yes,2031,2
+1183,New interconnection line 400 kV Greece - Albania,AL00-GR00,160,590,no,yes,2031,2
+1185,Powering Up Offshore South Coast project,IE00Offshore,0,0,no,yes,2033,2
+1209,Latvia and Lithuania cross-border strengthening project,LT00-LV00,949,1570,no,yes,2035,2
+1219,Bofferdange- Bertrange,LUG1INternal,0,0,no,yes,2035,3
+1229,Rhein-Main-Link,BE00-DE00,700,450,no,yes,2035,3
+1229,Rhein-Main-Link,DE00-DKW1,850,700,no,yes,2035,3
+1234,220-kV Reitdorf (AT) - Weißenbach (AT),ATInternal,0,0,yes,yes,2027,4
+1235,Second circuit of the 400 kV OHL Sajóivánka (HU) – Rimavská Sobota (SK),HU00-SK00,100,1137,no,yes,2030,2
+1256,Limitations removal on the Italian - Slovenian border,SI00-ITN1,600,600,no,yes,2030,2
