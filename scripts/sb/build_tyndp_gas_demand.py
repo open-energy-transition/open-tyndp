@@ -4,20 +4,14 @@
 """
 Builds TYNDP Scenario Building exogenous gas demand for Open-TYNDP.
 
-Reads the annual methane final energy demand per EU27 country from the
-``Methane | Total Energy Demand`` rows of the TYNDP 2026 Supply Tool's
-``All data`` sheet, available for 2030, 2035, 2040 and 2050. This row is the
-final energy demand only: the Supply Tool country sheets add methane for power
-generation, heat production (district heating, CHP and hybrid heating) and
-SMR/pyrolysis on top of it to obtain the total methane demand (e.g. ``AT!D7 =
-SUM(D8:D12)``), and the Scenario Report labels it "Final Energy Demand from ETM
-(excl. DH; HHPs)". Power generation, SMR, pyrolysis and hybrid heating are
-modelled endogenously. District heating and CHP heat are not and are added to
-the exogenous demand as ``Methane | Primary Energy Demand for District
-Heating`` plus the larger of ``Methane | Primary Energy Demand for CHP (Heat)``
-and ``Methane for Heat | Methane``, following the heat production formula of
-the Supply Tool country sheets (e.g. ``AT!L60``). Countries outside the EU27
-have no exogenous gas demand.
+Reads the annual methane demand per EU27 country from the ``All data`` sheet
+of the TYNDP 2026 Supply Tool for 2030, 2035, 2040 and 2050. The exogenous
+demand is ``Methane | Total Energy Demand`` (final energy demand) plus
+``Methane | Primary Energy Demand for District Heating``. The Supply Tool
+country sheets add methane for power, CHP heat, hybrid heating, SMR and
+pyrolysis on top of the final energy demand (e.g. ``AT!D7:D12``); these are
+modelled endogenously. Countries outside the EU27 have no exogenous gas
+demand.
 
 Inputs
 ------
@@ -45,9 +39,7 @@ def load_gas_demand(fn: Path, planning_horizon: int) -> pd.Series:
     """
     Load the annual exogenous methane demand (MWh) per EU27 country.
 
-    Sum of the final energy demand and the methane for district heating and
-    CHP heat. Of the two CHP heat rows, the larger one is used per country, as
-    in the Supply Tool country sheets.
+    Sum of the final energy demand and the methane for district heating.
 
     Parameters
     ----------
@@ -74,25 +66,18 @@ def load_gas_demand(fn: Path, planning_horizon: int) -> pd.Series:
         .astype(float)
     )
 
-    def row(etm: str, parameter: str) -> pd.Series:
-        return data.loc[[(etm, parameter)]].squeeze(axis=0)
-
-    final = row("Methane", "Total Energy Demand")
-    district_heating = row("Methane", "Primary Energy Demand for District Heating")
-    chp_heat = pd.concat(
-        [
-            row("Methane", "Primary Energy Demand for CHP (Heat)"),
-            row("Methane for Heat", "Methane"),
-        ],
-        axis=1,
-    ).max(axis=1)
+    methane = data.loc["Methane"]
+    final = methane.loc[["Total Energy Demand"]].squeeze(axis=0)
+    district_heating = methane.loc[
+        ["Primary Energy Demand for District Heating"]
+    ].squeeze(axis=0)
     logger.info(
         f"Methane demand {planning_horizon} (TWh): final {final.sum():.1f}, "
-        f"district heating {district_heating.sum():.1f}, CHP heat {chp_heat.sum():.1f}"
+        f"district heating {district_heating.sum():.1f}"
     )
 
     # TWh to MWh
-    return (final + district_heating + chp_heat).mul(1e6).rename("p_nom")
+    return (final + district_heating).mul(1e6).rename("p_nom")
 
 
 if __name__ == "__main__":

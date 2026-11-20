@@ -5341,36 +5341,38 @@ def add_hybrid_heating_tyndp(
         .to_pandas()
         .reindex(n.snapshots)
     )
-    boilers = pd.read_csv(hybrid_heating_boilers_file, index_col="node")
+    hhp_boilers = pd.read_csv(hybrid_heating_boilers_file, index_col="heat_node")
 
     for fuel, demand_file in thermal_demand_files.items():
         heat_system = f"{fuel} hybrid"
-        boiler = "gas boiler" if fuel == "CH4" else "H2 boiler"
-        fuel_boilers = boilers.query("fuel == @fuel")
+        boiler_tech = "gas boiler" if fuel == "CH4" else "H2 boiler"
+        boilers = hhp_boilers.query("fuel == @fuel")
 
         demand = pd.read_csv(demand_file, index_col=0, parse_dates=True).reindex(
             n.snapshots
         )
-        unknown = demand.columns.difference(fuel_boilers.index)
+        unknown = demand.columns.difference(boilers.index)
         if not unknown.empty:
             logger.warning(
                 f"Dropping {fuel} hybrid heat demand of nodes without TYNDP hybrid heat pump: {unknown.tolist()}"
             )
-        nodes = demand.columns.intersection(fuel_boilers.index)
-        elec_nodes = pd.Index(fuel_boilers.bus.groupby(level="node").first().loc[nodes])
-        heat_buses = nodes + f" {heat_system} heat"
+        heat_nodes = demand.columns.intersection(boilers.index)
+        elec_buses = pd.Index(
+            boilers.elec_bus.groupby(level="heat_node").first().loc[heat_nodes]
+        )
+        heat_buses = heat_nodes + f" {heat_system} heat"
         n.add(
             "Carrier",
             [
                 f"{heat_system} heat",
                 f"{heat_system} air heat pump",
-                f"{heat_system} {boiler}",
+                f"{heat_system} {boiler_tech}",
             ],
         )
         n.add(
             "Bus",
             heat_buses,
-            location=elec_nodes,
+            location=elec_buses,
             carrier=f"{heat_system} heat",
             unit="MWh_th",
         )
@@ -5379,45 +5381,45 @@ def add_hybrid_heating_tyndp(
             heat_buses,
             bus=heat_buses,
             carrier=f"{heat_system} heat",
-            p_set=demand[nodes].set_axis(heat_buses, axis=1),
+            p_set=demand[heat_nodes].set_axis(heat_buses, axis=1),
         )
 
-        heat_pumps = nodes + f" {heat_system} air heat pump"
+        heat_pumps = heat_nodes + f" {heat_system} air heat pump"
         n.add(
             "Link",
             heat_pumps,
             bus0=heat_buses,
-            bus1=elec_nodes,
+            bus1=elec_buses,
             carrier=f"{heat_system} air heat pump",
-            efficiency=(1 / cop[elec_nodes]).set_axis(heat_pumps, axis=1),
+            efficiency=(1 / cop[elec_buses]).set_axis(heat_pumps, axis=1),
             p_nom=np.inf,
             p_min_pu=-1,
             p_max_pu=0,
         )
 
-        node_boilers = fuel_boilers.loc[nodes]
-        boiler_nodes = node_boilers.index
+        active_boilers = boilers.loc[heat_nodes]
+        boiler_nodes = active_boilers.index
         boiler_attrs = dict(
             bus1=boiler_nodes + f" {heat_system} heat",
-            carrier=f"{heat_system} {boiler}",
-            efficiency=costs.at[f"hybrid {boiler}", "efficiency"],
+            carrier=f"{heat_system} {boiler_tech}",
+            efficiency=costs.at[f"hybrid {boiler_tech}", "efficiency"],
             p_nom=np.inf,
         )
         if fuel == "CH4":
             n.add(
                 "Link",
-                boiler_nodes + f" {heat_system} {boiler}",
-                bus0=spatial.gas.df.loc[node_boilers.bus, "nodes"].values,
+                boiler_nodes + f" {heat_system} {boiler_tech}",
+                bus0=spatial.gas.df.loc[active_boilers.elec_bus, "nodes"].values,
                 bus2="co2 atmosphere",
                 efficiency2=costs.at["gas", "CO2 intensity"],
                 **boiler_attrs,
             )
         else:
-            fuel_nodes = node_boilers.fuel_bus.values
+            fuel_buses = active_boilers.fuel_bus.values
             n.add(
                 "Link",
-                boiler_nodes + f" {heat_system} {boiler} " + fuel_nodes,
-                bus0=fuel_nodes,
+                boiler_nodes + f" {heat_system} {boiler_tech} " + fuel_buses,
+                bus0=fuel_buses,
                 **boiler_attrs,
             )
 
