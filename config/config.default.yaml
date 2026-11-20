@@ -128,6 +128,7 @@ electricity:
   - 500.0
   - 750.0
   base_network: osm
+  remove_unconnected_components: true
   tyndp_reference_year: 2030
   gaslimit_enable: false
   gaslimit: false
@@ -1119,6 +1120,11 @@ sector:
   H2_network: true
   h2_topology_tyndp: false
   smr_ramp_limits_tyndp: false
+  synfuels_tyndp:
+    enable: false
+    carriers:
+      "e-liquids": oil
+      sng: gas
   gas_network: true
   gas_demand_exogenously: false
   H2_retrofit: false

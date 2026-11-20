@@ -9,9 +9,9 @@ Sector configuration.
 See docs in https://open-tyndp.readthedocs.io/en/latest/configuration/#sector_cf
 """
 
-from typing import Any
+from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from scripts.lib.validation.config._base import ConfigModel
 
@@ -225,6 +225,19 @@ class _MethanolConfig(BaseModel):
     )
 
 
+class _SynfuelsTyndpConfig(BaseModel):
+    """Configuration for `sector.synfuels_tyndp` settings."""
+
+    enable: bool = Field(
+        False,
+        description="Add TYNDP 2026 synthetic fuels. Requires `h2_topology_tyndp`. Cannot be combined with `industry` or `methanation`.",
+    )
+    carriers: dict[str, Literal["oil", "gas"]] = Field(
+        default_factory=lambda: {"e-liquids": "oil", "sng": "gas"},
+        description="Synthetic fuels and the fossil carrier that each fuel replaces.",
+    )
+
+
 class _TransmissionEfficiencyConfig(BaseModel):
     """Configuration for `sector.transmission_efficiency` settings."""
 
@@ -399,7 +412,10 @@ class SectorConfig(BaseModel):
     transport: bool = Field(True, description="Add transport sector.")
     heating: bool = Field(True, description="Add heating sector.")
     biomass: bool = Field(True, description="Add biomass sector.")
-    industry: bool = Field(True, description="Add industry sector.")
+    industry: bool = Field(
+        True,
+        description="Add industry sector. Cannot be combined with `synfuels_tyndp: enable`.",
+    )
     shipping: bool = Field(True, description="Add shipping sector.")
     aviation: bool = Field(True, description="Add aviation sector.")
     agriculture: bool = Field(True, description="Add agriculture sector.")
@@ -685,7 +701,7 @@ class SectorConfig(BaseModel):
 
     methanation: bool = Field(
         True,
-        description="Add option for transforming hydrogen and CO2 into methane using methanation.",
+        description="Add option for transforming hydrogen and CO2 into methane using methanation. Cannot be combined with `synfuels_tyndp: enable`.",
     )
     coal_cc: bool = Field(
         False, description="Add option for coal CHPs with carbon capture."
@@ -882,6 +898,10 @@ class SectorConfig(BaseModel):
         False,
         description="Add TYNDP ramp limits to SMR and SMR CCS links. Only used with `h2_topology_tyndp`.",
     )
+    synfuels_tyndp: _SynfuelsTyndpConfig = Field(
+        default_factory=_SynfuelsTyndpConfig,
+        description="TYNDP 2026 synthetic fuels configuration.",
+    )
     gas_network: bool = Field(
         True,
         description="Add existing natural gas infrastructure, incl. LNG terminals, production and entry-points. The existing gas network is added with a lossless transport model. A length-weighted `k-edge augmentation algorithm <https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.connectivity.edge_augmentation.k_edge_augmentation.html#networkx.algorithms.connectivity.edge_augmentation.k_edge_augmentation>`_ can be run to add new candidate gas pipelines such that all regions of the model can be connected to the gas network. When activated, all the gas demands are regionally disaggregated as well.",
@@ -978,3 +998,22 @@ class SectorConfig(BaseModel):
     imports: _ImportsConfig = Field(
         default_factory=_ImportsConfig, description="Imports configuration."
     )
+
+    @model_validator(mode="after")
+    def check_synfuels_tyndp_requires_h2_topology(self) -> "SectorConfig":
+        """Validate that TYNDP synthetic fuels are used with the TYNDP H2 topology."""
+        if self.synfuels_tyndp.enable and not self.h2_topology_tyndp:
+            raise ValueError("`synfuels_tyndp: enable` requires `h2_topology_tyndp`.")
+        return self
+
+    @model_validator(mode="after")
+    def check_synfuels_tyndp_conflicts(self) -> "SectorConfig":
+        """Validate that TYNDP synthetic fuels are not combined with PyPSA-Eur ones."""
+        options = {"industry": self.industry, "methanation": self.methanation}
+        conflicts = ", ".join(f"`{key}`" for key, enabled in options.items() if enabled)
+        if self.synfuels_tyndp.enable and conflicts:
+            raise ValueError(
+                "`synfuels_tyndp: enable` cannot be combined with PyPSA-Eur "
+                f"synthetic fuels from {conflicts}."
+            )
+        return self

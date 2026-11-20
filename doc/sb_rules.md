@@ -7,6 +7,10 @@ The Scenario Building (SB) workflow is implemented in `rules/sb.smk`. Rules are 
 
 ## Retrieve
 
+### Rule `retrieve_tyndp_2026`
+
+Downloads the TYNDP 2026 data package, see [TYNDP 2026 data](tyndp_2026.md).
+
 ### Rule `retrieve_tyndp_pecd`
 
 Downloads the PECD dataset.
@@ -89,6 +93,10 @@ per-horizon TYNDP electricity market demand onto the clustered network buses, so
 
 ::: build_tyndp_cop_profiles
 
+### Rule `build_tyndp_hybrid_heating`
+
+::: build_tyndp_hybrid_heating
+
 ### Rule `build_tyndp_wheeling_charges`
 
 ::: build_tyndp_wheeling_charges
@@ -113,9 +121,17 @@ per-horizon TYNDP electricity market demand onto the clustered network buses, so
 
 ::: clean_tyndp_h2_storages
 
+### Rule `build_tyndp_synfuels`
+
+::: build_tyndp_synfuels
+
 ### Rule `group_tyndp_conventionals`
 
 ::: group_tyndp_conventionals
+
+### Rule `build_tyndp_p2g_shares`
+
+::: build_tyndp_p2g_shares
 
 ## Postprocess
 
