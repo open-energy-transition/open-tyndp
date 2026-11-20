@@ -432,6 +432,7 @@ rule build_tyndp_gas_demand:
     resources:
         mem_mb=1000,
     params:
+        # TODO: add LEV and HEV Supply Tool workbooks
         supply_tool_file=lambda w: {
             "NT": "Supply Tool NT+ SCN 2026 for publication .xlsm"
         }[config_provider("tyndp_scenario")(w)],
