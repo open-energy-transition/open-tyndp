@@ -901,7 +901,9 @@ def extract_custom_generators(
 
 
 def extract_custom_storage_projects(
-    custom_stores_path: str, existing_buses: pd.Index
+    custom_stores_path: str,
+    existing_buses: pd.Index,
+    custom_buses: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
     """
     Extract custom stores associated with a transmission / storage project.
@@ -918,6 +920,9 @@ def extract_custom_storage_projects(
     existing_buses : pd.Index
         List of existing buses, including the custom buses that may be used as
         `bus_name` of the store.
+    custom_buses : pd.DataFrame, optional
+        Curated list of custom buses. A store may only be attached to a custom bus
+        grouped with the same project, as the bus is not added to other networks.
 
     Returns
     -------
@@ -961,6 +966,32 @@ def extract_custom_storage_projects(
 
     # Remove stores with no project ID or whose project_type is not a `storage` or `transmission` (i.e. not `s` or `t`)
     custom_stores = _validate_project_reference(custom_stores, "custom store(s)")
+
+    # A custom bus only exists in the network of the project it is grouped with, so a
+    # store can only be attached to the custom buses of its own project
+    if custom_buses is not None and not custom_buses.empty:
+        own_keys = set(
+            custom_buses.project_type
+            + custom_buses.project_id.astype(str)
+            + "@"
+            + custom_buses.bus_name
+        )
+        store_keys = (
+            custom_stores.project_type
+            + custom_stores.project_id.astype(str)
+            + "@"
+            + custom_stores.bus_name
+        )
+        mask_foreign_bus = custom_stores.bus_name.isin(
+            custom_buses.bus_name
+        ) & ~store_keys.isin(own_keys)
+        foreign_buses = custom_stores.bus_name[mask_foreign_bus].unique().tolist()
+        custom_stores = _drop_invalid(
+            custom_stores,
+            ~mask_foreign_bus,
+            f"`bus_name` is a custom bus grouped with another project: {foreign_buses}",
+            "custom store(s)",
+        )
 
     # A store is identified by the bus and carrier it is attached to, as there is no
     # store name in the input file
@@ -1548,7 +1579,7 @@ if __name__ == "__main__":
 
     # Custom stores
     custom_stores = extract_custom_storage_projects(
-        custom_stores_path, with_custom_buses(existing_buses, custom_buses)
+        custom_stores_path, with_custom_buses(existing_buses, custom_buses), custom_buses
     )
 
     # Investment costs and length transmission
