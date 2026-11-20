@@ -2680,6 +2680,11 @@
           ],
           "type": "string"
         },
+        "remove_unconnected_components": {
+          "default": true,
+          "description": "If `true`, buses not connected to the main grid are removed in `base_network`; if `false`, they are kept and only isolated AC buses without load, generation or storage are removed in `compose_network`.",
+          "type": "boolean"
+        },
         "tyndp_reference_year": {
           "default": 2030,
           "description": "Planning-horizon year of the TYNDP reference grid used to build the static base network topology and its initial NTC, when `base_network` is 'tyndp'. The node/link topology is identical across all TYNDP planning horizons, only NTC differs, so a single fixed year is used here; per-horizon NTC for `tyndp_scenario` runs is instead applied later, in `prepare_sector_network`.",
@@ -5547,7 +5552,7 @@
         },
         "industry": {
           "default": true,
-          "description": "Add industry sector.",
+          "description": "Add industry sector. Cannot be combined with `synfuels_tyndp: enable`.",
           "type": "boolean"
         },
         "shipping": {
@@ -6044,7 +6049,7 @@
         },
         "methanation": {
           "default": true,
-          "description": "Add option for transforming hydrogen and CO2 into methane using methanation.",
+          "description": "Add option for transforming hydrogen and CO2 into methane using methanation. Cannot be combined with `synfuels_tyndp: enable`.",
           "type": "boolean"
         },
         "coal_cc": {
@@ -6384,6 +6389,27 @@
           "default": false,
           "description": "Add TYNDP ramp limits to SMR and SMR CCS links. Only used with `h2_topology_tyndp`.",
           "type": "boolean"
+        },
+        "synfuels_tyndp": {
+          "description": "Configuration for `sector.synfuels_tyndp` settings.",
+          "properties": {
+            "enable": {
+              "default": false,
+              "description": "Add TYNDP 2026 synthetic fuels. Requires `h2_topology_tyndp`. Cannot be combined with `industry` or `methanation`.",
+              "type": "boolean"
+            },
+            "carriers": {
+              "additionalProperties": {
+                "enum": [
+                  "oil",
+                  "gas"
+                ],
+                "type": "string"
+              },
+              "description": "Synthetic fuels and the fossil carrier that each fuel replaces.",
+              "type": "object"
+            }
+          }
         },
         "gas_network": {
           "default": true,
@@ -10862,6 +10888,27 @@
         }
       }
     },
+    "_SynfuelsTyndpConfig": {
+      "description": "Configuration for `sector.synfuels_tyndp` settings.",
+      "properties": {
+        "enable": {
+          "default": false,
+          "description": "Add TYNDP 2026 synthetic fuels. Requires `h2_topology_tyndp`. Cannot be combined with `industry` or `methanation`.",
+          "type": "boolean"
+        },
+        "carriers": {
+          "additionalProperties": {
+            "enum": [
+              "oil",
+              "gas"
+            ],
+            "type": "string"
+          },
+          "description": "Synthetic fuels and the fossil carrier that each fuel replaces.",
+          "type": "object"
+        }
+      }
+    },
     "_TechnologyMappingConfig": {
       "description": "Configuration for `electricity.estimate_renewable_capacities.technology_mapping` settings.",
       "properties": {
@@ -11462,6 +11509,11 @@
             "tyndp"
           ],
           "type": "string"
+        },
+        "remove_unconnected_components": {
+          "default": true,
+          "description": "If `true`, buses not connected to the main grid are removed in `base_network`; if `false`, they are kept and only isolated AC buses without load, generation or storage are removed in `compose_network`.",
+          "type": "boolean"
         },
         "tyndp_reference_year": {
           "default": 2030,
@@ -13851,7 +13903,7 @@
         },
         "industry": {
           "default": true,
-          "description": "Add industry sector.",
+          "description": "Add industry sector. Cannot be combined with `synfuels_tyndp: enable`.",
           "type": "boolean"
         },
         "shipping": {
@@ -14348,7 +14400,7 @@
         },
         "methanation": {
           "default": true,
-          "description": "Add option for transforming hydrogen and CO2 into methane using methanation.",
+          "description": "Add option for transforming hydrogen and CO2 into methane using methanation. Cannot be combined with `synfuels_tyndp: enable`.",
           "type": "boolean"
         },
         "coal_cc": {
@@ -14688,6 +14740,27 @@
           "default": false,
           "description": "Add TYNDP ramp limits to SMR and SMR CCS links. Only used with `h2_topology_tyndp`.",
           "type": "boolean"
+        },
+        "synfuels_tyndp": {
+          "description": "Configuration for `sector.synfuels_tyndp` settings.",
+          "properties": {
+            "enable": {
+              "default": false,
+              "description": "Add TYNDP 2026 synthetic fuels. Requires `h2_topology_tyndp`. Cannot be combined with `industry` or `methanation`.",
+              "type": "boolean"
+            },
+            "carriers": {
+              "additionalProperties": {
+                "enum": [
+                  "oil",
+                  "gas"
+                ],
+                "type": "string"
+              },
+              "description": "Synthetic fuels and the fossil carrier that each fuel replaces.",
+              "type": "object"
+            }
+          }
         },
         "gas_network": {
           "default": true,

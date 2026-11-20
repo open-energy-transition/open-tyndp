@@ -642,7 +642,8 @@ def _adjust_capacities_of_under_construction_branches(n, config):
 
     if lines_mode == "remove" or links_mode == "remove":
         # We might need to remove further unconnected components
-        n = _remove_unconnected_components(n)
+        if config["electricity"]["remove_unconnected_components"]:
+            n = _remove_unconnected_components(n)
 
     return n
 
@@ -748,7 +749,8 @@ def base_network(
     if config["electricity"].get("base_network") == "entsoegridkit":
         _apply_parameter_corrections(n, parameter_corrections)
 
-    n = _remove_unconnected_components(n)
+    if config["electricity"]["remove_unconnected_components"]:
+        n = _remove_unconnected_components(n)
 
     _set_countries_and_substations(n, config, country_shapes, offshore_shapes)
 
