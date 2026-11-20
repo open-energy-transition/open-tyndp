@@ -70,6 +70,9 @@ def get_tyndp_compose_inputs(w):
         elec_demand_prosumer_btm_tyndp=resources(
             f"demand_tyndp_electricity_prosumer_btm_{horizon}.csv"
         ),
+        thermal_demand_ch4=resources(f"demand_tyndp_thermal_ch4_{horizon}.csv"),
+        thermal_demand_h2=resources(f"demand_tyndp_thermal_h2_{horizon}.csv"),
+        hybrid_heating_boilers=resources(f"hybrid_heating_boilers_{horizon}.csv"),
     )
 
     inputs |= gated_inputs(
@@ -252,7 +255,9 @@ def get_compose_inputs(w):
                 resources("temp_air_total.nc") if not cfg["tyndp_scenario"] else []
             ),
             cop_profiles=(
-                resources("cop_profiles_{horizon}.nc") if sector["heating"] else []
+                resources("cop_profiles_tyndp_{horizon}.nc")
+                if cfg["tyndp_scenario"]
+                else resources("cop_profiles_{horizon}.nc") if sector["heating"] else []
             ),
             direct_heat_source_utilisation_profiles=(
                 resources("direct_heat_source_utilisation_profiles_{horizon}.nc")
