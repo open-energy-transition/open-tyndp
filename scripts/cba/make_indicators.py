@@ -770,8 +770,10 @@ def calculate_peak_residual_load(
     """
     Calculate the peak residual load (MW) at a bus.
 
-    The residual load is the load minus the variable RES generation and minus
-    the net injection of the storage project links added by PINT.
+    The residual load is the load minus the available variable RES generation
+    and minus the net injection of the storage project links added by PINT.
+    Available RES (before curtailment) is used, so that storage charging from
+    otherwise curtailed RES does not show as additional load.
 
     Parameters
     ----------
@@ -791,7 +793,9 @@ def calculate_peak_residual_load(
     """
     load = n.loads_t.p.loc[:, n.loads.bus == bus].sum(axis=1)
     is_res = (n.generators.bus == bus) & n.generators.carrier.isin(res_carriers)
-    res = n.generators_t.p.loc[:, is_res[is_res].index].sum(axis=1)
+    res_index = is_res[is_res].index
+    p_max_pu = n.get_switchable_as_dense("Generator", "p_max_pu")[res_index]
+    res = (p_max_pu * n.generators.loc[res_index, "p_nom"]).sum(axis=1)
     project = n.links[n.links.index.str.startswith(f"{bus} cba {project_code} ")]
     injection = -n.links_t.p0.loc[:, project.index[project.bus0 == bus]].sum(
         axis=1
@@ -868,6 +872,9 @@ def calculate_b9_indicator(
     - the reduction in peak residual load at the project's bus,
     - the reduction in peak thermal dispatch at the project's bus.
 
+    The deferred capacity is clipped at zero: a storage that charges near the
+    peak in the model would not charge during a real capacity shortage.
+
     It is monetised with the annualised cost of the best new entrant peaking unit.
 
     Parameters
@@ -913,8 +920,8 @@ def calculate_b9_indicator(
         calculate_peak_thermal_dispatch(n_project, bus, thermal_carriers),
         method,
     )
-    deferred_capacity = min(
-        firm_capacity, residual_load_reduction, thermal_dispatch_reduction
+    deferred_capacity = max(
+        0.0, min(firm_capacity, residual_load_reduction, thermal_dispatch_reduction)
     )
 
     results = {
