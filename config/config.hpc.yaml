@@ -6,7 +6,8 @@
 # Specify the name of the scenario(s) you want to run from config/scenarios.tyndp.yaml
 run:
   name:
-  - NT
+  - NT-1h-overlap1
+  - NT-1h-overlap24
 
 remote:
   # Project-specific files to pull with sync_file rule
@@ -46,8 +47,8 @@ solving:
 cba:
   # Default high-res CBA projects
   projects:
-  - t*
-  - s*
+  - s1004
+  - s1071
   # MSV solver settings
   msv_extraction:
     solving:

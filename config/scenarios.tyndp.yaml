@@ -7,6 +7,47 @@
 NT:
   tyndp_scenario: NT
 
+NT-1h-overlap1:
+  tyndp_scenario: NT
+  clustering:
+    temporal:
+      averaging: false
+  solving:
+    solver:
+      name: gurobi
+      options: gurobi-default
+  cba:
+    msv_extraction:
+      solving:
+        solver:
+          name: gurobi
+          options: gurobi-default
+    solving:
+      overlap: 1
+
+NT-1h-overlap24:
+  tyndp_scenario: NT
+  clustering:
+    temporal:
+      averaging: false
+  solving:
+    solver:
+      name: gurobi
+      options: gurobi-default
+  cba:
+    msv_extraction:
+      solving:
+        solver:
+          name: gurobi
+          options: gurobi-default
+    solving:
+      overlap: 24
+
+
+NT-168h:
+  tyndp_scenario: NT
+
+
 # HEV: same inputs as NT, with fuel and CO2 prices +10% (TYNDP 2026 Scenarios Methodology Report, ch. 10, p. 65)
 # TODO: demand adjustment (electricity market, prosumer demand, EV, H2, thermal energy demand), hydrogen import prices, benchmarking
 
