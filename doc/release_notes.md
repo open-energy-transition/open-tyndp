@@ -79,7 +79,7 @@
 
 * doc: update documentation to TYNDP 2026 ([#1123](https://github.com/open-energy-transition/open-tyndp/pull/1123)).
 
-* doc: add the [Open-TYNDP cycle migration guide (2024 to 2026)](tyndp_2026.md#migration-tyndp-2026) ([#1164](https://github.com/open-energy-transition/open-tyndp/pull/1164)).
+* doc: add the [Open-TYNDP cycle migration guide (2024 to 2026)](migration_tyndp_2026.md) ([#1164](https://github.com/open-energy-transition/open-tyndp/pull/1164)).
 
 **Developers Note**
 
@@ -96,7 +96,7 @@
 
 **Breaking Changes**
 
-The [Open-TYNDP cycle migration guide](tyndp_2026.md#migration-tyndp-2026) lists all breaking changes between the 2024 and 2026 cycles.
+The [Open-TYNDP cycle migration guide](migration_tyndp_2026.md) lists all breaking changes between the 2024 and 2026 cycles.
 
 * Renamed config section `electricity.pemmdb_hydro_profiles` to `electricity.pecd_hydro_profiles`, and its `technologies` now use the PECD codes `HRR`, `HPI`, `HRI`, `HOL` and `HCL` ([#1059](https://github.com/open-energy-transition/open-tyndp/pull/1059)). Therefore, old config names and technology acronyms no longer work.
 
