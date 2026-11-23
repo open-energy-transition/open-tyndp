@@ -22,6 +22,8 @@ from scripts.sb._helpers import add_metadata
 
 logger = logging.getLogger(__name__)
 
+MODEL_ONLY_INDICATORS = ["B9_generation_capacity_deferral"]
+
 
 def select_model_value(df: pd.DataFrame, indicator: str) -> float | None:
     """Pick a representative model value for a given indicator."""
@@ -166,7 +168,9 @@ def plot_project_benchmarks(
 
         model_val = select_model_value(df, indicator)
         bench = benchmark_range(df, indicator, source="TYNDP 2024")
-        if model_val is None or bench is None:
+        if model_val is None or (
+            bench is None and indicator not in MODEL_ONLY_INDICATORS
+        ):
             continue
         plot_items.append(indicator)
 
@@ -248,26 +252,25 @@ def plot_project_benchmarks(
             else:
                 model_min_val, model_mean_val, model_max_val = model_range
 
-            min_val, mean_val, max_val = benchmark_range(
-                df, indicator, source="TYNDP 2024"
-            )
-
-            ax.errorbar(
-                [-0.1],
-                [mean_val],
-                yerr=[[abs(mean_val - min_val)], [abs(max_val - mean_val)]],
-                fmt="x",
-                color="gray",
-                ecolor="lightgray",
-                capsize=3,
-            )
-
-            label = "2024 TYNDP (mean ± min/max)"
-            if label not in legend_labels:
-                legend_handles.append(
-                    Line2D([0], [0], marker="x", color="gray", linestyle="None")
+            bench = benchmark_range(df, indicator, source="TYNDP 2024")
+            if bench is not None:
+                min_val, mean_val, max_val = bench
+                ax.errorbar(
+                    [-0.1],
+                    [mean_val],
+                    yerr=[[abs(mean_val - min_val)], [abs(max_val - mean_val)]],
+                    fmt="x",
+                    color="gray",
+                    ecolor="lightgray",
+                    capsize=3,
                 )
-                legend_labels.append(label)
+
+                label = "2024 TYNDP (mean ± min/max)"
+                if label not in legend_labels:
+                    legend_handles.append(
+                        Line2D([0], [0], marker="x", color="gray", linestyle="None")
+                    )
+                    legend_labels.append(label)
 
             ax.errorbar(
                 [0.1],

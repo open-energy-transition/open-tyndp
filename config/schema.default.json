@@ -574,6 +574,18 @@
               "default": 25,
               "description": "Lifetime (years) used for storage projects with missing or zero operational lifetime.",
               "type": "number"
+            },
+            "capacity_credit": {
+              "additionalProperties": {
+                "type": "number"
+              },
+              "description": "Capacity credit (p.u.) of storage projects by storage duration (h), linearly interpolated, used for the B9 indicator firm capacity. Assumed value (no derating).",
+              "type": "object"
+            },
+            "peaker_technology": {
+              "default": "OCGT",
+              "description": "Technology in the processed cost data used as best new entrant peaking unit to monetise the B9 indicator.",
+              "type": "string"
             }
           }
         },
@@ -8248,6 +8260,18 @@
           "default": 25,
           "description": "Lifetime (years) used for storage projects with missing or zero operational lifetime.",
           "type": "number"
+        },
+        "capacity_credit": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "description": "Capacity credit (p.u.) of storage projects by storage duration (h), linearly interpolated, used for the B9 indicator firm capacity. Assumed value (no derating).",
+          "type": "object"
+        },
+        "peaker_technology": {
+          "default": "OCGT",
+          "description": "Technology in the processed cost data used as best new entrant peaking unit to monetise the B9 indicator.",
+          "type": "string"
         }
       }
     },
@@ -17744,6 +17768,18 @@
               "default": 25,
               "description": "Lifetime (years) used for storage projects with missing or zero operational lifetime.",
               "type": "number"
+            },
+            "capacity_credit": {
+              "additionalProperties": {
+                "type": "number"
+              },
+              "description": "Capacity credit (p.u.) of storage projects by storage duration (h), linearly interpolated, used for the B9 indicator firm capacity. Assumed value (no derating).",
+              "type": "object"
+            },
+            "peaker_technology": {
+              "default": "OCGT",
+              "description": "Technology in the processed cost data used as best new entrant peaking unit to monetise the B9 indicator.",
+              "type": "string"
             }
           }
         },

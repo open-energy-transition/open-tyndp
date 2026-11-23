@@ -58,6 +58,14 @@ class _CbaStorageConfig(ConfigModel):
         default=25,
         description="Lifetime (years) used for storage projects with missing or zero operational lifetime.",
     )
+    capacity_credit: dict[float, float] = Field(
+        default_factory=lambda: {0: 1.0},
+        description="Capacity credit (p.u.) of storage projects by storage duration (h), linearly interpolated, used for the B9 indicator firm capacity. Assumed value (no derating).",
+    )
+    peaker_technology: str = Field(
+        "OCGT",
+        description="Technology in the processed cost data used as best new entrant peaking unit to monetise the B9 indicator.",
+    )
 
 
 class _CbaMsvSolvingConfig(ConfigModel):
