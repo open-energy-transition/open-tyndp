@@ -59,6 +59,8 @@
 
 * feat: add Shared RES generation profiles ([#1083](https://github.com/open-energy-transition/open-tyndp/pull/1083)). The TYNDP 2026 cycle adds SRES nodes which are connected to the e-market node and to the H2Z2 node via electrolysers. The generation from the SRES generators are used as input for the electrolysers first, and any extra generation above the electrolyser capacity is residual electricity made available to the e-market node.
 
+* feat: add the TYNDP 2026 hybrid heat pumps with CH4 and H2 boilers, and update the exogenous gas demand with the TYNDP 2026 Supply Tool ([#1090](https://github.com/open-energy-transition/open-tyndp/pull/1090)). H2 boiler efficiency is applied as 1/1.08, unlike the 1.08 implied by the TYNDP dashboards.
+
 * feat: align Other Non-RES price bands with TYNDP 2026 data and methodology ([#1178](https://github.com/open-energy-transition/open-tyndp/pull/1178)).
 
 **Changes**
@@ -126,6 +128,9 @@
 
 * Fix stale `mock_snakemake` targets in `plot_benchmark_indicators.py` and `summarize_indicators.py` to point to existing rules ([#1127](https://github.com/open-energy-transition/open-tyndp/pull/1127)).
 
+* Make the retrieval of pre-solved networks version-aware to support the network renaming in [PyPSA-Eur#1838](https://github.com/PyPSA/pypsa-eur/pull/1838), and share it between the SB and CBA workflows ([#1125](https://github.com/open-energy-transition/open-tyndp/pull/1125)). `cba: cba_scenario_input: sb_version` now defaults to `data: open_tyndp_prelim: version`.
+
+* Improve scenario management compatibility by removing top level gating references in `smk` files ([#1136](https://github.com/open-energy-transition/open-tyndp/pull/1136)). The `all` target is also fixed to collect tyndp outputs dependent on run settings.
 
 **Documentation**
 

@@ -5,13 +5,11 @@
 Builds TYNDP Scenario Building exogenous gas demand for Open-TYNDP.
 
 Reads the annual methane demand per EU27 country from the ``All data`` sheet
-of the TYNDP 2026 Supply Tool for 2030, 2035, 2040 and 2050. The exogenous
-demand is ``Methane | Total Energy Demand`` (final energy demand) plus
-``Methane | Primary Energy Demand for District Heating``. The Supply Tool
-country sheets add methane for power, CHP heat, hybrid heating, SMR and
-pyrolysis on top of the final energy demand (e.g. ``AT!D7:D12``); these are
-modelled endogenously. Countries outside the EU27 have no exogenous gas
-demand.
+of the TYNDP 2026 Supply Tool. The exogenous demand is ``Methane | Total
+Energy Demand`` (final energy demand) plus ``Methane | Primary Energy Demand
+for District Heating``. Methane for electricity generation, CHP, heat
+production and SMR is modelled endogenously. Countries outside the EU27 have
+no exogenous gas demand.
 
 Inputs
 ------
