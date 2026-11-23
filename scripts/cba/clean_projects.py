@@ -36,6 +36,7 @@ the user can modify existing projects and add new ones. Transmission capacities 
 - `data/cba/custom_projects/buses.csv`: File used to configure custom buses, i.e. buses that do not exist in the TYNDP network and are added alongside a custom transmission project.
 - `data/cba/custom_projects/generators_static.csv`: File used to configure custom generators. With it, user can modify static attributes of existing or new generators attached to a transmission / storage project.
 - `data/cba/custom_projects/generators_dynamic.csv`: File used to configure custom generators. With it, user can modify dynamic attributes of existing or new generators attached to a transmission / storage project.
+- `data/cba/custom_projects/stores.csv`: File used to configure custom stores attached to a transmission / storage project.
 
 **Outputs**
 
@@ -74,6 +75,21 @@ the user can modify existing projects and add new ones. Transmission capacities 
   - `bus_name`: Name of the bus in the network, also used as `bus0` or `bus1` of the custom transmission project connecting it
   - `country`: Country code of the bus
   - `lat`, `lon`: Coordinates of the bus, used as its `y` and `x` attributes
+
+- `resources/cba/stores.csv`: Cleaned CSV of custom stores, one row per store, with columns:
+  - `project_name`: Name of the project the store is grouped with
+  - `project_type`: Type of that project, `t` for transmission or `s` for storage
+  - `project_id`: Integer identifier of that project
+  - `bus_name`: Electricity bus the store is connected to
+  - `carrier`: PyPSA carrier name of the store
+  - `e_nom`: Energy capacity (MWh)
+  - `p_nom_charge`: Charge capacity of the connection to `bus_name` (MW)
+  - `p_nom_discharge`: Discharge capacity of the connection to `bus_name` (MW)
+  - `round_trip_efficiency`: Round trip efficiency (fraction), split evenly between the charge and the discharge link; missing values are replaced with 1
+  - `capital_cost`: Annualised capital cost of the store (EUR/MWh/a); missing values are replaced with 0
+  - `marginal_cost`: Marginal cost (EUR/MWh); missing values are replaced with 0
+  - `cyclic`: Whether the state of charge is cyclic over the snapshots; missing values are replaced with `True`
+  - `mapping_id`: Identifier of the store, having the format `<project_type><project_id>_<bus_name>_<carrier>`
 
 - `resources/cba/generator_projects_static.csv`: Cleaned CSV of custom generators, one row per generator, with columns:
   - `project_name`: Name of the project the generator is grouped with
@@ -884,6 +900,184 @@ def extract_custom_generators(
     return custom_gens_static, custom_gens_dynamic
 
 
+def extract_custom_storage_projects(
+    custom_stores_path: str,
+    existing_buses: pd.Index,
+    custom_buses: pd.DataFrame | None = None,
+) -> pd.DataFrame:
+    """
+    Extract custom stores associated with a transmission / storage project.
+
+    `e_nom` is the energy capacity of the store in MWh, `p_nom_charge` and
+    `p_nom_discharge` the capacities of its connection to `bus_name` in MW, and
+    `capital_cost` its annualised capital cost in EUR/MWh/a. Entries are identified by
+    the bus and carrier they are attached to, as the input file defines no store name.
+
+    Parameters
+    ----------
+    custom_stores_path : str
+        Filepath for custom storage projects.
+    existing_buses : pd.Index
+        List of existing buses, including the custom buses that may be used as
+        `bus_name` of the store.
+    custom_buses : pd.DataFrame, optional
+        Curated list of custom buses. A store may only be attached to a custom bus
+        grouped with the same project, as the bus is not added to other networks.
+
+    Returns
+    -------
+    pd.DataFrame
+        Custom stores with their attributes, one row per store.
+    """
+    custom_stores = read_csv_or_excel(custom_stores_path).drop(
+        ["source", "further description"], axis=1, errors="ignore"
+    )
+    if custom_stores.empty:
+        logger.debug("No custom stores found.")
+        return custom_stores
+
+    # Remove stores without bus name, carrier, capacities or associated project
+    required_cols = [
+        "bus_name",
+        "carrier",
+        "e_nom",
+        "p_nom_charge",
+        "p_nom_discharge",
+        "project_id",
+    ]
+    mask_not_null = custom_stores[required_cols].notnull().all(axis=1)
+    custom_stores = _drop_invalid(
+        custom_stores,
+        mask_not_null,
+        f"one of {', '.join(f'`{c}`' for c in required_cols)} is missing",
+        "custom store(s)",
+    )
+
+    # Remove stores that are not attached to an existing bus
+    mask_bus_exists = custom_stores.bus_name.isin(existing_buses)
+    missing_buses = custom_stores.bus_name[~mask_bus_exists].unique().tolist()
+    custom_stores = _drop_invalid(
+        custom_stores,
+        mask_bus_exists,
+        f"`bus_name` is not an existing bus: {missing_buses}. If a new bus is being added, "
+        "ensure that it has been added to 'cba/custom_projects/buses.csv'",
+        "custom store(s)",
+    )
+
+    # Remove stores with no project ID or whose project_type is not a `storage` or `transmission` (i.e. not `s` or `t`)
+    custom_stores = _validate_project_reference(custom_stores, "custom store(s)")
+
+    # A custom bus only exists in the network of the project it is grouped with, so a
+    # store can only be attached to the custom buses of its own project
+    if custom_buses is not None and not custom_buses.empty:
+        own_keys = set(
+            custom_buses.project_type
+            + custom_buses.project_id.astype(str)
+            + "@"
+            + custom_buses.bus_name
+        )
+        store_keys = (
+            custom_stores.project_type
+            + custom_stores.project_id.astype(str)
+            + "@"
+            + custom_stores.bus_name
+        )
+        mask_foreign_bus = custom_stores.bus_name.isin(
+            custom_buses.bus_name
+        ) & ~store_keys.isin(own_keys)
+        foreign_buses = custom_stores.bus_name[mask_foreign_bus].unique().tolist()
+        custom_stores = _drop_invalid(
+            custom_stores,
+            ~mask_foreign_bus,
+            f"`bus_name` is a custom bus grouped with another project: {foreign_buses}",
+            "custom store(s)",
+        )
+
+    # A store is identified by the bus and carrier it is attached to, as there is no
+    # store name in the input file
+    custom_stores["mapping_id"] = (
+        custom_stores["project_type"]
+        + custom_stores["project_id"].astype(str)
+        + "_"
+        + custom_stores["bus_name"]
+        + "_"
+        + custom_stores["carrier"]
+    )
+
+    # Remove duplicate mapping id - subset of `project_type`, `project_id`, `bus_name` and `carrier`
+    mask_unique = ~custom_stores.duplicated(subset=["mapping_id"], keep="first")
+    duplicate_mapping_ids = custom_stores.mapping_id[~mask_unique].tolist()
+    custom_stores = _drop_invalid(
+        custom_stores,
+        mask_unique,
+        f"duplicate mapping IDs, only the first occurrence is kept: {duplicate_mapping_ids}",
+        "custom store(s)",
+    )
+
+    # Convert capacities and costs to numeric, as a non-numeric entry would otherwise
+    # reach the network unnoticed
+    numeric_cols = [
+        "e_nom",
+        "p_nom_charge",
+        "p_nom_discharge",
+        "round_trip_efficiency",
+        "capital_cost",
+        "marginal_cost",
+    ]
+    custom_stores[numeric_cols] = custom_stores[numeric_cols].apply(
+        pd.to_numeric, errors="coerce"
+    )
+
+    # Set default efficiency and costs if these columns have no entries
+    custom_stores = custom_stores.fillna(
+        {"round_trip_efficiency": 1, "capital_cost": 0, "marginal_cost": 0}
+    )
+
+    # Remove stores without an energy capacity, or that can neither charge nor discharge
+    custom_stores = _drop_invalid(
+        custom_stores,
+        (custom_stores.e_nom > 0)
+        & (custom_stores.p_nom_charge >= 0)
+        & (custom_stores.p_nom_discharge >= 0)
+        & (custom_stores[["p_nom_charge", "p_nom_discharge"]].max(axis=1) > 0),
+        "`e_nom` is not a positive number, or `p_nom_charge` and `p_nom_discharge` are "
+        "not both non-negative with at least one of them positive",
+        "custom store(s)",
+    )
+
+    # A round trip efficiency above one would create energy in the charge/discharge links
+    custom_stores = _drop_invalid(
+        custom_stores,
+        custom_stores.round_trip_efficiency.between(0, 1, inclusive="right"),
+        "`round_trip_efficiency` is not within (0, 1]",
+        "custom store(s)",
+    )
+
+    # A negative annualised capital cost would book a negative investment in the CBA
+    custom_stores = _drop_invalid(
+        custom_stores,
+        custom_stores.capital_cost >= 0,
+        "`capital_cost` is negative",
+        "custom store(s)",
+    )
+
+    # `cyclic` accepts the usual spellings of a boolean and defaults to True, matching
+    # the `e_cyclic` of the storage projects of the CBA export
+    custom_stores["cyclic"] = (
+        custom_stores["cyclic"]
+        .astype(str)
+        .str.strip()
+        .str.lower()
+        .map({"true": True, "false": False})
+        .fillna(True)
+        .astype(bool)
+    )
+
+    logger.info(f"Extracted {len(custom_stores)} custom stores after cleaning.")
+
+    return custom_stores
+
+
 def extract_investment_attributes(transmission_path: Path) -> pd.DataFrame:
     """
     Extract length, CAPEX, and underwater fraction from Trans.Investments sheet.
@@ -1062,6 +1256,7 @@ STORAGE_REF_GRID_HORIZON_COLUMN = {2030: "in_ref_grid_2030", 2040: "in_ref_grid_
 def build_storage_method_assignments(
     storage_projects: pd.DataFrame,
     planning_horizons: list[int],
+    custom_stores: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
     """
     Define the assignment method of storage projects.
@@ -1072,6 +1267,10 @@ def build_storage_method_assignments(
     only reported for 2030 and 2035 in the Excel; 2035 is used as a proxy for
     the 2040 planning horizon.
 
+    A custom store may refer to a storage project that the CBA export does not
+    contain. Such a project only exists through its custom stores, and is assigned
+    PINT for every planning horizon.
+
     Parameters
     ----------
     storage_projects : pd.DataFrame
@@ -1079,6 +1278,9 @@ def build_storage_method_assignments(
         including the in_ref_grid_2030/in_ref_grid_2035 boolean columns.
     planning_horizons : list[int]
         Planning horizons for which to assign a method.
+    custom_stores : pd.DataFrame, optional
+        Curated list of custom stores, used to register the storage projects that
+        only exist through them.
 
     Returns
     -------
@@ -1097,7 +1299,31 @@ def build_storage_method_assignments(
         )
     methods = pd.concat(rows, ignore_index=True)
     methods["project_type"] = "storage"
-    return methods
+
+    if custom_stores is None or custom_stores.empty:
+        return methods
+
+    # Storage projects that only exist through their custom stores are new, hence PINT
+    new_projects = custom_stores[
+        (custom_stores.project_type == "s")
+        & ~custom_stores.project_id.isin(methods.project_id)
+    ].drop_duplicates(subset=["project_id"])
+
+    if new_projects.empty:
+        return methods
+
+    logger.info(
+        "Assigning the PINT method to %d storage project(s) defined by custom stores only: %s",
+        len(new_projects),
+        new_projects.project_id.tolist(),
+    )
+    new_methods = (
+        new_projects[["project_id", "project_name"]]
+        .merge(pd.DataFrame({"planning_horizon": planning_horizons}), how="cross")
+        .assign(method="pint", project_type="storage")
+    )
+
+    return pd.concat([methods, new_methods], ignore_index=True)
 
 
 def split_investment_attributes_per_line(
@@ -1314,6 +1540,7 @@ if __name__ == "__main__":
     custom_generators_static_path = Path(snakemake.input.custom_generators_static)
     custom_generators_dynamic_path = Path(snakemake.input.custom_generators_dynamic)
     custom_buses_path = Path(snakemake.input.custom_buses)
+    custom_stores_path = Path(snakemake.input.custom_stores)
     corrections_path = snakemake.input.cba_project_corrections
 
     # Get existing buses
@@ -1348,6 +1575,13 @@ if __name__ == "__main__":
         custom_generators_dynamic_path,
         with_custom_buses(existing_buses, custom_buses),
         pd.Timestamp(snakemake.params.snapshots["start"]).year,
+    )
+
+    # Custom stores
+    custom_stores = extract_custom_storage_projects(
+        custom_stores_path,
+        with_custom_buses(existing_buses, custom_buses),
+        custom_buses,
     )
 
     # Investment costs and length transmission
@@ -1389,7 +1623,7 @@ if __name__ == "__main__":
 
     # Method definition (PINT / TOOT) for storage projects
     storage_methods = build_storage_method_assignments(
-        storage_projects, snakemake.params.planning_horizons
+        storage_projects, snakemake.params.planning_horizons, custom_stores
     )
 
     methods = pd.concat([transmission_methods, storage_methods], ignore_index=True)
@@ -1400,3 +1634,5 @@ if __name__ == "__main__":
     custom_gens_dynamic.to_csv(snakemake.output.generator_projects_dynamic)
 
     custom_buses.to_csv(snakemake.output.buses, index=False)
+
+    custom_stores.to_csv(snakemake.output.stores, index=False)

@@ -175,9 +175,9 @@ $ pixi run tyndp-cba --config run='{"name":"NT-cy2009"}'
 
 ## Evaluation of custom projects
 
-Custom projects can be evaluated with the CBA workflow, as **transmission** projects. Adding custom **buses** and **generators** grouped with such a project is also possible.
+Custom projects can be evaluated with the CBA workflow, as **transmission** projects. Adding custom **buses**, **stores** and **generators** grouped with such a project is also possible.
 
-Custom buses and generators are never assessed on their own: each one is grouped with a transmission or storage project and added alongside it in the same project network. The grouping is expressed by two columns, `project_type` (`t` for transmission, `s` for storage) and `project_id` (the ID of that project, without the project type, e.g. `project_type = t` and `project_id = 1500` for project `t1500`), and the bus or generator inherits the assessment method of the project it is grouped with. Entries whose `project_type` is neither `s` nor `t`, or that do not define a `project_id`, are dropped with a warning. Custom buses of a project are added before its custom generators.
+Custom buses, stores and generators are never assessed on their own: each one is grouped with a transmission or storage project and added alongside it in the same project network. The grouping is expressed by two columns, `project_type` (`t` for transmission, `s` for storage) and `project_id` (the ID of that project, without the project type, e.g. `project_type = t` and `project_id = 1500` for project `t1500`), and the bus, store or generator inherits the assessment method of the project it is grouped with. Entries whose `project_type` is neither `s` nor `t`, or that do not define a `project_id`, are dropped with a warning. A project's custom buses are added first, then the project itself, then its custom stores and finally its custom generators, so each can be attached to what came before.
 
 All custom project files live in `data/cba/custom_projects/`, with filled-in examples in `data/cba/custom_projects/examples/`. Each file can optionally be provided as `.xlsx` instead; if a file of that format is found, it takes precedence over the CSV.
 
@@ -211,9 +211,28 @@ Entries are dropped with a warning when `bus_name`, `lat`, `lon` or `project_id`
 
 When applied, the bus is added to the project network as an AC `Bus` before the project itself, so that the links of the custom transmission project can connect it.
 
+### Custom stores
+
+A custom store adds storage capacity alongside a custom project. It is built by the same function as the storage projects of the CBA export, `apply_pint_storage`, and therefore has the same structure: a dedicated storage bus attached to an electricity bus, a `Store` holding the energy, and a charge and a discharge `Link` connecting it to that electricity bus. Like those storage projects, custom stores are supported for **PINT** projects only; an entry grouped with a TOOT project is ignored with a warning, as the reference network contains no matching store to take out.
+
+Each store is defined in `data/cba/custom_projects/stores.csv`, with one row per store:
+
+- `bus_name`: electricity bus the store is connected to. It can be a custom bus defined in `data/cba/custom_projects/buses.csv`.
+- `carrier`: PyPSA carrier of the store, e.g. `battery`. If it does not yet exist in the network, it is added.
+- `e_nom`: energy capacity of the store in MWh. Note that the CBA export reports the energy capacity of its own storage projects in GWh instead.
+- `p_nom_charge`, `p_nom_discharge`: capacities of the charge and of the discharge link in MW. One of them may be zero, but not both.
+- `round_trip_efficiency`: round trip efficiency of the store, as a fraction. As for the storage projects of the CBA export, it is split evenly between the two links, which each get its square root. Left empty it defaults to 1.
+- `capital_cost`: annualised capital cost of the store in EUR/MWh/a, booked entirely on the `Store` so that it is only counted once. Unlike the storage projects of the CBA export, which report a CAPEX, an OPEX and a lifetime that the workflow annualises, a custom store reports the annualised figure directly. Left empty it defaults to 0, in which case the store is free in the cost comparison.
+- `marginal_cost`: marginal cost of the store in EUR/MWh. Left empty it defaults to 0.
+- `cyclic`: whether the state of charge at the last snapshot must match the first, written as `TRUE`/`FALSE`. Left empty it defaults to `TRUE`, matching the storage projects of the CBA export.
+
+Entries are dropped with a warning when `bus_name`, `carrier`, `e_nom`, `p_nom_charge`, `p_nom_discharge` or `project_id` is missing, when `bus_name` is not an existing bus, when `project_type` is neither `s` nor `t`, when `e_nom` is not positive, when the charge and discharge capacities are not both non-negative with at least one of them positive, when `round_trip_efficiency` lies outside `(0, 1]`, and when `capital_cost` is negative. A store is identified by the project, bus and carrier it belongs to, as the file defines no store name; rows repeating that combination are reduced to the first occurrence.
+
+When applied, the storage bus, the `Store` and the two links are named after that identifier, `<project_type><project_id>_<bus_name>_<carrier>`.
+
 ### Custom generators
 
-Custom generators are used to define either a new generator / capacity update to an existing generator as part of a custom project. Unlike custom buses, custom generators are supported for both **PINT** and **TOOT** projects. Custom generators can also be defined at custom buses, by setting `bus` to the `bus_name` of a bus defined in `data/cba/custom_projects/buses.csv`.
+Custom generators are used to define either a new generator / capacity update to an existing generator as part of a custom project. Unlike custom buses and stores, custom generators are supported for both **PINT** and **TOOT** projects. Custom generators can also be defined at custom buses, by setting `bus` to the `bus_name` of a bus defined in `data/cba/custom_projects/buses.csv`.
 
 Each project is defined across two files:
 
@@ -233,7 +252,7 @@ When applied, the project network is searched for a generator with the same `bus
 
 If several generators share the same `bus` and `carrier`, the first one is updated and a warning is logged.
 
-A filled-in template with a few examples for custom transmission projects and generators are available at `data/cba/custom_projects/examples/`.
+A filled-in template with a few examples for custom transmission projects, buses, stores and generators are available at `data/cba/custom_projects/examples/`.
 
 A user can optionally provide the same files as `.xlsx` format for each input file; if detected this will take precedence over given csv files.
 

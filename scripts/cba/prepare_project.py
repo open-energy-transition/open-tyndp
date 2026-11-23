@@ -467,7 +467,11 @@ def apply_toot_generator(
 def apply_pint_storage(
     n: pypsa.Network,
     storage_project: pd.Series,
-    discount_rate: float,
+    discount_rate: float | None,
+    attrs: dict | None = None,
+    storage_bus: str | None = None,
+    e_cyclic: bool = True,
+    marginal_cost: float = 0.0,
 ) -> None:
     """
     Add a new CBA storage project as a Bus/Store/Link triple.
@@ -475,14 +479,39 @@ def apply_pint_storage(
     Creates a dedicated storage bus attached to the project's electricity
     bus, a Store sized in MWh, and two Links (charge and discharge) sized in
     MW, using capacities and costs taken from the storage project row.
+
+    Custom stores reuse this function with their own `attrs`, `storage_bus`,
+    `e_cyclic` and `marginal_cost`, since their input file reports an already
+    annualised capital cost instead of the CAPEX, OPEX and lifetime of the CBA
+    export.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        Network to modify.
+    storage_project : pd.Series
+        Storage project row, providing `project_id`, `project_name`, `carrier` and `bus`.
+    discount_rate : float or None
+        Discount rate used to annualize the project's CAPEX. Unused when `attrs` is given.
+    attrs : dict, optional
+        Sized store and link attributes, as returned by `get_storage_attrs`. Computed
+        from `storage_project` when not given.
+    storage_bus : str, optional
+        Name of the storage bus and of the Store. Derived from the project when not given.
+    e_cyclic : bool, default True
+        Whether the state of charge of the Store is cyclic over the snapshots.
+    marginal_cost : float, default 0.0
+        Marginal cost of the Store in EUR/MWh.
     """
     project_id = storage_project["project_id"]
     project_name = storage_project["project_name"]
     carrier = storage_project["carrier"]
     ac_bus = storage_project["bus"]
-    storage_bus = f"{ac_bus} cba s{project_id} storage"
+    if storage_bus is None:
+        storage_bus = f"{ac_bus} cba s{project_id} storage"
 
-    attrs = get_storage_attrs(storage_project, discount_rate)
+    if attrs is None:
+        attrs = get_storage_attrs(storage_project, discount_rate)
 
     if carrier not in n.carriers.index:
         n.add("Carrier", carrier)
@@ -493,8 +522,9 @@ def apply_pint_storage(
         bus=storage_bus,
         carrier=carrier,
         e_nom=attrs["e_nom"],
-        e_cyclic=True,
+        e_cyclic=e_cyclic,
         capital_cost=attrs["capital_cost_per_mwh"],
+        marginal_cost=marginal_cost,
     )
     n.add(
         "Link",
@@ -515,10 +545,11 @@ def apply_pint_storage(
         efficiency=attrs["efficiency"],
     )
     logger.info(
-        "Added storage project %s (%s) at bus %s: %.1f MWh, %.1f/%.1f MW charge/discharge",
+        "Added storage project %s (%s) at bus %s as %s: %.1f MWh, %.1f/%.1f MW charge/discharge",
         project_id,
         project_name,
         ac_bus,
+        storage_bus,
         attrs["e_nom"],
         attrs["p_nom_charge"],
         attrs["p_nom_discharge"],
@@ -530,7 +561,17 @@ def prepare_storage_project(
 ) -> None:
     storage_projects = pd.read_csv(snakemake.input.storage_projects)
     storage_project = storage_projects[storage_projects["project_id"] == project_id]
-    assert not storage_project.empty, f"Storage project {project_id} not found."
+
+    if storage_project.empty:
+        # The project is not part of the CBA export and only exists through the custom
+        # stores and generators that `prepare_custom_stores` and
+        # `prepare_custom_generators` add to the network afterwards
+        logger.info(
+            "Storage project %s is not part of the CBA export; it is built from its "
+            "custom components only.",
+            project_id,
+        )
+        return
 
     if method == "toot":
         raise NotImplementedError(
@@ -631,6 +672,92 @@ def prepare_custom_buses(
                 x=bus["lon"],
             )
             logger.info(f"Added custom bus {bus['bus_name']} for project {prefix_pid}")
+    else:
+        raise ValueError(f"Unknown method {method} for project {prefix_pid}")
+
+
+def apply_pint_store(n: pypsa.Network, store_df: pd.DataFrame) -> None:
+    """
+    Apply custom stores as PINT.
+
+    Each store is added by `apply_pint_storage`, so a custom store is built exactly
+    like a storage project of the CBA export. Only the attributes differ: the input
+    file reports the energy capacity in MWh and an already annualised capital cost in
+    EUR/MWh/a, where the export reports GWh and a CAPEX, OPEX and lifetime to
+    annualise. As in the export, `round_trip_efficiency` is split evenly between the
+    charge and the discharge link.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        Network to modify.
+    store_df : pd.DataFrame
+        Custom stores of the project, as cleaned by `clean_projects.py`.
+    """
+
+    for _, store in store_df.iterrows():
+        attrs = dict(
+            e_nom=store.e_nom,
+            p_nom_charge=store.p_nom_charge,
+            p_nom_discharge=store.p_nom_discharge,
+            efficiency=store.round_trip_efficiency**0.5,
+            capital_cost_per_mwh=store.capital_cost,
+        )
+        apply_pint_storage(
+            n,
+            store.rename({"bus_name": "bus"}),
+            discount_rate=None,
+            attrs=attrs,
+            storage_bus=f"{store.mapping_id} storage",
+            e_cyclic=store.cyclic,
+            marginal_cost=store.marginal_cost,
+        )
+
+
+def prepare_custom_stores(
+    n: pypsa.Network, snakemake, prefix_pid: str, method: str
+) -> None:
+    """
+    Add custom stores accompanying a storage or transmission project.
+
+    Like the storage projects of the CBA export, custom stores are supported for
+    PINT only: the reference network contains no matching store to take out.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        Network to modify.
+    snakemake : snakemake object
+        Snakemake object containing input/output paths and parameters.
+    prefix_pid : str
+        Project ID with prefix (e.g. "s1500" or "t1500")
+    method : str
+        Method (toot/pint) to apply the project.
+
+    Raises
+    ------
+    ValueError
+        If `method` is neither "pint" nor "toot".
+    """
+    custom_stores = pd.read_csv(snakemake.input.stores)
+
+    store_df = custom_stores[
+        (custom_stores["project_id"] == int(prefix_pid[1:]))
+        & (custom_stores["project_type"] == prefix_pid[0])
+    ]
+    if store_df.empty:
+        logger.debug(f"No custom stores found for project {prefix_pid}")
+        return
+
+    if method == "toot":
+        logger.warning(
+            "Custom stores are not applicable for TOOT projects: no matching "
+            f"reference-grid store to remove. Skipping {len(store_df)} custom store(s) "
+            f"of project {prefix_pid}."
+        )
+        return
+    elif method == "pint":
+        apply_pint_store(n, store_df)
     else:
         raise ValueError(f"Unknown method {method} for project {prefix_pid}")
 
@@ -748,6 +875,7 @@ if __name__ == "__main__":
             f"Unknown project type {project_type} for project {cba_project}"
         )
 
+    prepare_custom_stores(n, snakemake, cba_project, method)
     prepare_custom_generators(n, snakemake, cba_project, method)
     n.consistency_check()
 

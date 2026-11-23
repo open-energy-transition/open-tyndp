@@ -1,0 +1,3 @@
+project_name,project_type,project_id,bus_name,e_nom,p_nom_charge,p_nom_discharge,round_trip_efficiency,capital_cost,marginal_cost,carrier,cyclic,source,further description
+Example store at a custom bus,t,1530,new_bus,2000,500,500,0.9,12000,0.01,battery,TRUE,,Adds a battery at the custom bus new_bus of buses.csv as part of transmission project 1530
+Example store defining a storage project,s,9001,ES00,4000,1000,800,,,,battery,,,"Storage project 9001 is not part of the CBA export, so it exists through this store only and is assessed as PINT. The empty fields default to a round trip efficiency of 1, no capital or marginal cost and a cyclic state of charge"
