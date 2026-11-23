@@ -533,9 +533,10 @@ def prepare_storage_project(
     assert not storage_project.empty, f"Storage project {project_id} not found."
 
     if method == "toot":
-        raise NotImplementedError(
-            f"TOOT method not supported for storage project {project_id}: "
-            "no matching reference-grid storage component to remove."
+        logger.warning(
+            "TOOT is not implemented for storage projects. Skipping storage project "
+            "%s: the project network equals the reference network.",
+            project_id,
         )
     elif method == "pint":
         apply_pint_storage(
