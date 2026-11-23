@@ -82,7 +82,7 @@
 * Fix: `build_swiss_energy_balances` now reads the October 2026 edition of the Swiss energy balances (data for 2000-2025), which renamed table rows. ([#2380](https://github.com/PyPSA/pypsa-eur/pull/2380)).
 
 
-## Open-TYNDP v0.9.2 (23rd November 2026)
+## Open-TYNDP v0.9.2 (24th November 2026)
 
 This is the last TYNDP 2024 patch release before the first TYNDP 2026 release v0.10. It brings in two minor fixes. SB Model results are not materially affected with respect to v0.9 or v0.9.1, while a fix to CBA indicator B4 is introduced. Upgrading is recommended for all users of v0.9 and v0.9.1.
 
