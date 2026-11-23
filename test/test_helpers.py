@@ -14,7 +14,9 @@ from scripts._helpers import (
     expand_weather_clusters,
     get_temporal_resolution,
     rename_network_component,
+    select_weather_clusters,
     set_scenario_config,
+    weather_cluster_weights,
 )
 from scripts.lib.validation.config.clustering import _TemporalConfig
 
@@ -90,91 +92,174 @@ def test_temporal_config_rejects_invalid_settings(temporal):
         _TemporalConfig(**temporal)
 
 
-def _weather_cluster_config(tmp_path, enable=True, scenarios=True) -> dict:
+@pytest.fixture
+def weather_clusters(tmp_path) -> dict:
     clusters = tmp_path / "clusters.csv"
     clusters.write_text(
-        "target_year,cluster,representative_ws,weight,cluster_size\n"
-        "2030,0,29,0.3,9\n2030,1,3,0.7,21\n2040,0,65,1.0,30\n2050,0,91,1.0,30\n"
+        "horizon,cluster,weather_scenario,weight,cluster_size\n"
+        "2030,0,29,0.3,9\n2030,1,3,0.6,18\n2030,2,21,0.1,3\n2040,0,65,1.0,30\n"
     )
+    return {"file": str(clusters), "select": "all"}
+
+
+@pytest.fixture
+def tyndp_config(tmp_path, weather_clusters) -> dict:
     scenario_file = tmp_path / "scenarios.yaml"
-    scenario_file.write_text("NT:\n  tyndp_scenario: NT\n")
+    scenario_file.write_text(
+        "NT:\n  tyndp_scenario: NT\n"
+        "HEV:\n  planning_horizons: [2040]\n"
+        "  weather_clusters_tyndp:\n    select: first\n"
+    )
     return {
         "run": {
             "name": "NT",
-            "scenarios": {"enable": scenarios, "file": scenario_file},
+            "scenarios": {"enable": True, "file": str(scenario_file)},
         },
+        "tyndp_scenario": "NT",
         "planning_horizons": [2030, 2040],
-        "weather_clusters": {"enable": enable, "file": clusters},
+        "weather_clusters_tyndp": weather_clusters,
     }
 
 
-def test_expand_weather_clusters(tmp_path):
-    config = _weather_cluster_config(tmp_path)
-    scenarios = {"NT": {"tyndp_scenario": "NT"}}
+@pytest.mark.parametrize(
+    ("select", "expected"),
+    [
+        ("all", [(2030, 29), (2030, 3), (2030, 21), (2040, 65)]),
+        ("first", [(2030, 29), (2040, 65)]),
+        ({2030: [3, 29], 2040: [65]}, [(2030, 3), (2030, 29), (2040, 65)]),
+    ],
+)
+def test_select_weather_clusters(weather_clusters, select, expected):
+    selected = select_weather_clusters(
+        {**weather_clusters, "select": select}, [2030, 2040]
+    )
 
-    run_parents = expand_weather_clusters(config, scenarios)
+    assert list(zip(selected.horizon, selected.weather_scenario)) == expected
+
+
+@pytest.mark.parametrize(
+    ("select", "horizons", "match"),
+    [
+        ({2030: [4], 2040: [65]}, [2030, 2040], r"\[\(2030, 4\)\].* are not in"),
+        ({2030: [3], 2050: [91]}, [2030], r"\[\(2050, 91\)\].* are not in"),
+        ({2030: [3]}, [2030, 2040], r"for planning horizons \[2040\]"),
+        ("all", [2030, 2050], r"for planning horizons \[2050\]"),
+    ],
+)
+def test_select_weather_clusters_raises(weather_clusters, select, horizons, match):
+    with pytest.raises(ValueError, match=match):
+        select_weather_clusters({**weather_clusters, "select": select}, horizons)
+
+
+@pytest.mark.parametrize(
+    ("select", "expected"),
+    [
+        ("all", {29: 0.3, 3: 0.6, 21: 0.1}),
+        ("first", {29: 1.0}),
+        ({2030: [3, 21]}, {3: 6 / 7, 21: 1 / 7}),
+    ],
+)
+def test_weather_cluster_weights(weather_clusters, select, expected):
+    weights = weather_cluster_weights({**weather_clusters, "select": select}, 2030)
+
+    assert weights.to_dict() == pytest.approx(expected)
+
+
+@pytest.mark.parametrize(
+    ("name", "runs"),
+    [
+        (
+            "NT",
+            [
+                "NT-py2030-ws029",
+                "NT-py2030-ws003",
+                "NT-py2030-ws021",
+                "NT-py2040-ws065",
+            ],
+        ),
+        (["HEV", "NT-py2030-ws003"], ["HEV-py2040-ws065", "NT-py2030-ws003"]),
+    ],
+)
+def test_expand_weather_clusters(tyndp_config, weather_clusters, name, runs):
+    tyndp_config["run"]["name"] = name
+    hev_clusters = {"file": weather_clusters["file"], "select": "first"}
+    scenarios = {
+        "NT": {"tyndp_scenario": "NT"},
+        "HEV": {"planning_horizons": [2040], "weather_clusters_tyndp": hev_clusters},
+    }
+
+    run_parents = expand_weather_clusters(tyndp_config, scenarios)
 
     assert run_parents == {
         "NT-py2030-ws029": "NT",
         "NT-py2030-ws003": "NT",
+        "NT-py2030-ws021": "NT",
         "NT-py2040-ws065": "NT",
+        "HEV-py2040-ws065": "HEV",
     }
-    assert config["run"]["name"] == list(run_parents)
-    assert scenarios["NT-py2040-ws065"] == {
+    assert tyndp_config["run"]["name"] == runs
+    assert scenarios["NT-py2030-ws003"] == {
         "tyndp_scenario": "NT",
-        "planning_horizons": [2040],
-        "wscenarios_tyndp": {2040: [65]},
+        "planning_horizons": [2030],
+        "weather_clusters_tyndp": {"select": {2030: [3]}},
+    }
+    assert scenarios["HEV-py2040-ws065"]["weather_clusters_tyndp"] == {
+        "file": weather_clusters["file"],
+        "select": {2040: [65]},
     }
 
 
-def test_expand_weather_clusters_disabled(tmp_path):
-    config = _weather_cluster_config(tmp_path, enable=False)
+def test_expand_weather_clusters_non_tyndp(tyndp_config):
+    tyndp_config["tyndp_scenario"] = False
+    scenarios = {"NT": {}}
 
-    assert expand_weather_clusters(config, {"NT": {}}) == {}
-    assert config["run"]["name"] == "NT"
+    assert expand_weather_clusters(tyndp_config, scenarios) == {}
+    assert scenarios == {"NT": {}}
+    assert tyndp_config["run"]["name"] == "NT"
 
 
 @pytest.mark.parametrize(
-    ("scenarios", "override", "match"),
+    ("run", "error", "match"),
     [
-        (False, {}, "requires `run: scenarios: enable: true`"),
+        ({"scenarios": {"enable": False}}, ValueError, "requires `run: scenarios"),
         (
-            True,
-            {"planning_horizons": [2030, 2035]},
-            "Planning horizon 2035 of scenario 'NT' has no weather clusters",
+            {"scenarios": {"enable": True, "file": "missing.yaml"}},
+            FileNotFoundError,
+            "missing.yaml does not exist",
         ),
+        ({"name": ["NT", "NT-py2035-ws029"]}, ValueError, r"\['NT-py2035-ws029'\]"),
     ],
 )
-def test_expand_weather_clusters_raises(tmp_path, scenarios, override, match):
-    config = _weather_cluster_config(tmp_path, scenarios=scenarios)
+def test_expand_weather_clusters_raises(tyndp_config, run, error, match):
+    tyndp_config["run"].update(run)
 
-    with pytest.raises(ValueError, match=match):
-        expand_weather_clusters(config, {"NT": override})
+    with pytest.raises(error, match=match):
+        expand_weather_clusters(tyndp_config, {"NT": {"tyndp_scenario": "NT"}})
 
 
 @pytest.mark.parametrize(
-    ("enable", "run", "horizons", "wscenarios"),
+    ("tyndp", "run", "horizons", "select"),
     [
-        (True, "NT-py2030-ws029", [2030], {2030: [29]}),
-        (True, "NT", [2030, 2040], None),
-        (False, "NT", [2030, 2040], None),
+        ("NT", "NT-py2030-ws003", [2030], {2030: [3]}),
+        ("NT", "NT", [2030, 2040], "all"),
+        (False, "NT", [2030, 2040], "all"),
     ],
 )
-def test_set_scenario_config(tmp_path, enable, run, horizons, wscenarios):
-    config = _weather_cluster_config(tmp_path, enable=enable)
+def test_set_scenario_config(tyndp_config, tyndp, run, horizons, select):
+    tyndp_config["tyndp_scenario"] = tyndp
 
     set_scenario_config(
-        SimpleNamespace(config=config, wildcards=Wildcards(fromdict={"run": run}))
+        SimpleNamespace(config=tyndp_config, wildcards=Wildcards(fromdict={"run": run}))
     )
 
-    assert config["tyndp_scenario"] == "NT"
-    assert config["planning_horizons"] == horizons
-    assert config.get("wscenarios_tyndp") == wscenarios
+    assert tyndp_config["tyndp_scenario"] == "NT"
+    assert tyndp_config["planning_horizons"] == horizons
+    assert tyndp_config["weather_clusters_tyndp"]["select"] == select
 
 
-def test_set_scenario_config_disabled_child(tmp_path):
-    config = _weather_cluster_config(tmp_path, enable=False)
-    wildcards = Wildcards(fromdict={"run": "NT-py2030-ws029"})
+def test_set_scenario_config_non_tyndp_child(tyndp_config):
+    tyndp_config["tyndp_scenario"] = False
+    wildcards = Wildcards(fromdict={"run": "NT-py2030-ws003"})
 
     with pytest.raises(KeyError):
-        set_scenario_config(SimpleNamespace(config=config, wildcards=wildcards))
+        set_scenario_config(SimpleNamespace(config=tyndp_config, wildcards=wildcards))

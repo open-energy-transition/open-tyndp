@@ -77,16 +77,16 @@ class RemoteConfig(ConfigModel):
     )
 
 
-class WeatherClustersConfig(ConfigModel):
-    """Configuration for top level `weather_clusters` settings."""
+class WeatherClustersTyndpConfig(ConfigModel):
+    """Configuration for top level `weather_clusters_tyndp` settings."""
 
-    enable: bool = Field(
-        False,
-        description="Expand each selected scenario into independent single-horizon runs `{scenario}-py{horizon}-ws{ws:03d}`, one per representative weather scenario of the horizon in `file`. The runs share the weather-independent resources built in the directory of the original scenario. Requires `run: scenarios: enable: true`.",
-    )
     file: str = Field(
         "data/tyndp_weather_clusters.csv",
-        description="Table of representative weather scenarios with columns `target_year`, `cluster`, `representative_ws` (climate year column index, e.g. 29 for `WS029`), `weight` and `cluster_size`.",
+        description="Table of the TYNDP 2026 weather clustering with columns `horizon`, `cluster`, `weather_scenario` (climate year column index, e.g. 29 for `WS029`), `weight` and `cluster_size`.",
+    )
+    select: Literal["all", "first"] | dict[int, list[int]] = Field(
+        "first",
+        description="Weather scenarios to model per planning horizon: `all` takes every weather scenario of a horizon in `file`, `first` the first row per horizon, and a mapping such as `{2030: [3, 29]}` an explicit list per horizon. In a TYNDP config (`tyndp_scenario` set), every scenario in `run.scenarios` is split into one single-horizon run `{scenario}-py{horizon}-ws{ws:03d}` per planning horizon and selected weather scenario.",
     )
 
 
@@ -141,13 +141,9 @@ class ConfigSchema(BaseModel):
         0.01,
         description="Hurdle cost applied as marginal cost to transmission links (EUR/MWh), used to discourage loop flows. Applied to the electricity and hydrogen grids in Scenario Building and to the DC links in the Cost-Benefit Analysis.",
     )
-    wscenarios_tyndp: dict[int, list[int]] = Field(
-        default_factory=dict,
-        description="Mapping of planning horizons to the weather scenarios (climate year column indices, e.g. 3 for `WS003`) to model in the TYNDP 2026 data. Only the first entry per horizon is currently used, falling back to the first entry of `AVAILABLE_WSCENARIOS` in `scripts/sb/_helpers.py` if unavailable (see `get_wscenario`); to be revisited once Scenario Building supports modelling multiple weather years at once.",
-    )
-    weather_clusters: WeatherClustersConfig = Field(
-        default_factory=WeatherClustersConfig,
-        description="Weather-cluster expansion of the selected scenarios into one run per representative weather scenario and planning horizon.",
+    weather_clusters_tyndp: WeatherClustersTyndpConfig = Field(
+        default_factory=WeatherClustersTyndpConfig,
+        description="Representative weather scenarios of the TYNDP 2026 weather clustering modelled per planning horizon.",
     )
     launch_explorer: bool = Field(
         False,

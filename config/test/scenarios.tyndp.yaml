@@ -1,0 +1,8 @@
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
+#
+# SPDX-License-Identifier: MIT
+
+
+# Test Case, NT-based Scenario - Defined in config/test/config.tyndp.yaml
+test-NT:
+  tyndp_scenario: NT

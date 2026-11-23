@@ -112,6 +112,7 @@ def _config_path(config: dict, loc: tuple) -> str:
 def normalize_config(config: dict, validated: ConfigSchema) -> None:
     """Normalize config values in place (e.g., ensure planning_horizons is a list)."""
     config["planning_horizons"] = validated.planning_horizons
+    config["weather_clusters_tyndp"] = validated.weather_clusters_tyndp.model_dump()
 
 
 def validate_scenarios(config: dict, scenarios: dict) -> None:

@@ -28,7 +28,6 @@ from tqdm import tqdm
 from scripts._helpers import configure_logging, get_snapshots, set_scenario_config
 from scripts.sb._helpers import (
     check_snapshot_year,
-    get_wscenario,
     safe_planning_horizon,
 )
 
@@ -82,6 +81,7 @@ if __name__ == "__main__":
             "clean_tyndp_hydro_inflows",
             horizon=2030,
             tech="HRR",
+            run="test-NT-py2030-ws003",
             configfiles="config/test/config.tyndp.yaml",
         )
     configure_logging(snakemake)
@@ -114,8 +114,7 @@ if __name__ == "__main__":
         source="PECD hydro inflow",
     )
 
-    # Weather scenario
-    wscenario = get_wscenario(snakemake.params.wscenarios, planning_horizon)
+    wscenario = snakemake.params.wscenario
 
     # Parameters
     onshore_buses = pd.read_csv(snakemake.input.busmap, index_col=0)

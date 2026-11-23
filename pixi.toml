@@ -214,16 +214,12 @@ tyndp-sb-test = """bash -c '
     snakemake -call --configfile config/config.tyndp.yaml -n
     ' --
 """
-tyndp-cba-test = """bash -c '
-    snakemake -call cba --configfile config/test/config.tyndp.yaml "$@" && \
-    snakemake -call cba --configfile config/config.tyndp.yaml -n \
-    ' --
-"""
-tyndp-wscenarios-test = """bash -c '
-    snakemake -call --configfile config/test/config.wscenarios.yaml "$@" && \
-    snakemake -call --configfile config/test/config.wscenarios.yaml config/test/config.weather_clusters.yaml -n
-    ' --
-"""
+# tyndp-cba-test is paused until CBA supports the weather-cluster runs of Scenario Building
+# tyndp-cba-test = """bash -c '
+#     snakemake -call cba --configfile config/test/config.tyndp.yaml "$@" && \
+#     snakemake -call cba --configfile config/config.tyndp.yaml -n \
+#     ' --
+# """
 create-tyndp-graphs = """
 	snakemake -call rulegraphs filegraphs --configfile config/config.tyndp.yaml
 """
@@ -246,13 +242,10 @@ close-explorers = """
 """
 clean-tyndp = """
      snakemake -call --configfile config/test/config.tyndp.yaml --delete-all-output ;
-     snakemake -call cba --configfile config/test/config.tyndp.yaml --delete-all-output ;
-     snakemake -call --configfile config/test/config.wscenarios.yaml --delete-all-output ;
      snakemake -call --configfile config/config.tyndp.yaml --delete-all-output ;
-     snakemake -call cba --configfile config/config.tyndp.yaml --delete-all-output ;
      echo "All tyndp outputs have been cleaned up."
 """
-all-tests = {depends-on = ["tyndp-sb-test", "tyndp-cba-test", "clean-tyndp", "integration-tests", "clean-tests", "unit-tests"]}
+all-tests = {depends-on = ["tyndp-sb-test", "clean-tyndp", "integration-tests", "clean-tests", "unit-tests"]}
 
 [feature.open-tyndp.dependencies]
 snakemake-storage-plugin-cached-http = ">=0.3"

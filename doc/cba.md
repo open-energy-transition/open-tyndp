@@ -93,6 +93,12 @@ and Open-TYNDP configuration options.
 
 ## Running Single vs Multiple Climate Years
 
+!!! warning
+
+    The climate-year scenarios below (`NT-ws1995`, `NT-ws2008`, `NT-ws2009` and `NT-wscenarios`)
+    are currently removed from `config/scenarios.tyndp.yaml`, while CBA is adapted to the
+    weather-cluster runs of Scenario Building (see [`weather_clusters_tyndp`](configuration.md#weather_clusters_tyndp_cf)).
+
 Climate-year collections allow project benefits to be assessed across multiple weather years, consistent with the 2024 TYNDP implementation.
 
 The CBA entry point `pixi run tyndp-cba` can run a **single scenario** that is one single climate year or a **collection scenario** that defines a list of child (climate years) scenarios under `cba.scenarios`.

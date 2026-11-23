@@ -5,6 +5,11 @@
 
 from scripts.sb.build_tyndp_demand import DEMAND_TYPE_MAP
 from scripts.sb._helpers import safe_planning_horizon, find_free_port
+from scripts._helpers import (
+    select_weather_clusters,
+    weather_cluster_run,
+    weather_cluster_weights,
+)
 from shutil import unpack_archive, copy2
 
 # Retrieve
@@ -111,16 +116,18 @@ if not "pre-built" in PECD_DATASET["version"]:
 ###################
 
 
-def get_wscenario_tyndp(w):
-    """Get the preferred TYNDP 2026 weather scenario (climate year column index) for a given planning horizon."""
-    wscenarios = config_provider("wscenarios_tyndp")(w)
-    planning_horizon = safe_planning_horizon(
-        w.horizon,
-        available_years=sorted(wscenarios),
-        source="TYNDP demand weather scenario",
-        verbose=False,
-    )
-    return wscenarios[planning_horizon][0]
+def weather_scenario(w: Wildcards) -> int:
+    """Return the single TYNDP 2026 weather scenario (climate year column index) of the run, also for data of an earlier available year."""
+    horizons = config_provider("planning_horizons")(w)
+    selected = select_weather_clusters(
+        config_provider("weather_clusters_tyndp")(w), horizons
+    ).weather_scenario.tolist()
+    if len(selected) != 1:
+        raise ValueError(
+            f"The run with planning horizons {horizons} selects the weather scenarios "
+            f"{selected}, but its weather-dependent jobs need exactly one."
+        )
+    return selected[0]
 
 
 rule build_tyndp_demand:
@@ -141,7 +148,7 @@ rule build_tyndp_demand:
     params:
         snapshots=config_provider("snapshots"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
-        wscenarios=config_provider("wscenarios_tyndp"),
+        wscenario=weather_scenario,
     script:
         scripts("sb/build_tyndp_demand.py")
 
@@ -177,7 +184,7 @@ rule clean_tyndp_pecd_data:
         available_years=config_provider(
             "electricity", "pecd_renewable_profiles", "available_years"
         ),
-        wscenario=get_wscenario_tyndp,
+        wscenario=weather_scenario,
     script:
         scripts("sb/clean_tyndp_pecd_data.py")
 
@@ -245,7 +252,7 @@ rule build_tyndp_pemmdb_data:
         mem_mb=16000,
     params:
         pemmdb_techs=pemmdb_techs,
-        wscenarios=config_provider("wscenarios_tyndp"),
+        wscenario=weather_scenario,
         snapshots=config_provider("snapshots"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
         available_years=config_provider(
@@ -268,7 +275,7 @@ rule build_tyndp_nuclear_profiles:
     resources:
         mem_mb=2000,
     params:
-        wscenarios=config_provider("wscenarios_tyndp"),
+        wscenario=weather_scenario,
         snapshots=config_provider("snapshots"),
     script:
         scripts("sb/build_tyndp_nuclear_profiles.py")
@@ -292,7 +299,7 @@ rule clean_tyndp_hydro_inflows:
         available_years=config_provider(
             "electricity", "pecd_hydro_profiles", "available_years"
         ),
-        wscenarios=config_provider("wscenarios_tyndp"),
+        wscenario=weather_scenario,
     script:
         scripts("sb/clean_tyndp_hydro_inflows.py")
 
@@ -602,6 +609,59 @@ if config["foresight"] != "perfect":
 
 if config["benchmarking"]["enable"]:
 
+    def benchmark_inputs(w: Wildcards, fn: str) -> list[str]:
+        """Return the benchmark file `fn` per planning horizon of the run, weighted over the weather-cluster runs for a parent."""
+        weighted = "weighted/" if w.run in run_parents.values() else ""
+        return expand(
+            RESULTS + "benchmarks/tyndp-2026/resources/" + weighted + fn,
+            run=w.run,
+            horizon=config_provider("planning_horizons")(w),
+            scenario=config_provider("tyndp_scenario")(w),
+        )
+
+    def weather_weights(w: Wildcards) -> pd.Series:
+        """Return the renormalized weights of the weather scenarios of the parent run for the `horizon` wildcard."""
+        return weather_cluster_weights(
+            config_provider("weather_clusters_tyndp")(w), int(w.horizon)
+        )
+
+    def price_weighting(w: Wildcards) -> str | None:
+        """Return the variant of the weighted prices benchmarked for a parent, None for a weather-cluster run."""
+        if w.run in run_parents.values():
+            return "cluster_weighted"
+        return None
+
+    def weather_label(w: Wildcards) -> str:
+        """Return the weather scenario of a weather-cluster run, or `weighted` for a parent."""
+        if w.run in run_parents.values():
+            return "weighted"
+        return str(weather_scenario(w))
+
+    rule weight_benchmark:
+        input:
+            lambda w: expand(
+                RESULTS + "benchmarks/tyndp-2026/resources/{name}{horizon}.csv",
+                run=[
+                    weather_cluster_run(w.run, int(w.horizon), ws)
+                    for ws in weather_weights(w).index
+                ],
+                name=w.name,
+                horizon=w.horizon,
+            ),
+        output:
+            RESULTS + "benchmarks/tyndp-2026/resources/weighted/{name}{horizon}.csv",
+        log:
+            logs("weight_benchmark_{name}{horizon}.log"),
+        benchmark:
+            benchmarks("performances/weight_benchmark_{name}{horizon}")
+        threads: 1
+        resources:
+            mem_mb=2000,
+        params:
+            weights=lambda w: weather_weights(w).tolist(),
+        script:
+            scripts("sb/weight_benchmark.py")
+
     rule clean_tyndp_dashboard_benchmark:
         input:
             dashboard_dir=rules.retrieve_tyndp_2026.output.market_outputs,
@@ -622,7 +682,7 @@ if config["benchmarking"]["enable"]:
             benchmarking=config_provider("benchmarking"),
             scenario=config_provider("tyndp_scenario"),
             countries=config_provider("countries"),
-            wscenarios=config_provider("wscenarios_tyndp"),
+            wscenario=weather_scenario,
         script:
             scripts("sb/clean_tyndp_dashboard_benchmark.py")
 
@@ -673,21 +733,13 @@ if config["benchmarking"]["enable"]:
 
     rule make_benchmark:
         input:
-            results=expand(
-                RESULTS + "benchmarks/tyndp-2026/resources/benchmarks_{horizon}.csv",
-                horizon=config_provider("planning_horizons"),
-                allow_missing=True,
-            ),
+            results=lambda w: benchmark_inputs(w, "benchmarks_{horizon}.csv"),
             benchmarks=from_parent(
                 RESULTS + "benchmarks/tyndp-2026/resources/benchmarks_tyndp.csv"
             ),
             dashboard_data=lambda w: (
-                expand(
-                    RESULTS
-                    + "benchmarks/tyndp-2026/resources/benchmarks_tyndp_dashboard_{scenario}{horizon}.csv",
-                    scenario=config_provider("tyndp_scenario"),
-                    horizon=config_provider("planning_horizons"),
-                    allow_missing=True,
+                benchmark_inputs(
+                    w, "benchmarks_tyndp_dashboard_{scenario}{horizon}.csv"
                 )
                 if config_provider("tyndp_scenario")(w)
                 == "NT"  # Only NT has dashboard files for now
@@ -709,23 +761,16 @@ if config["benchmarking"]["enable"]:
             benchmarking=config_provider("benchmarking"),
             scenario=config_provider("tyndp_scenario"),
             snapshots=config_provider("snapshots"),
+            price_weighting=price_weighting,
         script:
             scripts("sb/make_benchmark.py")
 
     rule plot_benchmark:
         input:
-            results=expand(
-                RESULTS + "benchmarks/tyndp-2026/resources/benchmarks_{horizon}.csv",
-                horizon=config_provider("planning_horizons"),
-                allow_missing=True,
-            ),
+            results=lambda w: benchmark_inputs(w, "benchmarks_{horizon}.csv"),
             dashboard_data=lambda w: (
-                expand(
-                    RESULTS
-                    + "benchmarks/tyndp-2026/resources/benchmarks_tyndp_dashboard_{scenario}{horizon}.csv",
-                    scenario=config_provider("tyndp_scenario"),
-                    horizon=config_provider("planning_horizons"),
-                    allow_missing=True,
+                benchmark_inputs(
+                    w, "benchmarks_tyndp_dashboard_{scenario}{horizon}.csv"
                 )
                 if config_provider("tyndp_scenario")(w)
                 == "NT"  # Only NT has dashboard files for now
@@ -755,7 +800,8 @@ if config["benchmarking"]["enable"]:
             snapshots=config_provider("snapshots"),
             tech_colors=config_provider("plotting", "tech_colors"),
             bench_colors=config_provider("plotting", "benchmarking", "colors"),
-            wscenarios=config_provider("wscenarios_tyndp"),
+            wscenario=weather_label,
+            price_weighting=price_weighting,
         script:
             scripts("sb/plot_benchmark.py")
 
@@ -800,11 +846,11 @@ rule make_benchmarks:
     input:
         kpis_by_bus=expand(
             rules.make_benchmark.output.kpis_by_bus,
-            run=RUNS,
+            run=RUNS + WEIGHTED_RUNS,
         ),
         kpis_by_country=expand(
             rules.make_benchmark.output.kpis_by_country,
-            run=RUNS,
+            run=RUNS + WEIGHTED_RUNS,
         ),
 
 
@@ -812,11 +858,11 @@ rule plot_benchmarks:
     input:
         kpis_by_bus=expand(
             rules.plot_benchmark.output.kpis_by_bus,
-            run=RUNS,
+            run=RUNS + WEIGHTED_RUNS,
         ),
         kpis_by_country=expand(
             rules.plot_benchmark.output.kpis_by_country,
-            run=RUNS,
+            run=RUNS + WEIGHTED_RUNS,
         ),
 
 
@@ -853,7 +899,7 @@ rule launch_explorer:
     input:
         lambda w: expand_runs(
             RESULTS + "networks/solved_{horizon}.nc",
-            runs=child_runs(w.get("run")) or RUNS,
+            runs=[c for c in child_runs(w.get("run")) if c in RUNS] or RUNS,
         ),
     output:
         RESULTS + "logs/explorer_launched.log",

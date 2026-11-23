@@ -23,6 +23,7 @@ from scripts.sb._helpers import (
     POWER_UNITS,
     PRICE_UNITS,
     normalize_direction,
+    price_load_table,
 )
 
 logger = logging.getLogger(__name__)
@@ -708,7 +709,7 @@ def compute_benchmark(
                 )
                 .groupby("bus")
                 .sum()
-                .loc[lambda s: s.index.isin(df.bus)]
+                .reindex(df.bus.unique(), fill_value=0)
             )
             normalizer = weights.sum()
         else:
@@ -718,7 +719,7 @@ def compute_benchmark(
             normalizer = 1.0
 
         df_eu = (
-            df_eu.assign(value=lambda x: x.bus.map(weights).fillna(0) * x.value)
+            df_eu.assign(value=lambda x: x.bus.map(weights) * x.value)
             .groupby(by=[c for c in ["carrier", "snapshot"] if c in df.columns])
             .value.sum()
             .div(normalizer)
@@ -749,6 +750,12 @@ def compute_benchmark(
             ),
         )
     )
+
+    if "price" in table:
+        df = pd.concat(
+            [df, price_load_table(weights, table, carrier=df.carrier.unique().item())],
+            ignore_index=True,
+        )
 
     return df
 

@@ -590,7 +590,7 @@ if __name__ == "__main__":
         snakemake = mock_snakemake(
             "plot_cba_benchmark",
             # "plot_weather_benchmark",
-            run="NT",
+            run="test-NT",
             cba_project="t335",
             horizon="2030",
             configfiles=["config/test/config.tyndp.yaml"],

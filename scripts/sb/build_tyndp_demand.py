@@ -18,9 +18,8 @@ Which 3 are populated is dependent on data package and identical across
 demand types for a given planning horizon. The availability is recorded in
 `AVAILABLE_WSCENARIOS` in `scripts/sb/_helpers.py`.
 
-Current implementation selects first weather scenario of a planning horizon,
-This needs to be revisit once we have implemented the full weather scenario
-implementation for SB.
+The profiles are built for the weather scenario of the run (see
+``weather_clusters_tyndp``).
 
 Data Availability
 -----------------
@@ -57,7 +56,6 @@ from scripts._helpers import (
 from scripts.sb._helpers import (
     align_demand_to_snapshots,
     check_snapshot_year,
-    get_wscenario,
 )
 
 logger = logging.getLogger(__name__)
@@ -370,7 +368,7 @@ if __name__ == "__main__":
             "build_tyndp_demand",
             horizon="2040",
             demand_type="electricity_market",
-            run="NT",
+            run="NT-py2040-ws077",
             configfiles="config/config.tyndp.yaml",
         )
 
@@ -380,7 +378,7 @@ if __name__ == "__main__":
     # Parameters
     planning_horizon = int(snakemake.wildcards.horizon)
     demand_type = snakemake.wildcards.demand_type
-    wscenarios = snakemake.params.wscenarios
+    wscenario = snakemake.params.wscenario
     snapshots = get_snapshots(
         snakemake.params.snapshots, snakemake.params.drop_leap_day
     )
@@ -389,7 +387,6 @@ if __name__ == "__main__":
     year = snapshots[0].year
     check_snapshot_year(year, snakemake.params.drop_leap_day)
 
-    wscenario = get_wscenario(wscenarios, planning_horizon)
     demand = load_demand(fn, planning_horizon, demand_type, wscenario, year)
     demand = align_demand_to_snapshots(demand, snapshots)
 

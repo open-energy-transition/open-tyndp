@@ -7285,18 +7285,35 @@
         }
       }
     },
-    "WeatherClustersConfig": {
-      "description": "Configuration for top level `weather_clusters` settings.",
+    "WeatherClustersTyndpConfig": {
+      "description": "Configuration for top level `weather_clusters_tyndp` settings.",
       "properties": {
-        "enable": {
-          "default": false,
-          "description": "Expand each selected scenario into independent single-horizon runs `{scenario}-py{horizon}-ws{ws:03d}`, one per representative weather scenario of the horizon in `file`. The runs share the weather-independent resources built in the directory of the original scenario. Requires `run: scenarios: enable: true`.",
-          "type": "boolean"
-        },
         "file": {
           "default": "data/tyndp_weather_clusters.csv",
-          "description": "Table of representative weather scenarios with columns `target_year`, `cluster`, `representative_ws` (climate year column index, e.g. 29 for `WS029`), `weight` and `cluster_size`.",
+          "description": "Table of the TYNDP 2026 weather clustering with columns `horizon`, `cluster`, `weather_scenario` (climate year column index, e.g. 29 for `WS029`), `weight` and `cluster_size`.",
           "type": "string"
+        },
+        "select": {
+          "anyOf": [
+            {
+              "enum": [
+                "all",
+                "first"
+              ],
+              "type": "string"
+            },
+            {
+              "additionalProperties": {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              "type": "object"
+            }
+          ],
+          "default": "first",
+          "description": "Weather scenarios to model per planning horizon: `all` takes every weather scenario of a horizon in `file`, `first` the first row per horizon, and a mapping such as `{2030: [3, 29]}` an explicit list per horizon. In a TYNDP config (`tyndp_scenario` set), every scenario in `run.scenarios` is split into one single-horizon run `{scenario}-py{horizon}-ws{ws:03d}` per planning horizon and selected weather scenario."
         }
       }
     },
@@ -11306,28 +11323,35 @@
       "description": "Hurdle cost applied as marginal cost to transmission links (EUR/MWh), used to discourage loop flows. Applied to the electricity and hydrogen grids in Scenario Building and to the DC links in the Cost-Benefit Analysis.",
       "type": "number"
     },
-    "wscenarios_tyndp": {
-      "additionalProperties": {
-        "items": {
-          "type": "integer"
-        },
-        "type": "array"
-      },
-      "description": "Mapping of planning horizons to the weather scenarios (climate year column indices, e.g. 3 for `WS003`) to model in the TYNDP 2026 data. Only the first entry per horizon is currently used, falling back to the first entry of `AVAILABLE_WSCENARIOS` in `scripts/sb/_helpers.py` if unavailable (see `get_wscenario`); to be revisited once Scenario Building supports modelling multiple weather years at once.",
-      "type": "object"
-    },
-    "weather_clusters": {
-      "description": "Configuration for top level `weather_clusters` settings.",
+    "weather_clusters_tyndp": {
+      "description": "Configuration for top level `weather_clusters_tyndp` settings.",
       "properties": {
-        "enable": {
-          "default": false,
-          "description": "Expand each selected scenario into independent single-horizon runs `{scenario}-py{horizon}-ws{ws:03d}`, one per representative weather scenario of the horizon in `file`. The runs share the weather-independent resources built in the directory of the original scenario. Requires `run: scenarios: enable: true`.",
-          "type": "boolean"
-        },
         "file": {
           "default": "data/tyndp_weather_clusters.csv",
-          "description": "Table of representative weather scenarios with columns `target_year`, `cluster`, `representative_ws` (climate year column index, e.g. 29 for `WS029`), `weight` and `cluster_size`.",
+          "description": "Table of the TYNDP 2026 weather clustering with columns `horizon`, `cluster`, `weather_scenario` (climate year column index, e.g. 29 for `WS029`), `weight` and `cluster_size`.",
           "type": "string"
+        },
+        "select": {
+          "anyOf": [
+            {
+              "enum": [
+                "all",
+                "first"
+              ],
+              "type": "string"
+            },
+            {
+              "additionalProperties": {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              "type": "object"
+            }
+          ],
+          "default": "first",
+          "description": "Weather scenarios to model per planning horizon: `all` takes every weather scenario of a horizon in `file`, `first` the first row per horizon, and a mapping such as `{2030: [3, 29]}` an explicit list per horizon. In a TYNDP config (`tyndp_scenario` set), every scenario in `run.scenarios` is split into one single-horizon run `{scenario}-py{horizon}-ws{ws:03d}` per planning horizon and selected weather scenario."
         }
       }
     },

@@ -5,8 +5,12 @@
 # SPDX-License-Identifier: CC0-1.0
 
 run:
-  name: "test-sector-tyndp"
+  prefix: "test-tyndp"
+  name: "test-NT"
   disable_progressbar: true
+  scenarios:
+    enable: true
+    file: config/test/scenarios.tyndp.yaml
   shared_resources:
     policy: false
 
@@ -14,23 +18,12 @@ run:
 foresight: myopic
 
 tyndp_scenario: NT
-wscenarios_tyndp:
-  2030:
-  - 3
-  - 21
-  - 29
-  2035:
-  - 32
-  - 37
-  - 59
-  2040:
-  - 65
-  - 71
-  - 77
-  2050:
-  - 91
-  - 92
-  - 106
+weather_clusters_tyndp:
+  select:
+    2030: [3]
+    2035: [32]
+    2040: [65]
+    2050: [91]
 data_config:   # change to 'tyndp' to use tyndp-archive where available
 logging:
   level: INFO

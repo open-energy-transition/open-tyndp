@@ -8,8 +8,8 @@ The hourly nuclear generation of each market node is normalized by its installed
 and resampled weekly, retaining the maximum availability factor per week. This accounts for
 maintenance schedules and forced outages, which are not given in the PEMMDB.
 
-The profiles are derived from the weather scenario selected for the planning horizon in
-``wscenarios_tyndp``.
+The profiles are derived from the weather scenario of the run (see
+``weather_clusters_tyndp``).
 
 Outputs
 -------
@@ -33,7 +33,6 @@ from scripts.sb._helpers import (
     convert_units,
     format_bz_names,
     get_dashboard_files,
-    get_wscenario,
     parse_dashboard_header,
     parse_installed_capacity,
 )
@@ -89,13 +88,13 @@ if __name__ == "__main__":
             "build_tyndp_nuclear_profiles",
             horizon="2030",
             configfiles="config/config.tyndp.yaml",
-            run="NT",
+            run="NT-py2030-ws029",
         )
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
     planning_horizon = int(snakemake.wildcards.horizon)
-    wscenario = get_wscenario(snakemake.params.wscenarios, planning_horizon)
+    wscenario = snakemake.params.wscenario
     logger.info(
         f"Building nuclear availability profiles for {planning_horizon}, weather scenario WS{wscenario:03d}"
     )

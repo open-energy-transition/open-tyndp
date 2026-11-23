@@ -92,6 +92,7 @@ def load_data(
     scenario: str,
     dashboard_data_fn: str = "",
     model_col: str = "Open-TYNDP",
+    price_weighting: str | None = None,
 ) -> pd.DataFrame:
     """
     Load Open-TYNDP results and TYNDP reference data.
@@ -111,6 +112,9 @@ def load_data(
         Path to the TYNDP 2026 dashboard data file.
     model_col : str, default "Open-TYNDP"
         Source name of model values.
+    price_weighting : str, optional
+        Variant of the prices weighted over weather scenarios to benchmark, e.g.
+        "cluster_weighted": the tables `{table}_{price_weighting}` are benchmarked as `{table}`.
 
     Returns
     -------
@@ -139,6 +143,10 @@ def load_data(
             )
 
     benchmarks_raw = pd.concat(benchmarks_raw).dropna(how="all", axis=1)
+    if price_weighting:
+        benchmarks_raw["table"] = benchmarks_raw.table.str.removesuffix(
+            f"_{price_weighting}"
+        )
 
     # Filter common years
     is_model = benchmarks_raw.source.eq(model_col)
@@ -728,8 +736,11 @@ def compute_overall_accuracy(
     }
 
     df_global = benchmarks_raw.loc[
-        (benchmarks_raw.source == model_col)
-        | (benchmarks_raw.source == benchmarks_raw.table.map(sources_map))
+        benchmarks_raw.table.isin(sources_map)
+        & (
+            (benchmarks_raw.source == model_col)
+            | (benchmarks_raw.source == benchmarks_raw.table.map(sources_map))
+        )
     ]
 
     df_global = (
@@ -843,6 +854,7 @@ if __name__ == "__main__":
         results_fn=results_fn,
         scenario=scenario,
         dashboard_data_fn=dashboard_data_fn,
+        price_weighting=snakemake.params.price_weighting,
     )
 
     # Get version

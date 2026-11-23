@@ -14,25 +14,8 @@ run:
 foresight: myopic
 
 tyndp_scenario: NT
-wscenarios_tyndp:
-  2030:
-  - 3
-  - 21
-  - 29
-  2035:
-  - 32
-  - 37
-  - 59
-  2040:
-  - 65
-  - 71
-  - 77
-  2050:
-  - 91
-  - 92
-  - 106
-weather_clusters:
-  enable: true
+weather_clusters_tyndp:
+  select: all
 data_config:   # change to 'tyndp' to use tyndp-archive where available
 logging:
   level: INFO

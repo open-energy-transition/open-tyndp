@@ -50,7 +50,10 @@ Scenario Building outcomes are compared against two TYNDP 2026 reference sources
 for the NT+ scenario:
 
 * **Time Series Dashboards** (preferred reference): market model outputs at node level, read for the
-  first weather scenario configured in `wscenarios_tyndp` for each planning horizon.
+  weather scenario of each weather-cluster run (see `weather_clusters_tyndp`). For a scenario, the
+  Open-TYNDP statistics and the Dashboard outputs of its runs are weighted per planning horizon
+  with the weather cluster weights, renormalized over the selected weather scenarios, and
+  benchmarked as well.
   Besides the tables shared with the Scenario Report, the `electricity_prosumer_demand` table
   compares the prosumer demand and the `ev_charging` table compares the grid side EV charging
   (`BEV charger`) and V2G discharging (`V2G`) per node. V2G is also compared to the Scenario Report
@@ -92,12 +95,24 @@ The SB benchmarking workflow is controlled by `config/benchmarking.default.yaml`
 3. `clean_tyndp_dashboard_benchmark`: Read and process the market model outputs from the Time Series
    Dashboards, including cross-border flows, prices, and country and EU27 level values.
 4. `build_statistics`: Compute benchmarking statistics from the optimised network for
-   every planning horizon.
-5. `make_benchmark`: Compute accuracy indicators comparing model outcomes against the
-   market model outputs from the Time Series Dashboards and the Scenarios Report.
-6. `make_benchmarks`: Collect outputs from all `make_benchmark` runs.
-7. `plot_benchmark`: Generate visualisation outputs.
-8. `plot_benchmarks`: Collect outputs from all `plot_benchmark` runs.
+   every planning horizon. Each price table `{table}` comes with a table `{table}_load` holding
+   the load per bus (and its Pan-EU sum) that weights the Pan-EU price; the Dashboard outputs
+   provide the same tables.
+5. `weight_benchmark`: Weight the statistics and the Dashboard outputs of the weather-cluster
+   runs of a scenario per planning horizon. All rows are annual quantities (energies,
+   capacities, flows, time-averaged prices and hours), so the weighted sum is their expected value.
+   A gap propagates: a row with an undefined value (e.g. the price of a bus without energy balance)
+   in, or missing from, any run is undefined in the weighted results. Each price table `{table}` is
+   replaced by two variants: `{table}_cluster_weighted` averages the prices across the runs with the
+   weather cluster weights, `{table}_load_weighted` with the weather cluster weights times the load of
+   the bus in each run (`{table}_load`).
+6. `make_benchmark`: Compute accuracy indicators comparing model outcomes against the
+   market model outputs from the Time Series Dashboards and the Scenarios Report, per
+   weather-cluster run and for the weighted results of each scenario. The weighted results
+   benchmark the `_cluster_weighted` prices, the expected value of the time-averaged price of a run.
+7. `make_benchmarks`: Collect outputs from all `make_benchmark` runs.
+8. `plot_benchmark`: Generate visualisation outputs.
+9. `plot_benchmarks`: Collect outputs from all `plot_benchmark` runs.
 
 The full set of benchmarking output files is stored under `results/benchmarks/tyndp-2026/`:
 

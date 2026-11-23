@@ -401,6 +401,33 @@ def add_metadata(
         )
 
 
+def price_load_table(loads: pd.Series, table: str, carrier: str) -> pd.DataFrame:
+    """
+    Return the loads per bus that weight the prices of ``table`` as table ``{table}_load``.
+
+    Parameters
+    ----------
+    loads : pd.Series
+        Load in MWh per bus of the price table, zero for buses without load.
+    table : str
+        Name of the price table.
+    carrier : str
+        Benchmark carrier of the price table.
+
+    Returns
+    -------
+    pd.DataFrame
+        Loads in long format with columns [bus, value, carrier, table, unit],
+        including their sum as bus "Pan-EU".
+    """
+    return (
+        pd.concat([loads, pd.Series({"Pan-EU": loads.sum()})])
+        .rename_axis("bus")
+        .reset_index(name="value")
+        .assign(carrier=carrier, table=f"{table}_load", unit="MWh")
+    )
+
+
 def convert_units(
     df: pd.DataFrame,
     unit_col: str = "unit",
@@ -855,42 +882,6 @@ def parse_wscenario(s: pd.Series) -> pd.Series:
     Convert weather scenario labels (eg. WS065) into their integer index.
     """
     return pd.to_numeric(s.astype(str).str.removeprefix("WS"), errors="coerce")
-
-
-def get_wscenario(wscenarios, planning_horizon):
-    """
-    Select the weather scenario to use for a given planning horizon.
-
-    Parameters
-    ----------
-    wscenarios : dict
-        Mapping of planning year to a list of requested weather scenarios,
-        e.g. ``{planning_horizon: [wscenario, ...]}``.
-    planning_horizon : int
-        Planning horizon for which to select the weather scenario.
-
-    Returns
-    -------
-    int
-        Selected weather scenario. Falls back to the first entry in
-        ``AVAILABLE_WSCENARIOS[planning_horizon]`` if unavailable.
-
-    Notes
-    -----
-    Currently always picks the first requested weather scenario; should be
-    adapted once the full weather year implementation is available in SB.
-    """
-    wscenario = wscenarios[planning_horizon][0]
-
-    if wscenario not in AVAILABLE_WSCENARIOS[planning_horizon]:
-        fallback_scenario = AVAILABLE_WSCENARIOS[planning_horizon][0]
-        logger.warning(
-            f"Weather scenario WS{wscenario:03d} not available for "
-            f"planning horizon {planning_horizon}, falling back to WS{fallback_scenario:03d}"
-        )
-        wscenario = fallback_scenario
-
-    return wscenario
 
 
 def split_unit_from_category(category_labels: pd.Series) -> tuple[pd.Series, pd.Series]:

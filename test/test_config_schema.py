@@ -158,7 +158,10 @@ class TestValidateScenarios:
         "override",
         [
             {"countries": ["DE"]},
-            {"planning_horizons": [2050], "wscenarios_tyndp": {2050: [91]}},
+            {
+                "planning_horizons": [2050],
+                "weather_clusters_tyndp": {"select": {2050: [91]}},
+            },
         ],
     )
     def test_accepts_compatible_override(self, override):
@@ -172,6 +175,10 @@ class TestValidateScenarios:
             ({"planning_horizons": [2040]}, "must be a list and a subset"),
             ({"planning_horizons": 2050}, "must be a list and a subset"),
             ({"countries": "not-a-list"}, "failed config validation"),
+            (
+                {"weather_clusters_tyndp": {"select": "some"}},
+                "failed config validation",
+            ),
         ],
     )
     def test_rejects_incompatible_override(self, override, match):

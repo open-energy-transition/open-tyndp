@@ -378,7 +378,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "summarize_indicators_per_project",
-            run="NT",
+            run="test-NT",
             cba_project="t335",
             configfiles=["config/test/config.tyndp.yaml"],
         )

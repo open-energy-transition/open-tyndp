@@ -9,9 +9,7 @@ Weather Scenario Selection
 
 PEMMDB capacities and profiles carry the range of weather scenarios they apply
 to (``ws_start`` to ``ws_end``, labeled ``WSxxx``), and only the entries
-covering the modeled scenario are kept. Which scenario that is comes from
-`wscenarios_tyndp` and is resolved for the planning year the data is read
-from, the same way as for demand (see `get_wscenario` in `scripts/sb/_helpers.py`).
+covering the weather scenario of the run (see `weather_clusters_tyndp`) are kept.
 
 Outputs
 -------
@@ -41,7 +39,6 @@ from tqdm.contrib.logging import logging_redirect_tqdm
 from scripts._helpers import configure_logging, get_snapshots, set_scenario_config
 from scripts.sb._helpers import (
     convert_units,
-    get_wscenario,
     map_tyndp_carrier_names,
     parse_wscenario,
     safe_planning_horizon,
@@ -1302,6 +1299,7 @@ if __name__ == "__main__":
         snakemake = mock_snakemake(
             "build_tyndp_pemmdb_data",
             horizon=2040,
+            run="test-NT-py2040-ws065",
             configfiles="config/test/config.tyndp.yaml",
         )
     configure_logging(snakemake)
@@ -1338,8 +1336,7 @@ if __name__ == "__main__":
         source="PEMMDB",
     )
 
-    # Weather scenario, resolved for the planning year the data is read from
-    wscenario = get_wscenario(snakemake.params.wscenarios, planning_horizon)
+    wscenario = snakemake.params.wscenario
 
     logger.info(
         f"Processing PEMMDB data for target year: {planning_horizon_i}, "

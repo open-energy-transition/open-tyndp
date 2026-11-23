@@ -24,7 +24,7 @@ from scripts._helpers import (
     configure_logging,
     set_scenario_config,
 )
-from scripts.sb._helpers import add_metadata, convert_units, get_wscenario
+from scripts.sb._helpers import add_metadata, convert_units
 from scripts.sb.make_benchmark import (
     SOURCES_MAP,
     get_bus_col_name,
@@ -46,7 +46,7 @@ def _plot_scenario_comparison(
     bus: str,
     output_dir: str,
     scenario: str,
-    wscenario: int,
+    wscenario: str,
     model_col: str,
     rfc_cols: list[str],
     rfc_source: str,
@@ -118,7 +118,7 @@ def _plot_time_series(
     bus: str,
     output_dir: str,
     scenario: str,
-    wscenario: int,
+    wscenario: str,
     model_col: str,
     rfc_col: str,
     source_unit: str,
@@ -207,7 +207,7 @@ def _plot_prices(
     year: int,
     output_dir: str,
     scenario: str,
-    wscenario: int,
+    wscenario: str,
     model_col: str,
     rfc_source: str,
     source_unit: str,
@@ -275,7 +275,7 @@ def _plot_flows(
     year: int,
     output_dir: str,
     scenario: str,
-    wscenario: int,
+    wscenario: str,
     model_col: str,
     rfc_source: str,
     source_unit: str,
@@ -359,7 +359,7 @@ def _plot_hours(
     year: int,
     output_dir: str,
     scenario: str,
-    wscenario: int,
+    wscenario: str,
     model_col: str,
     rfc_source: str,
     source_unit: str,
@@ -403,7 +403,7 @@ def plot_benchmark(
     output_dir: str,
     scenario: str,
     snapshots: dict[str, str],
-    wscenarios: dict[int, int],
+    wscenario: str,
     options: dict,
     tech_colors: dict,
     bench_colors: dict,
@@ -426,8 +426,8 @@ def plot_benchmark(
         Scenario name.
     snapshots : dict[str, str]
         Dictionary defining the temporal range with 'start' and 'end' keys.
-    wscenarios : dict[int, int]
-        Weather scenario per planning horizon.
+    wscenario : str
+        Weather scenario of the run, or "weighted" for results weighted over weather scenarios.
     options : dict
         Full benchmarking configuration containing table units and conversions.
     tech_colors : dict
@@ -490,7 +490,6 @@ def plot_benchmark(
 
     for year in bench_wide.index.get_level_values("year").unique():
         bench_year = bench_wide.query("year==@year").copy()
-        wscenario = wscenarios[year]
 
         if table_type == "scenario_comparison":
             _plot_scenario_comparison(
@@ -553,7 +552,7 @@ def orchestrate_benchmark(
     output_dir: str,
     scenario: str,
     snapshots: dict[str, str],
-    wscenarios: dict[int, int],
+    wscenario: str,
     options: dict,
     tech_colors: dict,
     bench_colors: dict,
@@ -599,7 +598,7 @@ def orchestrate_benchmark(
         output_dir=output_dir_bus_col,
         scenario=scenario,
         snapshots=snapshots,
-        wscenarios=wscenarios,
+        wscenario=wscenario,
         options=options,
         tech_colors=tech_colors,
         bench_colors=bench_colors,
@@ -613,7 +612,7 @@ def plot_overview(
     indicators: pd.DataFrame,
     fn: str,
     scenario: str,
-    wscenarios: dict[int, int],
+    wscenario: str,
     metric: str = "sMAPE",
     bus_col_name: str = "bus",
 ):
@@ -628,8 +627,8 @@ def plot_overview(
         Output filename.
     scenario : str
         Scenario name.
-    wscenarios : dict[int, int]
-        Weather scenario per planning horizon.
+    wscenario : str
+        Weather scenario of the run, or "weighted" for results weighted over weather scenarios.
     metric : str, default "sMAPE"
         Metric to plot.
     bus_col_name : str, default "bus"
@@ -638,7 +637,6 @@ def plot_overview(
     fig = Figure(figsize=(12, FIGURE_HEIGHT_DEFAULT))
     FigureCanvasAgg(fig)
     ax = fig.subplots()
-    wscenario = ", ".join(f"{ws} ({year})" for year, ws in wscenarios.items())
 
     # Keep relevant indicators and rows
     df_clean = indicators[[metric, "Missing carriers"]].dropna()
@@ -725,11 +723,9 @@ if __name__ == "__main__":
         results_fn=results_fn,
         scenario="TYNDP " + scenario,
         dashboard_data_fn=dashboard_data_fn,
+        price_weighting=snakemake.params.price_weighting,
     )
-    wscenarios = {
-        year: get_wscenario(snakemake.params.wscenarios, year)
-        for year in sorted(benchmarks_raw.year.unique())
-    }
+    wscenario = snakemake.params.wscenario
 
     # Produce benchmark figures
     for bus_col_name, kpis_in, kpis_out, enabled in [
@@ -753,7 +749,7 @@ if __name__ == "__main__":
                 output_dir=output_dir,
                 scenario=scenario,
                 snapshots=snapshots,
-                wscenarios=wscenarios,
+                wscenario=wscenario,
                 options=options,
                 tech_colors=tech_colors,
                 bench_colors=bench_colors,
@@ -761,7 +757,7 @@ if __name__ == "__main__":
             )
             indicators = pd.read_csv(kpis_in, index_col=0)
             plot_overview(
-                indicators, kpis_out, scenario, wscenarios, bus_col_name=bus_col_name
+                indicators, kpis_out, scenario, wscenario, bus_col_name=bus_col_name
             )
         else:
             Path(kpis_out).touch()

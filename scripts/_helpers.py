@@ -5,6 +5,7 @@
 
 import atexit
 import contextlib
+import copy
 import logging
 import os
 import re
@@ -172,71 +173,143 @@ def get_rdir(run):
     return RDIR
 
 
-def weather_cluster_scenarios(
-    config: dict, scenarios: dict, bases: list[str]
-) -> dict[str, str]:
+def select_weather_clusters(clusters: dict, horizons: list[int]) -> pd.DataFrame:
     """
-    Add one single-horizon child scenario per representative weather scenario of each base scenario.
+    Return the rows of the weather clusters file selected for ``horizons``.
 
-    Each base scenario in ``bases`` and each of its planning horizons listed in
-    the ``weather_clusters`` table yields a child scenario
-    ``{base}-py{horizon}-ws{ws:03d}`` that inherits the base overrides and pins
-    ``planning_horizons`` and ``wscenarios_tyndp``. The children are added to
-    ``scenarios``.
+    ``clusters["select"]`` is ``"all"`` (every weather scenario of a horizon),
+    ``"first"`` (the first row per horizon) or a mapping of horizons to lists of
+    weather scenarios. Rows keep the file order, or the listed order of a mapping.
+    A horizon without a selected weather scenario or an unknown pair of horizon and
+    weather scenario anywhere in the mapping raises a ``ValueError``.
+    """
+    table = pd.read_csv(clusters["file"])
+    select = clusters["select"]
+    if select in ("all", "first"):
+        selected = table[table.horizon.isin(horizons)]
+        if select == "first":
+            selected = selected.groupby("horizon", sort=False).head(1)
+    else:
+        table = table.set_index(["horizon", "weather_scenario"])
+        unknown = [
+            (h, ws)
+            for h, wss in select.items()
+            for ws in wss
+            if (h, ws) not in table.index
+        ]
+        if unknown:
+            raise ValueError(
+                f"Weather scenarios {unknown} (horizon, weather scenario) "
+                f"are not in {clusters['file']}."
+            )
+        requested = [(h, ws) for h in horizons for ws in select.get(h, [])]
+        selected = table.loc[requested].reset_index()
+    missing = sorted(set(horizons) - set(selected.horizon))
+    if missing:
+        raise ValueError(
+            f"No weather scenario selected for planning horizons {missing} "
+            f"(select: {select}, file: {clusters['file']})."
+        )
+    return selected
+
+
+def weather_cluster_weights(clusters: dict, horizon: int) -> pd.Series:
+    """Return the weights of the weather scenarios selected for ``horizon``, renormalized to sum to one."""
+    weights = select_weather_clusters(clusters, [horizon]).set_index(
+        "weather_scenario"
+    )["weight"]
+    return weights / weights.sum()
+
+
+def weather_cluster_run(parent: str, horizon: int, weather_scenario: int) -> str:
+    """Return the name of the weather-cluster run of ``parent`` for ``horizon`` and ``weather_scenario``."""
+    return f"{parent}-py{horizon}-ws{weather_scenario:03d}"
+
+
+def add_weather_cluster_runs(config: dict, scenarios: dict) -> dict[str, str]:
+    """
+    Add one single-horizon run per planning horizon and selected weather scenario of every scenario.
+
+    Each scenario ``S`` in ``scenarios`` yields the runs named by
+    `weather_cluster_run` for its own ``planning_horizons`` and
+    ``weather_clusters_tyndp`` selection. A run deep-merges ``planning_horizons:
+    [h]`` and ``weather_clusters_tyndp: {select: {h: [ws]}}`` into the overrides
+    of ``S``. The runs are added to ``scenarios``.
 
     Returns
     -------
     dict[str, str]
-        Mapping of each child scenario to its base (parent) scenario.
+        Mapping of each weather-cluster run to its parent scenario.
     """
-    clusters = pd.read_csv(config["weather_clusters"]["file"])
-    wscenarios = {
-        int(horizon): [int(ws) for ws in group]
-        for horizon, group in clusters.groupby("target_year")["representative_ws"]
-    }
     run_parents = {}
-    for base in bases:
-        override = scenarios[base]
-        horizons = override.get("planning_horizons", config["planning_horizons"])
-        for horizon in horizons:
-            if horizon not in wscenarios:
-                raise ValueError(
-                    f"Planning horizon {horizon} of scenario '{base}' has no weather "
-                    f"clusters in {config['weather_clusters']['file']}."
-                )
-            for ws in wscenarios[horizon]:
-                child = f"{base}-py{horizon}-ws{ws:03d}"
-                scenarios[child] = {
-                    **override,
+    for parent, override in list(scenarios.items()):
+        own = copy.deepcopy(
+            {
+                key: config[key]
+                for key in ("planning_horizons", "weather_clusters_tyndp")
+            }
+        )
+        update_config(own, {key: override[key] for key in own if key in override})
+        selected = select_weather_clusters(
+            own["weather_clusters_tyndp"], own["planning_horizons"]
+        )
+        for horizon, ws in selected[["horizon", "weather_scenario"]].values.tolist():
+            child = weather_cluster_run(parent, horizon, ws)
+            scenarios[child] = copy.deepcopy(override)
+            update_config(
+                scenarios[child],
+                {
                     "planning_horizons": [horizon],
-                    "wscenarios_tyndp": {horizon: [ws]},
-                }
-                run_parents[child] = base
+                    "weather_clusters_tyndp": {"select": {horizon: [ws]}},
+                },
+            )
+            run_parents[child] = parent
     return run_parents
 
 
 def expand_weather_clusters(config: dict, scenarios: dict) -> dict[str, str]:
     """
-    Expand the selected scenarios into one single-horizon run per representative weather scenario.
+    Split every scenario of a TYNDP config into weather-cluster runs and select them by ``run.name``.
 
-    The children of the scenarios in ``config["run"]["name"]`` (see
-    `weather_cluster_scenarios`) are added to ``scenarios`` and replace
-    ``config["run"]["name"]``.
+    In a TYNDP config (``tyndp_scenario`` set), all scenarios of the scenarios file
+    are split (see `add_weather_cluster_runs`). ``config["run"]["name"]`` is
+    replaced by the selected runs: a scenario name selects all its runs, the name
+    of a weather-cluster run only itself. Other configs are left unchanged.
 
     Returns
     -------
     dict[str, str]
-        Mapping of each child scenario to its base (parent) scenario.
+        Mapping of each weather-cluster run to its parent scenario.
     """
-    if not config["weather_clusters"]["enable"]:
+    if not config["tyndp_scenario"]:
         return {}
     run = config["run"]
     if not run["scenarios"]["enable"]:
-        raise ValueError("`weather_clusters` requires `run: scenarios: enable: true`.")
+        raise ValueError(
+            "A TYNDP config (`tyndp_scenario` set) requires "
+            "`run: scenarios: enable: true`."
+        )
+    fn = run["scenarios"]["file"]
+    if not Path(fn).exists():
+        raise FileNotFoundError(f"Scenarios file {fn} does not exist.")
 
-    bases = [run["name"]] if isinstance(run["name"], str) else run["name"]
-    run_parents = weather_cluster_scenarios(config, scenarios, bases)
-    run["name"] = list(run_parents)
+    run_parents = add_weather_cluster_runs(config, scenarios)
+    names = [run["name"]] if isinstance(run["name"], str) else run["name"]
+    unknown = [name for name in names if name not in scenarios]
+    if unknown:
+        raise ValueError(
+            f"`run.name` entries {unknown} are neither scenarios in {fn} "
+            "nor weather-cluster runs of them."
+        )
+    run["name"] = [
+        child
+        for name in names
+        for child in (
+            [name]
+            if name in run_parents
+            else [c for c, parent in run_parents.items() if parent == name]
+        )
+    ]
     return run_parents
 
 
@@ -386,10 +459,8 @@ def set_scenario_config(snakemake):
             root_dir = script_dir.parent
             with open(root_dir / scenario["file"]) as f:
                 scenario_config = yaml.safe_load(f)
-        if snakemake.config["weather_clusters"]["enable"]:
-            weather_cluster_scenarios(
-                snakemake.config, scenario_config, list(scenario_config)
-            )
+        if snakemake.config["tyndp_scenario"]:
+            add_weather_cluster_runs(snakemake.config, scenario_config)
         update_config(snakemake.config, scenario_config[snakemake.wildcards.run])
 
 

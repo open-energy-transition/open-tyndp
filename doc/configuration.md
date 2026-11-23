@@ -257,38 +257,34 @@ Configuration for top level `planning_horizons` settings.
     level and keep scenario sweeps inside `run.scenarios`. See
     [migration](migration.md) for detailed conversion steps.
 
-## `wscenarios_tyndp` {#wscenarios_tyndp_cf}
+## `weather_clusters_tyndp` {#weather_clusters_tyndp_cf}
 
-Mapping of planning horizons to the weather scenarios (climate year column
-indices, e.g. `3` for `WS003`) to model in the TYNDP 2026 data. Only the first
-entry per horizon is currently used.
+Representative weather scenarios (WS) of the TYNDP 2026 weather clustering in
+`file` (e.g. `29` for `WS029`), with one weight per weather scenario and planning
+horizon. `select` chooses the modelled weather scenarios per planning horizon:
+`all` takes every weather scenario in `file`, `first` the first row per horizon,
+and a mapping such as `{2030: [3, 29]}` an explicit list per horizon.
 
-**YAML Syntax**
+In a TYNDP config (`tyndp_scenario` set), `run.scenarios` must be enabled, and
+every scenario in the scenarios file is split into independent single-horizon
+runs `{scenario}-py{horizon}-ws{ws:03d}` (e.g. `NT-py2030-ws029`), one per
+planning horizon and selected weather scenario. `run.name` selects the runs: a
+scenario name selects all its runs, the name of a single run only that run.
+Weather-independent resources are built once in the directory of the scenario
+and shared by its runs, and the benchmark statistics of the runs are weighted per
+scenario and planning horizon with the weights, renormalized over the selected
+weather scenarios. See [Scenario Building](sb.md).
 
-```yaml
-{{ yaml_section("wscenarios_tyndp", source="config.tyndp.yaml") }}
-```
-
-## `weather_clusters` {#weather_clusters_cf}
-
-Expand each scenario in `run.name` into independent single-horizon runs
-`{scenario}-py{horizon}-ws{ws:03d}`, one per representative weather scenario
-listed for the horizon in `file` (e.g. `NT-py2030-ws029`). Each run pins
-`planning_horizons` to its horizon and `wscenarios_tyndp` to its weather
-scenario. Weather-independent resources are built once in the directory of the
-original scenario and shared by its runs. See [Scenario Building](sb.md).
-
-{{ schema_table("weather_clusters") }}
+{{ schema_table("weather_clusters_tyndp") }}
 
 **YAML Syntax**
 
 ```yaml
-{{ yaml_section("weather_clusters") }}
+{{ yaml_section("weather_clusters_tyndp") }}
 ```
 
 !!! note
-    The CBA workflow (`cba` target) keeps reading the solved networks of the
-    original scenarios in `run.name` and is not expanded into weather-cluster runs.
+    The CBA workflow (`cba` target) is not adapted to the weather-cluster runs yet.
 
 
 ## `countries` {#countries_cf}

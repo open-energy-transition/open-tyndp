@@ -65,6 +65,12 @@ validate_scenarios(config, scenarios)
 
 RUNS = run["name"] if isinstance(run["name"], list) else [run["name"]]
 BASE_RUNS = list(dict.fromkeys(run_parents.get(name, name) for name in RUNS))
+WEIGHTED_RUNS = [
+    parent
+    for parent in BASE_RUNS
+    if parent in run_parents.values()
+    and all(child in RUNS for child in run_parents if run_parents[child] == parent)
+]
 
 RDIR = get_rdir(run)
 PROJ_DIR = Path(workflow.snakefile).parent
@@ -231,7 +237,7 @@ def input_all_tyndp(w):
         w
     ):
         files.extend(expand_runs(resources("maps/base_h2_network_{horizon}.pdf")))
-    for run_name in RUNS:
+    for run_name in RUNS + WEIGHTED_RUNS:
         if not config_provider("benchmarking", "enable")(run_wildcards(run_name)):
             continue
         files.extend(

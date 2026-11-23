@@ -49,10 +49,10 @@ from scripts.sb._helpers import (
     convert_units,
     format_bz_names,
     get_dashboard_files,
-    get_wscenario,
     normalize_direction,
     parse_dashboard_header,
     parse_installed_capacity,
+    price_load_table,
 )
 
 logger = logging.getLogger(__name__)
@@ -449,7 +449,12 @@ def load_dashboard_table(
     df = pd.concat([df_nodal, df_eu])
 
     df["table"] = table_name
-    if "price" not in table_name:
+    if "price" in table_name:
+        df = pd.concat(
+            [df, price_load_table(weights, table_name, opt["carrier"])],
+            ignore_index=True,
+        )
+    else:
         df = convert_units(df)
 
     return df
@@ -542,6 +547,7 @@ if __name__ == "__main__":
             "clean_tyndp_dashboard_benchmark",
             horizon="2040",
             scenario="NT",
+            run="test-NT-py2040-ws065",
             configfiles="config/test/config.tyndp.yaml",
         )
 
@@ -563,7 +569,7 @@ if __name__ == "__main__":
             pd.DataFrame().to_csv(fn)
         sys.exit(0)
 
-    wscenario = get_wscenario(snakemake.params["wscenarios"], planning_horizon)
+    wscenario = snakemake.params["wscenario"]
 
     # Logs which weather scenario and planning year is being processed
     logger.info(

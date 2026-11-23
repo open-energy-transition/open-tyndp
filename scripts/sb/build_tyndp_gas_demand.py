@@ -244,7 +244,7 @@ if __name__ == "__main__":
             "build_tyndp_gas_demand",
             configfiles="config/test/config.tyndp.yaml",
             horizon=2035,
-            run="NT",
+            run="test-NT",
         )
 
     configure_logging(snakemake)

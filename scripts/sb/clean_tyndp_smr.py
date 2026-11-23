@@ -101,6 +101,7 @@ if __name__ == "__main__":
         snakemake = mock_snakemake(
             "clean_tyndp_smr",
             horizon=2030,
+            run="test-NT",
             configfiles="config/test/config.tyndp.yaml",
         )
 

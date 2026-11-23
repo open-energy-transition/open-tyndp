@@ -157,14 +157,6 @@ jobs:
       run: |
         pixi run -e open-tyndp tyndp-sb-test
 
-    - name: Run snakemake test workflows (cba)
-      if: steps.filter.outputs.src == 'true' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-      env:
-        SNAKEMAKE_STORAGE_CACHED_HTTP_CACHE: ""
-        SNAKEMAKE_STORAGE_CACHED_HTTP_SKIP_REMOTE_CHECKS: "1"
-      run: |
-        pixi run -e open-tyndp tyndp-cba-test
-
     - name: Run snakemake test workflows (upstream)
       if: steps.filter.outputs.src == 'true' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
       env:
