@@ -112,6 +112,9 @@ rule base_network:
         transformers=config_provider("transformers"),
         clustering=config_provider("clustering", "mode"),
         admin_levels=config_provider("clustering", "administrative"),
+        remove_unconnected_components=config_provider(
+            "electricity", "remove_unconnected_components"
+        ),
     message:
         "Building base network"
     script:

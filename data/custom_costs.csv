@@ -198,6 +198,8 @@ all,2030,BtL,efficiency,0.6,per unit,"TYNDP 2026 Supply Tool NT+ SCN 2026, Conve
 all,2035,BtL,efficiency,0.63,per unit,"TYNDP 2026 Supply Tool NT+ SCN 2026, Conversion factors",NCV
 all,2040,BtL,efficiency,0.66,per unit,"TYNDP 2026 Supply Tool NT+ SCN 2026, Conversion factors",NCV
 all,2050,BtL,efficiency,0.7,per unit,"TYNDP 2026 Supply Tool NT+ SCN 2026, Conversion factors",NCV
+all,all,hybrid gas boiler,efficiency,0.925926,per unit,"Heat/HHP_CH4_BOILERS.xlsx","Dashboards imply the use of rounded input value for the heatrate so that efficiency = 1/1.08 instead of the precise 1.0752688172043 GJ/GJ"
+all,all,hybrid H2 boiler,efficiency,0.925926,per unit,"Heat/HHP_H2_BOILERS.xlsx","Efficiency = 1/1.08 from the rounded input heat rate of 1.08 GJ/GJ, as for CH4. TYNDP 2026 dashboards instead apply heat = 1.08 x H2 input, which yields an efficiency above 1"
 all,2030,H2 to e-liquids,carbondioxide-input,0.18417,tCO2/MWh_H2,"TYNDP 2026 Hydrogen/CO2 SYNTHETIC FUEL RATIOS.xlsx, TEMPLATE sheet, CO2 - H2 RATIO",Converted from kg/MWh to t/MWh with factor 0.001
 all,2035,H2 to e-liquids,carbondioxide-input,0.18421,tCO2/MWh_H2,"TYNDP 2026 Hydrogen/CO2 SYNTHETIC FUEL RATIOS.xlsx, TEMPLATE sheet, CO2 - H2 RATIO",Converted from kg/MWh to t/MWh with factor 0.001
 all,2040,H2 to e-liquids,carbondioxide-input,0.18437,tCO2/MWh_H2,"TYNDP 2026 Hydrogen/CO2 SYNTHETIC FUEL RATIOS.xlsx, TEMPLATE sheet, CO2 - H2 RATIO",Converted from kg/MWh to t/MWh with factor 0.001

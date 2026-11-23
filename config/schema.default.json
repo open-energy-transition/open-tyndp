@@ -485,9 +485,16 @@
               "type": "boolean"
             },
             "sb_version": {
-              "default": "latest",
-              "description": "Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a version tagged as supported in data/tyndp_versions.csv.",
-              "type": "string"
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a version tagged as supported in data/tyndp_versions.csv. If not set, `data: open_tyndp_prelim: version` is used."
             }
           }
         },
@@ -2679,6 +2686,11 @@
             "tyndp"
           ],
           "type": "string"
+        },
+        "remove_unconnected_components": {
+          "default": true,
+          "description": "If `true`, buses not connected to the main grid are removed in `base_network`; if `false`, they are kept and only isolated AC buses without load, generation or storage are removed in `compose_network`.",
+          "type": "boolean"
         },
         "tyndp_reference_year": {
           "default": 2030,
@@ -8152,9 +8164,16 @@
           "type": "boolean"
         },
         "sb_version": {
-          "default": "latest",
-          "description": "Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a version tagged as supported in data/tyndp_versions.csv.",
-          "type": "string"
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a version tagged as supported in data/tyndp_versions.csv. If not set, `data: open_tyndp_prelim: version` is used."
         }
       }
     },
@@ -11504,6 +11523,11 @@
             "tyndp"
           ],
           "type": "string"
+        },
+        "remove_unconnected_components": {
+          "default": true,
+          "description": "If `true`, buses not connected to the main grid are removed in `base_network`; if `false`, they are kept and only isolated AC buses without load, generation or storage are removed in `compose_network`.",
+          "type": "boolean"
         },
         "tyndp_reference_year": {
           "default": 2030,
@@ -17631,9 +17655,16 @@
               "type": "boolean"
             },
             "sb_version": {
-              "default": "latest",
-              "description": "Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a version tagged as supported in data/tyndp_versions.csv.",
-              "type": "string"
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a version tagged as supported in data/tyndp_versions.csv. If not set, `data: open_tyndp_prelim: version` is used."
             }
           }
         },

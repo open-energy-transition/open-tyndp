@@ -135,6 +135,9 @@ if config["tyndp_scenario"]:
     )
     config["plotting"]["nice_names"].update(tyndp_nice_names)
 
+    # Data constants
+    PRESOLVED_NETWORKS_DATASET = dataset_version("open_tyndp_prelim")
+
     # Include Open-TYNDP specific set of rules for SB and CBA
     include: "rules/cba.smk"
     include: "rules/sb.smk"
@@ -157,7 +160,7 @@ if config["foresight"] != "perfect":
         resources("maps/clustered_network.pdf"),
         RESULTS + "maps/static/power_network_{horizon}.pdf",
     ]
-    if config["sector"]["enabled"]:
+    if config["sector"]["enabled"] and not config["tyndp_scenario"]:
         NETWORK_PLOT_OUTPUTS.append(RESULTS + "graphs/cop_profiles_{horizon}.html")
     TIMESERIES_OUTPUTS = [
         RESULTS + "graphs/balance_timeseries_{horizon}",
@@ -237,39 +240,33 @@ def get_balance_map_plots(w):
 
 def input_all_tyndp(w):
     files = []
-    if config_provider("tyndp_scenario")(w) and config_provider("sector", "H2_network")(
-        w
-    ):
+    if runs := runs_with("sector", "h2_topology_tyndp"):
         files.extend(
             expand(
                 (resources("maps/base_h2_network_{horizon}.pdf")),
-                run=config["run"]["name"],
+                run=runs,
                 horizon=config["planning_horizons"],
             )
         )
-    run_names = config["run"]["name"]
-    for run_name in run_names if isinstance(run_names, list) else [run_names]:
-        scen = scenario_config(run_name) if run_name in scenarios else config
-        if not navigate_config(scen, ("benchmarking", "enable")):
-            continue
+    if runs := runs_with("benchmarking", "enable"):
         files.extend(
             expand(
                 rules.plot_benchmark.output.kpis_by_bus,
-                run=run_name,
+                run=runs,
             )
         )
         files.extend(
             expand(
                 rules.plot_benchmark.output.kpis_by_country,
-                run=run_name,
+                run=runs,
             )
         )
 
-    if config_provider("launch_explorer")(w):
+    if runs := runs_with("launch_explorer"):
         files.extend(
             expand(
                 RESULTS + "logs/explorer_launched.log",
-                run=config["run"]["name"],
+                run=runs,
             )
         )
 

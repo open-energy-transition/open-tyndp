@@ -2040,6 +2040,52 @@ def _add_h2_dres_capacities(
     n.remove("Bus", dres.index.difference(n.generators.bus).difference(n.links.bus0))
 
 
+def _add_h2_sres_profiles(
+    n: pypsa.Network,
+    gens_i: pd.Index,
+    electrolyser_i: pd.Index,
+) -> None:
+    """
+    Add SRES links profiles to the network.
+    SRES generation can be supplied to the H2 electrolysers and the e-market node.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object.
+    gens_i : pd.Index
+        Index of SRES generators.
+    electrolyser_i : pd.Index
+        Index of SRES electrolysers.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding SRES electrolyser and grid connection profiles.
+    """
+    gens = n.generators.loc[gens_i]
+    gens_p_nom = gens.groupby("bus").p_nom.sum()
+    electrolyser_p_nom = (
+        n.links.loc[electrolyser_i].set_index("bus0").p_nom[gens_p_nom.index]
+    )
+
+    sres_supply = (
+        n.generators_t.p_max_pu[gens_i].mul(gens.p_nom).T.groupby(gens.bus).sum().T
+    )
+    h2_supply = sres_supply.clip(upper=electrolyser_p_nom, axis=1)
+    residual = sres_supply - h2_supply
+
+    n.links.loc[gens_p_nom.index + " grid connection", "p_nom"] = gens_p_nom.values
+    _add_new_profiles_to_existing(
+        n.links_t,
+        "p_max_pu",
+        h2_supply.div(electrolyser_p_nom).add_suffix(" Electrolysis"),
+    )
+    _add_new_profiles_to_existing(
+        n.links_t, "p_max_pu", residual.div(gens_p_nom).add_suffix(" grid connection")
+    )
+
+
 def _add_h2_sres_capacities(
     n: pypsa.Network,
     pemmdb_capacities: pd.DataFrame,
@@ -2095,6 +2141,8 @@ def _add_h2_sres_capacities(
         carriers=["H2 Electrolysis"],
         component_types={"Link"},
     )
+
+    _add_h2_sres_profiles(n, gens_i, electrolyser_i.intersection(n.links.index))
 
 
 def _extract_inflows(
@@ -2867,6 +2915,8 @@ def add_existing_tyndp_capacities(
         List of TYNDP storage technologies that were added to the network.
     costs : pd.DataFrame
         DataFrame containing the cost data.
+    p2g_shares : pd.DataFrame
+        DataFrame containing the shares of P2G capacities per H2Z2 zone.
     profiles_pecd : dict[str, str]
         Dictionary containing the paths to the PECD renewable profiles.
     nuclear_profiles : pd.DataFrame | None
@@ -3919,7 +3969,7 @@ def add_h2_sres_tyndp(
     costs: pd.DataFrame,
 ) -> None:
     """
-    Adds TYNDP SRES buses, with electrolyzers to H2 Z2 and a copperplated unidirectional connection to the e-market node.
+    Adds TYNDP SRES buses, with electrolyzers to H2 Z2 and a unidirectional connection to the e-market node.
 
     Parameters
     ----------
@@ -3967,7 +4017,6 @@ def add_h2_sres_tyndp(
         lifetime=costs.at["electrolysis", "lifetime"],
     )
 
-    # Copperplated link from SRES node to the e-market node
     n.add(
         "Link",
         nodes.index + " SRES grid connection",
@@ -5249,6 +5298,130 @@ def attach_gas_load(
         efficiency=1.0,
         efficiency2=costs.at["gas", "CO2 intensity"],
     )
+
+
+def add_hybrid_heating_tyndp(
+    n: pypsa.Network,
+    costs: pd.DataFrame,
+    cop_profiles_file: str,
+    thermal_demand_files: dict[str, str],
+    hybrid_heating_boilers_file: str,
+    spatial: SimpleNamespace,
+) -> None:
+    """
+    Add TYNDP hybrid heat pumps with their exogenous heat demand.
+
+    Independent of ``sector.heating``. Per backup fuel (CH4, H2) and node, a
+    heat bus with the TYNDP thermal demand is supplied by an air heat pump or
+    a CH4 or H2 boiler. Capacities are fixed and infinite, not optimised.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object.
+    costs : pd.DataFrame
+        Technology costs, providing ``hybrid gas boiler`` and
+        ``hybrid H2 boiler`` efficiencies and the gas CO2 intensity.
+    cop_profiles_file : str
+        Path to the TYNDP COP profiles (`build_tyndp_cop_profiles`).
+    thermal_demand_files : dict[str, str]
+        Paths to the thermal demand time series in MW_th per node, keyed by
+        backup fuel (``"CH4"``, ``"H2"``).
+    hybrid_heating_boilers_file : str
+        Path to the hybrid heat pump boiler topology
+        (`build_tyndp_hybrid_heating`).
+    spatial : SimpleNamespace
+        Spatial resolution of the gas buses.
+    """
+    logger.info("Add TYNDP hybrid heat pumps")
+
+    cop = (
+        xr.open_dataarray(cop_profiles_file)
+        .sel(heat_system="hybrid", heat_source="air")
+        .to_pandas()
+        .reindex(n.snapshots)
+    )
+    hhp_boilers = pd.read_csv(hybrid_heating_boilers_file, index_col="heat_node")
+
+    for fuel, demand_file in thermal_demand_files.items():
+        heat_system = f"{fuel} hybrid"
+        boiler_tech = "gas boiler" if fuel == "CH4" else "H2 boiler"
+        boilers = hhp_boilers.query("fuel == @fuel")
+
+        demand = pd.read_csv(demand_file, index_col=0, parse_dates=True).reindex(
+            n.snapshots
+        )
+        unknown = demand.columns.difference(boilers.index)
+        if not unknown.empty:
+            logger.warning(
+                f"Dropping {fuel} hybrid heat demand of nodes without TYNDP hybrid heat pump: {unknown.tolist()}"
+            )
+        heat_nodes = demand.columns.intersection(boilers.index)
+        elec_buses = pd.Index(
+            boilers.elec_bus.groupby(level="heat_node").first().loc[heat_nodes]
+        )
+        heat_buses = heat_nodes + f" {heat_system} heat"
+        n.add(
+            "Carrier",
+            [
+                f"{heat_system} heat",
+                f"{heat_system} air heat pump",
+                f"{heat_system} {boiler_tech}",
+            ],
+        )
+        n.add(
+            "Bus",
+            heat_buses,
+            location=elec_buses,
+            carrier=f"{heat_system} heat",
+            unit="MWh_th",
+        )
+        n.add(
+            "Load",
+            heat_buses,
+            bus=heat_buses,
+            carrier=f"{heat_system} heat",
+            p_set=demand[heat_nodes].set_axis(heat_buses, axis=1),
+        )
+
+        heat_pumps = heat_nodes + f" {heat_system} air heat pump"
+        n.add(
+            "Link",
+            heat_pumps,
+            bus0=heat_buses,
+            bus1=elec_buses,
+            carrier=f"{heat_system} air heat pump",
+            efficiency=(1 / cop[elec_buses]).set_axis(heat_pumps, axis=1),
+            p_nom=np.inf,
+            p_min_pu=-1,
+            p_max_pu=0,
+        )
+
+        active_boilers = boilers.loc[heat_nodes]
+        boiler_nodes = active_boilers.index
+        boiler_attrs = dict(
+            bus1=boiler_nodes + f" {heat_system} heat",
+            carrier=f"{heat_system} {boiler_tech}",
+            efficiency=costs.at[f"hybrid {boiler_tech}", "efficiency"],
+            p_nom=np.inf,
+        )
+        if fuel == "CH4":
+            n.add(
+                "Link",
+                boiler_nodes + f" {heat_system} {boiler_tech}",
+                bus0=spatial.gas.df.loc[active_boilers.elec_bus, "nodes"].values,
+                bus2="co2 atmosphere",
+                efficiency2=costs.at["gas", "CO2 intensity"],
+                **boiler_attrs,
+            )
+        else:
+            fuel_buses = active_boilers.fuel_bus.values
+            n.add(
+                "Link",
+                boiler_nodes + f" {heat_system} {boiler_tech} " + fuel_buses,
+                bus0=fuel_buses,
+                **boiler_attrs,
+            )
 
 
 def check_land_transport_shares(shares):
@@ -9987,6 +10160,19 @@ def main(
             gas_demand_fn=inputs.gas_demand,
             options=options,
             costs=costs,
+            spatial=spatial,
+        )
+
+    if tyndp_scenario:
+        add_hybrid_heating_tyndp(
+            n=n,
+            costs=costs,
+            cop_profiles_file=inputs.cop_profiles,
+            thermal_demand_files={
+                "CH4": inputs.thermal_demand_ch4,
+                "H2": inputs.thermal_demand_h2,
+            },
+            hybrid_heating_boilers_file=inputs.hybrid_heating_boilers,
             spatial=spatial,
         )
 
