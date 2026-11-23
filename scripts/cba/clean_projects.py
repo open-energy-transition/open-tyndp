@@ -1579,7 +1579,9 @@ if __name__ == "__main__":
 
     # Custom stores
     custom_stores = extract_custom_storage_projects(
-        custom_stores_path, with_custom_buses(existing_buses, custom_buses), custom_buses
+        custom_stores_path,
+        with_custom_buses(existing_buses, custom_buses),
+        custom_buses,
     )
 
     # Investment costs and length transmission
