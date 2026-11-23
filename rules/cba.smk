@@ -183,10 +183,14 @@ rule simplify_sb_network:
         scripts("cba/simplify_sb_network.py")
 
 
-# Placeholder for reference corrections aligning the SB base network with the
-# CBA reference grid of a given planning horizon
-# TODO: Update once CBA corrections are clarified
+# Capacity corrections from the reference grid total to the CBA reference grid
+# following the draft CBA Implementation Guidelines Appendix Table 3
 rule fix_reference_sb_to_cba:
+    input:
+        transmission_projects=rules.clean_projects.output.transmission_projects,
+        guidelines="data/cba/table_3_CBA_Implementation_Guidelines_TYNDP2026.csv",
+        elec_reference_grid_cba=rules.retrieve_tyndp_2026_cba_reference_grid.output.elec_reference_grid,
+        elec_reference_grid_sb=rules.retrieve_tyndp_2026.output.elec_reference_grid,
     output:
         corrections=resources("cba/reference_sb_to_cba_{horizon}.csv"),
     log:
@@ -197,11 +201,14 @@ rule fix_reference_sb_to_cba:
         scripts("cba/fix_reference_sb_to_cba.py")
 
 
-# Build reference network with all TOOT projects included
+# Build reference network
 # Ensures MSV extraction and rolling horizon use the same baseline
 rule prepare_reference:
     input:
         network=rules.simplify_sb_network.output.network,
+        corrections=lambda w: resources(
+            f"cba/reference_sb_to_cba_{_effective_horizon(int(w.horizon))}.csv"
+        ),
     output:
         network=resources("cba/networks/reference_{horizon}.nc"),
     log:
