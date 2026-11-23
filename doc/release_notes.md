@@ -46,6 +46,8 @@
 
 * Update the security scan workflow to generate the SBOM and run vulnerability scans against the lockfile-backed `open-tyndp` Pixi environment instead of `default` ([#983](https://github.com/open-energy-transition/open-tyndp/pull/983)).
 
+* Bump and lock Python to 3.14.7 and Gurobi to 14.0.0 ([#1171](https://github.com/open-energy-transition/open-tyndp/pull/1171)).
+
 
 ## Upcoming PyPSA-Eur Release
 <!-- Upcoming Release -->
