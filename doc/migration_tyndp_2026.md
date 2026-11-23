@@ -38,7 +38,7 @@ This guide is for users who ran Open-TYNDP on TYNDP 2024 data, up to release `v0
 
 **Benchmarking.** Benchmarks now compare against the 2026 Time Series Dashboards and Scenario Report figures ([#960](https://github.com/open-energy-transition/open-tyndp/pull/960)). The `generation_profiles` table served only DE and GA and is removed ([#1066](https://github.com/open-energy-transition/open-tyndp/pull/1066)). New tables cover prosumer demand, EV charging and synthetic fuels. Rename `market_out` to `dashboard_out` and remove `vp` and `generation_profiles`. Read outputs from `benchmarks/tyndp-2026/`.
 
-**CBA.** Run names changed their prefix from `cy` to `ws` ([#878](https://github.com/open-energy-transition/open-tyndp/pull/878)). In `cba.projects`, replace `t335` with `t225` and remove `t1106`, as both used 2024 offshore hub buses ([#1079](https://github.com/open-energy-transition/open-tyndp/pull/1079)). Rename runs such as `NT-cy2009` to `NT-ws2009`.
+**CBA.** Run names changed their prefix from `cy` to `ws` ([#878](https://github.com/open-energy-transition/open-tyndp/pull/878)). In `cba.projects`, replace `t335` with `t225` and remove `t1106`, as both used 2024 offshore hub buses ([#1079](https://github.com/open-energy-transition/open-tyndp/pull/1079)). Pre-solved Scenario Building networks are now retrieved by release, also from releases before `v0.10` with the old network file names ([#1125](https://github.com/open-energy-transition/open-tyndp/pull/1125)). Rename runs such as `NT-cy2009` to `NT-ws2009`. Leave `cba.cba_scenario_input.sb_version` empty to use `data.open_tyndp_prelim.version`.
 
 **Workflow.** TYNDP rules and files now use the `tyndp` prefix and 2026 names. One rule builds all TYNDP demand with the new `{demand_type}` wildcard ([#808](https://github.com/open-energy-transition/open-tyndp/pull/808)). The weather scenario test config and its pixi task were renamed. Update custom Snakemake targets, scripts that read resource files and calls of the test task.
 
@@ -93,7 +93,12 @@ New validation rules. A TYNDP run fails at start-up if one of them is violated:
 | `sector.synfuels_tyndp.enable` requires `sector.h2_topology_tyndp`. |
 | `sector.synfuels_tyndp.enable` cannot be combined with `sector.industry` or `sector.methanation`. |
 
-Changed values: `sector.biogas_upgrading_cc` is now `true` in `config/config.tyndp.yaml` (default `false`, unchanged), see [#1098](https://github.com/open-energy-transition/open-tyndp/pull/1098).
+Changed values:
+
+| Key | Before | Now | PR |
+|---|---|---|---|
+| `sector.biogas_upgrading_cc` (TYNDP config) | `false` | `true` | [#1098](https://github.com/open-energy-transition/open-tyndp/pull/1098) |
+| `cba.cba_scenario_input.sb_version` (default) | `latest` | empty, which uses `data.open_tyndp_prelim.version` | [#1125](https://github.com/open-energy-transition/open-tyndp/pull/1125) |
 
 Many values in `config/config.tyndp.yaml` were updated to TYNDP 2026 NT+, among them CO2 prices, CO2 sequestration potential, biomass and biogas values and the shipping oil share. See the [release notes](release_notes.md) for the details.
 
@@ -202,6 +207,7 @@ Upstream wildcard and network file changes, such as `{planning_horizons}` to `{h
 | `build_tyndp_trajectories` | removed | [#1051](https://github.com/open-energy-transition/open-tyndp/pull/1051) |
 | `retrieve_tyndp_nuclear_profiles` | removed | [#1073](https://github.com/open-energy-transition/open-tyndp/pull/1073) |
 | `retrieve_tyndp_vp_data`, `clean_tyndp_vp_data` | removed | [#960](https://github.com/open-energy-transition/open-tyndp/pull/960) |
+| `retrieve_presolved_sb_networks` | merged into `retrieve_presolved_networks` | [#1125](https://github.com/open-energy-transition/open-tyndp/pull/1125) |
 | `retrieve_countries_centroids` | removed | [#939](https://github.com/open-energy-transition/open-tyndp/pull/939) |
 | `electricity_demand_{planning_horizons}.csv` | `demand_tyndp_electricity_market_{horizon}.csv` | [#944](https://github.com/open-energy-transition/open-tyndp/pull/944) |
 | none | `demand_tyndp_electricity_prosumer_{horizon}.csv`, `demand_tyndp_electricity_prosumer_btm_{horizon}.csv` | [#944](https://github.com/open-energy-transition/open-tyndp/pull/944) |
@@ -254,6 +260,7 @@ Upstream wildcard and network file changes, such as `{planning_horizons}` to `{h
 | Nuclear availability profiles from the 2026 Time Series Dashboards | [#1073](https://github.com/open-energy-transition/open-tyndp/pull/1073) |
 | New countries `MD`, `TR`, `UA` | [#920](https://github.com/open-energy-transition/open-tyndp/pull/920) |
 | HEV and LEV price scenarios | [#1066](https://github.com/open-energy-transition/open-tyndp/pull/1066), [#1092](https://github.com/open-energy-transition/open-tyndp/pull/1092) |
+| Version-aware retrieval of pre-solved networks, shared by Scenario Building and CBA | [#1125](https://github.com/open-energy-transition/open-tyndp/pull/1125) |
 | Benchmarking against TYNDP 2026 data | [#960](https://github.com/open-energy-transition/open-tyndp/pull/960) |
 
 ### Removed features
@@ -279,4 +286,3 @@ Upstream wildcard and network file changes, such as `{planning_horizons}` to `{h
 | The CBA still uses the TYNDP 2024 project list and bus corrections with 2024 offshore hub buses. Its reference grid corrections are placeholders. |
 | `t1106` is temporarily removed from `cba.projects`. |
 | Parts of the TYNDP 2024 dataset are still used: the 2024 Supply Tool for the methane demand and the 2024 node list for the CBA projects. |
-| **TODO (placeholder, depends on [#1125](https://github.com/open-energy-transition/open-tyndp/pull/1125)):** describe how to use pre-solved Scenario Building networks of releases before v0.10, which use the old network file names, with the CBA. |
