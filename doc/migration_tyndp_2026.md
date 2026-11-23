@@ -12,7 +12,7 @@ This guide is for users who ran Open-TYNDP on TYNDP 2024 data, up to release `v0
     $ pixi run -e open-tyndp validate-config config/config.yaml
     ```
 
-## Part A: What changed and why
+## What changed and why
 
 **Data cycle.** TYNDP 2026 is a new dataset under `data: tyndp_2026:` ([#893](https://github.com/open-energy-transition/open-tyndp/pull/893)). Its version is the date on which Open-TYNDP retrieved the data from the official download page. ENTSO-E does not version these datasets and updates them now and then. Open-TYNDP therefore keeps each retrieval in its own data bucket, so results stay reproducible. The supported versions are listed in `data/tyndp_versions.csv`. PECD also moves to the release of the 2026 cycle. With the default data config, no change is needed. If you pin versions, keep both `data: tyndp:` and `data: tyndp_2026:`.
 
@@ -44,7 +44,7 @@ This guide is for users who ran Open-TYNDP on TYNDP 2024 data, up to release `v0
 
 **Workflow.** Several TYNDP rules and files were renamed, see [Rules, wildcards and files](#rules-wildcards-and-files). One rule builds all TYNDP demand with the new `{demand_type}` wildcard ([#808](https://github.com/open-energy-transition/open-tyndp/pull/808)). The weather scenario test config and its pixi task were renamed. The `all` target now collects the TYNDP outputs of each scenario run ([#1136](https://github.com/open-energy-transition/open-tyndp/pull/1136)). Update custom Snakemake targets, scripts that read resource files and calls of the test task.
 
-## Part B: Full list of changes
+## Full list of changes
 
 "Before" names are those of release `v0.9`, "Now" names those of the current release.
 
