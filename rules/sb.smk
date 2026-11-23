@@ -162,6 +162,42 @@ rule build_tyndp_demand:
         scripts("sb/build_tyndp_demand.py")
 
 
+rule build_tyndp_cop_profiles:
+    input:
+        heat=rules.retrieve_tyndp_2026.output.hybrid_hp_modelling,
+    output:
+        cop_profiles=resources("cop_profiles_tyndp_{horizon}.nc"),
+    log:
+        logs("build_tyndp_cop_profiles_{horizon}.log"),
+    benchmark:
+        benchmarks("performances/build_tyndp_cop_profiles_{horizon}")
+    threads: 1
+    resources:
+        mem_mb=4000,
+    params:
+        snapshots=config_provider("snapshots"),
+        drop_leap_day=config_provider("enable", "drop_leap_day"),
+        wscenarios=config_provider("wscenarios_tyndp"),
+    script:
+        scripts("sb/build_tyndp_cop_profiles.py")
+
+
+rule build_tyndp_hybrid_heating:
+    input:
+        heat=rules.retrieve_tyndp_2026.output.hybrid_hp_modelling,
+    output:
+        boilers=resources("hybrid_heating_boilers_{horizon}.csv"),
+    log:
+        logs("build_tyndp_hybrid_heating_{horizon}.log"),
+    benchmark:
+        benchmarks("performances/build_tyndp_hybrid_heating_{horizon}")
+    threads: 1
+    resources:
+        mem_mb=1000,
+    script:
+        scripts("sb/build_tyndp_hybrid_heating.py")
+
+
 def get_pecd_prebuilt(w):
     if "pre-built" in PECD_DATASET["version"]:
         return rules.retrieve_tyndp_pecd.output.dir
@@ -399,7 +435,7 @@ use rule cluster_electricity_demand as cluster_electricity_demand_tyndp with:
 
 rule build_tyndp_gas_demand:
     input:
-        supply_tool=rules.retrieve_tyndp.output.supply_tool,
+        supply_tool=rules.retrieve_tyndp_2026.output.supply_tool,
     output:
         gas_demand=resources("gas_demand_tyndp_{horizon}.csv"),
     log:
@@ -412,7 +448,10 @@ rule build_tyndp_gas_demand:
     resources:
         mem_mb=1000,
     params:
-        planning_horizons=config_provider("planning_horizons"),
+        # TODO: add LEV and HEV Supply Tool workbooks
+        supply_tool_file=lambda w: {
+            "NT": "Supply Tool NT+ SCN 2026 for publication .xlsm"
+        }[config_provider("tyndp_scenario")(w)],
     script:
         scripts("sb/build_tyndp_gas_demand.py")
 

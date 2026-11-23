@@ -303,6 +303,16 @@ class ConfigSchema(BaseModel):
         return self
 
     @model_validator(mode="after")
+    def check_tyndp_disables_heating(self):
+        if self.tyndp_scenario and self.sector.heating:
+            raise ValueError(
+                "'sector:heating' must be disabled for a TYNDP scenario. TYNDP "
+                "heating is represented by the hybrid heat pumps, which are added "
+                "independently of 'sector:heating'."
+            )
+        return self
+
+    @model_validator(mode="after")
     def check_tyndp_requires_transport(self):
         if self.tyndp_scenario and not self.sector.transport:
             raise ValueError(

@@ -57,6 +57,8 @@
 
 * feat: add Shared RES generation profiles ([#1083](https://github.com/open-energy-transition/open-tyndp/pull/1083)). The TYNDP 2026 cycle adds SRES nodes which are connected to the e-market node and to the H2Z2 node via electrolysers. The generation from the SRES generators are used as input for the electrolysers first, and any extra generation above the electrolyser capacity is residual electricity made available to the e-market node.
 
+* feat: add the TYNDP 2026 hybrid heat pumps with CH4 and H2 boilers, and update the exogenous gas demand with the TYNDP 2026 Supply Tool ([#1090](https://github.com/open-energy-transition/open-tyndp/pull/1090)). H2 boiler efficiency is applied as 1/1.08, unlike the 1.08 implied by the TYNDP dashboards.
+
 **Changes**
 
 * feat: align CO2 prices with TYNDP 2026 NT+ (97.47 / 197.51 / 297.54 / 502.74 €/t for 2030 / 2035 / 2040 / 2050) ([#1038](https://github.com/open-energy-transition/open-tyndp/pull/1038)). The interpolated 2045 value is dropped.
