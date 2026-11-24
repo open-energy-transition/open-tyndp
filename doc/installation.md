@@ -39,12 +39,14 @@ $ git clone https://github.com/open-energy-transition/open-tyndp.git
 ```
 
 The `master` branch is under active development. Unless you want to contribute,
-check out the latest [release](https://github.com/PyPSA/pypsa-eur/releases), for example:
+check out the latest [release](https://github.com/open-energy-transition/open-tyndp/releases), for example:
 
 ```console
-$ cd pypsa-eur
-$ git checkout v2026.09.0
+$ cd open-tyndp
+$ git checkout v0.10
 ```
+
+The last release for the TYNDP 2024 cycle is `v0.9.2`. Its code is kept on the `tyndp-2024` branch.
 
 ## Install Python Dependencies {#deps}
 
