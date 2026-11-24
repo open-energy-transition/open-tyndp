@@ -85,7 +85,7 @@ Added keys:
 | `sector.imports.carriers` gains `e-liquids` and `sng` (TYNDP config) | [#1098](https://github.com/open-energy-transition/open-tyndp/pull/1098) |
 | `cba.storage.cyclic_carriers` gains `home battery` (TYNDP config) | [#892](https://github.com/open-energy-transition/open-tyndp/pull/892) |
 
-New validation rules. A TYNDP run fails at start-up if one of them is violated:
+A TYNDP run fails at start-up if one of the new validation rules is violated.
 
 | Rule |
 |---|
