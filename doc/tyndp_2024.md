@@ -23,14 +23,8 @@ The original data files can be found under <https://2024.entsos-tyndp-scenarios.
 
 - **Source:** TYNDP 2024 Scenarios, <https://2024.entsos-tyndp-scenarios.eu/download/>
 - **Link:** <https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/Offshore-hubs.zip>
-- **Description:** Contains generators, electrolysers, nodes and grid information used in the
-  modelling of offshore hubs.
-
-## `Supply Tool`
-
-- **Source:** TYNDP 2024 Scenarios, <https://2024.entsos-tyndp-scenarios.eu/download/>
-- **Link:** <https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-outputs/20240518-Supply-Tool.xlsm.zip>
-- **Description:** Contains the TYNDP 2024 Supply Tool.
+- **Description:** Contains generators, electrolysers, nodes and grid information of the
+  offshore hubs. Only the offshore node list is used, to validate the CBA projects.
 
 ## `data/cba/a.3_non-co2-emissions.csv`
 
