@@ -83,6 +83,8 @@
 
 * fix: remove the TYNDP 2024 trajectories and unused TYNDP 2024 inputs ([#1051](https://github.com/open-energy-transition/open-tyndp/pull/1051)). Generation capacities now follow PEMMDB in all planning horizons. The `build_tyndp_trajectories` rule is removed and `build_pemmdb_and_trajectories` is renamed to `build_tyndp_pemmdb_datas`. Unused TYNDP 2024 inputs are no longer retrieved.
 
+* chore: remove code retrieving unused TYNDP 2024 data ([#1195](https://github.com/open-energy-transition/open-tyndp/pull/1195)). Only the 2024 node lists (`Nodes.zip` and `Offshore-hubs.zip`) are kept, because the CBA still uses them to validate the TYNDP 2024 projects.
+
 **Documentation**
 
 * doc: update documentation to TYNDP 2026 ([#1123](https://github.com/open-energy-transition/open-tyndp/pull/1123)).
