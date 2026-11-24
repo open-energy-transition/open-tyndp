@@ -9,18 +9,6 @@
 
 **Features**
 
-* feat: update the TYNDP 2026 data bundle to ENTSO-E's reference dataset of 2026-11-11 ([#1148](https://github.com/open-energy-transition/open-tyndp/pull/1148)). This includes the updated PECD `4.2.1` with IE00 2040 wind capacity factors, from which the pre-built PECD `4.2.1+pre-built.0.1` is now derived.
-
-* feat: replace the ERA5 weather cutouts with a grid-only `europe-grid` cutout without weather data, retrieved from `tyndp-archive` and only used for the population layouts ([#1133](https://github.com/open-energy-transition/open-tyndp/pull/1133)).
-
-* feat: model TYNDP 2026 passenger EV fleets explicitly (fixed, commuter and non-commuter fleets for street and home charging, with smart charging and V2G) and replace the PyPSA-Eur land transport by a flat TYNDP EU27 land transport oil demand ([#1039](https://github.com/open-energy-transition/open-tyndp/pull/1039)).
-
-* feat: remove DE and GA scenarios from TYNDP 2026; add in HEV and LEV as scenarios and config entries ([#1066](https://github.com/open-energy-transition/open-tyndp/pull/1066) and [#1092](https://github.com/open-energy-transition/open-tyndp/pull/1092)). HEV and LEV currently differ from NT+ only in fuel and CO2 prices. Demand adjustments (electricity market, prosumer demand, EV, H2, thermal energy demand), hydrogen import prices, and benchmarking are not yet included.
-
-* feat: align snapshots to full year (8760 for hourly modeling) ([#1065](https://github.com/open-energy-transition/open-tyndp/pull/1065)).
-
-* feat: switch TYNDP electricity demand to TYNDP 2026 data for three demand types: market, prosumer and prosumer behind-the-meter (BTM) ([#944](https://github.com/open-energy-transition/open-tyndp/pull/944)).
-
 * feat: add rule to retrieve TYNDP 2026 data ([#816](https://github.com/open-energy-transition/open-tyndp/pull/816)).
 
 * feat: update the TYNDP 2026 data bundle to ENTSO-E's corrected reference dataset of 2026-08-21 ([#893](https://github.com/open-energy-transition/open-tyndp/pull/893)). The bundle is now a separate `tyndp_2026` dataset, configured via `data: tyndp_2026:`. Extraction in the retrieve rule is adjusted to account for double nested zips and drops the `_corrected` file suffix, so downstream paths stay unchanged.
@@ -31,35 +19,47 @@
 
 * feat: update processing and preparation of PEMMDB 2.X technologies, capacities and profiles for TYNDP 2026: Thermals, Other Non-RES, Solar, Wind, Battery, Electrolyser, Hydro, and DSR ([#865](https://github.com/open-energy-transition/open-tyndp/pull/865)). Full integration of 2026 technologies with their capacities and profiles will follow in subsequent PRs.
 
-* feat: update assumptions (costs, efficiencies, CO2 intensities etc..) of technologies for TYNDP 2026. Assumptions were also added for the high and low economic variant scenarios, and all new technologies present in the TYNDP 2026 cycle ([#880](https://github.com/open-energy-transition/open-tyndp/pull/880)).
-
 * feat: align the electricity and hydrogen topology with the TYNDP 2026 ([#920](https://github.com/open-energy-transition/open-tyndp/pull/920)). The electricity and hydrogen reference grids are now read directly per planning horizon, bus names and a new `category` tag (`onshore`/`offshore` for electricity, `Z1`/`Z2`/`offshore`/`import`/`bottleneck` for hydrogen) are taken from the 2026 node list instead of being synthesised, and the new `build_tyndp_electricity_ntc` rule extracts the per-horizon NTC that are applied in `prepare_sector_network`. `MD`, `TR` and `UA` are added as modelled countries. The TYNDP 2024 offshore-hub feature (`build_tyndp_offshore_hubs`, `plot_offshore_network`, the `AC_OH`/`H2_OH`/`DC_OH` carriers) and the investment-candidate corrections (`build_tyndp_transmission_projects`, `tyndp_investment_candidates`, `offshore_hubs_tyndp`) are removed, since 2026 offshore nodes are real substations with real reference-grid topology.
+
+* feat: update assumptions (costs, efficiencies, CO2 intensities etc..) of technologies for TYNDP 2026. Assumptions were also added for the high and low economic variant scenarios, and all new technologies present in the TYNDP 2026 cycle ([#880](https://github.com/open-energy-transition/open-tyndp/pull/880)).
 
 * feat: align the prosumer modelling with the TYNDP 2026 ([#935](https://github.com/open-energy-transition/open-tyndp/pull/935)). Under a TYNDP scenario, the low voltage buses are now suffixed `RETE` instead of ` low voltage` and the electricity distribution grid is modelled as two non-extendable unidirectional links with infinite capacity, priced with the TYNDP wheeling charges built by the new `build_tyndp_wheeling_charges` rule, instead of one extendable bidirectional link with an investment cost. Low voltage buses are only built for the nodes TYNDP models as prosumer nodes, taken from the prosumer demand data; nodes without a wheeling charge entry (`CH00`) are given a zero charge, matching the TYNDP market model. Under a TYNDP scenario, the hurdle costs are also applied as marginal cost to the `DC` and `H2 pipeline` links in Scenario Building; for this, `cba.hurdle_costs` is moved to the top-level `hurdle_costs` config option, shared by Scenario Building and CBA.
 
 * Allow the `sync_file` and `sync_file_dry` rules to retrieve files by pattern. The `sync` and `sync_dry` rules now skip the `results`, `resources` and `logs` subdirectories of runs that are not configured in `run.name`, and still retrieve shared files ([#996](https://github.com/open-energy-transition/open-tyndp/pull/996)). With `config/config.hpc.yaml`, they retrieve all the scenario data including the reference networks and skip only the project networks. The `remote.sync_exclude` configuration no longer applies to `sync_file` and `sync_file_dry`.
 
-* feat: align and add generation capacities to the network for renewables, SRES/DRES, and new technologies such as hydrogen OCGT ([#999](https://github.com/open-energy-transition/open-tyndp/pull/999)). For the TYNDP 2026 cycle, offshore wind is modelled differently, and new SRES/DRES generation is included. Therefore, buses and links from/to the e-market and hydrogen zones were created for SRES/DRES.
+* feat: switch TYNDP electricity demand to TYNDP 2026 data for three demand types: market, prosumer and prosumer behind-the-meter (BTM) ([#944](https://github.com/open-energy-transition/open-tyndp/pull/944)).
 
 * feat: update the TYNDP 2026 data bundle to version 2026-10-07, which follows the reference datasets from ENTSO-E's official downloads page ([#1055](https://github.com/open-energy-transition/open-tyndp/pull/1055)). The previous bundle of 2026-08-21 was intended for project promoters and contained CBA corrections not intended for Scenario Building. The only file still taken from these corrections is `P2G_emarket_template_corrected_requirecheck.xlsx` from `cba_corrections/Hydrogen.zip`, because the reference datasets do not include it. The bundle version date is also the date the data was retrieved from the downloads page. ENTSO-E does not version these datasets, so the bundle may include upstream changes made since 2026-08-21.
+
+* feat: align and add generation capacities to the network for renewables, SRES/DRES, and new technologies such as hydrogen OCGT ([#999](https://github.com/open-energy-transition/open-tyndp/pull/999)). For the TYNDP 2026 cycle, offshore wind is modelled differently, and new SRES/DRES generation is included. Therefore, buses and links from/to the e-market and hydrogen zones were created for SRES/DRES.
 
 * feat: align H2 imports with TYNDP 2026 ([#939](https://github.com/open-energy-transition/open-tyndp/pull/939)). `clean_tyndp_h2_imports` is merged into `build_tyndp_h2_imports`, which reads the TYNDP 2026 import corridor capacities, offer prices and hourly profiles. The corridors are added as low/high price band generators at the external import nodes of the H2 reference grid, which connect them to the H2 zones. The separate import links are removed, and a warning flags import nodes whose outgoing pipeline capacity is smaller than their import capacity. The unused `retrieve_countries_centroids` rule is removed.
 
 * feat: align TYNDP 2026 H2 storage and SMR components with the TYNDP 2026 ([#931](https://github.com/open-energy-transition/open-tyndp/pull/931)). H2 storages are modelled per flexibility class (`Storage_Daily` for tanks, `Storage_Monthly` for caverns), and the store types to add are selected via `electricity: tyndp_stores:` (`H2 tank-storage`, `H2 cavern-storage`). A new `sector: smr_ramp_limits_tyndp:` option adds the TYNDP ramp limits to SMR and SMR CCS assets. The TYNDP initial SoC of H2 storages is processed but not yet applied to the stores. The stores remain cyclic, meaning their state of charge at the end of the modelled period must equal the state of charge at the start, while the initial level itself is chosen by the optimisation rather than fixed to the TYNDP value. SMR, SMR CCS and H2 storage components are added only for the assets listed in the TYNDP input data. SMR and SMR CCS efficiencies and VOM, and H2 storage charge and discharge efficiencies, are taken per asset directly from that data instead of `custom_costs.csv`.
 
+* feat: align snapshots to full year (8760 for hourly modeling) ([#1065](https://github.com/open-energy-transition/open-tyndp/pull/1065)).
+
 * feat: align the battery technologies with the TYNDP 2026 ([#892](https://github.com/open-energy-transition/open-tyndp/pull/892)). The TYNDP 2026 cycle differentiates between utility and residential batteries, with residential batteries being attached to the prosumer node, and utility batteries to the e-market node. Batteries are now non-extendable.
+
+* feat: remove DE and GA scenarios from TYNDP 2026; add in HEV and LEV as scenarios and config entries ([#1066](https://github.com/open-energy-transition/open-tyndp/pull/1066) and [#1092](https://github.com/open-energy-transition/open-tyndp/pull/1092)). HEV and LEV currently differ from NT+ only in fuel and CO2 prices. Demand adjustments (electricity market, prosumer demand, EV, H2, thermal energy demand), hydrogen import prices, and benchmarking are not yet included.
 
 * Align hydro inflows to use TYNDP 2026 data and new PECD technology codes `HRR`, `HPI`, `HRI`, `HOL` and `HCL` ([#1059](https://github.com/open-energy-transition/open-tyndp/pull/1059)).
 
 * feat: update the nuclear availability profiles with the TYNDP 2026 NT+ TimeSeries Dashboards ([#1073](https://github.com/open-energy-transition/open-tyndp/pull/1073)). The new rule `build_tyndp_nuclear_profiles` extracts the profiles for each planning horizon from the weather scenario selected in `wscenarios_tyndp`. The pre-built TYNDP 2024 dataset `tyndp_nuclear_profiles` and the rule `retrieve_tyndp_nuclear_profiles` are removed.
 
+* feat: model TYNDP 2026 passenger EV fleets explicitly (fixed, commuter and non-commuter fleets for street and home charging, with smart charging and V2G) and replace the PyPSA-Eur land transport by a flat TYNDP EU27 land transport oil demand ([#1039](https://github.com/open-energy-transition/open-tyndp/pull/1039)).
+
 * feat: implement the TYNDP 2026 synthetic fuels methodology with domestic production and import of e-liquids and SNG (synthetic natural gas) ([#1098](https://github.com/open-energy-transition/open-tyndp/pull/1098)). The feature is enabled with the new `sector: synfuels_tyndp: enable` option. The TYNDP biogenic CO2 potential caps the domestic production. `shipping_oil_share` now includes the shipping e-fuels and is calibrated to the TYNDP 2026 NT+ liquids demand in navigation.
+
+* feat: update the TYNDP 2026 data bundle to ENTSO-E's reference dataset of 2026-11-11 ([#1148](https://github.com/open-energy-transition/open-tyndp/pull/1148)). This includes the updated PECD `4.2.1` with IE00 2040 wind capacity factors, from which the pre-built PECD `4.2.1+pre-built.0.1` is now derived.
 
 * feat: add P2G links for offshore nodes, and capacity shares found in the `P2G_emarket_template_corrected_requirecheck.xlsx` file for all e-market and DRES ([#1130](https://github.com/open-energy-transition/open-tyndp/pull/1130)). Electrolyser capacities still come from PEMMDB and are split accordingly for nodes with multiple hydrogen zones.
 
 * feat: add Shared RES generation profiles ([#1083](https://github.com/open-energy-transition/open-tyndp/pull/1083)). The TYNDP 2026 cycle adds SRES nodes which are connected to the e-market node and to the H2Z2 node via electrolysers. The generation from the SRES generators are used as input for the electrolysers first, and any extra generation above the electrolyser capacity is residual electricity made available to the e-market node.
 
 * feat: add the TYNDP 2026 hybrid heat pumps with CH4 and H2 boilers, and update the exogenous gas demand with the TYNDP 2026 Supply Tool ([#1090](https://github.com/open-energy-transition/open-tyndp/pull/1090)). H2 boiler efficiency is applied as 1/1.08, unlike the 1.08 implied by the TYNDP dashboards.
+
+* feat: replace the ERA5 weather cutouts with a grid-only `europe-grid` cutout without weather data, retrieved from `tyndp-archive` and only used for the population layouts ([#1133](https://github.com/open-energy-transition/open-tyndp/pull/1133)).
 
 **Changes**
 
@@ -72,8 +72,6 @@
 * Align the Scenario Building benchmarking to the TYNDP 2026 cycle ([#960](https://github.com/open-energy-transition/open-tyndp/pull/960)). Market model outputs are read from the TYNDP 2026 Time Series Dashboards (installed capacities, prices, loads, exchanges and generation) and the Scenarios Report benchmark uses the TYNDP 2026 Scenario Report data figures (retrieved by `retrieve_tyndp_2026`). The rule `clean_tyndp_output_benchmark` is renamed to `clean_tyndp_dashboard_benchmark` and the benchmarking source `market_out` to `dashboard_out`. A new `electricity_prosumer_demand` table compares prosumer and behind-the-meter demand, and electricity demand is benchmarked as net demand. Hydrogen demand is benchmarked by use (incl. e-fuels, power generation and heat production), and methane and hydrogen for heat production are separate categories. Renewable generation is benchmarked net of curtailment, with curtailment reported separately as dumped energy. The option `load:patch_demand_with_mm` is removed. The Visualisation Platform benchmarking and the `generation_profiles` table are removed.
 
 **Bugfixes and Compatibility**
-
-* fix: keep isolated TYNDP offshore buses (e.g. `DKN7_OFF`) via the new switch `electricity: remove_unconnected_components` (`false` for TYNDP); isolated AC buses without assets are removed in `compose_network` ([#967](https://github.com/open-energy-transition/open-tyndp/issues/967), [#1135](https://github.com/open-energy-transition/open-tyndp/pull/1135)).
 
 * Remove `__init__` override from `heat_system.py` for compatibility with python>=3.14 ([#990](https://github.com/open-energy-transition/open-tyndp/pull/990)).
 
@@ -94,6 +92,8 @@
 * Make the retrieval of pre-solved networks version-aware to support the network renaming in [PyPSA-Eur#1838](https://github.com/PyPSA/pypsa-eur/pull/1838), and share it between the SB and CBA workflows ([#1125](https://github.com/open-energy-transition/open-tyndp/pull/1125)). `cba: cba_scenario_input: sb_version` now defaults to `data: open_tyndp_prelim: version`.
 
 * Improve scenario management compatibility by removing top level gating references in `smk` files ([#1136](https://github.com/open-energy-transition/open-tyndp/pull/1136)). The `all` target is also fixed to collect tyndp outputs dependent on run settings.
+
+* fix: keep isolated TYNDP offshore buses (e.g. `DKN7_OFF`) via the new switch `electricity: remove_unconnected_components` (`false` for TYNDP); isolated AC buses without assets are removed in `compose_network` ([#967](https://github.com/open-energy-transition/open-tyndp/issues/967), [#1135](https://github.com/open-energy-transition/open-tyndp/pull/1135)).
 
 **Documentation**
 
