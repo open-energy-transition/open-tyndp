@@ -2,6 +2,8 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 
 # TYNDP 2026 data
+If you used Open-TYNDP for the TYNDP 2024 cycle, see the [Open-TYNDP cycle migration guide](migration_tyndp_2026.md).
+
 
 The TYNDP 2026 data is downloaded and extracted using the `retrieve_tyndp_2026` and `retrieve_tyndp_pecd` rules. Originally published by ENTSO-E and ENTSOG under
 Creative Commons Attribution 4.0 International License (CC-BY 4.0).
