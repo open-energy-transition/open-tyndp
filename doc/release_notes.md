@@ -83,6 +83,8 @@
 
 * fix: remove the TYNDP 2024 trajectories and unused TYNDP 2024 inputs ([#1051](https://github.com/open-energy-transition/open-tyndp/pull/1051)). Generation capacities now follow PEMMDB in all planning horizons. The `build_tyndp_trajectories` rule is removed and `build_pemmdb_and_trajectories` is renamed to `build_tyndp_pemmdb_datas`. Unused TYNDP 2024 inputs are no longer retrieved.
 
+* fix: change the benchmarking of SRES electricity for power generation tables and plots ([#1194](https://github.com/open-energy-transition/open-tyndp/pull/1194)). The Open-TYNDP previously benchmarked SRES electricity as the total generation from the SRES nodes. However, the TYNDP 2026 NT+ TimeSeries Dashboards benchmarks SRES electricity as only the electricity fed into the grid (e-market).
+
 **Documentation**
 
 * doc: update documentation to TYNDP 2026 ([#1123](https://github.com/open-energy-transition/open-tyndp/pull/1123)).
