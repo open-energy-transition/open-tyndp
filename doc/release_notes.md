@@ -85,6 +85,15 @@
 * Fix: `build_swiss_energy_balances` now reads the October 2026 edition of the Swiss energy balances (data for 2000-2025), which renamed table rows. ([#2380](https://github.com/PyPSA/pypsa-eur/pull/2380)).
 
 
+## Open-TYNDP v0.9.2 (24th November 2026)
+
+This is the last TYNDP 2024 patch release before the first TYNDP 2026 release v0.10. It brings in one fix and one feature. Scenario building results are not materially affected with respect to v0.9 or v0.9.1, while CBA indicator B4 values increase by a factor of 3.6 due to a unit conversion fix. Upgrading is recommended for all users of v0.9 and v0.9.1.
+
+* Fix units for non-CO2 emission factors in CBA ([#1184](https://github.com/open-energy-transition/open-tyndp/pull/1184)).
+
+* Add pre-solved SB networks for release v0.9 to list of supported pre-solved networks ([#1184](https://github.com/open-energy-transition/open-tyndp/pull/1184)).
+
+
 ## Open-TYNDP v0.9.1 (13th November 2026)
 
 This is an IT security patch release following a screening by ENTSO-E. It contains two minor bug fixes. The inputs differ from v0.9 only through a marginal (less than 0.2 % each) revision of Swiss road and domestic navigation oil demand in the new edition of the Swiss energy balances. Model results are not materially affected with respect to v0.9. Upgrading is recommended for all users of v0.9.
