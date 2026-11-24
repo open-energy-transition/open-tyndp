@@ -86,9 +86,9 @@
 
 This is the last TYNDP 2024 patch release before the first TYNDP 2026 release v0.10. It brings in two minor fixes. SB Model results are not materially affected with respect to v0.9 or v0.9.1, while a fix to CBA indicator B4 is introduced. Upgrading is recommended for all users of v0.9 and v0.9.1.
 
-* Fix units for non-CO2 emission factors in CBA ([#1124](https://github.com/open-energy-transition/open-tyndp/pull/1124)).
+* Fix units for non-CO2 emission factors in CBA ([#1184](https://github.com/open-energy-transition/open-tyndp/pull/1184)).
 
-* Add pre-solved SB networks for release v0.9 to list of supported pre-solved networks ([#1000](https://github.com/open-energy-transition/open-tyndp/pull/1000)).
+* Add pre-solved SB networks for release v0.9 to list of supported pre-solved networks ([#1184](https://github.com/open-energy-transition/open-tyndp/pull/1184)).
 
 
 ## Open-TYNDP v0.9.1 (13th November 2026)
