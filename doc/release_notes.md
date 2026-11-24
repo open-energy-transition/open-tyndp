@@ -7,8 +7,6 @@
 
 ## Upcoming Open-TYNDP Release
 
-**2026**
-
 **Features**
 
 * feat: update the TYNDP 2026 data bundle to ENTSO-E's reference dataset of 2026-11-11 ([#1148](https://github.com/open-energy-transition/open-tyndp/pull/1148)). This includes the updated PECD `4.2.1` with IE00 2040 wind capacity factors, from which the pre-built PECD `4.2.1+pre-built.0.1` is now derived.
@@ -39,6 +37,8 @@
 
 * feat: align the prosumer modelling with the TYNDP 2026 ([#935](https://github.com/open-energy-transition/open-tyndp/pull/935)). Under a TYNDP scenario, the low voltage buses are now suffixed `RETE` instead of ` low voltage` and the electricity distribution grid is modelled as two non-extendable unidirectional links with infinite capacity, priced with the TYNDP wheeling charges built by the new `build_tyndp_wheeling_charges` rule, instead of one extendable bidirectional link with an investment cost. Low voltage buses are only built for the nodes TYNDP models as prosumer nodes, taken from the prosumer demand data; nodes without a wheeling charge entry (`CH00`) are given a zero charge, matching the TYNDP market model. Under a TYNDP scenario, the hurdle costs are also applied as marginal cost to the `DC` and `H2 pipeline` links in Scenario Building; for this, `cba.hurdle_costs` is moved to the top-level `hurdle_costs` config option, shared by Scenario Building and CBA.
 
+* Allow the `sync_file` and `sync_file_dry` rules to retrieve files by pattern. The `sync` and `sync_dry` rules now skip the `results`, `resources` and `logs` subdirectories of runs that are not configured in `run.name`, and still retrieve shared files ([#996](https://github.com/open-energy-transition/open-tyndp/pull/996)). With `config/config.hpc.yaml`, they retrieve all the scenario data including the reference networks and skip only the project networks. The `remote.sync_exclude` configuration no longer applies to `sync_file` and `sync_file_dry`.
+
 * feat: align and add generation capacities to the network for renewables, SRES/DRES, and new technologies such as hydrogen OCGT ([#999](https://github.com/open-energy-transition/open-tyndp/pull/999)). For the TYNDP 2026 cycle, offshore wind is modelled differently, and new SRES/DRES generation is included. Therefore, buses and links from/to the e-market and hydrogen zones were created for SRES/DRES.
 
 * feat: update the TYNDP 2026 data bundle to version 2026-10-07, which follows the reference datasets from ENTSO-E's official downloads page ([#1055](https://github.com/open-energy-transition/open-tyndp/pull/1055)). The previous bundle of 2026-08-21 was intended for project promoters and contained CBA corrections not intended for Scenario Building. The only file still taken from these corrections is `P2G_emarket_template_corrected_requirecheck.xlsx` from `cba_corrections/Hydrogen.zip`, because the reference datasets do not include it. The bundle version date is also the date the data was retrieved from the downloads page. ENTSO-E does not version these datasets, so the bundle may include upstream changes made since 2026-08-21.
@@ -67,11 +67,15 @@
 
 * feat: align configuration values with the TYNDP 2026 Supply Tool (NT+): `co2_sequestration_potential`, `shipping_oil_share`, `biomass_final_demand`, the biogas and solid biomass `adjustments` factors, and the `biomass_supply` benchmarking references ([#941](https://github.com/open-energy-transition/open-tyndp/pull/941), re-merged in [#1041](https://github.com/open-energy-transition/open-tyndp/pull/1041)). Values are now also provided for 2050, and the outdated TYNDP 2024 `co2_sequestration_potential` overrides of the DE and GA scenarios are removed.
 
+* Adapt Open-TYNDP to the configuration and wildcard restructuring, as a follow-up to the [upstream changes](migration.md) ([#1084](https://github.com/open-energy-transition/open-tyndp/pull/1084)). `cba.msv_extraction.resolution` now follows the structure of `clustering.temporal` (e.g. `resolution: {averaging: 24h}` instead of `24H`).
+
 * Align the Scenario Building benchmarking to the TYNDP 2026 cycle ([#960](https://github.com/open-energy-transition/open-tyndp/pull/960)). Market model outputs are read from the TYNDP 2026 Time Series Dashboards (installed capacities, prices, loads, exchanges and generation) and the Scenarios Report benchmark uses the TYNDP 2026 Scenario Report data figures (retrieved by `retrieve_tyndp_2026`). The rule `clean_tyndp_output_benchmark` is renamed to `clean_tyndp_dashboard_benchmark` and the benchmarking source `market_out` to `dashboard_out`. A new `electricity_prosumer_demand` table compares prosumer and behind-the-meter demand, and electricity demand is benchmarked as net demand. Hydrogen demand is benchmarked by use (incl. e-fuels, power generation and heat production), and methane and hydrogen for heat production are separate categories. Renewable generation is benchmarked net of curtailment, with curtailment reported separately as dumped energy. The option `load:patch_demand_with_mm` is removed. The Visualisation Platform benchmarking and the `generation_profiles` table are removed.
 
 **Bugfixes and Compatibility**
 
 * fix: keep isolated TYNDP offshore buses (e.g. `DKN7_OFF`) via the new switch `electricity: remove_unconnected_components` (`false` for TYNDP); isolated AC buses without assets are removed in `compose_network` ([#967](https://github.com/open-energy-transition/open-tyndp/issues/967), [#1135](https://github.com/open-energy-transition/open-tyndp/pull/1135)).
+
+* Remove `__init__` override from `heat_system.py` for compatibility with python>=3.14 ([#990](https://github.com/open-energy-transition/open-tyndp/pull/990)).
 
 * fix: remove hardcoded changes to the emissions factors of AT Other Non-RES gas CCGTs in 2040/2050 ([#1012](https://github.com/open-energy-transition/open-tyndp/pull/1012)). The reported PEMMDB value of 0 is used for 2040/2050 instead.
 
@@ -82,47 +86,6 @@
 * fix: add missing plotting colors for electricity demand and btm ([#1053](https://github.com/open-energy-transition/open-tyndp/pull/1053)).
 
 * fix: remove the TYNDP 2024 trajectories and unused TYNDP 2024 inputs ([#1051](https://github.com/open-energy-transition/open-tyndp/pull/1051)). Generation capacities now follow PEMMDB in all planning horizons. The `build_tyndp_trajectories` rule is removed and `build_pemmdb_and_trajectories` is renamed to `build_tyndp_pemmdb_datas`. Unused TYNDP 2024 inputs are no longer retrieved.
-
-**Documentation**
-
-* doc: update documentation to TYNDP 2026 ([#1123](https://github.com/open-energy-transition/open-tyndp/pull/1123)).
-
-* doc: add the [Open-TYNDP cycle migration guide (2024 to 2026)](migration_tyndp_2026.md) ([#1164](https://github.com/open-energy-transition/open-tyndp/pull/1164)).
-
-**Developers Note**
-
-* Rename `pyear` to `planning_horizon` and `cyear` to `wscenario` ([#878](https://github.com/open-energy-transition/open-tyndp/pull/878)). The CBA scenarios {NT,DE,GA}-ws{1995,2008,2009} still align with the TYNDP 2024 climate years; only the prefix has been changed. They are not TYNDP 2026 weather scenarios, which are indices (WS003, WS021, ...) configured through the `wscenarios_tyndp` config option (renamed from `weather_scenarios_tyndp`). The `ws` prefix is now shared by both numbering schemes in 2024 and 2026, but `ws1995` should not be read as a 2026 weather scenario. Additionally, some functions were renamed as well (e.g., `safe_pyear` to `safe_planning_horizon`).
-
-* ci: run the TYNDP Scenario Building and CBA test workflows past `prepare_sector_network` again, covering the solve and benchmark steps ([#1044](https://github.com/open-energy-transition/open-tyndp/pull/1044)). These steps were skipped in CI since [#865](https://github.com/open-energy-transition/open-tyndp/pull/865) and run through again since [#920](https://github.com/open-energy-transition/open-tyndp/pull/920).
-
-* Add a workflow that closes linked issues when a PR is merged into `tyndp-2026` ([#1040](https://github.com/open-energy-transition/open-tyndp/pull/1040)).
-
-* Remove dead code segments in `build_electricity_demand` and `add_electricity` ([#1129](https://github.com/open-energy-transition/open-tyndp/pull/1129)).
-
-* Add check and logger warning for when a node has capacity data for a technology in the PEMMDB dataset but no capacity factors for the same technology in the PECD dataset ([#1126](https://github.com/open-energy-transition/open-tyndp/pull/1126)).
-
-
-**Breaking Changes**
-
-The [Open-TYNDP cycle migration guide](migration_tyndp_2026.md) lists all breaking changes between the 2024 and 2026 cycles.
-
-* Renamed config section `electricity.pemmdb_hydro_profiles` to `electricity.pecd_hydro_profiles`, and its `technologies` now use the PECD codes `HRR`, `HPI`, `HRI`, `HOL` and `HCL` ([#1059](https://github.com/open-energy-transition/open-tyndp/pull/1059)). Therefore, old config names and technology acronyms no longer work.
-
-**2024**
-
-**Features**
-
-* Allow the `sync_file` and `sync_file_dry` rules to retrieve files by pattern. The `sync` and `sync_dry` rules now skip the `results`, `resources` and `logs` subdirectories of runs that are not configured in `run.name`, and still retrieve shared files ([#996](https://github.com/open-energy-transition/open-tyndp/pull/996)). With `config/config.hpc.yaml`, they retrieve all the scenario data including the reference networks and skip only the project networks. The `remote.sync_exclude` configuration no longer applies to `sync_file` and `sync_file_dry`.
-
-
-**Changes**
-
-* Adapt Open-TYNDP to the configuration and wildcard restructuring, as a follow-up to the [upstream changes](migration.md) ([#1084](https://github.com/open-energy-transition/open-tyndp/pull/1084)). `cba.msv_extraction.resolution` now follows the structure of `clustering.temporal` (e.g. `resolution: {averaging: 24h}` instead of `24H`).
-
-
-**Bugfixes and Compatibility**
-
-* Remove `__init__` override from `heat_system.py` for compatibility with python>=3.14 ([#990](https://github.com/open-energy-transition/open-tyndp/pull/990)).
 
 * Fix units for non-CO2 emission factors in CBA ([#1124](https://github.com/open-energy-transition/open-tyndp/pull/1124)).
 
@@ -138,6 +101,9 @@ The [Open-TYNDP cycle migration guide](migration_tyndp_2026.md) lists all breaki
 
 * Fix the broken `pixi` link in the README ([#1122](https://github.com/open-energy-transition/open-tyndp/pull/1122)).
 
+* doc: update documentation to TYNDP 2026 ([#1123](https://github.com/open-energy-transition/open-tyndp/pull/1123)).
+
+* doc: add the [Open-TYNDP cycle migration guide (2024 to 2026)](migration_tyndp_2026.md) ([#1164](https://github.com/open-energy-transition/open-tyndp/pull/1164)).
 
 **Developers Note**
 
@@ -145,11 +111,28 @@ The [Open-TYNDP cycle migration guide](migration_tyndp_2026.md) lists all breaki
 
 * Add pre-solved SB networks for release v0.9 to list of supported pre-solved networks ([#1000](https://github.com/open-energy-transition/open-tyndp/pull/1000)).
 
+* Rename `pyear` to `planning_horizon` and `cyear` to `wscenario` ([#878](https://github.com/open-energy-transition/open-tyndp/pull/878)). The CBA scenarios {NT,DE,GA}-ws{1995,2008,2009} still align with the TYNDP 2024 climate years; only the prefix has been changed. They are not TYNDP 2026 weather scenarios, which are indices (WS003, WS021, ...) configured through the `wscenarios_tyndp` config option (renamed from `weather_scenarios_tyndp`). The `ws` prefix is now shared by both numbering schemes in 2024 and 2026, but `ws1995` should not be read as a 2026 weather scenario. Additionally, some functions were renamed as well (e.g., `safe_pyear` to `safe_planning_horizon`).
+
 * Allow the Windows installer workflow to build releases tagged on `release/*` branches, in addition to `master`, so that patch releases also get a signed installer ([#1009](https://github.com/open-energy-transition/open-tyndp/pull/1009)).
 
 * Update the security scan workflow to generate the SBOM and run vulnerability scans against the lockfile-backed `open-tyndp` Pixi environment instead of `default` ([#983](https://github.com/open-energy-transition/open-tyndp/pull/983)).
 
+* ci: run the TYNDP Scenario Building and CBA test workflows past `prepare_sector_network` again, covering the solve and benchmark steps ([#1044](https://github.com/open-energy-transition/open-tyndp/pull/1044)). These steps were skipped in CI since [#865](https://github.com/open-energy-transition/open-tyndp/pull/865) and run through again since [#920](https://github.com/open-energy-transition/open-tyndp/pull/920).
+
+* Add a workflow that closes linked issues when a PR is merged into `tyndp-2026` ([#1040](https://github.com/open-energy-transition/open-tyndp/pull/1040)).
+
+* Remove dead code segments in `build_electricity_demand` and `add_electricity` ([#1129](https://github.com/open-energy-transition/open-tyndp/pull/1129)).
+
+* Add check and logger warning for when a node has capacity data for a technology in the PEMMDB dataset but no capacity factors for the same technology in the PECD dataset ([#1126](https://github.com/open-energy-transition/open-tyndp/pull/1126)).
+
 * Bump and lock Python to 3.14.7 and Gurobi to 14.0.0 ([#1171](https://github.com/open-energy-transition/open-tyndp/pull/1171)).
+
+
+**Breaking Changes**
+
+The [Open-TYNDP cycle migration guide](migration_tyndp_2026.md) lists all breaking changes between the 2024 and 2026 cycles.
+
+* Renamed config section `electricity.pemmdb_hydro_profiles` to `electricity.pecd_hydro_profiles`, and its `technologies` now use the PECD codes `HRR`, `HPI`, `HRI`, `HOL` and `HCL` ([#1059](https://github.com/open-energy-transition/open-tyndp/pull/1059)). Therefore, old config names and technology acronyms no longer work.
 
 
 ## Upcoming PyPSA-Eur Release
