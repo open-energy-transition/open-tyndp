@@ -486,6 +486,39 @@ def set_load_sign(
     return df.assign(value=df.value.where(df.flow != "Load", -df.value))
 
 
+def drop_extra_prosumer_dump(stats: pd.DataFrame) -> pd.DataFrame:
+    """
+    Drop the extra RES curtailment column in the Prosumer sheets.
+
+    Prosumer sheets report the prosumer zone's own dump energy as
+    "<zone>RETE Dump Energy" and an additional "<zone> Dump Energy" column
+    named after the E-Market zone, which is not prosumer curtailment (often a
+    flat value for all hours).
+
+    Parameters
+    ----------
+    stats : pd.DataFrame
+        Yearly aggregates of all timeseries sheets in long format.
+
+    Returns
+    -------
+    pd.DataFrame
+        `stats` without the extra Prosumer dump energy columns.
+    """
+    is_extra = (
+        stats.sheet.eq("Prosumer")
+        & stats.carrier.eq("RES curtailment")
+        & stats.element.astype(str).str.split().str[0].ne(stats.bus.astype(str))
+    )
+    dropped = stats.loc[is_extra & stats.stats.eq("sum"), "value"].sum()
+    if dropped:
+        logger.info(
+            f"Dropping {dropped / 1e3:.2f} TWh of extra Prosumer dump energy "
+            f"from {is_extra.sum() // len(STATS)} column(s)"
+        )
+    return stats[~is_extra]
+
+
 def clean_crossborder_for_benchmarking(
     df: pd.DataFrame, eu27: list[str]
 ) -> pd.DataFrame:
@@ -588,6 +621,7 @@ if __name__ == "__main__":
     with ProcessPoolExecutor(max_workers=snakemake.threads) as executor:
         stats, capacity = zip(*executor.map(read_dashboard, dashboard_files))
     stats = pd.concat(stats, ignore_index=True)
+    stats = drop_extra_prosumer_dump(stats)
     capacity = pd.concat(capacity, ignore_index=True)
 
     # Tables for which TYNDP dashboard files provide data
