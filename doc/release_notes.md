@@ -124,8 +124,6 @@ The [Open-TYNDP cycle migration guide](migration_tyndp_2026.md) lists all breaki
 
 * Remove `__init__` override from `heat_system.py` for compatibility with python>=3.14 ([#990](https://github.com/open-energy-transition/open-tyndp/pull/990)).
 
-* Fix read mode of the local cache layer to avoid re-retrieving datasets with directory outputs after filling the cache in the same working directory ([#1008](https://github.com/open-energy-transition/open-tyndp/pull/1008)).
-
 * Fix units for non-CO2 emission factors in CBA ([#1124](https://github.com/open-energy-transition/open-tyndp/pull/1124)).
 
 * Fix stale `mock_snakemake` targets in `plot_benchmark_indicators.py` and `summarize_indicators.py` to point to existing rules ([#1127](https://github.com/open-energy-transition/open-tyndp/pull/1127)).
@@ -150,6 +148,8 @@ The [Open-TYNDP cycle migration guide](migration_tyndp_2026.md) lists all breaki
 * Allow the Windows installer workflow to build releases tagged on `release/*` branches, in addition to `master`, so that patch releases also get a signed installer ([#1009](https://github.com/open-energy-transition/open-tyndp/pull/1009)).
 
 * Update the security scan workflow to generate the SBOM and run vulnerability scans against the lockfile-backed `open-tyndp` Pixi environment instead of `default` ([#983](https://github.com/open-energy-transition/open-tyndp/pull/983)).
+
+* Bump and lock Python to 3.14.7 and Gurobi to 14.0.0 ([#1171](https://github.com/open-energy-transition/open-tyndp/pull/1171)).
 
 
 ## Upcoming PyPSA-Eur Release
@@ -186,6 +186,26 @@ The [Open-TYNDP cycle migration guide](migration_tyndp_2026.md) lists all breaki
 * **Breaking:** The linear approximation of AC line losses (`solving: options: transmission_losses`) now uses secants instead of tangents, which underestimates losses less. The option now takes `false`, `true` (PyPSA defaults) or a dict passed to PyPSA (default `{mode: secants, atol: 15, rtol: 0.5}`). Integers are deprecated; use `{mode: tangents, segments: 2}` for the previous behaviour ([#2301](https://github.com/PyPSA/pypsa-eur/pull/2301)).
 
 * Fix: `build_swiss_energy_balances` now reads the October 2026 edition of the Swiss energy balances (data for 2000-2025), which renamed table rows. ([#2380](https://github.com/PyPSA/pypsa-eur/pull/2380)).
+
+
+## Open-TYNDP v0.9.2 (24th November 2026)
+
+This is the last TYNDP 2024 patch release before the first TYNDP 2026 release v0.10. It brings in one fix and one feature. Scenario building results are not materially affected with respect to v0.9 or v0.9.1, while CBA indicator B4 values increase by a factor of 3.6 due to a unit conversion fix. Upgrading is recommended for all users of v0.9 and v0.9.1.
+
+* Fix units for non-CO2 emission factors in CBA ([#1184](https://github.com/open-energy-transition/open-tyndp/pull/1184)).
+
+* Add pre-solved SB networks for release v0.9 to list of supported pre-solved networks ([#1184](https://github.com/open-energy-transition/open-tyndp/pull/1184)).
+
+
+## Open-TYNDP v0.9.1 (13th November 2026)
+
+This is an IT security patch release following a screening by ENTSO-E. It contains two minor bug fixes. The inputs differ from v0.9 only through a marginal (less than 0.2 % each) revision of Swiss road and domestic navigation oil demand in the new edition of the Swiss energy balances. Model results are not materially affected with respect to v0.9. Upgrading is recommended for all users of v0.9.
+
+* Apply security patches on top of v0.9 ([#1138](https://github.com/open-energy-transition/open-tyndp/pull/1138), [#1158](https://github.com/open-energy-transition/open-tyndp/pull/1158)).
+
+* Fix `build_swiss_energy_balances` to read the October 2026 edition of the Swiss energy balances (data for 2000-2025), which renamed table rows ([#1104](https://github.com/open-energy-transition/open-tyndp/pull/1104), [#1139](https://github.com/open-energy-transition/open-tyndp/pull/1139)).
+
+* Fix read mode of the local cache layer to avoid re-retrieving datasets with directory outputs after filling the cache in the same working directory ([#1008](https://github.com/open-energy-transition/open-tyndp/pull/1008), [#1141](https://github.com/open-energy-transition/open-tyndp/pull/1141)).
 
 
 ## PyPSA-Eur v2026.09.0 (25th September 2026)
