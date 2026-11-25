@@ -99,7 +99,7 @@ def align_btl_carbon_split(costs: pd.DataFrame) -> pd.DataFrame:
     """
     Derive the BtL carbon split from its efficiency and the oil CO2 intensity.
 
-    Keeps the carbon balance closed when the BtL efficiency or the oil CO2 intensity
+    Keeps the carbon balance closed when the BtL efficiency and/or the oil CO2 intensity
     are overwritten, as technology-data derives `C in fuel` from its own efficiency.
 
     Parameters
