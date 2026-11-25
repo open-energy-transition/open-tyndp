@@ -71,6 +71,8 @@
 
 **Bugfixes and Compatibility**
 
+* fix: derive the BtL carbon split (`C in fuel`, `C stored`, `CO2 stored`) from the BtL efficiency and the oil CO2 intensity in `process_cost_data` ([#1107](https://github.com/open-energy-transition/open-tyndp/issues/1107)). The custom TYNDP BtL efficiencies (0.6 to 0.7) kept the carbon split of technology-data (valid for an efficiency of 0.45), which overstated the CO2 stored by BtL CC and the negative emissions of BtL and electrobiofuels.
+
 * fix: keep isolated TYNDP offshore buses (e.g. `DKN7_OFF`) via the new switch `electricity: remove_unconnected_components` (`false` for TYNDP); isolated AC buses without assets are removed in `compose_network` ([#967](https://github.com/open-energy-transition/open-tyndp/issues/967), [#1135](https://github.com/open-energy-transition/open-tyndp/pull/1135)).
 
 * fix: remove hardcoded changes to the emissions factors of AT Other Non-RES gas CCGTs in 2040/2050 ([#1012](https://github.com/open-energy-transition/open-tyndp/pull/1012)). The reported PEMMDB value of 0 is used for 2040/2050 instead.
