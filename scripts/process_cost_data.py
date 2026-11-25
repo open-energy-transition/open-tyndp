@@ -114,8 +114,9 @@ def align_btl_carbon_split(costs: pd.DataFrame) -> pd.DataFrame:
     """
     co2_in_biomass = costs.at["solid biomass", "CO2 intensity"]
     co2_in_fuel = costs.at["BtL", "efficiency"] * costs.at["oil", "CO2 intensity"]
-    costs.at["BtL", "C in fuel"] = co2_in_fuel / co2_in_biomass
-    costs.at["BtL", "C stored"] = 1 - co2_in_fuel / co2_in_biomass
+    c_in_fuel = co2_in_fuel / co2_in_biomass
+    costs.at["BtL", "C in fuel"] = c_in_fuel
+    costs.at["BtL", "C stored"] = 1 - c_in_fuel
     costs.at["BtL", "CO2 stored"] = co2_in_biomass - co2_in_fuel
     return costs
 
