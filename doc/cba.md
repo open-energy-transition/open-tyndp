@@ -101,50 +101,41 @@ The CBA entry point `pixi run tyndp-cba` can run a **single scenario** that is o
 Example Collection (`config/scenarios.tyndp.yaml`):
 
 ```yaml
-NT-cy1995:
+NT-ws1995:
 #  <<: *cba-common
-snapshots:
+  snapshots:
     start: "1995-01-01"
     end: "1996-01-01"
 
-atlite:
-    default_cutout: europe-1995-sarah3-era5
-
-cba:
+  cba:
     sb_scenario: NT
 
 
-NT-cy2008:
+NT-ws2008:
 #  <<: *cba-common
-snapshots:
+  snapshots:
     start: "2008-01-01"
     end: "2009-01-01"
 
-atlite:
-    default_cutout: europe-2008-sarah3-era5
-
-cba:
+  cba:
     sb_scenario: NT
 
 
-NT-cy2009:
+NT-ws2009:
 #  <<: *cba-common
-snapshots:
+  snapshots:
     start: "2009-01-01"
     end: "2010-01-01"
 
-atlite:
-    default_cutout: europe-2009-sarah3-era5
-
-cba:
+  cba:
     sb_scenario: NT
 
-NT-cyears:
+NT-wscenarios:
   cba:
-    scenarios: [NT-cy2009, NT-cy2008, NT-cy1995]
+    scenarios: [NT-ws2009, NT-ws2008, NT-ws1995]
 ```
 
-Individual child scenarios (e.g., `NT-cy2009`) must define their specific `snapshots`, `atlite.default_cutout`, and the `cba.sb_scenario` used as input.
+Individual child scenarios (e.g., `NT-ws2009`) must define their specific `snapshots` and the `cba.sb_scenario` used as input.
 
 !!! tip
 
@@ -159,18 +150,18 @@ Individual child scenarios (e.g., `NT-cy2009`) must define their specific `snaps
 
 ### Running Multiple Years
 
-To run a collection like `NT-cyears`, modify `run.name` in `config/config.tyndp.yaml` or override it via command line:
+To run a collection like `NT-wscenarios`, modify `run.name` in `config/config.tyndp.yaml` or override it via command line:
 
 ```console
-$ pixi run tyndp-cba --config run='{"name":"NT-cyears"}'
+$ pixi run tyndp-cba --config run='{"name":"NT-wscenarios"}'
 ```
 
 ### Running a Single Climate Year
 
-Similarly, a single climate year can be run by modifying `run.name` in `config/config.tyndp.yaml` to the desired scenario (e.g., `NT-cy2009`) or overriding it via command line:
+Similarly, a single climate year can be run by modifying `run.name` in `config/config.tyndp.yaml` to the desired scenario (e.g., `NT-ws2009`) or overriding it via command line:
 
 ```console
-$ pixi run tyndp-cba --config run='{"name":"NT-cy2009"}'
+$ pixi run tyndp-cba --config run='{"name":"NT-ws2009"}'
 ```
 
 ## Evaluation of custom projects

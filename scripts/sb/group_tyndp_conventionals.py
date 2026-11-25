@@ -12,17 +12,17 @@ configuration and will be executed once for each planning horizon.
 Inputs
 ------
 
-- `pemmdb_capacities_{planning_horizon}.csv`: Processed PEMMDB capacities for the given planning_horizon.
-- `pemmdb_profiles_{planning_horizon}.nc`: Processed PEMMDB must-run and availability profiles for the given
-    planning_horizon.
+- `pemmdb_capacities_{horizon}.csv`: Processed PEMMDB capacities for the given horizon.
+- `pemmdb_profiles_{horizon}.nc`: Processed PEMMDB must-run and availability profiles for the given
+    horizon.
 - `data/tyndp_technology_map.csv`: TYNDP technology mapping used for the grouping.
 
 Outputs
 -------
 
-- `pemmdb_capacities_{planning_horizon}_grouped.csv`: Grouped PEMMDB capacities for the given planning_horizon.
-- `pemmdb_profiles_{planning_horizon}_grouped.nc`: Grouped PEMMDB must-run and availability profiles for the given
-    planning_horizon.
+- `pemmdb_capacities_{horizon}_grouped.csv`: Grouped PEMMDB capacities for the given horizon.
+- `pemmdb_profiles_{horizon}_grouped.nc`: Grouped PEMMDB must-run and availability profiles for the given
+    horizon.
 """
 
 import logging
@@ -207,7 +207,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "group_tyndp_conventionals",
-            planning_horizon="2030",
+            horizon="2030",
         )
 
     configure_logging(snakemake)  # pylint: disable=E0606
@@ -215,7 +215,7 @@ if __name__ == "__main__":
     # Parameters
     tyndp_conventional_carriers = snakemake.params.tyndp_conventional_carriers
 
-    # Read in PEMMDB data and trajectories
+    # Read in PEMMDB data
     pemmdb_capacities = pd.read_csv(snakemake.input.pemmdb_capacities)
     pemmdb_profiles = xr.open_dataset(snakemake.input.pemmdb_profiles).to_dataframe()
 

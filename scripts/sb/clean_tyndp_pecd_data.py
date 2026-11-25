@@ -1,0 +1,186 @@
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
+#
+# SPDX-License-Identifier: MIT
+"""
+Loads and cleans the available PECD capacity factor generation time series based on PECD weather data.
+The script is executed for a given technology and planning horizon. Technologies can be one of:
+
+   * Solar PV Utility,
+   * Solar PV Rooftop,
+   * Wind_Offshore,
+   * Wind_Onshore,
+   * CSP_noStorage_0h_dispatched,
+
+Outputs
+-------
+Cleaned csv file with capacity factor generation time series and regions as columns.
+"""
+
+import logging
+import multiprocessing as mp
+import os
+from functools import partial
+from pathlib import Path
+
+import pandas as pd
+from tqdm import tqdm
+
+from scripts._helpers import configure_logging, get_snapshots, set_scenario_config
+from scripts.sb._helpers import safe_planning_horizon
+
+logger = logging.getLogger(__name__)
+
+
+def read_pecd_file(
+    node: str,
+    dir_pecd: str,
+    wscenario: int,
+    planning_horizon: int,
+    technology: str,
+    sns: pd.DatetimeIndex,
+):
+    pecd_node = node.replace("GB", "UK")  # PECD files keep the raw TYNDP node codes
+
+    if "Solar" in technology:
+        fn = Path(dir_pecd, str(planning_horizon), f"{technology} {pecd_node}.csv")
+    else:
+        fn = Path(
+            dir_pecd,
+            str(planning_horizon),
+            f"{pecd_node}_CapacityFactors_{technology}_{planning_horizon}.csv",
+        )
+
+    if not os.path.isfile(fn):
+        return None
+
+    pecd_bus = pd.read_csv(fn)
+    year = sns[0].year
+    datetime_idx = pd.to_datetime(
+        f"{year}."
+        + pecd_bus["Date"].str.cat((pecd_bus["Hour"] - 1).astype(str), sep=" "),
+        format="%Y.%d.%m. %H",
+    )
+
+    cf_pecd = (
+        pecd_bus.set_index(datetime_idx)
+        .drop(columns=["Date", "Hour"])
+        .loc[sns, [wscenario]]  # filter for snapshots and weather scenario only
+        .rename(columns={wscenario: node})
+    )
+    return cf_pecd
+
+
+def find_pemmdb_nodes_without_pecd(
+    missing_nodes: list[str],
+    pecd_tech: str,
+    carrier_mapping_fn: str,
+    pemmdb_capacities_fn: str,
+) -> list[str]:
+    """Return nodes with PEMMDB capacity for a technology but no PECD capacity factors."""
+    carriers = (
+        pd.read_csv(carrier_mapping_fn)
+        .query("pecd_carrier == @pecd_tech")
+        .open_tyndp_carrier
+    )
+    return (
+        pd.read_csv(pemmdb_capacities_fn)
+        .loc[lambda df: df.carrier.isin(carriers)]
+        .query("bus in @missing_nodes and p_nom > 0")
+        .bus.unique()
+        .tolist()
+    )
+
+
+if __name__ == "__main__":
+    if "snakemake" not in globals():
+        from scripts._helpers import mock_snakemake
+
+        snakemake = mock_snakemake(
+            "clean_tyndp_pecd_data",
+            technology="Wind_Offshore",
+            horizon=2030,
+        )
+    configure_logging(snakemake)
+    set_scenario_config(snakemake)
+
+    # Parameters
+    ############
+
+    # Climate year from snapshots
+    sns = get_snapshots(snakemake.params.snapshots, snakemake.params.drop_leap_day)
+    wscenario = f"WS{snakemake.params.wscenario:03d}"
+
+    # Planning year (falls back to latest available planning_horizon if not in list of available years)
+    planning_horizon = safe_planning_horizon(
+        snakemake.wildcards.horizon,
+        available_years=snakemake.params.available_years,
+        source="PECD",
+    )
+
+    # Technology as in PECD terminology
+    pecd_tech = snakemake.wildcards.technology
+
+    buses_tyndp = pd.read_csv(snakemake.input.buses_tyndp).set_index("bus_id")
+
+    # Offshore wind is also given at onshore nodes, other technologies are onshore only
+    if pecd_tech != "Wind_Offshore":
+        buses_tyndp = buses_tyndp[buses_tyndp["category"] == "onshore"]
+
+    nodes = buses_tyndp.index.tolist()
+
+    dir_pecd = snakemake.input.pecd_prebuilt
+
+    # Load and prep pecd data
+    #########################
+
+    tqdm_kwargs = {
+        "ascii": False,
+        "unit": " nodes",
+        "total": len(nodes),
+        "desc": "Loading PECD capacity factor data",
+    }
+
+    func = partial(
+        read_pecd_file,
+        dir_pecd=dir_pecd,
+        wscenario=wscenario,
+        planning_horizon=planning_horizon,
+        technology=pecd_tech,
+        sns=sns,
+    )
+
+    with mp.Pool(processes=snakemake.threads) as pool:
+        pecd = list(tqdm(pool.imap(func, nodes), **tqdm_kwargs))
+
+    if all(data is None for data in pecd):
+        raise ValueError(
+            f"No PECD data found for {pecd_tech} in {planning_horizon}. Please specify a technology covered within the TYNDP PECD data."
+        )
+
+    nodes_without_pecd = find_pemmdb_nodes_without_pecd(
+        missing_nodes=[node for node, data in zip(nodes, pecd) if data is None],
+        pecd_tech=pecd_tech,
+        carrier_mapping_fn=snakemake.input.carrier_mapping,
+        pemmdb_capacities_fn=snakemake.input.pemmdb_capacities,
+    )
+    if nodes_without_pecd:
+        logger.warning(
+            f"No PECD capacity factors for {pecd_tech} in {planning_horizon} at nodes with PEMMDB capacity: "
+            f"{', '.join(nodes_without_pecd)}. Filled with '{snakemake.params.fill_gaps_method}'."
+        )
+
+    pecd_df = pd.concat(pecd, axis=1)
+    fill_na = (
+        pd.Series(0.0, index=pecd_df.index)
+        if snakemake.params.fill_gaps_method == "zero"
+        else pecd_df.agg(snakemake.params.fill_gaps_method, axis=1)
+    )
+    pecd_df = (
+        pecd_df.reindex(
+            nodes, axis=1
+        ).where(  # include missing node data with empty columns
+            lambda df: df.notna(), fill_na, axis=0
+        )  # fill missing node data with configured aggregation method
+    )
+
+    pecd_df.to_csv(snakemake.output.pecd_data_clean)

@@ -112,6 +112,9 @@ rule base_network:
         transformers=config_provider("transformers"),
         clustering=config_provider("clustering", "mode"),
         admin_levels=config_provider("clustering", "administrative"),
+        remove_unconnected_components=config_provider(
+            "electricity", "remove_unconnected_components"
+        ),
     message:
         "Building base network"
     script:
@@ -985,9 +988,10 @@ rule build_osm_network:
 
 rule build_tyndp_network:
     input:
-        elec_reference_grid=rules.retrieve_tyndp.output.elec_reference_grid,
-        buses=rules.retrieve_tyndp.output.nodes,
+        elec_reference_grid=rules.retrieve_tyndp_2026.output.elec_reference_grid,
+        buses=rules.retrieve_tyndp_2026.output.nodes,
         bidding_shapes=resources("bidding_zones.geojson"),
+        manual_bus_locations="data/tyndp_manual_bus_locations.csv",
     output:
         lines=resources("tyndp/build/lines.csv"),
         links=resources("tyndp/build/links.csv"),
@@ -1010,7 +1014,27 @@ rule build_tyndp_network:
         mem_mb=4000,
     params:
         countries=config_provider("countries"),
+        reference_year=config_provider("electricity", "tyndp_reference_year"),
     message:
         "Building TYNDP network"
     script:
         scripts("build_tyndp_network.py")
+
+
+rule build_tyndp_electricity_ntc:
+    input:
+        elec_reference_grid=rules.retrieve_tyndp_2026.output.elec_reference_grid,
+        buses=resources("tyndp/build/geojson/buses.geojson"),
+    output:
+        ntc=resources("tyndp_electricity_ntc_{horizon}.csv"),
+    log:
+        logs("build_tyndp_electricity_ntc_{horizon}.log"),
+    benchmark:
+        benchmarks("performances/build_tyndp_electricity_ntc_{horizon}")
+    threads: 1
+    resources:
+        mem_mb=4000,
+    message:
+        "Building TYNDP electricity NTC for {wildcards.horizon}"
+    script:
+        scripts("build_tyndp_electricity_ntc.py")

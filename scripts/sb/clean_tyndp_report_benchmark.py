@@ -2,14 +2,15 @@
 #
 # SPDX-License-Identifier: MIT
 """
-This script cleans the raw TYNDP 2024 Scenarios Report Data that will be used for benchmarking.
+This script cleans the raw TYNDP 2026 Scenarios Report Data that will be used for benchmarking.
 
 It reads and processes all the tables defined in the configuration file. The correct indexes
 and headers are then assigned. The data structure is subsequently converted to a long format.
 Finally, the units are converted to standard units: MW for power units and MWh for energy units.
+The synthetic fuel supply is converted from fuel energy to H2 equivalent with the configured
+efficiencies.
 """
 
-import datetime
 import logging
 import multiprocessing as mp
 from functools import partial
@@ -24,14 +25,6 @@ from scripts._helpers import (
 from scripts.sb._helpers import SCENARIO_DICT, convert_units
 
 logger = logging.getLogger(__name__)
-
-
-def _safe_sheet(sn: str | dict, scenario: str) -> str:
-    if not sn:
-        return False
-    elif isinstance(sn, dict):
-        return sn.get(scenario, "")
-    return sn
 
 
 def _process_index(
@@ -125,7 +118,7 @@ def _add_identifier(s: str) -> str:
     """
     if s.startswith("TYNDP") or s.startswith("EC"):
         return s
-    elif any(i in s for i in ["DE", "GA", "NT"]):
+    elif "NT" in s:
         return "TYNDP " + s
     elif any(i in s for i in ["IA", "S3"]):
         return "EC IA S3"
@@ -170,11 +163,7 @@ def add_report_carrier_mappings(carrier_mapping_fn: str, tables: dict) -> None:
             .dropna(subset=["tyndp_report_carrier", col])
             .assign(
                 tyndp_report_carrier=lambda x: (
-                    x["tyndp_report_carrier"]
-                    .str.removeprefix("H2 ")
-                    .str.removeprefix("CH4 ")
-                    .str.lower()
-                    .str.rstrip("* ")
+                    x["tyndp_report_carrier"].str.lower().str.rstrip("* ")
                 )
             )
             .set_index("tyndp_report_carrier")[col]
@@ -183,11 +172,17 @@ def add_report_carrier_mappings(carrier_mapping_fn: str, tables: dict) -> None:
 
 
 def clean_data_for_benchmarking(
-    table: str, df: pd.DataFrame, mapping: dict = {}
+    table: str,
+    df: pd.DataFrame,
+    mapping: dict = {},
+    synfuel_efficiency: dict[str, dict[int, float]] | None = None,
 ) -> pd.DataFrame:
     """
     Clean report data by removing non-modelled carriers, renaming and grouping
     the remaining ones together according to the specified mapping.
+
+    The synthetic fuel supply is reported in fuel energy and converted to H2
+    equivalent to match the model and the dashboard.
 
     Parameters
     ----------
@@ -198,6 +193,9 @@ def clean_data_for_benchmarking(
     mapping : dict, optional
         Carrier mapping from report carrier names to benchmarking carrier names.
         Default is {} (no renaming applied).
+    synfuel_efficiency : dict[str, dict[int, float]], optional
+        Efficiencies from H2 equivalent to fuel energy per synthetic fuel and year.
+        Required for the synthetic fuel supply table.
 
     Returns
     -------
@@ -206,23 +204,28 @@ def clean_data_for_benchmarking(
     """
     # Keep aggregated electricity demand - Input data for Open-TYNDP is provided in aggregated form
     if table == "electricity_demand":
-        df = df[df.carrier == "final demand (inc. t&d losses, excl. pump storage )"]
+        df = df[df.carrier.isin(["native demand", "for hhps"])]
 
     # Drop total for Methane demand
     elif table == "methane_demand":
         df = df[df.carrier != "total"]
 
-    # Drop total and e-fuels for Hydrogen demand
+    # Drop total for Hydrogen demand
     elif table == "hydrogen_demand":
-        df = df[~df.carrier.isin(["total", "e-fuels"])]
+        df = df[df.carrier != "total"]
 
     # Drop non-modeled FED carriers and total
     elif table == "final_energy_demand":
-        df = df[~df.carrier.isin(["total", "heat", "solids", "others"])]
+        df = df[~df.carrier.isin(["total", "heat", "solids", "others", "ammonia"])]
 
     # Drop total for Power generation
     elif table == "power_generation":
         df = df[df.carrier != "total generation"]
+
+    elif table == "energy_imports":
+        df = df[~df.carrier.isin(["sum", "total", "ammonia", "solids"])]
+    elif table == "ev_charging":
+        df = df[df.carrier.str.startswith("v2g")]
 
     # Remove aggregated values
     else:
@@ -237,14 +240,23 @@ def clean_data_for_benchmarking(
     df.loc[:, "carrier"] = df.loc[:, "carrier"].map(lambda x: mapping.get(x, x))
     df = df.groupby([c for c in df.columns if c != "value"]).sum().reset_index()
 
+    if table == "synfuel_supply":
+        fuel = df.carrier.str.split(" (", regex=False).str[0]
+        df["value"] /= [synfuel_efficiency[f][y] for f, y in zip(fuel, df.year)]
+
     return df
 
 
 def load_benchmark(
-    benchmarks_raw: dict[str, pd.DataFrame], table: str, scenario: str, options: dict
+    benchmarks_raw: dict[str, pd.DataFrame], table: str, options: dict
 ) -> pd.DataFrame:
     """
     Load and process benchmark data from TYNDP Excel sheets.
+
+    Cells containing only whitespace are treated as empty. Sheets without a
+    scenario dimension are assigned the scenario configured under `report: scenario`.
+    An index level named `origin` is appended to the carrier name, e.g.
+    "Methane (Imports)", to distinguish carriers listed under several origins.
 
     Parameters
     ----------
@@ -252,8 +264,6 @@ def load_benchmark(
         Dictionary of pandas DataFrames from Excel sheets, keyed by sheet name.
     table : str
         Name of table to load.
-    scenario: str
-        Name of scenario to load.
     options : dict
         Full benchmarking configuration.
 
@@ -263,34 +273,20 @@ def load_benchmark(
         Cleaned benchmark data in long format.
     """
 
-    # Handle each table type
     opt = options["tables"][table]
+    if "report" not in opt["rfc_sources"]:
+        return pd.DataFrame()
     table_type = opt["table_type"]
-    if table_type not in ["scenario_comparison", "time_series"]:
+    if table_type != "scenario_comparison":
         logger.warning(f"Table type '{table_type}' not implemented yet")
         return pd.DataFrame()
 
     # Parameters
-    sheet_name = _safe_sheet(opt["report"]["sheet_name"], scenario)
-    if sheet_name == "":
-        logger.warning(f"No sheet name found for {table} in {scenario}")
-        return pd.DataFrame()
-    df = benchmarks_raw[sheet_name]
+    df = benchmarks_raw[opt["report"]["sheet_name"]]
+    df = df.mask(df.map(lambda x: isinstance(x, str) and not x.strip()))
     nrows = opt["report"].get("nrows", None)
     ncolumns = opt["report"].get("ncolumns", None)
     names = opt["report"]["names"]
-
-    # Fix temporal labeling - source data uses 00:00 as end-of-period (previous day's last hour);
-    # convert to beginning-of-period (current day's first hour)
-    if table == "generation_profiles":
-        time_col = df.iloc[
-            5:, 0
-        ]  # Start reading from row 6 where actual snapshot data begins
-        datetime_series = pd.to_datetime(time_col)
-        midnight_mask = datetime_series.dt.time == datetime.time(0, 0)
-        df.loc[time_col.index[midnight_mask], df.columns[0]] = datetime_series[
-            midnight_mask
-        ] + pd.Timedelta(days=1)
 
     index_col = opt["report"]["index_col"]
     if isinstance(index_col, int):
@@ -321,25 +317,28 @@ def load_benchmark(
     # Add table identifier
     df_converted["table"] = table
 
-    # Apply exceptions
-    if table == "generation_profiles":
-        # TODO Validate planning year assumption
-        df_converted["year"] = 2040
-        df_converted["scenario"] = scenario
-
     # Clean data
-    if "scenario" in df_converted.columns:
-        df_converted["scenario"] = (
-            df_converted["scenario"]
-            .replace(SCENARIO_DICT, regex=True)
-            .apply(_add_identifier)
+    if "scenario" not in df_converted.columns:
+        df_converted["scenario"] = opt["report"]["scenario"]
+    df_converted["scenario"] = (
+        df_converted["scenario"]
+        .replace(SCENARIO_DICT, regex=True)
+        .apply(_add_identifier)
+    )
+
+    if "origin" in df_converted.columns:
+        df_converted["carrier"] = (
+            df_converted["carrier"] + " (" + df_converted.pop("origin") + ")"
         )
 
     df_converted["year"] = df_converted["year"].astype(int)
     df_converted["carrier"] = df_converted["carrier"].str.lower().str.rstrip("* ")
 
     df_clean = clean_data_for_benchmarking(
-        table, df_converted, mapping=opt.get("mapping", {})
+        table,
+        df_converted,
+        mapping=opt.get("mapping", {}),
+        synfuel_efficiency=opt.get("synfuel_efficiency"),
     )
 
     return df_clean
@@ -356,7 +355,6 @@ if __name__ == "__main__":
 
     # Parameters
     options = snakemake.params["benchmarking"]
-    scenario = snakemake.params["scenario"]
 
     # Map TYNDP report carrier names to benchmarking carrier names
     add_report_carrier_mappings(snakemake.input.carrier_mapping, options["tables"])
@@ -364,12 +362,15 @@ if __name__ == "__main__":
     # Read benchmarks
     logger.info("Reading raw benchmark data")
     sheet_names = [
-        _safe_sheet(j["report"]["sheet_name"], scenario)
-        for i, j in options["tables"].items()
-        if _safe_sheet(j.get("report", {}).get("sheet_name"), scenario)
+        j["report"]["sheet_name"]
+        for j in options["tables"].values()
+        if j.get("report", {}).get("sheet_name")
     ]
     benchmarks_raw = pd.read_excel(
-        snakemake.input.scenarios_figures, sheet_name=sheet_names, header=None
+        snakemake.input.scenarios_figures,
+        sheet_name=sheet_names,
+        header=None,
+        engine="calamine",
     )
 
     logger.info("Parsing benchmark data")
@@ -383,7 +384,6 @@ if __name__ == "__main__":
     func = partial(
         load_benchmark,
         benchmarks_raw,
-        scenario=scenario,
         options=options,
     )
 
@@ -394,7 +394,7 @@ if __name__ == "__main__":
 
     # Combine all benchmark data
     benchmarks_combined = pd.concat(benchmarks, ignore_index=True).assign(
-        source="TYNDP 2024 Scenarios Report", bus="EU27"
+        source="TYNDP 2026 Scenarios Report", bus="EU27"
     )
     if benchmarks_combined.empty:
         logger.warning("No benchmark data was successfully processed")

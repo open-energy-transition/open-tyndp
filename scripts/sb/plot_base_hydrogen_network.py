@@ -25,20 +25,6 @@ plt.style.use(["ggplot"])
 logger = logging.getLogger(__name__)
 
 
-def group_import_corridors(df):
-    """
-    Group pipes which connect same buses and return overall capacity.
-    """
-    df = df.copy()
-
-    # there are pipes for each investment period rename to AC buses name for plotting
-    df["index_orig"] = df.index
-    df.rename(index=lambda x: x.split(" - ")[0], inplace=True)
-    return df.groupby(level=0).agg(
-        {"p_nom": "sum", "p_nom_opt": "sum", "index_orig": "first"}
-    )
-
-
 def plot_h2_map_base(
     network, map_opts, proj, map_fn, expanded=False, regions_for_storage=None
 ):
@@ -73,33 +59,17 @@ def plot_h2_map_base(
 
     linewidth_factor = 4e3
 
+    import_bus0 = n.links.bus0.map(n.buses.category) == "import"
+    import_bus1 = n.links.bus1.map(n.buses.category) == "import"
     n.links.drop(
-        n.links.index[
-            ~(
-                n.links.carrier.str.contains("H2 pipeline")
-                | n.links.carrier.str.contains("H2 import")
-            )
-        ],
-        inplace=True,
-    )
-    n.links.drop(
-        n.links.index[n.links.carrier.str.contains("OH")],
+        n.links.index[(n.links.carrier != "H2 pipeline") | (import_bus0 & import_bus1)],
         inplace=True,
     )
 
     p_nom = "p_nom_opt" if expanded else "p_nom"
-    # capacity of pipes and imports
-    h2_pipes = n.links[n.links.carrier == "H2 pipeline"][p_nom]
-    h2_imports = n.links[n.links.carrier.str.contains("H2 import")]
-
-    # group high and low import corridors together
-    h2_imports = group_import_corridors(h2_imports)[p_nom]
-    n.links.rename(index=lambda x: x.split(" - ")[0], inplace=True)
-    # group links by summing up p_nom values and taking the first value of the rest of the columns
-    other_cols = dict.fromkeys(n.links.columns.drop(["p_nom_opt", "p_nom"]), "first")
-    n.links = n.links.groupby(level=0).agg(
-        {"p_nom_opt": "sum", "p_nom": "sum", **other_cols}
-    )
+    is_import = n.links.bus0.map(n.buses.category) == "import"
+    h2_pipes = n.links.loc[~is_import, p_nom]
+    h2_imports = n.links.loc[is_import, p_nom]
 
     # set link widths
     link_width_pipes = h2_pipes / linewidth_factor

@@ -13,9 +13,9 @@ remote:
   # TODO Improve the feature to collect project-specific data across weather scenarios
   sync_file:
     results:
-    - cba/networks/project_t335_*.nc  # PINT
+    - cba/networks/project_t225_*.nc  # PINT
     - cba/networks/project_t339_*.nc  # TOOT
-    - cba/networks/project_t1106_*.nc  # TOOT, offshore
+    # TODO: Add back t1106 Bornholm project once CBA bus naming convention is fixed for 2026
     - cba/networks/project_s1001_*.nc  # PHS
     - cba/networks/project_s1013_*.nc  # CAES
     - cba/networks/project_s1035_*.nc  # battery

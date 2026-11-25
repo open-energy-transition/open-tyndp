@@ -7,6 +7,7 @@ Plot benchmark figures.
 
 import logging
 import multiprocessing as mp
+import re
 import textwrap
 from functools import partial
 from pathlib import Path
@@ -21,10 +22,9 @@ from tqdm import tqdm
 
 from scripts._helpers import (
     configure_logging,
-    get_snapshots,
     set_scenario_config,
 )
-from scripts.sb._helpers import add_metadata, convert_units
+from scripts.sb._helpers import add_metadata, convert_units, get_wscenario
 from scripts.sb.make_benchmark import (
     SOURCES_MAP,
     get_bus_col_name,
@@ -46,7 +46,7 @@ def _plot_scenario_comparison(
     bus: str,
     output_dir: str,
     scenario: str,
-    cyear: int,
+    wscenario: int,
     model_col: str,
     rfc_cols: list[str],
     rfc_source: str,
@@ -54,17 +54,9 @@ def _plot_scenario_comparison(
     bench_colors: dict,
 ):
     table_title = table.replace("_", " ").title()
-    if table == "power_generation":
-        table_title += " (pre-curtailment)"
     idx = [model_col, rfc_source] + [
         c for c in rfc_cols if c in df.columns and c != rfc_source
     ]
-
-    tyndp_str = "TYNDP 2024 Scenarios Report"
-    if "TYNDP 2024 Vis Pltfm" in idx and tyndp_str in idx:
-        tyndp_str_ext = "TYNDP 2024 Scenarios Report"
-        idx = [tyndp_str_ext if i == tyndp_str else i for i in idx]
-        df = df.rename(columns={tyndp_str: tyndp_str_ext})
 
     # Wrap long x-axis labels
     df = df.set_index("carrier")
@@ -82,7 +74,7 @@ def _plot_scenario_comparison(
         width=0.7,
         xlabel="",
         ylabel=f"{table_title} [{source_unit}]",
-        title=f"{table_title} - {bus} - Scenario {scenario} - CY {cyear} - Year {year}",
+        title=f"{table_title} - {bus} - Scenario {scenario} - WS {wscenario} - Year {year}",
     )
     ax.tick_params(axis="x", labelrotation=45)
     plt.setp(ax.get_xticklabels(), ha="right")
@@ -104,34 +96,17 @@ def _plot_scenario_comparison(
     if rotation != 0:
         ax.set_ylim(top=ax.get_ylim()[1] * 1.05)
 
-    # notes
-    if table == "power_generation":
-        note = [
-            'Note: Curtailed energy is included in both "dumped energy" and renewables generation values.'
-        ]
-    elif table == "power_capacity":
-        note = [
-            'Note: DSR values from the Scenarios Report include both "implicit" and "explicit" DSR; other source show "explicit" DSR only. \n'
-            "The Scenarios Report includes some solar and onshore wind capacities not connected to the grid."
-        ]
-    elif table == "hydrogen_supply":
-        note = [
-            'Note: Open-TYNDP uses endogenous hydrogen fuel prices. The price is fixed in the Market Model and the Scenarios Report and the supply of hydrogen \nis reported as "Undefined for generation". In Open-TYNDP, however, this share is "defined" as either imports or domestic production.'
-        ]
-    else:
-        note = []
-
     add_metadata(
         fig,
         ax,
         model_col=model_col,
         rfc_source=rfc_source,
         rfc_cols=rfc_cols,
-        note=note,
     )
 
     output_filename = Path(
-        output_dir, f"benchmark_{table}_{bus.replace(' ', '_')}_cy{cyear}_{year}.pdf"
+        output_dir,
+        f"benchmark_{table}_{re.sub(r'[ /]', '_', bus)}_ws{wscenario}_{year}.pdf",
     )
     fig.savefig(output_filename, bbox_inches="tight")
 
@@ -143,7 +118,7 @@ def _plot_time_series(
     bus: str,
     output_dir: str,
     scenario: str,
-    cyear: int,
+    wscenario: int,
     model_col: str,
     rfc_col: str,
     source_unit: str,
@@ -193,7 +168,7 @@ def _plot_time_series(
     correlation = df_clean[model_col].corr(df_clean[rfc_col])
     table_title = table.replace("_", " ").title()
     ax.set_title(
-        f"{table_title} - EU27 - Scenario {scenario} - CY {cyear} - Year {year}"
+        f"{table_title} - EU27 - Scenario {scenario} - WS {wscenario} - Year {year}"
     )
     ax.set_xlabel(f"{rfc_col} [{source_unit}]")
     ax.set_ylabel(f"{model_col} [{source_unit}]")
@@ -220,7 +195,8 @@ def _plot_time_series(
     add_metadata(fig, ax)
 
     output_filename = Path(
-        output_dir, f"benchmark_{table}_{bus.replace(' ', '_')}_cy{cyear}_{year}.pdf"
+        output_dir,
+        f"benchmark_{table}_{re.sub(r'[ /]', '_', bus)}_ws{wscenario}_{year}.pdf",
     )
     fig.savefig(output_filename, bbox_inches="tight")
 
@@ -231,7 +207,7 @@ def _plot_prices(
     year: int,
     output_dir: str,
     scenario: str,
-    cyear: int,
+    wscenario: int,
     model_col: str,
     rfc_source: str,
     source_unit: str,
@@ -247,7 +223,7 @@ def _plot_prices(
     bar_colors = [bench_colors.get(col, "grey") for col in [model_col, rfc_source]]
     df.index = df.index.get_level_values("spatial")
     df[[model_col, rfc_source]].plot.bar(
-        title=f"{table_title} - Scenario {scenario} - CY {cyear} - Year {year}",
+        title=f"{table_title} - Scenario {scenario} - WS {wscenario} - Year {year}",
         ylabel=source_unit,
         color=bar_colors,
         ax=ax,
@@ -289,7 +265,7 @@ def _plot_prices(
 
     add_metadata(fig, ax, model_col=model_col, rfc_source=rfc_source)
 
-    output_filename = Path(output_dir, f"benchmark_{table}_cy{cyear}_{year}.pdf")
+    output_filename = Path(output_dir, f"benchmark_{table}_ws{wscenario}_{year}.pdf")
     fig.savefig(output_filename, bbox_inches="tight")
 
 
@@ -299,7 +275,7 @@ def _plot_flows(
     year: int,
     output_dir: str,
     scenario: str,
-    cyear: int,
+    wscenario: int,
     model_col: str,
     rfc_source: str,
     source_unit: str,
@@ -322,10 +298,10 @@ def _plot_flows(
     df.index = df.index.get_level_values("spatial")
 
     # remove flows between identical locations
-    df = df[df.index.str.split("->").map(lambda x: x[0] != x[1])]
+    df = df[df.index.str.split("-").map(lambda x: x[0] != x[1])]
 
     df[[model_col, rfc_source]].sort_index(ascending=False).plot.barh(
-        title=f"{table_title} - Scenario {scenario} - CY {cyear} - Year {year}",
+        title=f"{table_title} - Scenario {scenario} - WS {wscenario} - Year {year}",
         xlabel=source_unit,
         color=bar_colors,
         ax=ax,
@@ -343,7 +319,7 @@ def _plot_flows(
 
     add_metadata(fig, ax, model_col=model_col, rfc_source=rfc_source)
 
-    output_filename = Path(output_dir, f"benchmark_{table}_cy{cyear}_{year}.pdf")
+    output_filename = Path(output_dir, f"benchmark_{table}_ws{wscenario}_{year}.pdf")
     fig.savefig(output_filename, bbox_inches="tight")
 
     # Additional plot for crossborder flows with incorrect net direction
@@ -359,7 +335,7 @@ def _plot_flows(
         FigureCanvasAgg(fig)
         ax = fig.subplots()
         df_direction[[model_col, rfc_source]].sort_index(ascending=False).plot.barh(
-            title=f"{table_title} (focusing on incorrect net direction - Scenario {scenario} - CY {cyear} - Year {year}",
+            title=f"{table_title} (focusing on incorrect net direction - Scenario {scenario} - WS {wscenario} - Year {year}",
             xlabel=source_unit,
             color=bar_colors,
             ax=ax,
@@ -371,7 +347,8 @@ def _plot_flows(
         ax.legend(frameon=True, facecolor="white")
         add_metadata(fig, ax, model_col=model_col, rfc_source=rfc_source)
         output_filename = Path(
-            output_dir, f"benchmark_{table}_direction_errors_cy{cyear}_{year}.pdf"
+            output_dir,
+            f"benchmark_{table}_direction_errors_ws{wscenario}_{year}.pdf",
         )
         fig.savefig(output_filename, bbox_inches="tight")
 
@@ -382,7 +359,7 @@ def _plot_hours(
     year: int,
     output_dir: str,
     scenario: str,
-    cyear: int,
+    wscenario: int,
     model_col: str,
     rfc_source: str,
     source_unit: str,
@@ -399,11 +376,11 @@ def _plot_hours(
     ]  # keep buses with one non-zero value
     if df.empty:
         logger.info(
-            f"Skipping plot for {table} - Scenario {scenario} - CY {cyear} - Year {year}: no buses with non-zero values."
+            f"Skipping plot for {table} - Scenario {scenario} - WS {wscenario} - Year {year}: no buses with non-zero values."
         )
         return
     df[[model_col, rfc_source]].sort_values(model_col, ascending=False).plot.bar(
-        title=f"{table_title} - Scenario {scenario} - CY {cyear} - Year {year}",
+        title=f"{table_title} - Scenario {scenario} - WS {wscenario} - Year {year}",
         ylabel=source_unit,
         color=bar_colors,
         ax=ax,
@@ -415,7 +392,7 @@ def _plot_hours(
     ax.legend(frameon=True, facecolor="white")
     add_metadata(fig, ax, model_col=model_col, rfc_source=rfc_source)
 
-    output_filename = Path(output_dir, f"benchmark_{table}_cy{cyear}_{year}.pdf")
+    output_filename = Path(output_dir, f"benchmark_{table}_ws{wscenario}_{year}.pdf")
     fig.savefig(output_filename, bbox_inches="tight")
 
 
@@ -426,6 +403,7 @@ def plot_benchmark(
     output_dir: str,
     scenario: str,
     snapshots: dict[str, str],
+    wscenarios: dict[int, int],
     options: dict,
     tech_colors: dict,
     bench_colors: dict,
@@ -448,6 +426,8 @@ def plot_benchmark(
         Scenario name.
     snapshots : dict[str, str]
         Dictionary defining the temporal range with 'start' and 'end' keys.
+    wscenarios : dict[int, int]
+        Weather scenario per planning horizon.
     options : dict
         Full benchmarking configuration containing table units and conversions.
     tech_colors : dict
@@ -464,7 +444,6 @@ def plot_benchmark(
     source_unit = "TWh" if "crossborder" in table else opt["unit"]
     rfc_cols = [SOURCES_MAP.get(s, s) for s in opt["rfc_sources"]]
     rfc_source = rfc_cols[0]
-    cyear = get_snapshots(snapshots)[0].year
 
     # Filter data and Convert back to source unit
     logger.debug(
@@ -481,7 +460,7 @@ def plot_benchmark(
 
     if benchmarks.empty:
         logger.warning(
-            f"No data available for table '{table}' and bus {bus} in Open-TYNDP or TYNDP 2024 datasets"
+            f"No data available for table '{table}' and bus {bus} in Open-TYNDP or TYNDP reference datasets"
         )
         return
 
@@ -511,6 +490,7 @@ def plot_benchmark(
 
     for year in bench_wide.index.get_level_values("year").unique():
         bench_year = bench_wide.query("year==@year").copy()
+        wscenario = wscenarios[year]
 
         if table_type == "scenario_comparison":
             _plot_scenario_comparison(
@@ -520,7 +500,7 @@ def plot_benchmark(
                 bus=bus,
                 output_dir=output_dir,
                 scenario=scenario,
-                cyear=cyear,
+                wscenario=wscenario,
                 model_col=model_col,
                 rfc_cols=[c for c in rfc_cols if c in bench_year.columns],
                 rfc_source=rfc_source,
@@ -539,7 +519,7 @@ def plot_benchmark(
                 bus=bus,
                 output_dir=output_dir,
                 scenario=scenario,
-                cyear=cyear,
+                wscenario=wscenario,
                 model_col=model_col,
                 rfc_col=rfc_col_str,
                 source_unit=source_unit,
@@ -552,7 +532,7 @@ def plot_benchmark(
                 year=year,
                 output_dir=output_dir,
                 scenario=scenario,
-                cyear=cyear,
+                wscenario=wscenario,
                 model_col=model_col,
                 rfc_source=rfc_source,
                 source_unit=source_unit,
@@ -573,6 +553,7 @@ def orchestrate_benchmark(
     output_dir: str,
     scenario: str,
     snapshots: dict[str, str],
+    wscenarios: dict[int, int],
     options: dict,
     tech_colors: dict,
     bench_colors: dict,
@@ -585,6 +566,9 @@ def orchestrate_benchmark(
 
     table_bus_col_df_args = []
     for table in options["tables"]:
+        if table not in benchmarks_raw.table.values:
+            logger.info(f"Skipping plots for table '{table}', no data to compare.")
+            continue
         opt = options["tables"][table]
         bus_col_name_t = get_bus_col_name(bus_col_name, table)
         for bus_col in (
@@ -615,6 +599,7 @@ def orchestrate_benchmark(
         output_dir=output_dir_bus_col,
         scenario=scenario,
         snapshots=snapshots,
+        wscenarios=wscenarios,
         options=options,
         tech_colors=tech_colors,
         bench_colors=bench_colors,
@@ -628,7 +613,7 @@ def plot_overview(
     indicators: pd.DataFrame,
     fn: str,
     scenario: str,
-    snapshots: dict[str, str],
+    wscenarios: dict[int, int],
     metric: str = "sMAPE",
     bus_col_name: str = "bus",
 ):
@@ -643,8 +628,8 @@ def plot_overview(
         Output filename.
     scenario : str
         Scenario name.
-    snapshots : dict[str, str]
-        Dictionary defining the temporal range with 'start' and 'end' keys.
+    wscenarios : dict[int, int]
+        Weather scenario per planning horizon.
     metric : str, default "sMAPE"
         Metric to plot.
     bus_col_name : str, default "bus"
@@ -653,7 +638,7 @@ def plot_overview(
     fig = Figure(figsize=(12, FIGURE_HEIGHT_DEFAULT))
     FigureCanvasAgg(fig)
     ax = fig.subplots()
-    cyear = get_snapshots(snapshots)[0].year
+    wscenario = ", ".join(f"{ws} ({year})" for year, ws in wscenarios.items())
 
     # Keep relevant indicators and rows
     df_clean = indicators[[metric, "Missing carriers"]].dropna()
@@ -669,7 +654,7 @@ def plot_overview(
         width=0.7,
         xlabel="",
         ylabel=metric,
-        title=f"Comparison of Open-TYNDP and TYNDP 2024 outputs by {bus_col_name}, CY {cyear} and {scenario} scenario\n{metric} accuracy indicator (a lower error is better)",
+        title=f"Comparison of Open-TYNDP and TYNDP reference outputs by {bus_col_name}, WS {wscenario} and {scenario} scenario\n{metric} accuracy indicator (a lower error is better)",
         legend=True,
         ylim=[0, max(df_clean[metric].max() + 0.1, 1)],
     )
@@ -729,8 +714,7 @@ if __name__ == "__main__":
     scenario = snakemake.params["scenario"]
     snapshots = snakemake.params.snapshots
     benchmarks_fn = snakemake.input.benchmarks
-    vp_data_fn = snakemake.input.vp_data
-    mm_data_fn = snakemake.input.mm_data
+    dashboard_data_fn = snakemake.input.dashboard_data
     results_fn = snakemake.input.results
     output_dir = Path(snakemake.output.dir)
     threads = snakemake.threads
@@ -740,9 +724,12 @@ if __name__ == "__main__":
         benchmarks_fn=benchmarks_fn,
         results_fn=results_fn,
         scenario="TYNDP " + scenario,
-        vp_data_fn=vp_data_fn,
-        mm_data_fn=mm_data_fn,
+        dashboard_data_fn=dashboard_data_fn,
     )
+    wscenarios = {
+        year: get_wscenario(snakemake.params.wscenarios, year)
+        for year in sorted(benchmarks_raw.year.unique())
+    }
 
     # Produce benchmark figures
     for bus_col_name, kpis_in, kpis_out, enabled in [
@@ -766,6 +753,7 @@ if __name__ == "__main__":
                 output_dir=output_dir,
                 scenario=scenario,
                 snapshots=snapshots,
+                wscenarios=wscenarios,
                 options=options,
                 tech_colors=tech_colors,
                 bench_colors=bench_colors,
@@ -773,7 +761,7 @@ if __name__ == "__main__":
             )
             indicators = pd.read_csv(kpis_in, index_col=0)
             plot_overview(
-                indicators, kpis_out, scenario, snapshots, bus_col_name=bus_col_name
+                indicators, kpis_out, scenario, wscenarios, bus_col_name=bus_col_name
             )
         else:
             Path(kpis_out).touch()

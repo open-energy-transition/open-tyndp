@@ -61,21 +61,6 @@ scenarios = get_scenarios(run)
 
 validate_scenarios(config, scenarios)
 
-selected_runs = run["name"] if isinstance(run["name"], list) else [run["name"]]
-unsupported = {
-    name
-    for name in selected_runs
-    if scenarios.get(name, {}).get("tyndp_scenario", config["tyndp_scenario"])
-    in ("DE", "GA")
-}
-if unsupported:
-    logger.warning(
-        f"Selected run(s) {sorted(unsupported)} use the DE or GA scenario. "
-        "Only the National Trends (NT) scenario is implemented, validated and benchmarked in Open-TYNDP. "
-        "DE and GA are incomplete, unsupported, and there are no plans to support them within Open-TYND. The workflow may "
-        "fail for these scenarios, and any results it does produce are not validated."
-    )
-
 RDIR = get_rdir(run)
 PROJ_DIR = Path(workflow.snakefile).parent
 
@@ -175,7 +160,7 @@ if config["foresight"] != "perfect":
         resources("maps/clustered_network.pdf"),
         RESULTS + "maps/static/power_network_{horizon}.pdf",
     ]
-    if config["sector"]["enabled"]:
+    if config["sector"]["enabled"] and not config["tyndp_scenario"]:
         NETWORK_PLOT_OUTPUTS.append(RESULTS + "graphs/cop_profiles_{horizon}.html")
     TIMESERIES_OUTPUTS = [
         RESULTS + "graphs/balance_timeseries_{horizon}",
@@ -261,23 +246,6 @@ def input_all_tyndp(w):
                 (resources("maps/base_h2_network_{horizon}.pdf")),
                 run=runs,
                 horizon=config["planning_horizons"],
-            )
-        )
-    if runs := runs_with("sector", "offshore_hubs_tyndp", "enable"):
-        files.extend(
-            expand(
-                (resources("maps/base_offshore_network_{horizon}_{carrier}.pdf")),
-                run=runs,
-                horizon=config["planning_horizons"],
-                carrier=config_provider("plotting", "offshore_maps", "bus_carriers")(w),
-            )
-        )
-        files.extend(
-            expand(
-                (RESULTS + "maps/static/offshore_network_{carrier}_{horizon}.pdf"),
-                run=runs,
-                horizon=config["planning_horizons"],
-                carrier=config_provider("plotting", "offshore_maps", "bus_carriers")(w),
             )
         )
     if runs := runs_with("benchmarking", "enable"):

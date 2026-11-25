@@ -42,7 +42,9 @@ nav:
     - FAQ and Troubleshooting: faq_troubleshooting.md
   - References:
     - Release Notes: release_notes.md
-    - Migration Guide: migration.md
+    - Migration Guide:
+      - PyPSA-Eur workflow: migration.md
+      - Open-TYNDP 2024 → 2026: migration_tyndp_2026.md
     - Licenses: licenses.md
     - Limitations: limitations.md
     - FAQ and Troubleshooting: faq.md
@@ -76,6 +78,7 @@ nav:
 - Data Sources:
   - Data Sources: data_sources.md
   - TYNDP 2024 Data: tyndp_2024.md
+  - TYNDP 2026 Data: tyndp_2026.md
   - Base Network: data-base-network.md
   - Cutouts: data-cutouts.md
   - Data Repositories: data-repos.md

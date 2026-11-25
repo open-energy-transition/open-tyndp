@@ -409,60 +409,11 @@ def load_and_aggregate_powerplants(
     return pd.concat([aggregated, disaggregated])
 
 
-def _patch_elec_demand(load, patch_load, patch_demand_fn) -> pd.DataFrame:
-    """
-    Patch electricity load time series for given list of nodes from given alternative demand data.
-
-    Parameters
-    ----------
-    load : pd.DataFrame
-        Dataframe with electricity load time series per node.
-    patch_load : list[str] | bool
-        List of nodes to patch demand for. If true instead, patch will be applied to all nodes.
-    patch_demand_fn : str
-        Path to file with alternative electricity demand data per node.
-
-    Returns
-    -------
-    load : pd.DataFrame
-        Load time-series with applied patches from alternative demand data.
-
-    """
-    if not patch_demand_fn:
-        # Where no file is available, we cannot apply any patch
-        return load
-
-    # Determine nodes to be patched
-    if patch_load is True:
-        # either all nodes
-        patch_nodes = load.columns.tolist()
-    else:
-        # or patch_load already specifies a list of specific nodes to be patched
-        patch_nodes = patch_load
-
-    # Read alternative demand data
-    patch_demand = (
-        pd.read_csv(patch_demand_fn, index_col=0, parse_dates=True)
-        .reindex(load.index)
-        .dropna(how="all")
-    )
-
-    if not patch_demand.empty:
-        logger.info(
-            f"Patching electricity demand with alternative demand data from {patch_demand_fn} for {'all nodes' if patch_load is True else patch_nodes}."
-        )
-        load.loc[:, patch_nodes] = patch_demand.loc[:, patch_nodes]
-
-    return load
-
-
 def attach_load(
     n: pypsa.Network,
     load_fn: str,
     scaling: float = 1.0,
     overwrite: bool = False,
-    patch_load: bool = False,
-    patch_demand_fn: str = None,
 ) -> None:
     """
     Attach clustered load data to the network.
@@ -477,10 +428,6 @@ def attach_load(
         Scaling factor for the load data, by default 1.0.
     overwrite : bool, optional
         Overwrite the load instead of setting it
-    patch_load : bool, optional
-        Whether to patch demand with alternative demand, by default False.
-    patch_demand_fn : str, None
-        Path to file with alternative electricity demand per node.
     """
     load = (
         xr.open_dataarray(load_fn)
@@ -489,11 +436,6 @@ def attach_load(
         .unstack(level="time")
         .T
     )
-
-    if patch_load:
-        load = _patch_elec_demand(
-            load=load, patch_load=patch_load, patch_demand_fn=patch_demand_fn
-        )
 
     logger.info(f"Load data scaled by factor {scaling}.")
     load *= scaling
@@ -566,7 +508,6 @@ def attach_wind_and_solar(
     extendable_carriers: list | set,
     line_length_factor: float = 1.0,
     landfall_lengths: dict = None,
-    trajectories: pd.DataFrame = pd.DataFrame(),
     planning_horizon: int = None,
 ) -> None:
     """
@@ -588,9 +529,6 @@ def attach_wind_and_solar(
         Factor to scale the line length, by default 1.0.
     landfall_lengths : dict, optional
         Dictionary containing the landfall lengths for offshore wind, by default None.
-    trajectories : pd.DataFrame, optional, by default None
-        DataFrame containing the trajectories for the current pyear to attach (p_nom_min and p_nom_max). When
-        provided, these values override any p_nom_max defined in the profile itself.
     planning_horizon: int, optional
         Planning horizon for which renewable profiles should be added. Optional input defaults to None. If
         year is part of the coordinates and planning_horizon is None, then the first year is used by default.
@@ -607,6 +545,14 @@ def attach_wind_and_solar(
         landfall_length = landfall_lengths.get(car, 0.0)
 
         with xr.open_dataset(profile_filenames["profile_" + car]) as ds:
+            missing = ds.indexes["bus"].difference(n.buses.index)
+            if not missing.empty:
+                logger.warning(
+                    f"Skipping {car} on {len(missing)} buses not in the network "
+                    f"({', '.join(missing)})."
+                )
+                ds = ds.drop_sel(bus=missing)
+
             if ds.indexes["bus"].empty:
                 continue
 
@@ -619,7 +565,7 @@ def attach_wind_and_solar(
             ds = ds.stack(bus_bin=["bus", "bin"])
 
             supcar = car.split("-", 2)[0]
-            if supcar == "offwind":
+            if car in ["offwind-ac", "offwind-dc", "offwind-float"]:
                 distance = ds["average_distance"].to_pandas()
                 distance.index = distance.index.map(flatten)
                 submarine_cost = costs.at[car + "-connection-submarine", "capital_cost"]
@@ -653,24 +599,11 @@ def attach_wind_and_solar(
             buses = ds.indexes["bus_bin"].get_level_values("bus")
             bus_bins = ds.indexes["bus_bin"].map(flatten)
 
-            if not trajectories.empty:
-                p_nom_max_min = (
-                    trajectories.query("carrier == @car")
-                    .groupby("bus")[["p_nom_max", "p_nom_min"]]
-                    .sum()
-                )
-                p_nom_max_min = p_nom_max_min.reindex(
-                    ds.indexes["bus_bin"].get_level_values("bus"), fill_value=0
-                ).set_axis(ds.indexes["bus_bin"].map(flatten), axis=0)
-                p_nom_max = p_nom_max_min["p_nom_max"]
-                p_nom_min = p_nom_max_min["p_nom_min"]
-            elif "p_nom_max" in ds.data_vars:
+            if "p_nom_max" in ds.data_vars:
                 p_nom_max = ds["p_nom_max"].to_pandas()
                 p_nom_max.index = p_nom_max.index.map(flatten)
-                p_nom_min = 0.0
             else:
                 p_nom_max = np.inf
-                p_nom_min = 0.0
 
             p_max_pu = ds["profile"].to_pandas()
             p_max_pu.columns = p_max_pu.columns.map(flatten)
@@ -681,7 +614,6 @@ def attach_wind_and_solar(
                 suffix=" " + car,
                 bus=buses,
                 carrier=car,
-                p_nom_min=p_nom_min,
                 p_nom_extendable=car in extendable_carriers["Generator"],
                 p_nom_max=p_nom_max,
                 marginal_cost=costs.at[supcar, "marginal_cost"],
@@ -1254,19 +1186,18 @@ def attach_stores(
     extendable_carriers : list
         List of extendable storage carrier names.
     tyndp_stores : list, optional
-        List of TYNDP store carriers. When `battery` is included, the battery
+        List of TYNDP store carriers. When `battery` and `home battery` are included, the battery
         lookup is overridden to use exogenous TYNDP component names.
     """
     store_lookup = STORE_LOOKUP.copy()
-    if "battery" in tyndp_stores:
-        store_lookup["battery"] = {
-            "store": "battery",
-            "bicharger": "battery bicharger",
+    for carrier in [c for c in tyndp_stores if c.endswith("battery")]:
+        store_lookup[carrier] = {
+            "store": f"{carrier} storage",
+            "bicharger": f"{carrier} bicharger",
             "roundtrip_correction": 0.5,
         }
-        extendable_carriers = extendable_carriers + (
-            ["battery"] if "battery" not in extendable_carriers else []
-        )
+        if carrier not in extendable_carriers:
+            extendable_carriers = extendable_carriers + [carrier]
 
     available_carriers = get_available_storage_carriers(
         extendable_carriers, store_lookup

@@ -250,9 +250,10 @@ def build_nodal_distribution_key(
     keys = pd.DataFrame(index=regions.index, columns=sectors, dtype=float)
 
     pop = pd.read_csv(snakemake.input.clustered_pop_layout, index_col=0)
+    pop = pop.reindex(regions.index, fill_value=0)
     pop["country"] = pop.index.str[:2]
     ct_total = pop.total.groupby(pop["country"]).sum()
-    keys["population"] = pop.total / pop.country.map(ct_total)
+    keys["population"] = (pop.total / pop.country.map(ct_total)).fillna(0)
 
     for sector, country in product(sectors, countries):
         regions_ct = regions.index[regions.index.str.contains(country)]

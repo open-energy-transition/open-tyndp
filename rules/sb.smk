@@ -3,7 +3,8 @@
 # SPDX-License-Identifier: MIT
 
 
-from scripts.sb._helpers import safe_pyear, find_free_port
+from scripts.sb.build_tyndp_demand import DEMAND_TYPE_MAP
+from scripts.sb._helpers import safe_planning_horizon, find_free_port
 from shutil import unpack_archive, copy2
 from packaging.version import Version
 
@@ -22,44 +23,6 @@ if (PECD_DATASET := dataset_version("tyndp_pecd"))["source"] in ARCHIVE_SOURCES:
             dir=directory(PECD_DATASET["folder"]),
         log:
             "logs/retrieve_tyndp_pecd.log",
-        run:
-            copy2(input["zip_file"], output["dir"] + ".zip")
-            unpack_archive(output["dir"] + ".zip", output["dir"])
-            os.remove(output["dir"] + ".zip")
-
-
-if (VIS_PLFM_DATASET := dataset_version("tyndp_vis_plfm"))["source"] in ARCHIVE_SOURCES:
-
-    rule retrieve_tyndp_vp_data:
-        input:
-            zip_file=storage(VIS_PLFM_DATASET["url"]),
-        output:
-            dir=directory(VIS_PLFM_DATASET["folder"]),
-            elec_demand=f"{VIS_PLFM_DATASET['folder']}/250117_TYNDP2024Scenarios_Electricity_Demand.xlsx",
-            elec_flex=f"{VIS_PLFM_DATASET['folder']}/250117_TYNDP2024Scenarios_Electricity_Flexibility.xlsx",
-            elec_supply=f"{VIS_PLFM_DATASET['folder']}/250117_TYNDP2024Scenarios_Electricity_SupplyMix.xlsx",
-        log:
-            "logs/retrieve_tyndp_vp_data.log",
-        run:
-            copy2(input["zip_file"], output["dir"] + ".zip")
-            unpack_archive(output["dir"] + ".zip", output["dir"])
-            os.remove(output["dir"] + ".zip")
-
-
-if (NUC_PROFILES := dataset_version("tyndp_nuclear_profiles"))[
-    "source"
-] in ARCHIVE_SOURCES:
-
-    rule retrieve_tyndp_nuclear_profiles:
-        input:
-            # TODO Derive this from Market Model Outputs directly
-            zip_file=storage(NUC_PROFILES["url"]),
-        output:
-            dir=directory(NUC_PROFILES["folder"]),
-            nuclear_p_max_pu_2030=f"{NUC_PROFILES['folder']}/nuclear_p_max_pu_2030.csv",
-            nuclear_p_max_pu_2040=f"{NUC_PROFILES['folder']}/nuclear_p_max_pu_2040.csv",
-        log:
-            "logs/retrieve_tyndp_nuclear_profiles.log",
         run:
             copy2(input["zip_file"], output["dir"] + ".zip")
             unpack_archive(output["dir"] + ".zip", output["dir"])
@@ -110,24 +73,6 @@ def presolved_network(version: str, horizon: int | str) -> str:
     )
 
 
-# License - MIT - Copyright (c) 2021 Gavin Rehkemper
-# Website: https://github.com/gavinr/world-countries-centroids
-if (CENTROIDS_DATASET := dataset_version("countries_centroids"))["source"] in [
-    "primary",
-    *ARCHIVE_SOURCES,
-]:
-
-    rule retrieve_countries_centroids:
-        input:
-            centroids=storage(CENTROIDS_DATASET["url"]),
-        output:
-            f"{CENTROIDS_DATASET['folder']}/countries.geojson",
-        log:
-            "logs/retrieve_countries_centroids.log",
-        run:
-            copy2(input["centroids"], output[0])
-
-
 # Development
 #############
 if not "pre-built" in PECD_DATASET["version"]:
@@ -150,7 +95,7 @@ if not "pre-built" in PECD_DATASET["version"]:
         else:
             return f"{str(int(major)+1)}.0"
 
-    rule prepare_pecd_release:
+    rule prepare_tyndp_pecd_release:
         input:
             pecd_raw=PECD_DATASET["folder"],
         output:
@@ -158,80 +103,120 @@ if not "pre-built" in PECD_DATASET["version"]:
                 f"{PECD_DATASET['folder']}+pre-built.{get_pecd_prebuilt_version(increment_minor= True)}"
             ),
         log:
-            "logs/prepare_pecd_release.log",
+            "logs/prepare_tyndp_pecd_release.log",
         benchmark:
-            benchmarks("performances/prepare_pecd_release")
+            "benchmarks/performances/prepare_tyndp_pecd_release"
         threads: 4
         resources:
             mem_mb=1000,
         params:
-            cyears=config_provider(
-                "electricity", "pecd_renewable_profiles", "pre_built", "cyears"
+            wscenarios=config_provider(
+                "electricity",
+                "pecd_renewable_profiles",
+                "pre_built",
+                "wscenarios",
             ),
-            available_pyears=config_provider(
+            available_years=config_provider(
                 "electricity", "pecd_renewable_profiles", "available_years"
             ),
         script:
-            scripts("sb/prepare_pecd_release.py")
+            scripts("sb/prepare_tyndp_pecd_release.py")
 
 
 # Build electricity
 ###################
 
 
-rule clean_tyndp_electricity_demand:
+def get_wscenario_tyndp(w):
+    """Get the preferred TYNDP 2026 weather scenario (climate year column index) for a given planning horizon."""
+    wscenarios = config_provider("wscenarios_tyndp")(w)
+    planning_horizon = safe_planning_horizon(
+        w.horizon,
+        available_years=sorted(wscenarios),
+        source="TYNDP demand weather scenario",
+        verbose=False,
+    )
+    return wscenarios[planning_horizon][0]
+
+
+rule build_tyndp_demand:
     input:
-        electricity_demand=rules.retrieve_tyndp.output.demand_profiles,
+        demand=rules.retrieve_tyndp_2026.output.demand_profiles,
     output:
-        electricity_demand_prepped=resources("electricity_demand_raw_tyndp.csv"),
+        demand=resources("demand_tyndp_{demand_type}_{horizon}.csv"),
     log:
-        logs("clean_tyndp_electricity_demand.log"),
+        logs("build_tyndp_demand_{demand_type}_{horizon}.log"),
     benchmark:
-        benchmarks("performances/clean_tyndp_electricity_demand")
-    conda:
-        "../envs/environment.yaml"
-    threads: 4
+        benchmarks("performances/build_tyndp_demand_{demand_type}_{horizon}")
+    wildcard_constraints:
+        # Limited to the demand types the workflow knows how to process
+        demand_type="|".join(DEMAND_TYPE_MAP),
+    threads: 1
     resources:
         mem_mb=4000,
     params:
-        planning_horizons=config_provider("planning_horizons"),
         snapshots=config_provider("snapshots"),
-        scenario=config_provider("tyndp_scenario"),
-        available_years=config_provider("load", "available_years_tyndp"),
+        drop_leap_day=config_provider("enable", "drop_leap_day"),
+        wscenarios=config_provider("wscenarios_tyndp"),
     script:
-        scripts("sb/clean_tyndp_electricity_demand.py")
+        scripts("sb/build_tyndp_demand.py")
 
 
-use rule build_electricity_demand as build_electricity_demand_tyndp with:
+rule build_tyndp_cop_profiles:
     input:
-        unpack(input_elec_demand),
-        tyndp=rules.clean_tyndp_electricity_demand.output.electricity_demand_prepped,
+        heat=rules.retrieve_tyndp_2026.output.hybrid_hp_modelling,
     output:
-        resources("electricity_demand_{horizon}.csv"),
+        cop_profiles=resources("cop_profiles_tyndp_{horizon}.nc"),
     log:
-        logs("build_electricity_demand_{horizon}.log"),
+        logs("build_tyndp_cop_profiles_{horizon}.log"),
     benchmark:
-        benchmarks("performances/build_electricity_demand_{horizon}")
+        benchmarks("performances/build_tyndp_cop_profiles_{horizon}")
+    threads: 1
+    resources:
+        mem_mb=4000,
+    params:
+        snapshots=config_provider("snapshots"),
+        drop_leap_day=config_provider("enable", "drop_leap_day"),
+        wscenarios=config_provider("wscenarios_tyndp"),
+    script:
+        scripts("sb/build_tyndp_cop_profiles.py")
+
+
+rule build_tyndp_hybrid_heating:
+    input:
+        heat=rules.retrieve_tyndp_2026.output.hybrid_hp_modelling,
+    output:
+        boilers=resources("hybrid_heating_boilers_{horizon}.csv"),
+    log:
+        logs("build_tyndp_hybrid_heating_{horizon}.log"),
+    benchmark:
+        benchmarks("performances/build_tyndp_hybrid_heating_{horizon}")
+    threads: 1
+    resources:
+        mem_mb=1000,
+    script:
+        scripts("sb/build_tyndp_hybrid_heating.py")
 
 
 def get_pecd_prebuilt(w):
     if "pre-built" in PECD_DATASET["version"]:
         return rules.retrieve_tyndp_pecd.output.dir
     else:
-        return rules.prepare_pecd_release.output.pecd_prebuilt
+        return rules.prepare_tyndp_pecd_release.output.pecd_prebuilt
 
 
-rule clean_pecd_data:
+rule clean_tyndp_pecd_data:
     input:
         pecd_prebuilt=get_pecd_prebuilt,
-        offshore_buses=rules.retrieve_tyndp.output.offshore_nodes,
-        onshore_buses=resources("busmap_cluster_network.csv"),
+        buses_tyndp=rules.build_tyndp_network.output.substations,
+        pemmdb_capacities=resources("pemmdb_capacities_{horizon}.csv"),
+        carrier_mapping="data/tyndp_technology_map.csv",
     output:
         pecd_data_clean=resources("pecd_data_{technology}_{horizon}.csv"),
     log:
-        logs("clean_pecd_data_{technology}_{horizon}.log"),
+        logs("clean_tyndp_pecd_data_{technology}_{horizon}.log"),
     benchmark:
-        benchmarks("performances/clean_pecd_data_{technology}_{horizon}")
+        benchmarks("performances/clean_tyndp_pecd_data_{technology}_{horizon}")
     threads: 4
     resources:
         mem_mb=4000,
@@ -244,11 +229,9 @@ rule clean_pecd_data:
         available_years=config_provider(
             "electricity", "pecd_renewable_profiles", "available_years"
         ),
-        prebuilt_years=config_provider(
-            "electricity", "pecd_renewable_profiles", "pre_built", "cyears"
-        ),
+        wscenario=get_wscenario_tyndp,
     script:
-        scripts("sb/clean_pecd_data.py")
+        scripts("sb/clean_tyndp_pecd_data.py")
 
 
 def input_data_pecd(w):
@@ -256,13 +239,15 @@ def input_data_pecd(w):
         "electricity", "pecd_renewable_profiles", "available_years"
     )(w)
     planning_horizons = config_provider("planning_horizons")(w)
-    safe_pyears = set(
-        safe_pyear(year, available_years, "PECD", verbose=False)
+    safe_planning_horizons = set(
+        safe_planning_horizon(year, available_years, "PECD", verbose=False)
         for year in planning_horizons
     )
     return {
-        f"pecd_data_{pyear}": resources("pecd_data_{technology}_" + str(pyear) + ".csv")
-        for pyear in safe_pyears
+        f"pecd_data_{planning_horizon}": resources(
+            "pecd_data_{technology}_" + str(planning_horizon) + ".csv"
+        )
+        for planning_horizon in safe_planning_horizons
     }
 
 
@@ -295,87 +280,55 @@ pemmdb_techs = branch(
 )
 
 
-rule build_pemmdb_data:
+rule build_tyndp_pemmdb_data:
     input:
-        pemmdb_dir=rules.retrieve_tyndp.output.pemmdb,
+        pemmdb_dir=rules.retrieve_tyndp_2026.output.pemmdb,
         carrier_mapping="data/tyndp_technology_map.csv",
-        busmap=resources("busmap_cluster_network.csv"),
+        buses_tyndp=rules.build_tyndp_network.output.substations,
     output:
         pemmdb_capacities=resources("pemmdb_capacities_{horizon}.csv"),
         pemmdb_profiles=resources("pemmdb_profiles_{horizon}.nc"),
     log:
-        logs("build_pemmdb_data_{horizon}.log"),
+        logs("build_tyndp_pemmdb_data_{horizon}.log"),
     benchmark:
-        benchmarks("performances/build_pemmdb_data_{horizon}")
+        benchmarks("performances/build_tyndp_pemmdb_data_{horizon}")
     threads: config_provider("electricity", "pemmdb_capacities", "nprocesses")
     resources:
         mem_mb=16000,
     params:
         pemmdb_techs=pemmdb_techs,
+        wscenarios=config_provider("wscenarios_tyndp"),
         snapshots=config_provider("snapshots"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
         available_years=config_provider(
             "electricity", "pemmdb_capacities", "available_years"
         ),
-        tyndp_scenario=config_provider("tyndp_scenario"),
     script:
-        scripts("sb/build_pemmdb_data.py")
+        scripts("sb/build_tyndp_pemmdb_data.py")
 
 
-def get_elec_project_build_years(w):
-    return config_provider("tyndp_investment_candidates", "elec_projects")(w)[
-        int(w.horizon)
-    ]
-
-
-def get_h2_project_build_years(w):
-    return config_provider("tyndp_investment_candidates", "h2_projects")(w)[
-        int(w.horizon)
-    ]
-
-
-rule build_tyndp_transmission_projects:
+rule build_tyndp_nuclear_profiles:
     input:
-        buses_elec=rules.build_tyndp_network.output.substations_geojson,
-        buses_h2=rules.build_tyndp_network.output.substations_h2_geojson,
-        invest_grid=rules.retrieve_tyndp.output.invest_grid,
+        dashboard_dir=rules.retrieve_tyndp_2026.output.market_outputs,
     output:
-        new_links_elec=resources("tyndp/new_links_{horizon}.csv"),
-        new_links_h2=resources("tyndp/new_links_h2_{horizon}.csv"),
+        resources("tyndp_nuclear_profiles/nuclear_p_max_pu_{horizon}.csv"),
     log:
-        logs("build_tyndp_transmission_projects_{horizon}.log"),
+        logs("build_tyndp_nuclear_profiles_{horizon}.log"),
     benchmark:
-        benchmarks("performances/build_tyndp_transmission_projects_{horizon}")
-    threads: 1
-    resources:
-        mem_mb=1000,
-    params:
-        build_years_elec=get_elec_project_build_years,
-        build_years_h2=get_h2_project_build_years,
-    script:
-        scripts("sb/build_tyndp_transmission_projects.py")
-
-
-rule build_tyndp_trajectories:
-    input:
-        trajectories=rules.retrieve_tyndp.output.trajectories,
-        carrier_mapping="data/tyndp_technology_map.csv",
-    output:
-        tyndp_trajectories=resources("tyndp_trajectories.csv"),
-    log:
-        logs("build_tyndp_trajectories.log"),
-    benchmark:
-        benchmarks("performances/build_tyndp_trajectories")
+        benchmarks("performances/build_tyndp_nuclear_profiles_{horizon}")
     threads: 4
+    resources:
+        mem_mb=2000,
     params:
-        tyndp_scenario=config_provider("tyndp_scenario"),
+        wscenarios=config_provider("wscenarios_tyndp"),
+        snapshots=config_provider("snapshots"),
     script:
-        scripts("sb/build_tyndp_trajectories.py")
+        scripts("sb/build_tyndp_nuclear_profiles.py")
 
 
 rule clean_tyndp_hydro_inflows:
     input:
-        hydro_inflows_dir=rules.retrieve_tyndp.output.hydro_inflows,
+        hydro_inflows_dir=rules.retrieve_tyndp_2026.output.hydro_inflows,
         busmap=resources("busmap_cluster_network.csv"),
     output:
         hydro_inflows_tyndp=resources("hydro_inflows_tyndp_{tech}_{horizon}.csv"),
@@ -389,34 +342,35 @@ rule clean_tyndp_hydro_inflows:
         snapshots=config_provider("snapshots"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
         available_years=config_provider(
-            "electricity", "pemmdb_hydro_profiles", "available_years"
+            "electricity", "pecd_hydro_profiles", "available_years"
         ),
+        wscenarios=config_provider("wscenarios_tyndp"),
     script:
         scripts("sb/clean_tyndp_hydro_inflows.py")
 
 
 def input_data_hydro_tyndp(w):
     available_years = config_provider(
-        "electricity", "pemmdb_hydro_profiles", "available_years"
+        "electricity", "pecd_hydro_profiles", "available_years"
     )(w)
     planning_horizons = config_provider("planning_horizons")(w)
-    safe_pyears = set(
-        safe_pyear(
+    safe_planning_horizons = set(
+        safe_planning_horizon(
             year,
             available_years,
-            "PEMMDB hydro",
+            "PECD hydro",
             verbose=False,
         )
         for year in planning_horizons
     )
     technologies = config_provider(
-        "electricity", "pemmdb_hydro_profiles", "technologies"
+        "electricity", "pecd_hydro_profiles", "technologies"
     )(w)
     return {
-        f"hydro_inflow_tyndp_{tech}_{pyear}": resources(
-            f"hydro_inflows_tyndp_{tech}_{str(pyear)}.csv"
+        f"hydro_inflow_tyndp_{tech}_{planning_horizon}": resources(
+            f"hydro_inflows_tyndp_{tech}_{str(planning_horizon)}.csv"
         )
-        for pyear in safe_pyears
+        for planning_horizon in safe_planning_horizons
         for tech in technologies
     }
 
@@ -426,7 +380,7 @@ rule build_tyndp_hydro_profile:
         unpack(input_data_hydro_tyndp),
         carrier_mapping="data/tyndp_technology_map.csv",
     output:
-        profile=resources("pemmdb_hydro_profile.nc"),
+        profile=resources("pecd_hydro_profile.nc"),
     log:
         logs("build_tyndp_hydro_profile.log"),
     benchmark:
@@ -438,10 +392,10 @@ rule build_tyndp_hydro_profile:
         drop_leap_day=config_provider("enable", "drop_leap_day"),
         planning_horizons=config_provider("planning_horizons"),
         available_years=config_provider(
-            "electricity", "pemmdb_hydro_profiles", "available_years"
+            "electricity", "pecd_hydro_profiles", "available_years"
         ),
         technologies=config_provider(
-            "electricity", "pemmdb_hydro_profiles", "technologies"
+            "electricity", "pecd_hydro_profiles", "technologies"
         ),
     script:
         scripts("sb/build_tyndp_hydro_profile.py")
@@ -454,7 +408,7 @@ use rule build_electricity_demand_base as build_electricity_demand_base_tyndp wi
         gb_excel=[],
         gb_geojson=[],
         nuts3=[],
-        load=resources("electricity_demand_{horizon}.csv"),
+        load=resources("demand_tyndp_electricity_market_{horizon}.csv"),
     output:
         resources("electricity_demand_simplified_{horizon}.nc"),
     log:
@@ -481,7 +435,7 @@ use rule cluster_electricity_demand as cluster_electricity_demand_tyndp with:
 
 rule build_tyndp_gas_demand:
     input:
-        supply_tool=rules.retrieve_tyndp.output.supply_tool,
+        supply_tool=rules.retrieve_tyndp_2026.output.supply_tool,
     output:
         gas_demand=resources("gas_demand_tyndp_{horizon}.csv"),
     log:
@@ -494,50 +448,61 @@ rule build_tyndp_gas_demand:
     resources:
         mem_mb=1000,
     params:
-        scenario=config_provider("tyndp_scenario"),
-        planning_horizons=config_provider("planning_horizons"),
+        # TODO: add LEV and HEV Supply Tool workbooks
+        supply_tool_file=lambda w: {
+            "NT": "Supply Tool NT+ SCN 2026 for publication .xlsm"
+        }[config_provider("tyndp_scenario")(w)],
     script:
         scripts("sb/build_tyndp_gas_demand.py")
 
 
-rule build_tyndp_h2_demand:
+rule build_tyndp_wheeling_charges:
     input:
-        h2_demand=rules.retrieve_tyndp.output.demand_profiles,
+        wheeling_charges=rules.retrieve_tyndp_2026.output.wheeling_charges,
+        demand=rules.retrieve_tyndp_2026.output.demand_profiles,
     output:
-        h2_demand=resources("h2_demand_tyndp_{horizon}.csv"),
+        wheeling_charges=resources("wheeling_charges_tyndp.csv"),
     log:
-        logs("build_tyndp_h2_demand_{horizon}.log"),
+        logs("build_tyndp_wheeling_charges.log"),
     benchmark:
-        benchmarks("performances/build_tyndp_h2_demand_{horizon}")
+        benchmarks("performances/build_tyndp_wheeling_charges")
+    conda:
+        "../envs/environment.yaml"
     threads: 1
     resources:
         mem_mb=1000,
-    params:
-        snapshots=config_provider("snapshots"),
-        drop_leap_day=config_provider("enable", "drop_leap_day"),
-        scenario=config_provider("tyndp_scenario"),
     script:
-        scripts("sb/build_tyndp_h2_demand.py")
+        scripts("sb/build_tyndp_wheeling_charges.py")
 
 
-def include_tyndp_h2_projects(w):
-    horizons = config_provider("tyndp_investment_candidates", "h2_projects")(w)
-    if not horizons:
-        return False
-    return int(w.horizon) in horizons
+rule build_tyndp_ev_fleets:
+    input:
+        ev_market=resources("demand_tyndp_ev_market_{horizon}.csv"),
+        ev_prosumer=resources("demand_tyndp_ev_prosumer_{horizon}.csv"),
+        ev_modelling=rules.retrieve_tyndp_2026.output.ev_modelling,
+    output:
+        ev_demand=resources("ev_demand_tyndp_{horizon}.csv"),
+        ev_fleets=resources("ev_fleets_tyndp_{horizon}.csv"),
+        avail_profile=resources("avail_profile_tyndp_{horizon}.csv"),
+        dsm_profile=resources("dsm_profile_tyndp_{horizon}.csv"),
+    log:
+        logs("build_tyndp_ev_fleets_{horizon}.log"),
+    benchmark:
+        benchmarks("performances/build_tyndp_ev_fleets_{horizon}")
+    conda:
+        "../envs/environment.yaml"
+    threads: 1
+    resources:
+        mem_mb=1000,
+    script:
+        scripts("sb/build_tyndp_ev_fleets.py")
 
 
 rule build_tyndp_h2_network:
     input:
-        h2_reference_grid_entsoe=rules.retrieve_tyndp.output.h2_reference_grid_entsoe,
-        h2_reference_grid_entsos=rules.retrieve_tyndp.output.h2_reference_grid_entsos,
-        h2_projects=branch(
-            include_tyndp_h2_projects,
-            resources("tyndp/new_links_h2_{horizon}.csv"),
-        ),
+        h2_reference_grid=rules.retrieve_tyndp_2026.output.h2_reference_grid_entsos,
     output:
         h2_grid_prepped=resources("h2_reference_grid_tyndp_{horizon}.csv"),
-        interzonal_prepped=resources("h2_interzonal_tyndp_{horizon}.csv"),
     log:
         logs("build_tyndp_h2_network_{horizon}.log"),
     benchmark:
@@ -547,38 +512,17 @@ rule build_tyndp_h2_network:
     threads: 1
     resources:
         mem_mb=4000,
-    params:
-        snapshots=config_provider("snapshots"),
-        scenario=config_provider("tyndp_scenario"),
-        h2_reference_grid_source=config_provider("sector", "h2_reference_grid_source"),
     script:
         scripts("sb/build_tyndp_h2_network.py")
 
 
-rule clean_tyndp_h2_imports:
-    input:
-        import_potentials_raw=rules.retrieve_tyndp.output.h2_imports,
-        countries_centroids=rules.retrieve_countries_centroids.output,
-    output:
-        import_potentials_prepped=resources("h2_import_potentials_prepped.csv"),
-    log:
-        logs("clean_tyndp_h2_imports.log"),
-    benchmark:
-        benchmarks("performances/clean_tyndp_h2_imports")
-    conda:
-        "../envs/environment.yaml"
-    threads: 1
-    resources:
-        mem_mb=4000,
-    script:
-        scripts("sb/clean_tyndp_h2_imports.py")
-
-
 rule build_tyndp_h2_imports:
     input:
-        import_potentials_prepped=rules.clean_tyndp_h2_imports.output.import_potentials_prepped,
+        import_potentials_raw=rules.retrieve_tyndp_2026.output.h2_imports,
+        import_profiles_raw=rules.retrieve_tyndp_2026.output.h2_import_profiles,
     output:
-        import_potentials_filtered=resources("h2_import_potentials_{horizon}.csv"),
+        import_potentials=resources("h2_import_potentials_{horizon}.csv"),
+        import_profiles=resources("h2_import_profiles_{horizon}.csv"),
     log:
         logs("build_tyndp_h2_imports_{horizon}.log"),
     benchmark:
@@ -589,14 +533,33 @@ rule build_tyndp_h2_imports:
     resources:
         mem_mb=4000,
     params:
-        scenario=config_provider("tyndp_scenario"),
+        snapshots=config_provider("snapshots"),
+        drop_leap_day=config_provider("enable", "drop_leap_day"),
     script:
         scripts("sb/build_tyndp_h2_imports.py")
 
 
+rule build_tyndp_p2g_shares:
+    input:
+        p2g_emarket=rules.retrieve_tyndp_2026.output.p2g_emarket,
+    output:
+        p2g_shares=resources("p2g_shares_{horizon}.csv"),
+    log:
+        logs("build_tyndp_p2g_shares_{horizon}.log"),
+    benchmark:
+        benchmarks("performances/build_tyndp_p2g_shares_{horizon}")
+    conda:
+        "../envs/environment.yaml"
+    threads: 1
+    resources:
+        mem_mb=4000,
+    script:
+        scripts("sb/build_tyndp_p2g_shares.py")
+
+
 rule clean_tyndp_smr:
     input:
-        smr=rules.retrieve_tyndp.output.smr,
+        smr=rules.retrieve_tyndp_2026.output.smr,
     output:
         smr_prepped=resources("smr_data_prepped_{horizon}.csv"),
     log:
@@ -608,16 +571,13 @@ rule clean_tyndp_smr:
     threads: 1
     resources:
         mem_mb=4000,
-    params:
-        tyndp_scenario=config_provider("tyndp_scenario"),
-        h2_zones_tyndp=config_provider("sector", "h2_zones_tyndp"),
     script:
         scripts("sb/clean_tyndp_smr.py")
 
 
 rule clean_tyndp_h2_storages:
     input:
-        h2_storages=rules.retrieve_tyndp.output.h2_storages,
+        h2_storages=rules.retrieve_tyndp_2026.output.h2_storages,
     output:
         h2_storages_prepped=resources("h2_storages_prepped_{horizon}.csv"),
     log:
@@ -629,61 +589,44 @@ rule clean_tyndp_h2_storages:
     threads: 1
     resources:
         mem_mb=4000,
-    params:
-        tyndp_scenario=config_provider("tyndp_scenario"),
-        h2_zones_tyndp=config_provider("sector", "h2_zones_tyndp"),
     script:
         scripts("sb/clean_tyndp_h2_storages.py")
 
 
-rule build_tyndp_offshore_hubs:
+rule build_tyndp_synfuels:
     input:
-        nodes=rules.retrieve_tyndp.output.offshore_nodes,
-        grid=rules.retrieve_tyndp.output.offshore_grid,
-        electrolysers=rules.retrieve_tyndp.output.offshore_electrolysers,
-        generators=rules.retrieve_tyndp.output.offshore_generators,
+        synfuel_lines=rules.retrieve_tyndp_2026.output.synfuel_lines,
+        synfuel_generators=rules.retrieve_tyndp_2026.output.synfuel_generators,
     output:
-        offshore_buses=resources("offshore_buses.csv"),
-        offshore_grid=resources("offshore_grid.csv"),
-        offshore_electrolysers=resources("offshore_electrolysers.csv"),
-        offshore_generators=resources("offshore_generators.csv"),
-        offshore_zone_trajectories=resources("offshore_zone_trajectories.csv"),
+        synfuel_links=resources("synfuel_links_tyndp_{horizon}.csv"),
+        synfuel_generators=resources("synfuel_generators_tyndp_{horizon}.csv"),
     log:
-        logs("build_tyndp_offshore_hubs.log"),
+        logs("build_tyndp_synfuels_{horizon}.log"),
     benchmark:
-        benchmarks("performances/build_tyndp_offshore_hubs")
+        benchmarks("performances/build_tyndp_synfuels_{horizon}")
     conda:
         "../envs/environment.yaml"
     threads: 1
     resources:
-        mem_mb=4000,
+        mem_mb=1000,
     params:
-        planning_horizons=config_provider("planning_horizons"),
-        scenario=config_provider("tyndp_scenario"),
-        countries=config_provider("countries"),
-        offshore_hubs_tyndp=config_provider("sector", "offshore_hubs_tyndp"),
-        extendable_carriers=config_provider("electricity", "extendable_carriers"),
-        h2_zones_tyndp=config_provider("sector", "h2_zones_tyndp"),
+        synfuels=config_provider("sector", "synfuels_tyndp", "carriers"),
     script:
-        scripts("sb/build_tyndp_offshore_hubs.py")
+        scripts("sb/build_tyndp_synfuels.py")
 
 
 rule group_tyndp_conventionals:
     input:
-        pemmdb_capacities=resources("pemmdb_capacities_{planning_horizon}.csv"),
-        pemmdb_profiles=resources("pemmdb_profiles_{planning_horizon}.nc"),
+        pemmdb_capacities=resources("pemmdb_capacities_{horizon}.csv"),
+        pemmdb_profiles=resources("pemmdb_profiles_{horizon}.nc"),
         carrier_mapping="data/tyndp_technology_map.csv",
     output:
-        pemmdb_capacities_grouped=resources(
-            "pemmdb_capacities_{planning_horizon}_grouped.csv"
-        ),
-        pemmdb_profiles_grouped=resources(
-            "pemmdb_profiles_{planning_horizon}_grouped.nc"
-        ),
+        pemmdb_capacities_grouped=resources("pemmdb_capacities_{horizon}_grouped.csv"),
+        pemmdb_profiles_grouped=resources("pemmdb_profiles_{horizon}_grouped.nc"),
     log:
-        logs("group_tyndp_conventionals_{planning_horizon}.log"),
+        logs("group_tyndp_conventionals_{horizon}.log"),
     benchmark:
-        benchmarks("performances/group_tyndp_conventionals_{planning_horizon}")
+        benchmarks("performances/group_tyndp_conventionals_{horizon}")
     conda:
         "../envs/environment.yaml"
     threads: 1
@@ -722,87 +665,40 @@ if config["foresight"] != "perfect":
         script:
             scripts("sb/plot_base_hydrogen_network.py")
 
-    rule plot_base_offshore_network:
-        input:
-            network=resources("networks/composed_{horizon}.nc"),
-            regions_offshore=resources("offshore_regions.geojson"),
-        output:
-            map=resources("maps/base_offshore_network_{horizon}_{carrier}.pdf"),
-        log:
-            RESULTS + "logs/plot_base_offshore_network_{horizon}_{carrier}.log",
-        benchmark:
-            benchmarks("performances/plot_base_offshore_network_{horizon}_{carrier}")
-        conda:
-            "../envs/environment.yaml"
-        threads: 1
-        resources:
-            mem_mb=4000,
-        params:
-            plotting=config_provider("plotting"),
-            expanded=False,
-        script:
-            scripts("sb/plot_offshore_network.py")
-
-    use rule plot_base_offshore_network as plot_offshore_network with:
-        input:
-            network=RESULTS + "networks/solved_{horizon}.nc",
-        output:
-            map=RESULTS + "maps/static/offshore_network_{carrier}_{horizon}.pdf",
-        log:
-            RESULTS + "logs/plot_offshore_network_{horizon}_{carrier}.log",
-        benchmark:
-            benchmarks("performances/plot_offshore_network_{horizon}_{carrier}")
-        params:
-            expanded=True,
-
 
 # Benchmark
 ###########
 
 
-rule clean_tyndp_output_benchmark:
+rule clean_tyndp_dashboard_benchmark:
     input:
-        # TODO Generalize hardcoded climate year CY2009 for DE / GA
-        tyndp_output_file=lambda w: getattr(
-            rules.retrieve_tyndp.output,
-            f"market_outputs_{w.scenario}{w.horizon}_CY2009",
-        ),
+        dashboard_dir=rules.retrieve_tyndp_2026.output.market_outputs,
         carrier_mapping="data/tyndp_technology_map.csv",
     output:
         benchmarks=RESULTS
-        + "benchmarks/tyndp-2024/resources/benchmarks_tyndp_output_{scenario}{horizon}.csv",
-        crossborder=RESULTS
-        + "benchmarks/tyndp-2024/resources/benchmarks_tyndp_output_crossborder_{scenario}{horizon}.csv",
-        h2_demand=RESULTS
-        + "benchmarks/tyndp-2024/resources/benchmarks_tyndp_output_h2_demand_{scenario}{horizon}.csv",
-        elec_demand=RESULTS
-        + "benchmarks/tyndp-2024/resources/benchmarks_tyndp_output_elec_demand_{scenario}{horizon}.csv",
+        + "benchmarks/tyndp-2026/resources/benchmarks_tyndp_dashboard_{scenario}{horizon}.csv",
     log:
-        logs("clean_tyndp_output_benchmark_{scenario}{horizon}.log"),
+        logs("clean_tyndp_dashboard_benchmark_{scenario}{horizon}.log"),
     benchmark:
-        benchmarks("performances/clean_tyndp_output_benchmark_{scenario}{horizon}")
-    wildcard_constraints:
-        horizon="(2030|2040)",  # Only years with MM output data
+        benchmarks("performances/clean_tyndp_dashboard_benchmark_{scenario}{horizon}")
     threads: 4
     resources:
         mem_mb=8000,
     params:
         benchmarking=config_provider("benchmarking"),
         scenario=config_provider("tyndp_scenario"),
-        snapshots=config_provider("snapshots"),
-        drop_leap_day=config_provider("enable", "drop_leap_day"),
         countries=config_provider("countries"),
-        offshore_hubs=config_provider("sector", "offshore_hubs_tyndp", "enable"),
+        wscenarios=config_provider("wscenarios_tyndp"),
     script:
-        scripts("sb/clean_tyndp_output_benchmark.py")
+        scripts("sb/clean_tyndp_dashboard_benchmark.py")
 
 
 rule clean_tyndp_report_benchmark:
     input:
-        scenarios_figures=rules.retrieve_tyndp.output.benchmark,
+        scenarios_figures=rules.retrieve_tyndp_2026.output.benchmark,
         carrier_mapping="data/tyndp_technology_map.csv",
     output:
-        benchmarks=RESULTS + "benchmarks/tyndp-2024/resources/benchmarks_tyndp.csv",
+        benchmarks=RESULTS + "benchmarks/tyndp-2026/resources/benchmarks_tyndp.csv",
     log:
         logs("clean_tyndp_report_benchmark.log"),
     benchmark:
@@ -812,33 +708,8 @@ rule clean_tyndp_report_benchmark:
         mem_mb=8000,
     params:
         benchmarking=config_provider("benchmarking"),
-        scenario=config_provider("tyndp_scenario"),
-        snapshots=config_provider("snapshots"),
     script:
         scripts("sb/clean_tyndp_report_benchmark.py")
-
-
-rule clean_tyndp_vp_data:
-    input:
-        elec_demand=rules.retrieve_tyndp_vp_data.output.elec_demand,
-        elec_supplymix=rules.retrieve_tyndp_vp_data.output.elec_supply,
-        elec_flex=rules.retrieve_tyndp_vp_data.output.elec_flex,
-        carrier_mapping="data/tyndp_technology_map.csv",
-    output:
-        RESULTS + "benchmarks/tyndp-2024/resources/vp_data_tyndp.csv",
-    log:
-        logs("clean_tyndp_vp_data.log"),
-    benchmark:
-        benchmarks("performances/clean_tyndp_vp_data")
-    threads: 4
-    resources:
-        mem_mb=8000,
-    params:
-        scenario=config_provider("tyndp_scenario"),
-        snapshots=config_provider("snapshots"),
-        unit_conversion=config_provider("benchmarking", "unit_conversion"),
-    script:
-        scripts("sb/clean_tyndp_vp_data.py")
 
 
 rule build_statistics:
@@ -846,7 +717,7 @@ rule build_statistics:
         network=RESULTS + "networks/solved_{horizon}.nc",
         carrier_mapping="data/tyndp_technology_map.csv",
     output:
-        RESULTS + "benchmarks/tyndp-2024/resources/benchmarks_{horizon}.csv",
+        RESULTS + "benchmarks/tyndp-2026/resources/benchmarks_{horizon}.csv",
     log:
         python=logs("build_statistics_{horizon}.log"),
     benchmark:
@@ -857,14 +728,12 @@ rule build_statistics:
     params:
         benchmarking=config_provider("benchmarking"),
         scenario=config_provider("tyndp_scenario"),
-        tyndp_renewable_carriers=config_provider(
-            "electricity", "tyndp_renewable_carriers"
-        ),
         load_shedding=config_provider("solving", "options", "load_shedding", "carriers"),
         low_voltage=config_provider("sector", "electricity_distribution_grid"),
         group_tyndp_conventionals=config_provider(
             "electricity", "group_tyndp_conventionals"
         ),
+        synfuels=config_provider("sector", "synfuels_tyndp", "carriers"),
     script:
         scripts("sb/build_statistics.py")
 
@@ -872,31 +741,27 @@ rule build_statistics:
 rule make_benchmark:
     input:
         results=expand(
-            RESULTS + "benchmarks/tyndp-2024/resources/benchmarks_{horizon}.csv",
-            horizon=config["planning_horizons"],
+            RESULTS + "benchmarks/tyndp-2026/resources/benchmarks_{horizon}.csv",
+            horizon=config_provider("planning_horizons"),
             allow_missing=True,
         ),
-        benchmarks=RESULTS + "benchmarks/tyndp-2024/resources/benchmarks_tyndp.csv",
-        mm_data=lambda w: (
+        benchmarks=RESULTS + "benchmarks/tyndp-2026/resources/benchmarks_tyndp.csv",
+        dashboard_data=lambda w: (
             expand(
                 RESULTS
-                + "benchmarks/tyndp-2024/resources/benchmarks_tyndp_output_{scenario}{horizon}.csv",
+                + "benchmarks/tyndp-2026/resources/benchmarks_tyndp_dashboard_{scenario}{horizon}.csv",
                 scenario=config_provider("tyndp_scenario"),
-                horizon=[
-                    year
-                    for year in config_provider("planning_horizons")(w)
-                    if str(year) in ["2030", "2040"]  # Only years with MM output data
-                ],
+                horizon=config_provider("planning_horizons"),
                 allow_missing=True,
             )
             if config_provider("tyndp_scenario")(w)
-            == "NT"  # Only NT has MM output files for now
+            == "NT"  # Only NT has dashboard files for now
             else []
         ),
     output:
-        benchmarks=directory(RESULTS + "benchmarks/tyndp-2024/csvs_all_years/"),
-        kpis_by_bus=RESULTS + "benchmarks/tyndp-2024/kpis_all_years_by_bus.csv",
-        kpis_by_country=RESULTS + "benchmarks/tyndp-2024/kpis_all_years_by_country.csv",
+        benchmarks=directory(RESULTS + "benchmarks/tyndp-2026/csvs_all_years/"),
+        kpis_by_bus=RESULTS + "benchmarks/tyndp-2026/kpis_all_years_by_bus.csv",
+        kpis_by_country=RESULTS + "benchmarks/tyndp-2026/kpis_all_years_by_country.csv",
     log:
         logs("make_benchmark_all_years.log"),
     benchmark:
@@ -915,34 +780,29 @@ rule make_benchmark:
 rule plot_benchmark:
     input:
         results=expand(
-            RESULTS + "benchmarks/tyndp-2024/resources/benchmarks_{horizon}.csv",
-            horizon=config["planning_horizons"],
+            RESULTS + "benchmarks/tyndp-2026/resources/benchmarks_{horizon}.csv",
+            horizon=config_provider("planning_horizons"),
             allow_missing=True,
         ),
-        mm_data=lambda w: (
+        dashboard_data=lambda w: (
             expand(
                 RESULTS
-                + "benchmarks/tyndp-2024/resources/benchmarks_tyndp_output_{scenario}{horizon}.csv",
+                + "benchmarks/tyndp-2026/resources/benchmarks_tyndp_dashboard_{scenario}{horizon}.csv",
                 scenario=config_provider("tyndp_scenario"),
-                horizon=[
-                    year
-                    for year in config_provider("planning_horizons")(w)
-                    if str(year) in ["2030", "2040"]  # Only years with MM output data
-                ],
+                horizon=config_provider("planning_horizons"),
                 allow_missing=True,
             )
             if config_provider("tyndp_scenario")(w)
-            == "NT"  # Only NT has MM output files for now
+            == "NT"  # Only NT has dashboard files for now
             else []
         ),
-        benchmarks=RESULTS + "benchmarks/tyndp-2024/resources/benchmarks_tyndp.csv",
-        vp_data=RESULTS + "benchmarks/tyndp-2024/resources/vp_data_tyndp.csv",
-        kpis_by_bus=RESULTS + "benchmarks/tyndp-2024/kpis_all_years_by_bus.csv",
-        kpis_by_country=RESULTS + "benchmarks/tyndp-2024/kpis_all_years_by_country.csv",
+        benchmarks=RESULTS + "benchmarks/tyndp-2026/resources/benchmarks_tyndp.csv",
+        kpis_by_bus=RESULTS + "benchmarks/tyndp-2026/kpis_all_years_by_bus.csv",
+        kpis_by_country=RESULTS + "benchmarks/tyndp-2026/kpis_all_years_by_country.csv",
     output:
-        dir=directory(RESULTS + "benchmarks/tyndp-2024/graphics_all_years/"),
-        kpis_by_bus=RESULTS + "benchmarks/tyndp-2024/kpis_all_years_by_bus.pdf",
-        kpis_by_country=RESULTS + "benchmarks/tyndp-2024/kpis_all_years_by_country.pdf",
+        dir=directory(RESULTS + "benchmarks/tyndp-2026/graphics_all_years/"),
+        kpis_by_bus=RESULTS + "benchmarks/tyndp-2026/kpis_all_years_by_bus.pdf",
+        kpis_by_country=RESULTS + "benchmarks/tyndp-2026/kpis_all_years_by_country.pdf",
     log:
         logs("plot_benchmark_all_years.log"),
     benchmark:
@@ -956,6 +816,7 @@ rule plot_benchmark:
         snapshots=config_provider("snapshots"),
         tech_colors=config_provider("plotting", "tech_colors"),
         bench_colors=config_provider("plotting", "benchmarking", "colors"),
+        wscenarios=config_provider("wscenarios_tyndp"),
     script:
         scripts("sb/plot_benchmark.py")
 
@@ -990,16 +851,12 @@ rule build_renewable_profiles_pecds:
 rule prepare_benchmarks:
     input:
         expand(
-            RESULTS + "benchmarks/tyndp-2024/resources/benchmarks_{horizon}.csv",
+            RESULTS + "benchmarks/tyndp-2026/resources/benchmarks_{horizon}.csv",
             horizon=config["planning_horizons"],
             run=config["run"]["name"],
         ),
         expand(
-            RESULTS + "benchmarks/tyndp-2024/resources/benchmarks_tyndp.csv",
-            run=config["run"]["name"],
-        ),
-        expand(
-            RESULTS + "benchmarks/tyndp-2024/resources/vp_data_tyndp.csv",
+            RESULTS + "benchmarks/tyndp-2026/resources/benchmarks_tyndp.csv",
             run=config["run"]["name"],
         ),
 
@@ -1034,30 +891,17 @@ def input_pemmdb_datas(w):
     )(w)
     return list(
         {
-            safe_pyear(year, available_years, verbose=False)
+            safe_planning_horizon(year, available_years, verbose=False)
             for year in config_provider("planning_horizons")(w)
         }
     )
 
 
-rule build_pemmdb_and_trajectories:
+rule build_tyndp_pemmdb_datas:
     input:
         expand(
-            rules.build_pemmdb_data.output.pemmdb_capacities,
+            rules.build_tyndp_pemmdb_data.output.pemmdb_capacities,
             horizon=input_pemmdb_datas,
-            run=config["run"]["name"],
-        ),
-        expand(
-            resources("tyndp_trajectories.csv"),
-            run=config["run"]["name"],
-        ),
-
-
-rule build_tyndp_h2_demands:
-    input:
-        expand(
-            resources("h2_demand_tyndp_{horizon}.csv"),
-            horizon=config["planning_horizons"],
             run=config["run"]["name"],
         ),
 

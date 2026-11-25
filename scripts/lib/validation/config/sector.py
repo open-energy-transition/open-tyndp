@@ -11,7 +11,7 @@ See docs in https://open-tyndp.readthedocs.io/en/latest/configuration/#sector_cf
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from scripts.lib.validation.config._base import ConfigModel
 
@@ -225,6 +225,19 @@ class _MethanolConfig(BaseModel):
     )
 
 
+class _SynfuelsTyndpConfig(BaseModel):
+    """Configuration for `sector.synfuels_tyndp` settings."""
+
+    enable: bool = Field(
+        False,
+        description="Add TYNDP 2026 synthetic fuels. Requires `h2_topology_tyndp`. Cannot be combined with `industry` or `methanation`.",
+    )
+    carriers: dict[str, Literal["oil", "gas"]] = Field(
+        default_factory=lambda: {"e-liquids": "oil", "sng": "gas"},
+        description="Synthetic fuels and the fossil carrier that each fuel replaces.",
+    )
+
+
 class _TransmissionEfficiencyConfig(BaseModel):
     """Configuration for `sector.transmission_efficiency` settings."""
 
@@ -392,26 +405,6 @@ class _ImportsConfig(BaseModel):
     )
 
 
-class _OffshoreHubsTyndpConfig(BaseModel):
-    """Configuration for `sector.offshore_hubs_tyndp` settings."""
-
-    enable: bool = Field(
-        False,
-        description="Add option to include TYNDP offshore hubs.",
-    )
-    patch_crossborder_with_mm: bool = Field(
-        False,
-        description="Add option to patch the Offshore Hubs interconnector capacities with the Market Model output data.",
-    )
-    connect_isolated: bool = Field(
-        False, description="Copperplate isolated wind farms to the grid."
-    )
-    max_capacity: dict[str, float] = Field(
-        default_factory=lambda: {"DC_OH": 10, "H2 pipeline OH": 30},
-        description="Maximum transmission capacity between two offshore hubs of a carrier (GW). Keys are carrier names (e.g., 'DC_OH', 'H2 pipeline OH').",
-    )
-
-
 class SectorConfig(BaseModel):
     """Configuration for `sector` settings."""
 
@@ -419,7 +412,10 @@ class SectorConfig(BaseModel):
     transport: bool = Field(True, description="Add transport sector.")
     heating: bool = Field(True, description="Add heating sector.")
     biomass: bool = Field(True, description="Add biomass sector.")
-    industry: bool = Field(True, description="Add industry sector.")
+    industry: bool = Field(
+        True,
+        description="Add industry sector. Cannot be combined with `synfuels_tyndp: enable`.",
+    )
     shipping: bool = Field(True, description="Add shipping sector.")
     aviation: bool = Field(True, description="Add aviation sector.")
     agriculture: bool = Field(True, description="Add agriculture sector.")
@@ -549,6 +545,10 @@ class SectorConfig(BaseModel):
             2050: 0,
         },
         description="The share of vehicles that uses internal combustion engines (ICE) in a given year. What is not EV or FCEV is oil-fuelled ICE.",
+    )
+    land_transport_oil_demand_tyndp: dict[int, float] = Field(
+        default_factory=dict,
+        description="EU27 land transport (road and rail) liquids demand in TWh per planning horizon. For TYNDP scenarios, it is added as a flat demand instead of the PyPSA-Eur land transport.",
     )
 
     transport_electric_efficiency: float = Field(
@@ -701,7 +701,7 @@ class SectorConfig(BaseModel):
 
     methanation: bool = Field(
         True,
-        description="Add option for transforming hydrogen and CO2 into methane using methanation.",
+        description="Add option for transforming hydrogen and CO2 into methane using methanation. Cannot be combined with `synfuels_tyndp: enable`.",
     )
     coal_cc: bool = Field(
         False, description="Add option for coal CHPs with carbon capture."
@@ -894,17 +894,13 @@ class SectorConfig(BaseModel):
         False,
         description="Use TYNDP H2 topology for hydrogen network.",
     )
-    h2_reference_grid_source: Literal["entsoe", "entsos"] = Field(
-        "entsoe",
-        description="Source dataset for the TYNDP hydrogen reference grid. 'entsoe' uses StartingGrid2030.xlsx (from ENTSO-E landing page); 'entsos' uses ReferenceGrid_Hydrogen.xlsx (from ENTSOS Scenarios data Line Data dataset), with added H2 investment candidates.",
-    )
-    h2_zones_tyndp: bool = Field(
+    smr_ramp_limits_tyndp: bool = Field(
         False,
-        description="Add option to split TYNDP H2 nodes into two zones (Z1, Z1), currently only available for DE/GA scenarios.",
+        description="Add TYNDP ramp limits to SMR and SMR CCS links. Only used with `h2_topology_tyndp`.",
     )
-    h2_demand_patch_with_mm: bool = Field(
-        False,
-        description="Add option to patch the TYNDP H2 demand with the Market Model output data.",
+    synfuels_tyndp: _SynfuelsTyndpConfig = Field(
+        default_factory=_SynfuelsTyndpConfig,
+        description="TYNDP 2026 synthetic fuels configuration.",
     )
     gas_network: bool = Field(
         True,
@@ -1002,7 +998,22 @@ class SectorConfig(BaseModel):
     imports: _ImportsConfig = Field(
         default_factory=_ImportsConfig, description="Imports configuration."
     )
-    offshore_hubs_tyndp: _OffshoreHubsTyndpConfig = Field(
-        default_factory=_OffshoreHubsTyndpConfig,
-        description="TYNDP offshore hubs configuration.",
-    )
+
+    @model_validator(mode="after")
+    def check_synfuels_tyndp_requires_h2_topology(self) -> "SectorConfig":
+        """Validate that TYNDP synthetic fuels are used with the TYNDP H2 topology."""
+        if self.synfuels_tyndp.enable and not self.h2_topology_tyndp:
+            raise ValueError("`synfuels_tyndp: enable` requires `h2_topology_tyndp`.")
+        return self
+
+    @model_validator(mode="after")
+    def check_synfuels_tyndp_conflicts(self) -> "SectorConfig":
+        """Validate that TYNDP synthetic fuels are not combined with PyPSA-Eur ones."""
+        options = {"industry": self.industry, "methanation": self.methanation}
+        conflicts = ", ".join(f"`{key}`" for key, enabled in options.items() if enabled)
+        if self.synfuels_tyndp.enable and conflicts:
+            raise ValueError(
+                "`synfuels_tyndp: enable` cannot be combined with PyPSA-Eur "
+                f"synthetic fuels from {conflicts}."
+            )
+        return self

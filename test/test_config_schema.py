@@ -171,6 +171,29 @@ class TestValidateScenarios:
             validate_scenarios(self.base, {"s1": override})
 
 
+@pytest.mark.parametrize(
+    ("default_cutout", "source", "valid"),
+    [
+        ("europe-grid", "tyndp-archive", True),
+        ("europe-2013-sarah3-era5", "archive", True),
+        ("europe-2013-sarah3-era5", "tyndp-archive", False),
+        ("europe-grid", "archive", False),
+        ("europe-grid", "build", False),
+        (["europe-grid", "europe-2013-sarah3-era5"], "tyndp-archive", False),
+    ],
+)
+def test_grid_only_cutout_source(default_cutout, source, valid):
+    config = {
+        "atlite": {"default_cutout": default_cutout},
+        "data": {"cutout": {"source": source}},
+    }
+    if valid:
+        validate_config(config)
+    else:
+        with pytest.raises(ValueError, match="europe-grid"):
+            validate_config(config)
+
+
 def _load_config(path: str) -> dict:
     return yaml.safe_load(Path(path).read_text()) or {}
 

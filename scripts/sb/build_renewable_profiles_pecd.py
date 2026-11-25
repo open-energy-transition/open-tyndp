@@ -23,11 +23,8 @@ import logging
 import pandas as pd
 import xarray as xr
 
-from scripts._helpers import (
-    configure_logging,
-    set_scenario_config,
-)
-from scripts.sb._helpers import safe_pyear
+from scripts._helpers import configure_logging, set_scenario_config
+from scripts.sb._helpers import safe_planning_horizon
 
 logger = logging.getLogger(__name__)
 
@@ -43,17 +40,17 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     technology = snakemake.wildcards.technology
-    pyears = snakemake.params.planning_horizons
+    planning_horizons = snakemake.params.planning_horizons
 
     profiles = []
 
-    for year in pyears:
+    for year in planning_horizons:
         logger.info(
             f"Extract PECD capacity factor time series for year {year} for technology {technology}..."
         )
         year_i = year
-        # falling back to latest available pyear if not in list of available years
-        year = safe_pyear(
+        # falling back to latest available planning_horizon if not in list of available years
+        year = safe_planning_horizon(
             year, available_years=snakemake.params.available_years, source="PECD"
         )
 
