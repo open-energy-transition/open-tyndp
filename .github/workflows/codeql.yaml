@@ -22,6 +22,12 @@ on:
 jobs:
   analyze:
     name: Analyze (${{ matrix.language }})
+    # Skip pushes to archived cycle branches (tyndp-YYYY with YYYY <= CURRENT_CYCLE, see
+    # weekly-merge.yaml).
+    if: >-
+      github.event_name != 'push'
+      || !startsWith(github.ref_name, 'tyndp-')
+      || github.ref_name > format('tyndp-{0}', vars.CURRENT_CYCLE)
     # Runner size impacts CodeQL analysis time. To learn more, please see:
     #   - https://gh.io/recommended-hardware-resources-for-running-codeql
     #   - https://gh.io/supported-runners-and-hardware-resources
