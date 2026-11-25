@@ -95,6 +95,31 @@ def overwrite_costs(costs: pd.DataFrame, custom_costs: pd.DataFrame) -> pd.DataF
     return costs
 
 
+def align_btl_carbon_split(costs: pd.DataFrame) -> pd.DataFrame:
+    """
+    Derive the BtL carbon split from its efficiency and the oil CO2 intensity.
+
+    Keeps the carbon balance closed when the BtL efficiency or the oil CO2 intensity
+    are overwritten, as technology-data derives `C in fuel` from its own efficiency.
+
+    Parameters
+    ----------
+    costs : pd.DataFrame
+        Cost assumptions with BtL efficiency and CO2 intensities of solid biomass and oil.
+
+    Returns
+    -------
+    pd.DataFrame
+        Cost assumptions with updated BtL `C in fuel`, `C stored` and `CO2 stored`.
+    """
+    co2_in_biomass = costs.at["solid biomass", "CO2 intensity"]
+    co2_in_fuel = costs.at["BtL", "efficiency"] * costs.at["oil", "CO2 intensity"]
+    costs.at["BtL", "C in fuel"] = co2_in_fuel / co2_in_biomass
+    costs.at["BtL", "C stored"] = 1 - co2_in_fuel / co2_in_biomass
+    costs.at["BtL", "CO2 stored"] = co2_in_biomass - co2_in_fuel
+    return costs
+
+
 def prepare_costs(
     costs: pd.DataFrame,
     config: dict,
@@ -195,6 +220,8 @@ def prepare_costs(
                 DeprecationWarning,
             )
             logger.info(f"Overwriting {attr} with:\n{overwrites}")
+
+    costs = align_btl_carbon_split(costs)
 
     annuity_factor = calculate_annuity(costs["lifetime"], costs["discount rate"])
     annuity_factor_fom = annuity_factor + costs["FOM"] / 100.0
