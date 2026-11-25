@@ -83,6 +83,9 @@
 
 * fix: remove the TYNDP 2024 trajectories and unused TYNDP 2024 inputs ([#1051](https://github.com/open-energy-transition/open-tyndp/pull/1051)). Generation capacities now follow PEMMDB in all planning horizons. The `build_tyndp_trajectories` rule is removed and `build_pemmdb_and_trajectories` is renamed to `build_tyndp_pemmdb_datas`. Unused TYNDP 2024 inputs are no longer retrieved.
 
+* fix: scale the EU27 biomass final demand and CO2 sequestration potential of the TYNDP 2026 Supply Tool to the full model scope with the new `sector: eu27_to_model_scope` ratios, so they match the biomass and biogas potentials, which already cover all modelled countries. Benchmarks scale the model values back to EU27 ([#1186](https://github.com/open-energy-transition/open-tyndp/issues/1186)).
+
+
 **Documentation**
 
 * doc: update documentation to TYNDP 2026 ([#1123](https://github.com/open-energy-transition/open-tyndp/pull/1123)).
