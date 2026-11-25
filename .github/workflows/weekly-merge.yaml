@@ -1,4 +1,14 @@
-name: Weekly merge master into tyndp-2026
+# Cycle handling
+# - The CURRENT_CYCLE repository variable holds the year of the TYNDP cycle on master
+#   (e.g. 2026). Set it in Settings > Secrets and variables > Actions > Variables.
+# - This workflow acts only on a `tyndp-YYYY` branch with YYYY > CURRENT_CYCLE, i.e. the
+#   next cycle under development. Archived cycle branches (e.g. `tyndp-2024`) are ignored.
+# - Next cycle (e.g. 2028): create `tyndp-2028`; nothing else to change.
+# - When `tyndp-2028` replaces master, set CURRENT_CYCLE to 2028 in the same step.
+#   Otherwise the workflows still treat `tyndp-2028` as the next cycle, and the weekly merge
+#   opens sync PRs into it. Without a newer branch, the workflows then do nothing.
+
+name: Weekly merge master into the next-cycle branch
 
 on:
   schedule:
@@ -9,13 +19,46 @@ concurrency:
   group: ${{ github.workflow }}
 
 env:
-  MERGE_BRANCH: weekly-merge-master-into-tyndp-2026
-  TARGET_BRANCH: tyndp-2026
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-  merge:
+  find-target:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      branch: ${{ steps.find.outputs.branch }}
+    steps:
+    - name: Find the next-cycle branch
+      id: find
+      shell: bash
+      env:
+        CURRENT_CYCLE: ${{ vars.CURRENT_CYCLE }}
+      run: |
+        if [[ ! $CURRENT_CYCLE =~ ^[0-9]{4}$ ]]; then
+          echo "::error::Set the CURRENT_CYCLE repository variable to the TYNDP cycle on master (e.g. 2026)."
+          exit 1
+        fi
+        branches=$(
+          gh api "repos/$GITHUB_REPOSITORY/git/matching-refs/heads/tyndp-" --jq '.[].ref | ltrimstr("refs/heads/")' \
+            | awk -F- -v c="$CURRENT_CYCLE" '/^tyndp-[0-9]{4}$/ && $2 > c'
+        )
+        if (( $(grep -c . <<< "$branches") > 1 )); then
+          echo "::error::Several branches are newer than $CURRENT_CYCLE:" $branches
+          exit 1
+        fi
+        if [[ -z $branches ]]; then
+          echo "::notice::No tyndp-YYYY branch is newer than $CURRENT_CYCLE; nothing to merge."
+        fi
+        echo "branch=$branches" >> "$GITHUB_OUTPUT"
+
+  merge:
+    needs: find-target
+    if: needs.find-target.outputs.branch != ''
+    runs-on: ubuntu-latest
+    env:
+      TARGET_BRANCH: ${{ needs.find-target.outputs.branch }}
+      MERGE_BRANCH: weekly-merge-master-into-${{ needs.find-target.outputs.branch }}
     permissions:
       contents: write
       pull-requests: write
@@ -23,7 +66,7 @@ jobs:
     steps:
     - uses: actions/checkout@v7
       with:
-        ref: tyndp-2026
+        ref: ${{ needs.find-target.outputs.branch }}
         fetch-depth: 0
 
     - name: Merge master
