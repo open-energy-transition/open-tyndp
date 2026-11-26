@@ -7295,6 +7295,11 @@ def add_biomass(
         # convert from TWh to MW
         p_set = (
             get(options["biomass_final_demand"], investment_year)
+            * (
+                options["eu27_to_model_scope"]["solid biomass"][investment_year]
+                if options["eu27_to_model_scope"]
+                else 1
+            )
             * nyears
             / nhours
             * 1e6

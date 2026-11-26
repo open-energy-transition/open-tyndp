@@ -734,6 +734,7 @@ rule build_statistics:
             "electricity", "group_tyndp_conventionals"
         ),
         synfuels=config_provider("sector", "synfuels_tyndp", "carriers"),
+        eu27_to_model_scope=config_provider("sector", "eu27_to_model_scope"),
     script:
         scripts("sb/build_statistics.py")
 

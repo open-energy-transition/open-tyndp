@@ -93,6 +93,8 @@
 
 * fix: change the benchmarking of SRES electricity for power generation tables and plots ([#1194](https://github.com/open-energy-transition/open-tyndp/pull/1194)). The Open-TYNDP previously benchmarked SRES electricity as the total generation from the SRES nodes. However, the TYNDP 2026 NT+ TimeSeries Dashboards benchmarks SRES electricity as only the electricity fed into the grid (e-market).
 
+* fix: scale the EU27 biomass final demand and CO2 sequestration potential of the TYNDP 2026 Supply Tool to the full model scope with the new `sector: eu27_to_model_scope` ratios, so they match the biomass and biogas potentials, which already cover all modelled countries. Benchmarks scale the model values back to EU27 ([#1186](https://github.com/open-energy-transition/open-tyndp/issues/1186)).
+
 **Documentation**
 
 * doc: update documentation to TYNDP 2026 ([#1123](https://github.com/open-energy-transition/open-tyndp/pull/1123)).
