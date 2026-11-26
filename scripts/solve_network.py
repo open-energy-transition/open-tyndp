@@ -189,7 +189,7 @@ def add_co2_sequestration_limit(
     planning_horizons : str, optional
         The current planning horizon year or None in perfect foresight
     eu27_to_model_scope : Literal[False] | dict[str, dict[int, float]]
-        Ratio of the model scope to EU27 per carrier and planning horizon, or False for no scaling.
+        Ratio of the model scope to EU27 per key (`solid biomass`, `biogas`, `co2 sequestration`) and planning horizon, or False for no scaling.
     """
 
     def get_limit(period: int) -> float:

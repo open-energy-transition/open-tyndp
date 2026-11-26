@@ -259,7 +259,7 @@ def compute_benchmark(
     synfuels : dict[str, str]
         Fossil carrier substituted by each TYNDP synthetic fuel.
     eu27_to_model_scope : Literal[False] | dict[str, dict[int, float]]
-        Ratio of model scope to EU27 values per copper-plated bio carrier and planning horizon, or False for no scaling.
+        Ratio of model scope to EU27 values per key (`solid biomass`, `biogas`, `co2 sequestration`) and planning horizon, or False for no scaling.
 
     Returns
     -------

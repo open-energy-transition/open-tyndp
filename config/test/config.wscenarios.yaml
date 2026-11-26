@@ -319,7 +319,7 @@ sector:
     2035: 1028
     2040: 1012
     2050: 998
-  eu27_to_model_scope: # all modelled countries / EU27; biomass: PyPSA-Eur potential (resources/biomass_potentials_s_all_{year}.csv)
+  eu27_to_model_scope: # all modelled countries / EU27; biomass: PyPSA-Eur potential (resources/biomass_potentials_{horizon}.csv)
     solid biomass:
       2030: 1.0832
       2035: 1.0847

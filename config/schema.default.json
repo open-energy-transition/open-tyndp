@@ -6540,7 +6540,7 @@
             }
           ],
           "default": false,
-          "description": "Ratio of all modelled countries to EU27, per key and planning horizon. `solid biomass` and `biogas` are PyPSA-Eur potential ratios; `solid biomass` scales `biomass_final_demand`. `co2 sequestration` scales `co2_sequestration_potential` and weights biogenic and fossil captured CO2. Set to false to disable scaling."
+          "description": "Ratio of all modelled countries to EU27, per key and planning horizon. `solid biomass` and `biogas` are PyPSA-Eur potential ratios; `solid biomass` scales `biomass_final_demand`, and both scale benchmark values back to EU27. `co2 sequestration` scales `co2_sequestration_potential` and is derived from the biogenic and fossil shares of captured CO2. Set to false to disable scaling."
         },
         "force_biomass_potential": {
           "default": false,
@@ -14924,7 +14924,7 @@
             }
           ],
           "default": false,
-          "description": "Ratio of all modelled countries to EU27, per key and planning horizon. `solid biomass` and `biogas` are PyPSA-Eur potential ratios; `solid biomass` scales `biomass_final_demand`. `co2 sequestration` scales `co2_sequestration_potential` and weights biogenic and fossil captured CO2. Set to false to disable scaling."
+          "description": "Ratio of all modelled countries to EU27, per key and planning horizon. `solid biomass` and `biogas` are PyPSA-Eur potential ratios; `solid biomass` scales `biomass_final_demand`, and both scale benchmark values back to EU27. `co2 sequestration` scales `co2_sequestration_potential` and is derived from the biogenic and fossil shares of captured CO2. Set to false to disable scaling."
         },
         "force_biomass_potential": {
           "default": false,
