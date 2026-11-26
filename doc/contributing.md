@@ -11,7 +11,7 @@ repository](https://github.com/open-energy-transition/open-tyndp) or to the [ups
 ## Where to start
 
 * If you already have some code changes, you can submit them directly as a [pull request](https://github.com/open-energy-transition/open-tyndp/pulls).
-  Pull requests target the `master` branch, which follows the TYNDP 2026 cycle. Fixes for the TYNDP 2024 cycle target the `tyndp-2024` branch.
+  Pull requests with fixes for the TYNDP 2026 cycle should target the `master` branch. Fixes for the TYNDP 2024 cycle target the `tyndp-2024` branch.
 * To **report bugs or request features**, please [open a new issue](https://github.com/open-energy-transition/open-tyndp/issues/new/choose). We provide issue templates to guide you:
 
   * Members of the community are welcome to use the simplified bug report and feature request templates designed for external contributors.
