@@ -273,7 +273,8 @@ sector:
   regional_co2_sequestration_potential:
     enable: false
   co2_sequestration_potential:
-    # Values from TYNDP 2026 Supply Tool NT+ (Carbon budget sheet, captured CO2 minus CCU); 2050 excludes the "not specified" CCS
+    # EU27 values from TYNDP 2026 Supply Tool NT+ (Carbon budget sheet, captured CO2 minus CCU); 2050 excludes the "not specified" CCS
+    # Scaled to model scope by eu27_to_model_scope
     2030: 35.24
     2035: 87.41
     2040: 106.07
@@ -301,11 +302,24 @@ sector:
   biogas_upgrading_cc: true
   force_biomass_potential: true
   force_biogas_potential: true
-  biomass_final_demand: # in TWh and for 8760h, TYNDP 2026 Supply Tool NT+: ETM final energy demand + for heat production + for biogas not upgraded to biomethane
+  biomass_final_demand: # EU27 in TWh and for 8760h, scaled to model scope by eu27_to_model_scope
+    # TYNDP 2026 Supply Tool NT+ `EU Total`: G45 (final demand, ETM) + G50 (heat) + biogas not upgraded feedstock (`Biofuels` row 9 / `P80`)
+    # e.g. 2050: 766.85 + 125.92 + 71.95 / 0.6818 = 998.3
     2030: 1089
     2035: 1028
     2040: 1012
     2050: 998
+  eu27_to_model_scope: # PyPSA-Eur potential, all modelled countries / EU27 (resources/biomass_potentials_s_all_{year}.csv)
+    solid biomass:
+      2030: 1.0832
+      2035: 1.0847
+      2040: 1.0861
+      2050: 1.0860
+    biogas:
+      2030: 1.1635
+      2035: 1.1635
+      2040: 1.1635
+      2050: 1.1627
   electrobiofuels: false
   transmission_efficiency:
     enable:
@@ -369,6 +383,8 @@ adjustments:
         solid biomass:
           # Ratio of the TYNDP EU27 biomass potential to the PyPSA-Eur one, both summed
           # over EU27 buses of resources/biomass_potentials_{horizon}.csv
+          # TYNDP EU27 target: `EU Total` G45 (final demand) + G46 (electricity, PLEXOS)
+          # + G48 (bioliquids) + G50 (heat) + biogas not upgraded feedstock
           p_nom: # EU27 biomass potential for 8760h
             2030: 1.48  # PyPSA-Eur EU27 973.9 TWh vs TYNDP EU27 1444.85 TWh
             2035: 1.53  # PyPSA-Eur EU27 960.8 TWh vs TYNDP EU27 1474.13 TWh
