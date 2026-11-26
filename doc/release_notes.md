@@ -105,6 +105,7 @@
 
 * Add check and logger warning for when a node has capacity data for a technology in the PEMMDB dataset but no capacity factors for the same technology in the PECD dataset ([#1126](https://github.com/open-energy-transition/open-tyndp/pull/1126)).
 
+* chore: update HPC high-res run memory requirements ([#1201](https://github.com/open-energy-transition/open-tyndp/pull/1201))
 
 **Breaking Changes**
 
