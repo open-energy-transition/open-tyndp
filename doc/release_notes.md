@@ -85,6 +85,8 @@
 
 * fix: derive the BtL carbon split (`C in fuel`, `C stored`, `CO2 stored`) from the BtL efficiency and the oil CO2 intensity in `process_cost_data` ([#1198](https://github.com/open-energy-transition/open-tyndp/issues/1198)). The custom TYNDP BtL efficiencies (0.6 to 0.7) kept the carbon split of technology-data (valid for an efficiency of 0.45), which overstated the CO2 stored by BtL CC and made BtL a net emitter.
 
+* fix: use the TYNDP 2026 fossil natural gas price instead of the blended gas price for NT ([#1191](https://github.com/open-energy-transition/open-tyndp/pull/1191)). The blended price includes biomethane and synthetic methane, which are modelled explicitly, so their cost was counted twice. In 2050 the gas price drops from 51.1 to 35.28 EUR/MWh.
+
 * fix: change the benchmarking of SRES electricity for power generation tables and plots ([#1194](https://github.com/open-energy-transition/open-tyndp/pull/1194)). The Open-TYNDP previously benchmarked SRES electricity as the total generation from the SRES nodes. However, the TYNDP 2026 NT+ TimeSeries Dashboards benchmarks SRES electricity as only the electricity fed into the grid (e-market).
 
 **Documentation**
