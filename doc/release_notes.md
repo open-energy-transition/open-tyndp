@@ -83,6 +83,8 @@
 
 * fix: remove the TYNDP 2024 trajectories and unused TYNDP 2024 inputs ([#1051](https://github.com/open-energy-transition/open-tyndp/pull/1051)). Generation capacities now follow PEMMDB in all planning horizons. The `build_tyndp_trajectories` rule is removed and `build_pemmdb_and_trajectories` is renamed to `build_tyndp_pemmdb_datas`. Unused TYNDP 2024 inputs are no longer retrieved.
 
+* fix: derive the BtL carbon split (`C in fuel`, `C stored`, `CO2 stored`) from the BtL efficiency and the oil CO2 intensity in `process_cost_data` ([#1198](https://github.com/open-energy-transition/open-tyndp/issues/1198)). The custom TYNDP BtL efficiencies (0.6 to 0.7) kept the carbon split of technology-data (valid for an efficiency of 0.45), which overstated the CO2 stored by BtL CC and made BtL a net emitter.
+
 * chore: remove code retrieving unused TYNDP 2024 data ([#1195](https://github.com/open-energy-transition/open-tyndp/pull/1195)). Only the 2024 node lists (`Nodes.zip` and `Offshore-hubs.zip`) are kept, because the CBA still uses them to validate the TYNDP 2024 projects.
 
 **Documentation**
@@ -142,6 +144,8 @@ The [Open-TYNDP cycle migration guide](migration_tyndp_2026.md) lists all breaki
 
 
 **Developers Note**
+
+* Remove `plot_weather_benchmark` rule from CBA, as it creates the same plots as `plot_cba_benchmark` ([#979](https://github.com/open-energy-transition/open-tyndp/pull/979)).
 
 * Remove `open-tyndp` channel from pixi.toml and add `pypsa-explorer` to exclude-newer exceptions ([#988](https://github.com/open-energy-transition/open-tyndp/pull/988)).
 
@@ -693,7 +697,6 @@ for file name mappings and configuration changes in detail.
 * Remove `collect_cba_scenario` rule and the empty `all_scenarios.txt` file it creates; refactor `cba` rule ([#958](https://github.com/open-energy-transition/open-tyndp/pull/958)).
 
 * Clarify logger warnings in `clean_projects` (CBA checkpoint) to specify reasons for projects being ignored ([#978](https://github.com/open-energy-transition/open-tyndp/pull/978)).
-
 
 ## Open-TYNDP v0.8.1 (25th September 2026)
 
