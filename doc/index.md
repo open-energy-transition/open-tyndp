@@ -145,7 +145,7 @@ The table below compares the TYNDP 2024 topologies with the Open-TYNDP topologie
 ### Features in development
 
 !!! note
-    This table still shows the status of the TYNDP 2024 cycle, with some TYNDP 2026 additions. Its update to the TYNDP 2026 cycle is tracked in [#1153](https://github.com/open-energy-transition/open-tyndp/issues/1153).
+    This table still shows the status of the TYNDP 2024 cycle, with some TYNDP 2026 additions. Its update to the TYNDP 2026 cycle will be addressed soon (see [#1153](https://github.com/open-energy-transition/open-tyndp/issues/1153)).
 
 While multiple TYNDP features have already been introduced into the Open-TYNDP model, several other features and assumptions are still in development and currently rely on default implementations and assumptions from PyPSA-Eur.
 
