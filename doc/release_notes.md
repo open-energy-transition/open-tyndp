@@ -61,6 +61,8 @@
 
 * feat: add the TYNDP 2026 hybrid heat pumps with CH4 and H2 boilers, and update the exogenous gas demand with the TYNDP 2026 Supply Tool ([#1090](https://github.com/open-energy-transition/open-tyndp/pull/1090)). H2 boiler efficiency is applied as 1/1.08, unlike the 1.08 implied by the TYNDP dashboards.
 
+* feat: align Other Non-RES price bands with TYNDP 2026 data and methodology ([#1178](https://github.com/open-energy-transition/open-tyndp/pull/1178)). Bands now dispatch at their offer price plus CO2 cost. Missing efficiencies are filled from technology assumptions. Hydrogen bands draw from a free fuel bus outside the hydrogen market. Gas bands use the fossil CO2 factor, except bands with a PEMMDB CO2 factor of 0, which keep the assumption.
+
 **Changes**
 
 * feat: align CO2 prices with TYNDP 2026 NT+ (97.47 / 197.51 / 297.54 / 502.74 €/t for 2030 / 2035 / 2040 / 2050) ([#1038](https://github.com/open-energy-transition/open-tyndp/pull/1038)). The interpolated 2045 value is dropped.

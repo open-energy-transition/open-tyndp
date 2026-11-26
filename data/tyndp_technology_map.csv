@@ -87,8 +87,8 @@ Other Non-RES Heavy oil,old 1,,,Others non-renewable,Other non RES,,oil-heavy,ot
 Other Non-RES Heavy oil,old 2,,,Others non-renewable,Other non RES,,oil-heavy,other-non-res-oil-heavy-old2,Other Non-Renewables,other non-res,other non-res,,,,,,,,,,,,other-non-res-oil-heavy,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
 Other Non-RES Shale oil,old,,,Others non-renewable,Other non RES,,oil-shale,other-non-res-oil-shale-old,Other Non-Renewables,other non-res,other non-res,,,,,,,,,,,,other-non-res-oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
 Other Non-RES Shale oil,new,,,Others non-renewable,Other non RES,,oil-shale,other-non-res-oil-shale-new,Other Non-Renewables,other non-res,other non-res,,,,,,,,,,,,other-non-res-oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
-Other Non-RES Hydrogen,ccgt,,,Others non-renewable,Other non RES,,h2-ccgt,other-non-res-h2-ccgt,Other Non-Renewables,other non-res,other non-res,,,,power generation,,,,,,,,other-non-res-h2-ccgt,,
-Other Non-RES Hydrogen,ocgt,,,Others non-renewable,Other non RES,,h2-ocgt,other-non-res-h2-ocgt,Other Non-Renewables,other non-res,other non-res,,,,power generation,,,,,,,,other-non-res-h2-ocgt,,
+Other Non-RES Hydrogen,ccgt,,,Others non-renewable,Other non RES,,h2-ccgt,other-non-res-h2-ccgt,Other Non-Renewables,other non-res,other non-res,,,,,,,,,,,,other-non-res-h2-ccgt,h2-ccgt,
+Other Non-RES Hydrogen,ocgt,,,Others non-renewable,Other non RES,,h2-ocgt,other-non-res-h2-ocgt,Other Non-Renewables,other non-res,other non-res,,,,,,,,,,,,other-non-res-h2-ocgt,h2-ocgt,
 Hydrogen,Fuel Cell,,,Hydrogen Fuel cell,Hydrogen,,h2-fuel-cell,h2-fuel-cell,H2 Fuel Cell,hydrogen,hydrogen,,,,power generation,,,,,,,,h2-fuel-cell,,Hydrogen demand benchmark
 Hydrogen,CCGT,,,Hydrogen CCGT,Hydrogen,,h2-ccgt,h2-ccgt,H2 CCGT,hydrogen,hydrogen,,,,power generation,,,,,,,,h2-ccgt,,Hydrogen demand benchmark
 Hydrogen,OCGT,,,Hydrogen OCGT,Hydrogen,,h2-ocgt,h2-ocgt,H2 OCGT,hydrogen,hydrogen,,,,power generation,,,,,,,,h2-ocgt,,Hydrogen demand benchmark
