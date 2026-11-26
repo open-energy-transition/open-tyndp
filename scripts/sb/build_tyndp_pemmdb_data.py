@@ -202,7 +202,7 @@ def _drop_duplicate_price_bands(
     return df.groupby(groupby, **kwargs).agg(agg)
 
 
-def _extract_price_band_type(df: pd.DataFrame) -> str:
+def _extract_price_band_type(df: pd.DataFrame) -> pd.Series:
     """
     Extract price band type information consisting of the PEMMDB type, the purpose of
     the plant and the price from Dataframe and combine into one string.

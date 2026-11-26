@@ -1215,7 +1215,7 @@ def _other_non_res_link_names(df: pd.DataFrame) -> pd.Series:
     """
     Format link names for PEMMDB Other Non-RES price bands.
 
-    The names are formatted as: "bus-index_carrier-price-eur", e.g., "DE00-other-non-res-gas-ccgt-old1-70.65eur" or "TR00-other-non-res-oil-shale-old-0eur".
+    The names are formatted as: "{bus}-{index_carrier}-{price}eur", e.g., "DE00-other-non-res-gas-ccgt-old1-70.65eur" or "TR00-other-non-res-oil-shale-old-0eur".
     """
 
     return (
@@ -1275,7 +1275,7 @@ def _add_other_non_res_tyndp(
     n: pypsa.Network,
     generator: str,
     carrier: str,
-    carrier_nodes: pd.Index | pd.Series,
+    carrier_nodes: list[str] | pd.Series,
     spatial: SimpleNamespace,
     costs: pd.DataFrame,
     pemmdb_capacities: pd.DataFrame,
@@ -4091,7 +4091,7 @@ def add_h2_reconversion_tyndp(
         - hydrogen_fuel_cell : bool
         - hydrogen_turbine : bool
     pemmdb_capacities : pd.DataFrame or None, optional
-        PEMMDB capacities. If provided, Other Non-RES hydrogen turbine price bands are added.
+        PEMMDB capacities. If provided and hydrogen_turbine enabled, Other Non-RES hydrogen turbine price bands are added.
 
     Returns
     -------
