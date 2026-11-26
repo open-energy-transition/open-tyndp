@@ -959,10 +959,13 @@ class SectorConfig(BaseModel):
         description="Biomass final demand in TWh/a. Can be a boolean (false to disable) or a dictionary mapping planning horizons to demand values.",
     )
     eu27_to_model_scope: (
-        Literal[False] | dict[Literal["solid biomass", "biogas"], dict[int, float]]
+        Literal[False]
+        | dict[
+            Literal["solid biomass", "biogas", "co2 sequestration"], dict[int, float]
+        ]
     ) = Field(
         False,
-        description="Ratio of the PyPSA-Eur biomass potential of all modelled countries to the EU27 one, per carrier and planning horizon. Scales the EU27 values of `biomass_final_demand` and `co2_sequestration_potential` (both using `solid biomass`) to the model scope. Set to false to disable scaling.",
+        description="Ratio of all modelled countries to EU27, per key and planning horizon. `solid biomass` and `biogas` are PyPSA-Eur potential ratios; `solid biomass` scales `biomass_final_demand`. `co2 sequestration` scales `co2_sequestration_potential` and weights biogenic and fossil captured CO2. Set to false to disable scaling.",
     )
     force_biomass_potential: bool = Field(
         False,

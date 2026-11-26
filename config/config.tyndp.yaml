@@ -274,7 +274,7 @@ sector:
     enable: false
   co2_sequestration_potential:
     # EU27 values from TYNDP 2026 Supply Tool NT+ (Carbon budget sheet, captured CO2 minus CCU); 2050 excludes the "not specified" CCS
-    # Scaled to model scope by eu27_to_model_scope
+    # Scaled to model scope by eu27_to_model_scope (co2 sequestration)
     2030: 35.24
     2035: 87.41
     2040: 106.07
@@ -309,7 +309,7 @@ sector:
     2035: 1028
     2040: 1012
     2050: 998
-  eu27_to_model_scope: # PyPSA-Eur potential, all modelled countries / EU27 (resources/biomass_potentials_s_all_{year}.csv)
+  eu27_to_model_scope: # all modelled countries / EU27; biomass: PyPSA-Eur potential (resources/biomass_potentials_s_all_{year}.csv)
     solid biomass:
       2030: 1.0832
       2035: 1.0847
@@ -320,6 +320,11 @@ sector:
       2035: 1.1635
       2040: 1.1635
       2050: 1.1627
+    co2 sequestration: # biogenic share * biomass ratio + fossil share * SMR CC and power CCS capacity ratio
+      2030: 1.3922
+      2035: 1.3615
+      2040: 1.3294
+      2050: 1.3429
   electrobiofuels: false
   transmission_efficiency:
     enable:

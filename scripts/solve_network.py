@@ -194,7 +194,9 @@ def add_co2_sequestration_limit(
 
     def get_limit(period: int) -> float:
         ratio = (
-            eu27_to_model_scope["solid biomass"][period] if eu27_to_model_scope else 1
+            eu27_to_model_scope["co2 sequestration"][period]
+            if eu27_to_model_scope
+            else 1
         )
         return get(limit_dict, period) * ratio
 
