@@ -80,7 +80,7 @@ Feel free to check out our explainer video on ["What is Open Energy Modelling"](
 
 ### Already implemented features
 
-The major features already implemented are summarized below. Please refer to the [release notes](release_notes.md) for a more comprehensive list of features and to the relevant [pull requests](https://github.com/open-energy-transition/open-tyndp/pulls) for extensive documentation of the implementations.
+The major features already implemented are summarized below. Please refer to the [release notes](release_notes.md) for a more comprehensive list of features and to the [pull requests](https://github.com/open-energy-transition/open-tyndp/pulls?q=is%3Apr+state%3Aclosed) for extensive documentation of the implementations.
 
 #### TYNDP 2026 cycle
 
