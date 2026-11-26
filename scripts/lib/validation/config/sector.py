@@ -958,6 +958,12 @@ class SectorConfig(BaseModel):
         False,
         description="Biomass final demand in TWh/a. Can be a boolean (false to disable) or a dictionary mapping planning horizons to demand values.",
     )
+    eu27_to_model_scope: (
+        Literal[False] | dict[Literal["solid biomass", "biogas"], dict[int, float]]
+    ) = Field(
+        False,
+        description="Ratio of the PyPSA-Eur biomass potential of all modelled countries to the EU27 one, per carrier and planning horizon. Scales the EU27 values of `biomass_final_demand` and `co2_sequestration_potential` (both using `solid biomass`) to the model scope. Set to false to disable scaling.",
+    )
     force_biomass_potential: bool = Field(
         False,
         description="Add option to force all solid biomass potential to be used	.",

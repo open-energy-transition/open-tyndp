@@ -27,7 +27,7 @@ import os
 import re
 import sys
 from functools import partial
-from typing import Any
+from typing import Any, Literal
 
 import linopy
 import numpy as np
@@ -175,6 +175,7 @@ def add_co2_sequestration_limit(
     n: pypsa.Network,
     limit_dict: dict[str, float],
     planning_horizons: str | None,
+    eu27_to_model_scope: Literal[False] | dict[str, dict[int, float]],
 ) -> None:
     """
     Add a global constraint on the amount of Mt CO2 that can be sequestered.
@@ -187,19 +188,27 @@ def add_co2_sequestration_limit(
         CO2 sequestration potential limit constraints by year.
     planning_horizons : str, optional
         The current planning horizon year or None in perfect foresight
+    eu27_to_model_scope : Literal[False] | dict[str, dict[int, float]]
+        Ratio of the model scope to EU27 per carrier and planning horizon, or False for no scaling.
     """
+
+    def get_limit(period: int) -> float:
+        ratio = (
+            eu27_to_model_scope["solid biomass"][period] if eu27_to_model_scope else 1
+        )
+        return get(limit_dict, period) * ratio
 
     if not n.investment_periods.empty:
         nyears = n.snapshot_weightings.groupby(level="period").generators.sum() / 8760
         periods = n.investment_periods
         limit = pd.Series(
-            {period: nyears[period] * get(limit_dict, period) for period in periods}
+            {period: nyears[period] * get_limit(period) for period in periods}
         )
         limit.index = limit.index.map(lambda s: f"co2_sequestration_limit-{s}")
         names = limit.index
     else:
         nyears = n.snapshot_weightings.generators.sum() / 8760
-        limit = get(limit_dict, int(planning_horizons)) * nyears
+        limit = get_limit(int(planning_horizons)) * nyears
         periods = np.nan
         names = "co2_sequestration_limit"
 
@@ -580,6 +589,7 @@ def prepare_network(
             n,
             limit_dict=co2_sequestration_potential,
             planning_horizons=planning_horizons,
+            eu27_to_model_scope=config["sector"]["eu27_to_model_scope"],
         )
 
     # Apply autarky constraint if configured
