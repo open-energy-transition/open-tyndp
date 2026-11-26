@@ -323,7 +323,6 @@ def read_demand_excel(
         if demand_type in GJ_DEMAND_TYPES:
             demand = demand * GJ_TO_MWH
             demand.columns = extract_thermal_nodes(demand.columns)
-        # Rename UK in GB
         demand.columns = format_bz_names(demand.columns.to_series())
         demand.columns.name = "Bus"
         demand.index.name = DEMAND_TYPE_UNITS[demand_type]
