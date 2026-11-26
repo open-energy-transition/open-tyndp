@@ -9,7 +9,7 @@
 
 **Breaking Changes**
 
-* Open-TYNDP now models the TYNDP 2026 cycle. The TYNDP 2024 cycle is maintained on the `tyndp-2024` branch, and v0.9.2 is its latest release. The [Open-TYNDP cycle migration guide](migration_tyndp_2026.md) lists all breaking changes between the 2024 and 2026 cycles.
+* Open-TYNDP now models the TYNDP 2026 cycle ([#1187](https://github.com/open-energy-transition/open-tyndp/pull/1187)). The TYNDP 2024 cycle is maintained on the `tyndp-2024` branch, and v0.9.2 is its last release. The [Open-TYNDP cycle migration guide](migration_tyndp_2026.md) lists all breaking changes between the 2024 and 2026 cycles.
 
 **Features**
 
