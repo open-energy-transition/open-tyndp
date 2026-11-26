@@ -235,6 +235,7 @@ def compute_benchmark(
     load_shedding: dict[str, int],
     low_voltage: bool,
     synfuels: dict[str, str],
+    eu27_to_model_scope: Literal[False] | dict[str, dict[int, float]],
 ) -> pd.DataFrame:
     """
     Compute benchmark metrics from optimized network.
@@ -257,6 +258,8 @@ def compute_benchmark(
         If True, include low voltage buses in the electricity bus carrier list.
     synfuels : dict[str, str]
         Fossil carrier substituted by each TYNDP synthetic fuel.
+    eu27_to_model_scope : Literal[False] | dict[str, dict[int, float]]
+        Ratio of model scope to EU27 values per copper-plated bio carrier and planning horizon, or False for no scaling.
 
     Returns
     -------
@@ -293,6 +296,10 @@ def compute_benchmark(
 
         # Biogas not upgraded to biomethane and biomass for heat production are part of the FED in Open-TYNDP
         biomass_opt = options["tables"]["biomass_supply"]
+        if eu27_to_model_scope:
+            df_eu.loc["solid biomass"] /= eu27_to_model_scope["solid biomass"][
+                planning_horizons
+            ]
         df_eu.loc["solid biomass"] -= (
             biomass_opt["biogas_not_upgraded"][planning_horizons]
             + biomass_opt["biomass_heat_production"][planning_horizons]
@@ -566,6 +573,8 @@ def compute_benchmark(
             groupby=grouper,
             aggregate_across_components=True,
         )
+        if eu27_to_model_scope:
+            df_fed_btl /= eu27_to_model_scope["solid biomass"][planning_horizons]
 
         # Biogas not upgraded to biomethane and biomass for heat production are part of the FED in Open-TYNDP
         biogas_not_upgraded = (
@@ -588,6 +597,8 @@ def compute_benchmark(
             groupby=grouper,
             aggregate_across_components=True,
         ).div(eff)
+        if eu27_to_model_scope:
+            df_biogas /= eu27_to_model_scope["biogas"][planning_horizons]
 
         df = pd.concat([df_fed_btl, df_biogas])
     elif table == "energy_imports":
@@ -788,6 +799,7 @@ if __name__ == "__main__":
     low_voltage = snakemake.params["low_voltage"]
     group_tyndp_conventionals = snakemake.params["group_tyndp_conventionals"]
     synfuels = snakemake.params["synfuels"]
+    eu27_to_model_scope = snakemake.params["eu27_to_model_scope"]
     cc = coco.CountryConverter()
     eu27 = cc.EU27as("ISO2").ISO2.tolist()
     planning_horizons = int(snakemake.wildcards.horizon)
@@ -830,6 +842,7 @@ if __name__ == "__main__":
             load_shedding=load_shedding,
             low_voltage=low_voltage,
             synfuels=synfuels,
+            eu27_to_model_scope=eu27_to_model_scope,
         )
         benchmarks.append(df)
 
