@@ -83,6 +83,10 @@
 
 * fix: remove the TYNDP 2024 trajectories and unused TYNDP 2024 inputs ([#1051](https://github.com/open-energy-transition/open-tyndp/pull/1051)). Generation capacities now follow PEMMDB in all planning horizons. The `build_tyndp_trajectories` rule is removed and `build_pemmdb_and_trajectories` is renamed to `build_tyndp_pemmdb_datas`. Unused TYNDP 2024 inputs are no longer retrieved.
 
+* fix: derive the BtL carbon split (`C in fuel`, `C stored`, `CO2 stored`) from the BtL efficiency and the oil CO2 intensity in `process_cost_data` ([#1198](https://github.com/open-energy-transition/open-tyndp/issues/1198)). The custom TYNDP BtL efficiencies (0.6 to 0.7) kept the carbon split of technology-data (valid for an efficiency of 0.45), which overstated the CO2 stored by BtL CC and made BtL a net emitter.
+
+* fix: change the benchmarking of SRES electricity for power generation tables and plots ([#1194](https://github.com/open-energy-transition/open-tyndp/pull/1194)). The Open-TYNDP previously benchmarked SRES electricity as the total generation from the SRES nodes. However, the TYNDP 2026 NT+ TimeSeries Dashboards benchmarks SRES electricity as only the electricity fed into the grid (e-market).
+
 **Documentation**
 
 * doc: update documentation to TYNDP 2026 ([#1123](https://github.com/open-energy-transition/open-tyndp/pull/1123)).
@@ -142,6 +146,8 @@ The [Open-TYNDP cycle migration guide](migration_tyndp_2026.md) lists all breaki
 
 
 **Developers Note**
+
+* Remove `plot_weather_benchmark` rule from CBA, as it creates the same plots as `plot_cba_benchmark` ([#979](https://github.com/open-energy-transition/open-tyndp/pull/979)).
 
 * Remove `open-tyndp` channel from pixi.toml and add `pypsa-explorer` to exclude-newer exceptions ([#988](https://github.com/open-energy-transition/open-tyndp/pull/988)).
 
@@ -693,7 +699,6 @@ for file name mappings and configuration changes in detail.
 * Remove `collect_cba_scenario` rule and the empty `all_scenarios.txt` file it creates; refactor `cba` rule ([#958](https://github.com/open-energy-transition/open-tyndp/pull/958)).
 
 * Clarify logger warnings in `clean_projects` (CBA checkpoint) to specify reasons for projects being ignored ([#978](https://github.com/open-energy-transition/open-tyndp/pull/978)).
-
 
 ## Open-TYNDP v0.8.1 (25th September 2026)
 
