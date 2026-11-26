@@ -13,7 +13,7 @@ cluster-generic-submit-cmd: >-
   --job-name="project=open-tyndp_smk-{rule}-{wildcards}"
   --output={CLUSTER_LOGS}/%x-%j.out
   --partition=$(if [ {resources.mem_mb} -gt 3000 ] && [ "{resources.partition}" = "small" ]; then echo high-mem; elif [ {resources.runtime} \> "50h" ]; then echo big; else echo {resources.partition}; fi)
-  --exclude=$(if [ "{rule}" = "solve_network" ] || [ "{rule}" = "solve_cba_msv_extraction" ] || [ "{rule}" = "solve_cba_reference_network" ] || [ "{rule}" = "solve_cba_network" ]; then python profiles/tyndp-slurm/exclude.py; fi)
+  --exclude=$(if [ "{rule}" = "solve_network" ] || [ "{rule}" = "solve_cba_msv_extraction" ]; then python profiles/tyndp-slurm/exclude.py; fi)
 cluster-generic-cancel-cmd: scancel
 default-resources:
   scenario: "getattr(wildcards, 'run', '')"
