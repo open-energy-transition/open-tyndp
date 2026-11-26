@@ -89,8 +89,6 @@
 
 * Remove the TYNDP 2024 trajectories and unused TYNDP 2024 inputs ([#1051](https://github.com/open-energy-transition/open-tyndp/pull/1051)). Generation capacities now follow PEMMDB in all planning horizons. The `build_tyndp_trajectories` rule is removed and `build_pemmdb_and_trajectories` is renamed to `build_tyndp_pemmdb_datas`. Unused TYNDP 2024 inputs are no longer retrieved.
 
-* Fix units for non-CO2 emission factors in CBA ([#1124](https://github.com/open-energy-transition/open-tyndp/pull/1124)).
-
 * Fix stale `mock_snakemake` targets in `plot_benchmark_indicators.py` and `summarize_indicators.py` to point to existing rules ([#1127](https://github.com/open-energy-transition/open-tyndp/pull/1127)).
 
 * Make the retrieval of pre-solved networks version-aware to support the network renaming in [PyPSA-Eur#1838](https://github.com/PyPSA/pypsa-eur/pull/1838), and share it between the SB and CBA workflows ([#1125](https://github.com/open-energy-transition/open-tyndp/pull/1125)). `cba: cba_scenario_input: sb_version` now defaults to `data: open_tyndp_prelim: version`.
@@ -114,8 +112,6 @@
 **Developers Note**
 
 * Remove `open-tyndp` channel from pixi.toml and add `pypsa-explorer` to exclude-newer exceptions ([#988](https://github.com/open-energy-transition/open-tyndp/pull/988)).
-
-* Add pre-solved SB networks for release v0.9 to list of supported pre-solved networks ([#1000](https://github.com/open-energy-transition/open-tyndp/pull/1000)).
 
 * Rename `pyear` to `planning_horizon` and `cyear` to `wscenario` ([#878](https://github.com/open-energy-transition/open-tyndp/pull/878)). The CBA scenarios {NT,DE,GA}-ws{1995,2008,2009} still align with the TYNDP 2024 climate years; only the prefix has been changed. They are not TYNDP 2026 weather scenarios, which are indices (WS003, WS021, ...) configured through the `wscenarios_tyndp` config option (renamed from `weather_scenarios_tyndp`). The `ws` prefix is now shared by both numbering schemes in 2024 and 2026, but `ws1995` should not be read as a 2026 weather scenario. Additionally, some functions were renamed as well (e.g., `safe_pyear` to `safe_planning_horizon`).
 
@@ -176,9 +172,9 @@
 
 This is the last TYNDP 2024 patch release before the first TYNDP 2026 release v0.10. It brings in one fix and one feature. Scenario building results are not materially affected with respect to v0.9 or v0.9.1, while CBA indicator B4 values increase by a factor of 3.6 due to a unit conversion fix. Upgrading is recommended for all users of v0.9 and v0.9.1.
 
-* Fix units for non-CO2 emission factors in CBA ([#1184](https://github.com/open-energy-transition/open-tyndp/pull/1184)).
+* Add pre-solved SB networks for release v0.9 to list of supported pre-solved networks ([#1000](https://github.com/open-energy-transition/open-tyndp/pull/1000), [#1184](https://github.com/open-energy-transition/open-tyndp/pull/1184)).
 
-* Add pre-solved SB networks for release v0.9 to list of supported pre-solved networks ([#1184](https://github.com/open-energy-transition/open-tyndp/pull/1184)).
+* Fix units for non-CO2 emission factors in CBA ([#1124](https://github.com/open-energy-transition/open-tyndp/pull/1124), [#1184](https://github.com/open-energy-transition/open-tyndp/pull/1184)).
 
 
 ## Open-TYNDP v0.9.1 (13th November 2026)
