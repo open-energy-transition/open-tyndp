@@ -390,11 +390,21 @@ def add_metadata(
 
     # Notes
     if note:
-        host.text(
+        label = host.text(
             x0_fig,
             y0_fig - 0.07,
-            "\n".join(note),
+            "Note:",
             transform=fig.transFigure,
+            ha="left",
+            va="top",
+            fontsize=8,
+            fontweight="bold",
+            alpha=0.7,
+        )
+        host.annotate(
+            f" {note}",
+            xy=(1, 1),
+            xycoords=label,
             ha="left",
             va="top",
             fontsize=8,
