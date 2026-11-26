@@ -102,6 +102,8 @@
 * Add check and logger warning for when a node has capacity data for a technology in the PEMMDB dataset but no capacity factors for the same technology in the PECD dataset ([#1126](https://github.com/open-energy-transition/open-tyndp/pull/1126)).
 
 
+* Make the weekly merge and linked-issue closing workflows cycle-agnostic ([#1197](https://github.com/open-energy-transition/open-tyndp/pull/1197)). They now target the only `tyndp-YYYY` branch newer than the `CURRENT_CYCLE` repository variable, which holds the cycle on `master`.
+
 **Breaking Changes**
 
 The [Open-TYNDP cycle migration guide](migration_tyndp_2026.md) lists all breaking changes between the 2024 and 2026 cycles.
