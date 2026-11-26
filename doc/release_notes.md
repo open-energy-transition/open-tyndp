@@ -7,6 +7,10 @@
 
 ## Upcoming Open-TYNDP Release
 
+**Breaking Changes**
+
+* Open-TYNDP now models the TYNDP 2026 cycle. The TYNDP 2024 cycle is maintained on the `tyndp-2024` branch, and v0.9.2 is its latest release. The [Open-TYNDP cycle migration guide](migration_tyndp_2026.md) lists all breaking changes between the 2024 and 2026 cycles.
+
 **Features**
 
 * Add rule to retrieve TYNDP 2026 data ([#816](https://github.com/open-energy-transition/open-tyndp/pull/816)).
@@ -43,7 +47,7 @@
 
 * Remove DE and GA scenarios from TYNDP 2026; add in HEV and LEV as scenarios and config entries ([#1066](https://github.com/open-energy-transition/open-tyndp/pull/1066) and [#1092](https://github.com/open-energy-transition/open-tyndp/pull/1092)). HEV and LEV currently differ from NT+ only in fuel and CO2 prices. Demand adjustments (electricity market, prosumer demand, EV, H2, thermal energy demand), hydrogen import prices, and benchmarking are not yet included.
 
-* Align hydro inflows to use TYNDP 2026 data and new PECD technology codes `HRR`, `HPI`, `HRI`, `HOL` and `HCL` ([#1059](https://github.com/open-energy-transition/open-tyndp/pull/1059)).
+* Align hydro inflows to use TYNDP 2026 data and new PECD technology codes `HRR`, `HPI`, `HRI`, `HOL` and `HCL` ([#1059](https://github.com/open-energy-transition/open-tyndp/pull/1059)). The config section `electricity.pemmdb_hydro_profiles` is renamed to `electricity.pecd_hydro_profiles`, and its `technologies` now use the PECD codes.
 
 * Update the nuclear availability profiles with the TYNDP 2026 NT+ TimeSeries Dashboards ([#1073](https://github.com/open-energy-transition/open-tyndp/pull/1073)). The new rule `build_tyndp_nuclear_profiles` extracts the profiles for each planning horizon from the weather scenario selected in `wscenarios_tyndp`. The pre-built TYNDP 2024 dataset `tyndp_nuclear_profiles` and the rule `retrieve_tyndp_nuclear_profiles` are removed.
 
@@ -130,12 +134,6 @@
 * Bump and lock Python to 3.14.7 and Gurobi to 14.0.0 ([#1171](https://github.com/open-energy-transition/open-tyndp/pull/1171)).
 
 * Remove `plot_weather_benchmark` rule from CBA, as it creates the same plots as `plot_cba_benchmark` ([#979](https://github.com/open-energy-transition/open-tyndp/pull/979)).
-
-**Breaking Changes**
-
-The [Open-TYNDP cycle migration guide](migration_tyndp_2026.md) lists all breaking changes between the 2024 and 2026 cycles.
-
-* Renamed config section `electricity.pemmdb_hydro_profiles` to `electricity.pecd_hydro_profiles`, and its `technologies` now use the PECD codes `HRR`, `HPI`, `HRI`, `HOL` and `HCL` ([#1059](https://github.com/open-energy-transition/open-tyndp/pull/1059)). Therefore, old config names and technology acronyms no longer work.
 
 
 ## Upcoming PyPSA-Eur Release
