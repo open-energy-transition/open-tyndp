@@ -46,7 +46,7 @@ $ cd open-tyndp
 $ git checkout v0.10
 ```
 
-The last Open-TYNDP release for the TYNDP 2024 cycle was `v0.9.2`. Its code is kept on the `tyndp-2024` branch.
+The last release for the TYNDP 2024 cycle was `v0.9.2`. Its code is kept on the `tyndp-2024` branch, which only receives critical fixes.
 
 ## Install Python Dependencies {#deps}
 
