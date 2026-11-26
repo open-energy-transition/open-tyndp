@@ -21,12 +21,6 @@ concurrency:
 jobs:
   validate-zenodo-metadata:
     name: Validate Zenodo metadata
-    # Skip pushes to archived cycle branches (tyndp-YYYY with YYYY <= CURRENT_CYCLE, see
-    # weekly-merge.yaml).
-    if: &skip-archived-cycles >-
-      github.event_name != 'push'
-      || !startsWith(github.ref_name, 'tyndp-')
-      || github.ref_name > format('tyndp-{0}', vars.CURRENT_CYCLE)
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v7
@@ -50,7 +44,6 @@ jobs:
 
   unit-tests:
     name: Unit
-    if: *skip-archived-cycles
     runs-on: ubuntu-latest
 
     defaults:
@@ -72,7 +65,6 @@ jobs:
 
   integration-tests:
     name: Integration
-    if: *skip-archived-cycles
     runs-on: ${{ matrix.os }}-latest
     strategy:
       fail-fast: false
