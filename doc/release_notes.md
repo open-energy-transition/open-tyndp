@@ -95,6 +95,8 @@
 
 * fix: keep isolated TYNDP offshore buses (e.g. `DKN7_OFF`) via the new switch `electricity: remove_unconnected_components` (`false` for TYNDP); isolated AC buses without assets are removed in `compose_network` ([#967](https://github.com/open-energy-transition/open-tyndp/issues/967), [#1135](https://github.com/open-energy-transition/open-tyndp/pull/1135)).
 
+* fix: derive the BtL carbon split (`C in fuel`, `C stored`, `CO2 stored`) from the BtL efficiency and the oil CO2 intensity in `process_cost_data` ([#1198](https://github.com/open-energy-transition/open-tyndp/issues/1198)). The custom TYNDP BtL efficiencies (0.6 to 0.7) kept the carbon split of technology-data (valid for an efficiency of 0.45), which overstated the CO2 stored by BtL CC and made BtL a net emitter.
+
 **Documentation**
 
 * Fix the broken links in the documentation ([#997](https://github.com/open-energy-transition/open-tyndp/pull/997)).
@@ -127,6 +129,7 @@
 
 * Bump and lock Python to 3.14.7 and Gurobi to 14.0.0 ([#1171](https://github.com/open-energy-transition/open-tyndp/pull/1171)).
 
+* Remove `plot_weather_benchmark` rule from CBA, as it creates the same plots as `plot_cba_benchmark` ([#979](https://github.com/open-energy-transition/open-tyndp/pull/979)).
 
 **Breaking Changes**
 
@@ -674,7 +677,6 @@ for file name mappings and configuration changes in detail.
 * Remove `collect_cba_scenario` rule and the empty `all_scenarios.txt` file it creates; refactor `cba` rule ([#958](https://github.com/open-energy-transition/open-tyndp/pull/958)).
 
 * Clarify logger warnings in `clean_projects` (CBA checkpoint) to specify reasons for projects being ignored ([#978](https://github.com/open-energy-transition/open-tyndp/pull/978)).
-
 
 ## Open-TYNDP v0.8.1 (25th September 2026)
 
