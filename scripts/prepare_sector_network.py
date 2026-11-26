@@ -1286,7 +1286,8 @@ def _add_other_non_res_tyndp(
     Creates links between carrier buses and demand nodes for Other Non-RES generators of different price bands,
     including their efficiency, costs, and CO2 emissions. To follow offer prices of the bands, the fuel is virtually
     free and CO2 emissions are priced through the `co2 atmosphere` bus, so the marginal cost per MWh_el is
-    the offer price plus the CO2 cost. Hydrogen bands draw from a free hydrogen fuel bus outside the hydrogen market,
+    the offer price plus the CO2 cost. Gas bands use the fossil gas CO2 factor, except bands with a PEMMDB
+    CO2 factor of 0, which stay emission-free. Hydrogen bands draw from a free hydrogen fuel bus outside the hydrogen market,
     since the TYNDP market model dispatches them at their offer price.
 
     Parameters
@@ -1335,8 +1336,10 @@ def _add_other_non_res_tyndp(
     # Convert PEMMDB CO2 factors from t/MWh_el to t/MWh_th using band efficiency
     co2_factor = (price_bands.co2_factor * price_bands.efficiency).values
     if carrier == "gas":
-        co2_factor = np.full(
-            len(price_bands), costs.at["gas", "CO2 intensity"] * (1 - capture_rate)
+        co2_factor = np.where(
+            co2_factor > 0,
+            costs.at["gas", "CO2 intensity"] * (1 - capture_rate),
+            0.0,
         )
 
     attrs = dict(
