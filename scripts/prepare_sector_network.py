@@ -1275,7 +1275,7 @@ def _add_other_non_res_tyndp(
     n: pypsa.Network,
     generator: str,
     carrier: str,
-    carrier_nodes: list[str] | pd.Series,
+    carrier_nodes: list[str],
     spatial: SimpleNamespace,
     costs: pd.DataFrame,
     pemmdb_capacities: pd.DataFrame,
@@ -1286,7 +1286,8 @@ def _add_other_non_res_tyndp(
     Creates links between carrier buses and demand nodes for Other Non-RES generators of different price bands,
     including their efficiency, costs, and CO2 emissions. To follow offer prices of the bands, the fuel is virtually
     free and CO2 emissions are priced through the `co2 atmosphere` bus, so the marginal cost per MWh_el is
-    the offer price plus the CO2 cost.
+    the offer price plus the CO2 cost. Hydrogen bands draw from a free hydrogen fuel bus outside the hydrogen market,
+    since the TYNDP market model dispatches them at their offer price.
 
     Parameters
     ----------
@@ -1296,8 +1297,8 @@ def _add_other_non_res_tyndp(
         Name of the Other Non-RES generator.
     carrier : str
         Name of the Other Non-RES fuel carrier.
-    carrier_nodes : pd.Index | pd.Series
-        Nodes of the fuel carrier, or a mapping of countries to fuel buses resolved per price band.
+    carrier_nodes : list[str]
+        Nodes of the fuel carrier.
     spatial : SimpleNamespace
         Namespace containing spatial information for different carriers,
         including nodes and locations.
@@ -1323,14 +1324,6 @@ def _add_other_non_res_tyndp(
         )
 
     nodes = price_bands.bus.values
-    bus0 = carrier_nodes
-    if isinstance(carrier_nodes, pd.Series):
-        bus0 = price_bands.country.map(carrier_nodes)
-        if bus0.isna().any():
-            raise ValueError(
-                f"No fuel bus for Other Non-RES price bands {names[bus0.isna()].tolist()}"
-            )
-        bus0 = bus0.values
 
     offer_price = price_bands.price
     fuel_price = costs.at[carrier, "fuel"]
@@ -1347,7 +1340,7 @@ def _add_other_non_res_tyndp(
         )
 
     attrs = dict(
-        bus0=bus0,
+        bus0=carrier_nodes,
         bus1=nodes,
         bus2="co2 atmosphere",
         carrier=generator,
@@ -4141,6 +4134,24 @@ def add_h2_reconversion_tyndp(
         logger.info(
             "Adding hydrogen CCGT and OCGT turbines for re-electrification. Assuming CCGT and OCGT technology costs."
         )
+        add_other_non_res_h2 = (
+            pemmdb_capacities is not None
+            and pemmdb_capacities.index_carrier.str.startswith(
+                "other-non-res-h2", na=False
+            ).any()
+        )
+        if add_other_non_res_h2:
+            fuel_carrier = "other-non-res-h2-fuel"
+            fuel_bus = f"EU {fuel_carrier}"
+            n.add("Carrier", fuel_carrier)
+            n.add("Bus", fuel_bus, location="EU", carrier=fuel_carrier, unit="MWh_LHV")
+            n.add(
+                "Generator",
+                fuel_bus,
+                bus=fuel_bus,
+                carrier=fuel_carrier,
+                p_nom_extendable=True,
+            )
         for tech, cost_tech in {"h2-ccgt": "CCGT", "h2-ocgt": "OCGT"}.items():
             n.add(
                 "Link",
@@ -4157,12 +4168,12 @@ def add_h2_reconversion_tyndp(
                 marginal_cost=costs.at[tech, "VOM"],
                 lifetime=costs.at[tech, "lifetime"],
             )
-            if pemmdb_capacities is not None:
+            if add_other_non_res_h2:
                 _add_other_non_res_tyndp(
                     n=n,
                     generator=f"other-non-res-{tech}",
                     carrier=tech,
-                    carrier_nodes=country_to_bus,
+                    carrier_nodes=[fuel_bus],
                     spatial=spatial,
                     costs=costs,
                     pemmdb_capacities=pemmdb_capacities,
