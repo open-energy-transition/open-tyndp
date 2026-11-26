@@ -13,6 +13,8 @@
 
 * feat: update the TYNDP 2026 data bundle to ENTSO-E's reference dataset of 2026-11-11 ([#1148](https://github.com/open-energy-transition/open-tyndp/pull/1148)). This includes the updated PECD `4.2.1` with IE00 2040 wind capacity factors, from which the pre-built PECD `4.2.1+pre-built.0.1` is now derived.
 
+* feat: replace the ERA5 weather cutouts with a grid-only `europe-grid` cutout without weather data, retrieved from `tyndp-archive` and only used for the population layouts ([#1133](https://github.com/open-energy-transition/open-tyndp/pull/1133)).
+
 * feat: model TYNDP 2026 passenger EV fleets explicitly (fixed, commuter and non-commuter fleets for street and home charging, with smart charging and V2G) and replace the PyPSA-Eur land transport by a flat TYNDP EU27 land transport oil demand ([#1039](https://github.com/open-energy-transition/open-tyndp/pull/1039)).
 
 * feat: remove DE and GA scenarios from TYNDP 2026; add in HEV and LEV as scenarios and config entries ([#1066](https://github.com/open-energy-transition/open-tyndp/pull/1066) and [#1092](https://github.com/open-energy-transition/open-tyndp/pull/1092)). HEV and LEV currently differ from NT+ only in fuel and CO2 prices. Demand adjustments (electricity market, prosumer demand, EV, H2, thermal energy demand), hydrogen import prices, and benchmarking are not yet included.
@@ -57,6 +59,8 @@
 
 * feat: add Shared RES generation profiles ([#1083](https://github.com/open-energy-transition/open-tyndp/pull/1083)). The TYNDP 2026 cycle adds SRES nodes which are connected to the e-market node and to the H2Z2 node via electrolysers. The generation from the SRES generators are used as input for the electrolysers first, and any extra generation above the electrolyser capacity is residual electricity made available to the e-market node.
 
+* feat: add the TYNDP 2026 hybrid heat pumps with CH4 and H2 boilers, and update the exogenous gas demand with the TYNDP 2026 Supply Tool ([#1090](https://github.com/open-energy-transition/open-tyndp/pull/1090)). H2 boiler efficiency is applied as 1/1.08, unlike the 1.08 implied by the TYNDP dashboards.
+
 **Changes**
 
 * feat: align CO2 prices with TYNDP 2026 NT+ (97.47 / 197.51 / 297.54 / 502.74 €/t for 2030 / 2035 / 2040 / 2050) ([#1038](https://github.com/open-energy-transition/open-tyndp/pull/1038)). The interpolated 2045 value is dropped.
@@ -79,9 +83,15 @@
 
 * fix: remove the TYNDP 2024 trajectories and unused TYNDP 2024 inputs ([#1051](https://github.com/open-energy-transition/open-tyndp/pull/1051)). Generation capacities now follow PEMMDB in all planning horizons. The `build_tyndp_trajectories` rule is removed and `build_pemmdb_and_trajectories` is renamed to `build_tyndp_pemmdb_datas`. Unused TYNDP 2024 inputs are no longer retrieved.
 
+* fix: derive the BtL carbon split (`C in fuel`, `C stored`, `CO2 stored`) from the BtL efficiency and the oil CO2 intensity in `process_cost_data` ([#1198](https://github.com/open-energy-transition/open-tyndp/issues/1198)). The custom TYNDP BtL efficiencies (0.6 to 0.7) kept the carbon split of technology-data (valid for an efficiency of 0.45), which overstated the CO2 stored by BtL CC and made BtL a net emitter.
+
+* fix: change the benchmarking of SRES electricity for power generation tables and plots ([#1194](https://github.com/open-energy-transition/open-tyndp/pull/1194)). The Open-TYNDP previously benchmarked SRES electricity as the total generation from the SRES nodes. However, the TYNDP 2026 NT+ TimeSeries Dashboards benchmarks SRES electricity as only the electricity fed into the grid (e-market).
+
 **Documentation**
 
 * doc: update documentation to TYNDP 2026 ([#1123](https://github.com/open-energy-transition/open-tyndp/pull/1123)).
+
+* doc: add the [Open-TYNDP cycle migration guide (2024 to 2026)](migration_tyndp_2026.md) ([#1164](https://github.com/open-energy-transition/open-tyndp/pull/1164)).
 
 **Developers Note**
 
@@ -99,6 +109,8 @@
 
 
 **Breaking Changes**
+
+The [Open-TYNDP cycle migration guide](migration_tyndp_2026.md) lists all breaking changes between the 2024 and 2026 cycles.
 
 * Renamed config section `electricity.pemmdb_hydro_profiles` to `electricity.pecd_hydro_profiles`, and its `technologies` now use the PECD codes `HRR`, `HPI`, `HRI`, `HOL` and `HCL` ([#1059](https://github.com/open-energy-transition/open-tyndp/pull/1059)). Therefore, old config names and technology acronyms no longer work.
 
@@ -118,12 +130,13 @@
 
 * Remove `__init__` override from `heat_system.py` for compatibility with python>=3.14 ([#990](https://github.com/open-energy-transition/open-tyndp/pull/990)).
 
-* Fix read mode of the local cache layer to avoid re-retrieving datasets with directory outputs after filling the cache in the same working directory ([#1008](https://github.com/open-energy-transition/open-tyndp/pull/1008)).
-
 * Fix units for non-CO2 emission factors in CBA ([#1124](https://github.com/open-energy-transition/open-tyndp/pull/1124)).
 
 * Fix stale `mock_snakemake` targets in `plot_benchmark_indicators.py` and `summarize_indicators.py` to point to existing rules ([#1127](https://github.com/open-energy-transition/open-tyndp/pull/1127)).
 
+* Make the retrieval of pre-solved networks version-aware to support the network renaming in [PyPSA-Eur#1838](https://github.com/PyPSA/pypsa-eur/pull/1838), and share it between the SB and CBA workflows ([#1125](https://github.com/open-energy-transition/open-tyndp/pull/1125)). `cba: cba_scenario_input: sb_version` now defaults to `data: open_tyndp_prelim: version`.
+
+* Improve scenario management compatibility by removing top level gating references in `smk` files ([#1136](https://github.com/open-energy-transition/open-tyndp/pull/1136)). The `all` target is also fixed to collect tyndp outputs dependent on run settings.
 
 **Documentation**
 
@@ -134,6 +147,8 @@
 
 **Developers Note**
 
+* Remove `plot_weather_benchmark` rule from CBA, as it creates the same plots as `plot_cba_benchmark` ([#979](https://github.com/open-energy-transition/open-tyndp/pull/979)).
+
 * Remove `open-tyndp` channel from pixi.toml and add `pypsa-explorer` to exclude-newer exceptions ([#988](https://github.com/open-energy-transition/open-tyndp/pull/988)).
 
 * Add pre-solved SB networks for release v0.9 to list of supported pre-solved networks ([#1000](https://github.com/open-energy-transition/open-tyndp/pull/1000)).
@@ -141,6 +156,8 @@
 * Allow the Windows installer workflow to build releases tagged on `release/*` branches, in addition to `master`, so that patch releases also get a signed installer ([#1009](https://github.com/open-energy-transition/open-tyndp/pull/1009)).
 
 * Update the security scan workflow to generate the SBOM and run vulnerability scans against the lockfile-backed `open-tyndp` Pixi environment instead of `default` ([#983](https://github.com/open-energy-transition/open-tyndp/pull/983)).
+
+* Bump and lock Python to 3.14.7 and Gurobi to 14.0.0 ([#1171](https://github.com/open-energy-transition/open-tyndp/pull/1171)).
 
 
 ## Upcoming PyPSA-Eur Release
@@ -177,6 +194,26 @@
 * **Breaking:** The linear approximation of AC line losses (`solving: options: transmission_losses`) now uses secants instead of tangents, which underestimates losses less. The option now takes `false`, `true` (PyPSA defaults) or a dict passed to PyPSA (default `{mode: secants, atol: 15, rtol: 0.5}`). Integers are deprecated; use `{mode: tangents, segments: 2}` for the previous behaviour ([#2301](https://github.com/PyPSA/pypsa-eur/pull/2301)).
 
 * Fix: `build_swiss_energy_balances` now reads the October 2026 edition of the Swiss energy balances (data for 2000-2025), which renamed table rows. ([#2380](https://github.com/PyPSA/pypsa-eur/pull/2380)).
+
+
+## Open-TYNDP v0.9.2 (24th November 2026)
+
+This is the last TYNDP 2024 patch release before the first TYNDP 2026 release v0.10. It brings in one fix and one feature. Scenario building results are not materially affected with respect to v0.9 or v0.9.1, while CBA indicator B4 values increase by a factor of 3.6 due to a unit conversion fix. Upgrading is recommended for all users of v0.9 and v0.9.1.
+
+* Fix units for non-CO2 emission factors in CBA ([#1184](https://github.com/open-energy-transition/open-tyndp/pull/1184)).
+
+* Add pre-solved SB networks for release v0.9 to list of supported pre-solved networks ([#1184](https://github.com/open-energy-transition/open-tyndp/pull/1184)).
+
+
+## Open-TYNDP v0.9.1 (13th November 2026)
+
+This is an IT security patch release following a screening by ENTSO-E. It contains two minor bug fixes. The inputs differ from v0.9 only through a marginal (less than 0.2 % each) revision of Swiss road and domestic navigation oil demand in the new edition of the Swiss energy balances. Model results are not materially affected with respect to v0.9. Upgrading is recommended for all users of v0.9.
+
+* Apply security patches on top of v0.9 ([#1138](https://github.com/open-energy-transition/open-tyndp/pull/1138), [#1158](https://github.com/open-energy-transition/open-tyndp/pull/1158)).
+
+* Fix `build_swiss_energy_balances` to read the October 2026 edition of the Swiss energy balances (data for 2000-2025), which renamed table rows ([#1104](https://github.com/open-energy-transition/open-tyndp/pull/1104), [#1139](https://github.com/open-energy-transition/open-tyndp/pull/1139)).
+
+* Fix read mode of the local cache layer to avoid re-retrieving datasets with directory outputs after filling the cache in the same working directory ([#1008](https://github.com/open-energy-transition/open-tyndp/pull/1008), [#1141](https://github.com/open-energy-transition/open-tyndp/pull/1141)).
 
 
 ## PyPSA-Eur v2026.09.0 (25th September 2026)
@@ -662,7 +699,6 @@ for file name mappings and configuration changes in detail.
 * Remove `collect_cba_scenario` rule and the empty `all_scenarios.txt` file it creates; refactor `cba` rule ([#958](https://github.com/open-energy-transition/open-tyndp/pull/958)).
 
 * Clarify logger warnings in `clean_projects` (CBA checkpoint) to specify reasons for projects being ignored ([#978](https://github.com/open-energy-transition/open-tyndp/pull/978)).
-
 
 ## Open-TYNDP v0.8.1 (25th September 2026)
 

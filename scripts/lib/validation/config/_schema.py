@@ -94,7 +94,9 @@ class ConfigSchema(BaseModel):
     )
 
     # Top-level fields (from TopLevelConfig)
-    version: str = Field("v0.9", description="Version of Open-TYNDP. Descriptive only.")
+    version: str = Field(
+        "v0.9.2", description="Version of Open-TYNDP. Descriptive only."
+    )
     tutorial: bool = Field(
         False,
         description="Switch to retrieve the tutorial data set instead of the full data set.",
@@ -303,11 +305,36 @@ class ConfigSchema(BaseModel):
         return self
 
     @model_validator(mode="after")
+    def check_tyndp_disables_heating(self):
+        if self.tyndp_scenario and self.sector.heating:
+            raise ValueError(
+                "'sector:heating' must be disabled for a TYNDP scenario. TYNDP "
+                "heating is represented by the hybrid heat pumps, which are added "
+                "independently of 'sector:heating'."
+            )
+        return self
+
+    @model_validator(mode="after")
     def check_tyndp_requires_transport(self):
         if self.tyndp_scenario and not self.sector.transport:
             raise ValueError(
                 "'sector:transport' must be enabled for a TYNDP scenario. TYNDP "
                 "capacities are fixed, so omitting the EV fleets and land transport "
                 "demand would leave the system oversupplied."
+            )
+        return self
+
+    @model_validator(mode="after")
+    def check_grid_only_cutout_source(self):
+        default_cutout = self.atlite.default_cutout
+        cutouts = (
+            [default_cutout] if isinstance(default_cutout, str) else default_cutout
+        )
+        uses_grid = "europe-grid" in cutouts
+        on_tyndp_archive = self.data.cutout.source == "tyndp-archive"
+        if uses_grid != on_tyndp_archive or (uses_grid and len(cutouts) > 1):
+            raise ValueError(
+                "'data:cutout:source: tyndp-archive' only hosts the grid-only cutout "
+                "'europe-grid', and 'europe-grid' is only available there."
             )
         return self

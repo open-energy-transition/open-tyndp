@@ -42,7 +42,9 @@ nav:
     - FAQ and Troubleshooting: faq_troubleshooting.md
   - References:
     - Release Notes: release_notes.md
-    - Migration Guide: migration.md
+    - Migration Guide:
+      - PyPSA-Eur workflow: migration.md
+      - Open-TYNDP 2024 → 2026: migration_tyndp_2026.md
     - Licenses: licenses.md
     - Limitations: limitations.md
     - FAQ and Troubleshooting: faq.md

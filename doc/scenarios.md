@@ -38,6 +38,9 @@ The TYNDP scenarios are defined in `config/config.tyndp.yaml` and `config/scenar
 The NT+ scenario is defined in full in `config/config.tyndp.yaml` and the modifications to NT+
 to form the two economic variants are defined in `config/scenarios.tyndp.yaml`.
 
+!!! note
+    For details on switching from the 2024 to the 2026 cycle, see the [Open-TYNDP cycle migration guide](migration_tyndp_2026.md).
+
 | Config Key | Description |
 |---|---|
 | `run` | Run naming/prefix and scenario file reference; scenarios enabled. |
