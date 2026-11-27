@@ -41,6 +41,7 @@ from tqdm.contrib.logging import logging_redirect_tqdm
 from scripts._helpers import configure_logging, get_snapshots, set_scenario_config
 from scripts.sb._helpers import (
     convert_units,
+    format_bz_names,
     get_wscenario,
     map_tyndp_carrier_names,
     parse_wscenario,
@@ -135,7 +136,7 @@ def read_pemmdb_data(
     fn = Path(
         pemmdb_dir,
         str(planning_horizon),
-        f"PEMMDB_{node.replace('GB', 'UK')}_NationalTrends_{planning_horizon}.xlsx",
+        f"PEMMDB_{format_bz_names(node, reverse=True)}_NationalTrends_{planning_horizon}.xlsx",
     )
 
     if not fn.is_file():
