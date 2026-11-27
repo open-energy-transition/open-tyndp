@@ -26,7 +26,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from scripts._helpers import configure_logging, get_snapshots, set_scenario_config
-from scripts.sb._helpers import safe_planning_horizon
+from scripts.sb._helpers import format_bz_names, safe_planning_horizon
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ def read_pecd_file(
     technology: str,
     sns: pd.DatetimeIndex,
 ):
-    pecd_node = node.replace("GB", "UK")  # PECD files keep the raw TYNDP node codes
+    pecd_node = format_bz_names(node, reverse=True)
 
     if "Solar" in technology:
         fn = Path(dir_pecd, str(planning_horizon), f"{technology} {pecd_node}.csv")

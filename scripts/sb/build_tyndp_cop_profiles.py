@@ -34,6 +34,7 @@ from scripts._helpers import (
 from scripts.sb._helpers import (
     align_demand_to_snapshots,
     check_snapshot_year,
+    format_bz_names,
     get_wscenario,
 )
 from scripts.sb.build_tyndp_demand import multiindex_to_datetimeindex
@@ -79,7 +80,7 @@ def read_cop(
     )
     cop = pd.concat(data, axis=1).droplevel(1, axis=1)
     cop = multiindex_to_datetimeindex(cop, year=snapshots[0].year)
-    cop.columns = cop.columns.str.replace("UK", "GB")
+    cop.columns = format_bz_names(cop.columns.to_series())
     cop = align_demand_to_snapshots(cop, snapshots)
 
     return cop.rename_axis(index="time", columns="name")

@@ -141,6 +141,8 @@
 
 * Bump and lock `tornado` to 6.6.1 and `soupsieve` to 4.1.2, respectively ([#1203](https://github.com/open-energy-transition/open-tyndp/pull/1203)).
 
+* Replace manual renaming of UK -> GB and GB -> UK with `format_bz_names` helper function ([#1128](https://github.com/open-energy-transition/open-tyndp/pull/1128)).
+
 
 ## Upcoming PyPSA-Eur Release
 <!-- Upcoming Release -->
