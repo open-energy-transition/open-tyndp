@@ -189,7 +189,7 @@ def add_co2_sequestration_limit(
     planning_horizons : str, optional
         The current planning horizon year or None in perfect foresight
     eu27_to_model_scope : Literal[False] | dict[str, dict[int, float]]
-        Ratio of the model scope to EU27 per key (`solid biomass`, `biogas`, `co2 sequestration`) and planning horizon, or False for no scaling.
+        Ratio of the model scope to EU27 per key `co2 sequestration` and planning horizon, or False for no scaling.
     """
 
     def get_limit(period: int) -> float:
@@ -1261,6 +1261,44 @@ def add_co2_synfuels_constraint(n: pypsa.Network, snapshots: pd.DatetimeIndex) -
     n.model.add_constraints(lhs <= rhs, name="GlobalConstraint-co2_synfuels_limit")
 
 
+def add_co2_biogenic_capture_constraint(
+    n: pypsa.Network, snapshots: pd.DatetimeIndex
+) -> None:
+    """
+    Limit the biogenic CO2 that biogas upgrading and biomass-to-liquid with
+    carbon capture send to CO2 storage.
+
+    The limit is the TYNDP biogenic CO2 (BECCS) potential scaled to the model
+    scope, stored as the ``co2_biogenic_capture_limit`` global constraint.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network instance.
+    snapshots : pd.DatetimeIndex
+        Simulation timesteps.
+    """
+    capture_ports = {"biogas to gas CC": "2", "biomass to liquid CC": "3"}
+    weightings = n.snapshot_weightings.generators.loc[snapshots]
+    terms = []
+    for carrier, port in capture_ports.items():
+        links = n.links.index[n.links.carrier == carrier]
+        bus_carriers = n.links.loc[links, f"bus{port}"].map(n.buses.carrier)
+        wrong = bus_carriers.index[bus_carriers != "co2 stored"]
+        if not wrong.empty:
+            raise ValueError(
+                f"Links {list(wrong)} do not send CO2 to a 'co2 stored' bus at port {port}."
+            )
+        p = n.model["Link-p"].loc[snapshots, links]
+        captured = n.links.loc[links, f"efficiency{port}"]
+        terms.append((p * captured * weightings).sum())
+    lhs = sum(terms)
+    rhs = n.global_constraints.at["co2_biogenic_capture_limit", "constant"]
+    n.model.add_constraints(
+        lhs <= rhs, name="GlobalConstraint-co2_biogenic_capture_limit"
+    )
+
+
 def add_co2_atmosphere_constraint(n, snapshots):
     glcs = n.global_constraints[n.global_constraints.type == "co2_atmosphere"]
 
@@ -1413,6 +1451,9 @@ def extra_functionality(
 
     if "co2_synfuels_limit" in n.global_constraints.index:
         add_co2_synfuels_constraint(n, snapshots)
+
+    if "co2_biogenic_capture_limit" in n.global_constraints.index:
+        add_co2_biogenic_capture_constraint(n, snapshots)
 
     if config["sector"]["enhanced_geothermal"]["enable"]:
         add_flexible_egs_constraint(n)

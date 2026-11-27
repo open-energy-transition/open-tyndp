@@ -4525,13 +4525,16 @@ def add_synfuels_tyndp(
     carriers: dict[str, str],
     spatial: SimpleNamespace,
     nyears: float,
+    beccs_scope: float,
 ) -> None:
     """
     Add TYNDP synthetic fuel production and supply to the oil and gas buses.
 
     Each synthetic fuel with a demand gets an EU bus (MWh_H2), production
     links from every H2 Zone 2 node and a conversion link that supplies the
-    demand to the substituted fossil carrier bus.
+    demand to the substituted fossil carrier bus. The biogenic CO2 (BECCS)
+    potential limits the CO2 used by synthetic fuel production and the CO2
+    stored by biogenic carbon capture.
 
     Parameters
     ----------
@@ -4549,6 +4552,8 @@ def add_synfuels_tyndp(
         Spatial resolution information.
     nyears : float
         Fraction of the year covered by the snapshots, used to scale the CO2 limit.
+    beccs_scope : float
+        Ratio of the model scope to EU27 for the biogenic CO2 capture limit.
     """
     logger.info("Adding TYNDP synthetic fuels.")
 
@@ -4597,6 +4602,14 @@ def add_synfuels_tyndp(
         type="co2_synfuels",
         sense="<=",
         constant=generators.at["CO2-Synfuels", "e_sum_max"] * nyears,
+    )
+
+    n.add(
+        "GlobalConstraint",
+        "co2_biogenic_capture_limit",
+        type="co2_biogenic_capture",
+        sense="<=",
+        constant=generators.at["CO2-Synfuels", "e_sum_max"] * nyears * beccs_scope,
     )
 
 
@@ -10102,6 +10115,13 @@ def main(
             carriers=synfuels,
             spatial=spatial,
             nyears=nyears,
+            beccs_scope=(
+                options["eu27_to_model_scope"]["co2 sequestration beccs"][
+                    investment_year
+                ]
+                if options["eu27_to_model_scope"]
+                else 1.0
+            ),
         )
 
     # Hydrogen already implemented in add_h2_gas_infrastructure
