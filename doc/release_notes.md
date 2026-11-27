@@ -133,6 +133,8 @@
 
 * Remove `plot_weather_benchmark` rule from CBA, as it creates the same plots as `plot_cba_benchmark` ([#979](https://github.com/open-energy-transition/open-tyndp/pull/979)).
 
+* Bump and lock tornado to 6.6.1 and soupsieve to 4.1.2 ([#1203](https://github.com/open-energy-transition/open-tyndp/pull/1203)).
+
 
 ## Upcoming PyPSA-Eur Release
 <!-- Upcoming Release -->
