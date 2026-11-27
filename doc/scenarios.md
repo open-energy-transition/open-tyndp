@@ -17,7 +17,7 @@ differ in terms of price and demand assumptions.
 Here we explain these modelling differences and how these differences have been implemented into open-tyndp.
 We discuss the relevant configuration settings and the implications of these implementation decisions.
 
-Background information can be found in the report from ENTSO-E and ENTSO-G
+Background information can be found in the report from ENTSO-E and ENTSOG
 [TYNDP 2026 Scenarios Methodology Report](https://2026.entsos-tyndp-scenarios.eu/scenarios-methodology-report/introduction/).
 
 ## National Trends+
