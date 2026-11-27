@@ -37,6 +37,9 @@ plt.style.use("bmh")
 
 FIGURE_WIDTH_DEFAULT = 12
 FIGURE_HEIGHT_DEFAULT = 8
+TABLE_NOTES = {
+    "hydrogen_demand": "Other Non-RES hydrogen price bands are not connected to the hydrogen market and are excluded.",
+}
 
 
 def _plot_scenario_comparison(
@@ -54,6 +57,7 @@ def _plot_scenario_comparison(
     bench_colors: dict,
 ):
     table_title = table.replace("_", " ").title()
+    note = TABLE_NOTES.get(table, "")
     idx = [model_col, rfc_source] + [
         c for c in rfc_cols if c in df.columns and c != rfc_source
     ]
@@ -102,6 +106,7 @@ def _plot_scenario_comparison(
         model_col=model_col,
         rfc_source=rfc_source,
         rfc_cols=rfc_cols,
+        note=note,
     )
 
     output_filename = Path(

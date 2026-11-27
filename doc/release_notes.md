@@ -65,6 +65,8 @@
 
 * Replace the ERA5 weather cutouts with a grid-only `europe-grid` cutout without weather data, retrieved from `tyndp-archive` and only used for the population layouts ([#1133](https://github.com/open-energy-transition/open-tyndp/pull/1133)).
 
+* feat: align Other Non-RES price bands with TYNDP 2026 data and methodology ([#1178](https://github.com/open-energy-transition/open-tyndp/pull/1178)). Bands now dispatch at their offer price plus CO2 cost. Missing efficiencies are filled from technology assumptions. Hydrogen bands draw from a free fuel bus outside the hydrogen market. Gas bands use the fossil CO2 factor, except bands with a PEMMDB CO2 factor of 0, which keep the assumption.
+
 **Changes**
 
 * Align CO2 prices with TYNDP 2026 NT+ (97.47 / 197.51 / 297.54 / 502.74 €/t for 2030 / 2035 / 2040 / 2050) ([#1038](https://github.com/open-energy-transition/open-tyndp/pull/1038)). The interpolated 2045 value is dropped.

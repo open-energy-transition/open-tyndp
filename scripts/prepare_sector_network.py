@@ -42,6 +42,7 @@ from scripts.definitions.heat_sector import HeatSector
 from scripts.definitions.heat_system import HeatSystem
 from scripts.sb._helpers import (
     _add_new_profiles_to_existing,
+    format_band_number,
     get_tyndp_conventional_thermals,
     make_index,
     remove_disconnected_storage_buses,
@@ -1210,21 +1211,84 @@ def cycling_shift(df, steps=1):
     return df.reindex(index=new_index).set_axis(df.index)
 
 
+def _other_non_res_link_names(df: pd.DataFrame) -> pd.Series:
+    """
+    Format link names for PEMMDB Other Non-RES price bands.
+
+    The names are formatted as: "{bus}-{index_carrier}-{price}eur", e.g., "DE00-other-non-res-gas-ccgt-old1-70.65eur" or "TR00-other-non-res-oil-shale-old-0eur".
+    """
+
+    return (
+        df["bus"].astype(str)
+        + "-"
+        + df["index_carrier"].astype(str)
+        + "-"
+        + format_band_number(df["price"])
+        + "eur"
+    )
+
+
+def _fill_other_non_res_efficiency(
+    pemmdb_capacities: pd.DataFrame, costs: pd.DataFrame, group_conventionals: bool
+) -> pd.DataFrame:
+    """
+    Fill missing efficiencies of Other Non-RES price bands with technology assumptions.
+
+    Parameters
+    ----------
+    pemmdb_capacities : pd.DataFrame
+        All PEMMDB capacities.
+    costs : pd.DataFrame
+        DataFrame containing cost and technical parameters for different technologies.
+    group_conventionals : bool
+        Whether TYNDP conventional carriers are aggregated into higher level groups.
+
+    Returns
+    -------
+    pd.DataFrame
+        PEMMDB capacities with a positive efficiency for all Other Non-RES price bands.
+    """
+    id_col = "open_tyndp_type" if group_conventionals else "index_carrier"
+    missing = pemmdb_capacities.index_carrier.str.startswith(
+        "other-non-res", na=False
+    ) & ~(pemmdb_capacities.efficiency > 0)
+    if not missing.any():
+        return pemmdb_capacities
+
+    techs = pemmdb_capacities.loc[missing, id_col]
+    filled = costs.loc[techs.str.removeprefix("other-non-res-"), "efficiency"].values
+    logger.warning(
+        "PEMMDB gives no efficiency for Other Non-RES price bands, using technology assumptions instead: "
+        + ", ".join(
+            f"{bus} {tech} {p_nom:.0f} MW (efficiency {eff:.2f})"
+            for bus, tech, p_nom, eff in zip(
+                techs.index, techs, pemmdb_capacities.loc[missing, "p_nom"], filled
+            )
+        )
+    )
+    pemmdb_capacities = pemmdb_capacities.copy()
+    pemmdb_capacities.loc[missing, "efficiency"] = filled
+    return pemmdb_capacities
+
+
 def _add_other_non_res_tyndp(
     n: pypsa.Network,
     generator: str,
     carrier: str,
-    carrier_nodes: list,
+    carrier_nodes: list[str],
     spatial: SimpleNamespace,
     costs: pd.DataFrame,
     pemmdb_capacities: pd.DataFrame,
-    co2_price: float,
 ) -> None:
     """
     Add TYNDP Other Non-RES price bands to the network.
 
     Creates links between carrier buses and demand nodes for Other Non-RES generators of different price bands,
-    including their efficiency, costs, and CO2 emissions.
+    including their efficiency, costs, and CO2 emissions. To follow offer prices of the bands, the fuel is virtually
+    free and CO2 emissions are priced through the `co2 atmosphere` bus, so the marginal cost per MWh_el is
+    the offer price plus the CO2 cost. Gas bands use the fossil gas CO2 factor, except bands with a PEMMDB
+    CO2 factor of 0, which stay emission-free. Hydrogen bands draw from a free hydrogen fuel bus outside the hydrogen market,
+    since the TYNDP market model dispatches them at their offer price.
 
     Parameters
     ----------
@@ -1234,7 +1298,7 @@ def _add_other_non_res_tyndp(
         Name of the Other Non-RES generator.
     carrier : str
         Name of the Other Non-RES fuel carrier.
-    carrier_nodes : list
+    carrier_nodes : list[str]
         Nodes of the fuel carrier.
     spatial : SimpleNamespace
         Namespace containing spatial information for different carriers,
@@ -1243,8 +1307,6 @@ def _add_other_non_res_tyndp(
         DataFrame containing cost and technical parameters for different technologies.
     pemmdb_capacities : pd.DataFrame
         Dataframe containing PEMMDB capacities including information on the different Other Non-RES price bands.
-    co2_price: float
-        Emission price for the given planning year.
 
     Returns
     -------
@@ -1254,62 +1316,51 @@ def _add_other_non_res_tyndp(
     query = "" if "ccs" in generator else "not"
 
     price_bands = pemmdb_capacities.query(
-        f"index_carrier.str.startswith(@generator) and {query} index_carrier.str.contains('ccs') and efficiency > 0",
+        f"index_carrier.str.startswith(@generator) and {query} index_carrier.str.contains('ccs')",
     ).reset_index()
+    names = _other_non_res_link_names(price_bands)
+    if names.duplicated().any():
+        raise ValueError(
+            f"Duplicate Other Non-RES price band names: {names[names.duplicated()].tolist()}"
+        )
+
     nodes = price_bands.bus.values
+
     offer_price = price_bands.price
     fuel_price = costs.at[carrier, "fuel"]
-    adjusted_price = (
-        offer_price * price_bands.efficiency  # EUR/MWhel * efficiency = EUR/MWhth
-        - fuel_price  # EUR/MWhth
-        - price_bands.co2_factor * co2_price  # tCO2/MWhth * EUR/tCO2 = EUR/MWhth
-    ).values
+    marginal_cost = (
+        offer_price * price_bands.efficiency - fuel_price
+    ).values  # EUR/MWhth
+
+    capture_rate = costs.at[generator, "capture_rate"] if "ccs" in generator else 0.0
+    # Convert PEMMDB CO2 factors from t/MWh_el to t/MWh_th using band efficiency
+    co2_factor = (price_bands.co2_factor * price_bands.efficiency).values
+    if carrier == "gas":
+        co2_factor = np.where(
+            co2_factor > 0,
+            costs.at["gas", "CO2 intensity"] * (1 - capture_rate),
+            0.0,
+        )
+
+    attrs = dict(
+        bus0=carrier_nodes,
+        bus1=nodes,
+        bus2="co2 atmosphere",
+        carrier=generator,
+        p_nom_extendable=False,
+        marginal_cost=marginal_cost,
+        efficiency=price_bands.efficiency.values,
+        efficiency2=co2_factor,
+        lifetime=costs.at[generator, "lifetime"],
+    )
 
     if "ccs" in generator:
-        capture_rate = costs.at[generator, "capture_rate"]
-        co2_capture = capture_rate * price_bands.co2_factor.values / (1 - capture_rate)
-
-        n.add(
-            "Link",
-            price_bands["bus"].astype(str)
-            + "-"
-            + price_bands["index_carrier"].astype(str)
-            + "-"
-            + price_bands["price"].round(2).astype(str)
-            + "eur",
-            bus0=carrier_nodes,
-            bus1=nodes,
-            bus2="co2 atmosphere",
+        attrs |= dict(
             bus3=spatial.co2.df.loc[nodes, "nodes"].values,
-            carrier=generator,
-            p_nom_extendable=False,
-            marginal_cost=adjusted_price,
-            efficiency=price_bands.efficiency.values,
-            efficiency2=price_bands.co2_factor.values,
-            efficiency3=co2_capture,
-            lifetime=costs.at[generator, "lifetime"],
+            efficiency3=capture_rate * co2_factor / (1 - capture_rate),
         )
 
-    # Else add as regular conventional power plants
-    else:
-        n.add(
-            "Link",
-            price_bands["bus"].astype(str)
-            + "-"
-            + price_bands["index_carrier"].astype(str)
-            + "-"
-            + price_bands["price"].round(2).astype(str)
-            + "eur",
-            bus0=carrier_nodes,
-            bus1=nodes,
-            bus2="co2 atmosphere",
-            carrier=generator,
-            p_nom_extendable=False,
-            marginal_cost=adjusted_price,
-            efficiency=price_bands.efficiency.values,
-            efficiency2=price_bands.co2_factor.values,
-            lifetime=costs.at[generator, "lifetime"],
-        )
+    n.add("Link", names, **attrs)
 
 
 def add_thermal_generation_tyndp(
@@ -1321,7 +1372,6 @@ def add_thermal_generation_tyndp(
     options: dict,
     cf_industry: dict,
     pemmdb_capacities: pd.DataFrame,
-    co2_price: float,
 ) -> None:
     """
     Add TYNDP conventional thermal electricity generation technologies to the network.
@@ -1348,8 +1398,6 @@ def add_thermal_generation_tyndp(
         Dictionary of industrial conversion factors, needed for carrier buses.
     pemmdb_capacities: pd.DataFrame
         Dataframe containing PEMMDB capacities including Other Non-RES price band information.
-    co2_price: float
-        Emission price for the given planning year.
 
     Returns
     -------
@@ -1385,7 +1433,6 @@ def add_thermal_generation_tyndp(
                 spatial=spatial,
                 costs=costs,
                 pemmdb_capacities=pemmdb_capacities,
-                co2_price=co2_price,
             )
 
         # Otherwise, add CCS conventional power plants using default PyPSA-Eur assumptions for capture rates and capital cost
@@ -1504,7 +1551,6 @@ def add_generation(
     options: dict,
     cf_industry: dict,
     pemmdb_capacities: pd.DataFrame | None = None,
-    co2_price: float | None = None,
 ) -> None:
     """
     Add conventional electricity generation to the network.
@@ -1534,8 +1580,6 @@ def add_generation(
         Dictionary of industrial conversion factors, needed for carrier buses
     pemmdb_capacities: pd.DataFrame | None
         Dataframe containing PEMMDB capacities including Other Non-RES price band information
-    co2_price: float | None
-        Emission price for the given planning year
 
     Returns
     -------
@@ -1628,7 +1672,6 @@ def add_generation(
         options=options,
         cf_industry=cf_industry,
         pemmdb_capacities=pemmdb_capacities,
-        co2_price=co2_price,
     )
 
 
@@ -1691,16 +1734,7 @@ def _add_other_non_res_capacities(
     caps = (
         pemmdb_capacities.query(f"{id_col} == @tech")
         .reset_index()
-        .assign(
-            price_band=lambda df: (
-                df["bus"].astype(str)
-                + "-"
-                + df["index_carrier"].astype(str)
-                + "-"
-                + df["price"].round(2).astype(str)
-                + "eur"
-            )
-        )
+        .assign(price_band=_other_non_res_link_names)
         .set_index("price_band")
     )["p_nom"]
     # Existing capacities are given in MWel, hence we need to convert to MWth
@@ -1712,14 +1746,7 @@ def _add_other_non_res_capacities(
     ##########
     # Filter for profiles
     profiles = pemmdb_profiles.query(f"{id_col} == @tech").assign(
-        link_index=lambda df: (
-            df["bus"].astype(str)
-            + "-"
-            + df["index_carrier"].astype(str)
-            + "-"
-            + df["price"].round(2).astype(str)
-            + "eur"
-        )
+        link_index=_other_non_res_link_names
     )
     p_min_pu = profiles.pivot_table(
         values="p_min_pu", index="time", columns="link_index"
@@ -4035,6 +4062,7 @@ def add_h2_reconversion_tyndp(
     buses_h2: pd.Index,
     costs: pd.DataFrame,
     options: dict | None = None,
+    pemmdb_capacities: pd.DataFrame | None = None,
 ) -> None:
     """
     Adds TYNDP H2 reconversion with options for Fuel cells, H2 turbines and methanation.
@@ -4058,6 +4086,8 @@ def add_h2_reconversion_tyndp(
         - min_part_load_methanation : float
         - hydrogen_fuel_cell : bool
         - hydrogen_turbine : bool
+    pemmdb_capacities : pd.DataFrame or None, optional
+        PEMMDB capacities. If provided and hydrogen_turbine enabled, Other Non-RES hydrogen turbine price bands are added.
 
     Returns
     -------
@@ -4107,6 +4137,24 @@ def add_h2_reconversion_tyndp(
         logger.info(
             "Adding hydrogen CCGT and OCGT turbines for re-electrification. Assuming CCGT and OCGT technology costs."
         )
+        add_other_non_res_h2 = (
+            pemmdb_capacities is not None
+            and pemmdb_capacities.index_carrier.str.startswith(
+                "other-non-res-h2", na=False
+            ).any()
+        )
+        if add_other_non_res_h2:
+            fuel_carrier = "other-non-res-h2-fuel"
+            fuel_bus = f"EU {fuel_carrier}"
+            n.add("Carrier", fuel_carrier)
+            n.add("Bus", fuel_bus, location="EU", carrier=fuel_carrier, unit="MWh_LHV")
+            n.add(
+                "Generator",
+                fuel_bus,
+                bus=fuel_bus,
+                carrier=fuel_carrier,
+                p_nom_extendable=True,
+            )
         for tech, cost_tech in {"h2-ccgt": "CCGT", "h2-ocgt": "OCGT"}.items():
             n.add(
                 "Link",
@@ -4123,6 +4171,16 @@ def add_h2_reconversion_tyndp(
                 marginal_cost=costs.at[tech, "VOM"],
                 lifetime=costs.at[tech, "lifetime"],
             )
+            if add_other_non_res_h2:
+                _add_other_non_res_tyndp(
+                    n=n,
+                    generator=f"other-non-res-{tech}",
+                    carrier=tech,
+                    carrier_nodes=[fuel_bus],
+                    spatial=spatial,
+                    costs=costs,
+                    pemmdb_capacities=pemmdb_capacities,
+                )
 
 
 def add_h2_grid_tyndp(
@@ -4322,6 +4380,7 @@ def add_h2_topology_tyndp(
     h2_storages_fn: str,
     p2g_shares_fn: str,
     tyndp_stores: list[str],
+    pemmdb_capacities: pd.DataFrame | None = None,
 ) -> None:
     """
     Add TYNDP H2 topology to the network.
@@ -4362,7 +4421,8 @@ def add_h2_topology_tyndp(
         Path to CSV file containing P2G shares for each electrolyser link.
     tyndp_stores : list[str]
         TYNDP storage technologies to add (`H2 tank-storage`, `H2 cavern-storage`).
-
+    pemmdb_capacities : pd.DataFrame or None, optional
+        PEMMDB capacities including the Other Non-RES hydrogen price bands.
 
     Returns
     -------
@@ -4448,6 +4508,7 @@ def add_h2_topology_tyndp(
         buses_h2=buses_h2_z2,
         costs=costs,
         options=options,
+        pemmdb_capacities=pemmdb_capacities,
     )
 
     # add H2 grid (H2 reference grid)
@@ -5088,6 +5149,7 @@ def add_h2_gas_infrastructure(
     p2g_shares_fn,
     h2_storages_fn,
     tyndp_stores,
+    pemmdb_capacities=None,
 ):
     """
     Add hydrogen and gas infrastructure to the network.
@@ -5137,6 +5199,8 @@ def add_h2_gas_infrastructure(
         Path to CSV file containing prepped TYNDP H2 storage assets.
     tyndp_stores : list[str]
         TYNDP storage technologies to add (`H2 tank-storage`, `H2 cavern-storage`).
+    pemmdb_capacities : pd.DataFrame, optional
+        PEMMDB capacities including the Other Non-RES hydrogen price bands.
 
     Returns
     -------
@@ -5169,6 +5233,7 @@ def add_h2_gas_infrastructure(
             p2g_shares_fn=p2g_shares_fn,
             h2_storages_fn=h2_storages_fn,
             tyndp_stores=tyndp_stores,
+            pemmdb_capacities=pemmdb_capacities,
         )
     else:
         # add base h2 technologies (carrier, production, reconversion, storage)
@@ -10018,7 +10083,11 @@ def main(
     # Read in PEMMDB data and availability profiles
     enable_pemmdb_caps = params.electricity["pemmdb_capacities"]["enable"]
     if enable_pemmdb_caps:
-        pemmdb_capacities = pd.read_csv(inputs.pemmdb_capacities).set_index("bus")
+        pemmdb_capacities = _fill_other_non_res_efficiency(
+            pemmdb_capacities=pd.read_csv(inputs.pemmdb_capacities).set_index("bus"),
+            costs=costs,
+            group_conventionals=params.electricity["group_tyndp_conventionals"],
+        )
         pemmdb_profiles = xr.open_dataset(inputs.pemmdb_profiles).to_dataframe()
     if tyndp_nuclear_profiles_fn := inputs.tyndp_nuclear_profiles:
         tyndp_nuclear_profiles = pd.read_csv(
@@ -10041,7 +10110,6 @@ def main(
         options=options,
         cf_industry=cf_industry,
         pemmdb_capacities=pemmdb_capacities,
-        co2_price=co2_price,
     )
 
     if tyndp_hydro := [c for c in tyndp_renewable_carriers if c.startswith("hydro")]:
@@ -10077,6 +10145,7 @@ def main(
         p2g_shares_fn=inputs.get("p2g_shares"),
         h2_storages_fn=inputs.get("tyndp_h2_storages"),
         tyndp_stores=params.electricity["tyndp_stores"],
+        pemmdb_capacities=pemmdb_capacities,
     )
 
     if options["synfuels_tyndp"]["enable"]:

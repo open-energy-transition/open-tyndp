@@ -882,6 +882,7 @@ plotting:
     H2 Electrolysis SRES Z2: "#99177f"
     "other-non-res-h2-ccgt": "#991f83"
     "other-non-res-h2-ocgt": "#b52b99"
+    "other-non-res-h2-fuel": "#b52b99"
     AC_SRES: "#70af1d"
     sng: "#9850ad"
     H2 to sng: "#c44ce6"

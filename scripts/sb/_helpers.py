@@ -390,11 +390,21 @@ def add_metadata(
 
     # Notes
     if note:
-        host.text(
+        label = host.text(
             x0_fig,
             y0_fig - 0.07,
-            "\n".join(note),
+            "Note:",
             transform=fig.transFigure,
+            ha="left",
+            va="top",
+            fontsize=8,
+            fontweight="bold",
+            alpha=0.7,
+        )
+        host.annotate(
+            f" {note}",
+            xy=(1, 1),
+            xycoords=label,
             ha="left",
             va="top",
             fontsize=8,
@@ -544,7 +554,9 @@ def get_tyndp_conventional_thermals(
     if include_h2_fuel_cell:
         conventional_thermals.append("h2-fuel-cell")
     if include_h2_turbine:
-        conventional_thermals.extend(["h2-ccgt", "h2-ocgt"])
+        conventional_thermals.extend(
+            ["h2-ccgt", "h2-ocgt", "other-non-res-h2-ccgt", "other-non-res-h2-ocgt"]
+        )
 
     return conventional_dict, conventional_thermals
 
@@ -850,6 +862,19 @@ def normalize_direction(
         bus0=df["bus0"].where(~swap, df["bus1"]),
         bus1=df["bus1"].where(~swap, df["bus0"]),
     ).assign(border=lambda x: x.bus0 + connector + x.bus1)
+
+
+def format_band_number(s: pd.Series) -> pd.Series:
+    """
+    Format a numeric price band attribute as a compact rounded string,
+    e.g. 4.0 -> "4" and 564.0000000000001 -> "564".
+    """
+    return (
+        pd.to_numeric(s, errors="coerce")
+        .round(2)
+        .map(lambda v: f"{v:.10g}")
+        .astype(str)
+    )
 
 
 def parse_wscenario(s: pd.Series) -> pd.Series:
