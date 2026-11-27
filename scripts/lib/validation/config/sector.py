@@ -961,11 +961,17 @@ class SectorConfig(BaseModel):
     eu27_to_model_scope: (
         Literal[False]
         | dict[
-            Literal["solid biomass", "biogas", "co2 sequestration"], dict[int, float]
+            Literal[
+                "solid biomass",
+                "biogas",
+                "co2 sequestration beccs",
+                "co2 sequestration",
+            ],
+            dict[int, float],
         ]
     ) = Field(
         False,
-        description="Ratio of all modelled countries to EU27, per key and planning horizon. `solid biomass` and `biogas` are PyPSA-Eur potential ratios; `solid biomass` scales `biomass_final_demand`, and both scale benchmark values back to EU27. `co2 sequestration` scales `co2_sequestration_potential` and is derived from the biogenic and fossil shares of captured CO2. Set to false to disable scaling.",
+        description="Ratio of all modelled countries to EU27, per key and planning horizon. `solid biomass` and `biogas` are PyPSA-Eur potential ratios; `solid biomass` scales `biomass_final_demand`, and both scale benchmark values back to EU27. `co2 sequestration beccs` is the joint solid biomass and biogas potential ratio; it scales the TYNDP BECCS potential that caps the CO2 captured by biogas upgrading and biomass-to-liquid with carbon capture. `co2 sequestration` scales `co2_sequestration_potential`; it weights `co2 sequestration beccs` by the biogenic share of captured CO2 and the SMR CC and power CCS capacity ratio by the fossil share. Set to false to disable scaling.",
     )
     force_biomass_potential: bool = Field(
         False,

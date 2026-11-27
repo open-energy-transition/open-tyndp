@@ -82,6 +82,8 @@
 
 * Align the Scenario Building benchmarking to the TYNDP 2026 cycle ([#960](https://github.com/open-energy-transition/open-tyndp/pull/960)). Market model outputs are read from the TYNDP 2026 Time Series Dashboards (installed capacities, prices, loads, exchanges and generation) and the Scenarios Report benchmark uses the TYNDP 2026 Scenario Report data figures (retrieved by `retrieve_tyndp_2026`). The rule `clean_tyndp_output_benchmark` is renamed to `clean_tyndp_dashboard_benchmark` and the benchmarking source `market_out` to `dashboard_out`. A new `electricity_prosumer_demand` table compares prosumer and behind-the-meter demand, and electricity demand is benchmarked as net demand. Hydrogen demand is benchmarked by use (incl. e-fuels, power generation and heat production), and methane and hydrogen for heat production are separate categories. Renewable generation is benchmarked net of curtailment, with curtailment reported separately as dumped energy. The option `load:patch_demand_with_mm` is removed. The Visualisation Platform benchmarking and the `generation_profiles` table are removed.
 
+* Cap the CO2 that biogas upgrading and biomass-to-liquid with carbon capture send to storage at the TYNDP 2026 BECCS potential ([#1205](https://github.com/open-energy-transition/open-tyndp/pull/1205)). The values are scaled to the model scope with the new `co2 sequestration beccs` ratio of `sector: eu27_to_model_scope`.
+
 **Bugfixes and Compatibility**
 
 * Remove `__init__` override from `heat_system.py` for compatibility with python>=3.14 ([#990](https://github.com/open-energy-transition/open-tyndp/pull/990)).
