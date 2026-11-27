@@ -135,6 +135,8 @@
 
 * Remove `plot_weather_benchmark` rule from CBA, as it creates the same plots as `plot_cba_benchmark` ([#979](https://github.com/open-energy-transition/open-tyndp/pull/979)).
 
+* Make the weekly merge and linked-issue closing workflows cycle-agnostic ([#1197](https://github.com/open-energy-transition/open-tyndp/pull/1197)). They now target the only `tyndp-YYYY` branch newer than the `CURRENT_CYCLE` repository variable, which holds the cycle on `master`.
+
 
 ## Upcoming PyPSA-Eur Release
 <!-- Upcoming Release -->
