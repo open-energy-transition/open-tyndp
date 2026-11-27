@@ -24,6 +24,10 @@ ENERGY_UNITS = {"TWh", "GWh", "MWh", "kWh", "TJ"}
 POWER_UNITS = {"GW", "MW", "kW"}
 PRICE_UNITS = {"EUR/MWh", "EUR/MWh_e", "EUR/MWh_H2"}
 
+# Map raw TYNDP bidding zone names to Open-TYNDP names
+BZ_NAME_ALIASES = {"UK-N": "UKNI"}
+BZ_COUNTRY_CODES = {"UK": "GB"}
+
 # Weather scenarios that contain data in the TYNDP 2026 data,
 # per planning horizon.
 AVAILABLE_WSCENARIOS = {
@@ -53,28 +57,38 @@ def make_index(
 
 
 def format_bz_names(
-    obj: str | pd.Series | pd.DataFrame,
+    obj: str | pd.Series | pd.DataFrame, reverse: bool = False
 ) -> str | pd.Series | pd.DataFrame:
     """
-    Standardize TYNDP bidding zone / node name conventions to Open-TYNDP's.
+    Convert between TYNDP and Open-TYNDP bidding zone / node name conventions.
 
-    Currently only rewrites the "UK" country-code convention to "GB" (and the
-    "UK-N" sub-zone code to "GBNI"). Works both on a single string and,
-    element-wise, on a pandas Series/DataFrame.
+    Rewrites the "UK" country code to "GB" and the raw "UK-N" sub-zone code to
+    "GBNI". With ``reverse=True``, country codes are mapped back ("GB" to "UK").
+    Works both on a single string and, element-wise, on a pandas Series/DataFrame.
 
     Parameters
     ----------
     obj : str | pd.Series | pd.DataFrame
-        Raw bidding zone / node name(s) to format.
+        Bidding zone / node name(s) to format.
+    reverse : bool, default False
+        Map Open-TYNDP names back to raw TYNDP country codes.
 
     Returns
     -------
     str | pd.Series | pd.DataFrame
-        Formatted name(s) with standardized region codes.
+        Formatted name(s).
     """
-    if isinstance(obj, str):
-        return obj.replace("UK-N", "UKNI").replace("UK", "GB")
-    return obj.replace("UK-N", "UKNI", regex=True).replace("UK", "GB", regex=True)
+    replacements = (
+        {v: k for k, v in BZ_COUNTRY_CODES.items()}
+        if reverse
+        else BZ_NAME_ALIASES | BZ_COUNTRY_CODES
+    )
+    for old, new in replacements.items():
+        if isinstance(obj, str):
+            obj = obj.replace(old, new)
+        else:
+            obj = obj.replace(old, new, regex=True)
+    return obj
 
 
 def extract_grid_data_tyndp(
