@@ -423,7 +423,7 @@ def compute_benchmark(
         grouper = ["carrier"]
         exclusions = [
             "DC",
-            "SRES grid connection",
+            "AC_SRES",
             "electricity distribution grid",
             "battery discharger",
             "battery charger",
@@ -442,8 +442,8 @@ def compute_benchmark(
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
             )
-            .loc[lambda df: ~df.index.get_level_values("carrier").isin(exclusions)]
             .pipe(assign_bus_carrier, n=n, bus_carrier="AC_SRES")
+            .loc[lambda df: ~df.index.get_level_values("carrier").isin(exclusions)]
         )
 
         df = (

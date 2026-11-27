@@ -177,9 +177,9 @@ references:
       - family-names: Seibold
         given-names: Toni
   - type: report
-    title: 'TYNDP 2024 Scenarios Methodology Report'
+    title: 'TYNDP 2026 Scenarios Methodology Report'
     authors:
       - name: ENTSO-E
-      - name: entsog
-    year: 2025
-    url: 'https://2024.entsos-tyndp-scenarios.eu/scenarios-methodology-report/'
+      - name: ENTSOG
+    year: 2026
+    url: 'https://2026.entsos-tyndp-scenarios.eu/scenarios-methodology-report/'

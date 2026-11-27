@@ -8,7 +8,7 @@ ENTSO-E input datasets, it constructs a sector-coupled European energy system mo
 and solves a least-cost dispatch optimisation. The solved network produced by SB serves
 as the direct input to the [Cost-Benefit Analysis (CBA)](cba.md).
 
-Open-TYNDP implements the [TYNDP 2026 Scenario Building methodology](https://2026.entsos-tyndp-scenarios.eu/scenarios-methodology-report/introduction/) as a soft-fork of
+Open-TYNDP implements the [TYNDP 2026 Scenario Building methodology](https://2026.entsos-tyndp-scenarios.eu/scenarios-methodology-report/) as a soft-fork of
 [PyPSA-Eur](https://pypsa-eur.readthedocs.io/en/latest/), inheriting its modelling
 framework (optimisation structure, network representation, and sector-coupling capabilities)
 while replacing specific inputs and assumptions to match TYNDP 2026 reference data.
