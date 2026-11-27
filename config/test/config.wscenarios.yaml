@@ -330,7 +330,12 @@ sector:
       2035: 1.1635
       2040: 1.1635
       2050: 1.1627
-    co2 sequestration: # biogenic share * biomass ratio + fossil share * SMR CC and power CCS capacity ratio
+    co2 sequestration beccs: # solid biomass + biogas potential ratio; caps biogenic capture and is the biomass ratio of co2 sequestration
+      2030: 1.1017
+      2035: 1.1031
+      2040: 1.1044
+      2050: 1.1043
+    co2 sequestration: # biogenic share * co2 sequestration beccs + fossil share * SMR CC and power CCS capacity ratio
       2030: 1.3922
       2035: 1.3615
       2040: 1.3294
