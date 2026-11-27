@@ -70,7 +70,8 @@ and Open-TYNDP configuration options.
 !!! warning
 
     We recommend always running the CBA workflow with the latest pre-solved SB networks, which is what the
-    default `cba_scenario_input:sb_version: latest` selects. Earlier versions stay retrievable
+    default `data:open_tyndp_prelim:version: latest` selects. `cba_scenario_input:sb_version`
+    overrides this version for CBA only, also per scenario. Earlier versions stay retrievable
     but may no longer match what a newer workflow expects, and nothing checks for that
     mismatch. If you encounter errors, please
     [report them](https://github.com/open-energy-transition/open-tyndp/issues) and fall back to
@@ -106,9 +107,6 @@ NT-ws1995:
     start: "1995-01-01"
     end: "1996-01-01"
 
-  atlite:
-    default_cutout: europe-1995-sarah3-era5
-
   cba:
     sb_scenario: NT
 
@@ -118,9 +116,6 @@ NT-ws2008:
   snapshots:
     start: "2008-01-01"
     end: "2009-01-01"
-
-  atlite:
-    default_cutout: europe-2008-sarah3-era5
 
   cba:
     sb_scenario: NT
@@ -132,9 +127,6 @@ NT-ws2009:
     start: "2009-01-01"
     end: "2010-01-01"
 
-  atlite:
-    default_cutout: europe-2009-sarah3-era5
-
   cba:
     sb_scenario: NT
 
@@ -143,7 +135,7 @@ NT-wscenarios:
     scenarios: [NT-ws2009, NT-ws2008, NT-ws1995]
 ```
 
-Individual child scenarios (e.g., `NT-ws2009`) must define their specific `snapshots`, `atlite.default_cutout`, and the `cba.sb_scenario` used as input.
+Individual child scenarios (e.g., `NT-ws2009`) must define their specific `snapshots` and the `cba.sb_scenario` used as input.
 
 !!! tip
 

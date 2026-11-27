@@ -106,7 +106,7 @@ implementations, and custom extensions all observe the same precedence rules.
 Version of Open-TYNDP. Descriptive only.
 
 - **Type:** string
-- **Default:** `v2026.09.0`
+- **Default:** `v0.9.2`
 
 **YAML Syntax**
 
@@ -254,6 +254,7 @@ Configuration for top level `planning_horizons` settings.
     entries. That block is ignored now; define `planning_horizons` at the top
     level and keep scenario sweeps inside `run.scenarios`. See
     [migration](migration.md) for detailed conversion steps.
+    For details on switching from the 2024 to the 2026 cycle, see the [Open-TYNDP cycle migration guide](migration_tyndp_2026.md).
 
 
 ## `countries` {#countries_cf}

@@ -17,8 +17,8 @@ differ in terms of price and demand assumptions.
 Here we explain these modelling differences and how these differences have been implemented into open-tyndp.
 We discuss the relevant configuration settings and the implications of these implementation decisions.
 
-Background information can be found in the report from ENTSO-E and ENTSO-G
-[TYNDP 2026 Scenarios Methodology Report](https://2026.entsos-tyndp-scenarios.eu/scenarios-methodology-report/introduction/).
+Background information can be found in the report from ENTSO-E and ENTSOG
+[TYNDP 2026 Scenarios Methodology Report](https://2026.entsos-tyndp-scenarios.eu/scenarios-methodology-report/).
 
 ## National Trends+
 
@@ -37,6 +37,9 @@ The TYNDP scenarios are defined in `config/config.tyndp.yaml` and `config/scenar
 
 The NT+ scenario is defined in full in `config/config.tyndp.yaml` and the modifications to NT+
 to form the two economic variants are defined in `config/scenarios.tyndp.yaml`.
+
+!!! note
+    For details on switching from the 2024 to the 2026 cycle, see the [Open-TYNDP cycle migration guide](migration_tyndp_2026.md).
 
 | Config Key | Description |
 |---|---|

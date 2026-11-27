@@ -7,14 +7,15 @@ The Cost-Benefit Analysis (CBA) workflow is implemented in `rules/cba.smk`. Rule
 
 ## Retrieve
 
+!!! note
+
+    When `cba.cba_scenario_input.use_presolved` is `true`, the SB rule
+    [`retrieve_presolved_networks`](sb_rules.md#rule-retrieve_presolved_networks)
+    retrieves the pre-solved SB networks used as CBA inputs.
+
 ### Rule `retrieve_tyndp_cba_projects`
 
 Downloads the CBA project explorer dataset, containing project definitions.
-
-### Rule `retrieve_presolved_sb_networks`
-
-Downloads pre-solved SB networks from a previous Open-TYNDP release for use as CBA inputs
-when `cba.cba_scenario_input.use_presolved` is `true`.
 
 ## Build MSV
 
@@ -90,14 +91,7 @@ Solves the CBA network using the rolling horizon approach. Shares the script wit
 ### Rule `plot_cba_benchmark`
 
 Plots per-project indicator benchmarking charts comparing computed indicators against
-TYNDP 2024 reference values. Shares the script with [`plot_weather_benchmark`](#rule-plot_weather_benchmark).
-
-::: plot_benchmark_indicators
-
-### Rule `plot_weather_benchmark`
-
-Plots weather ensemble benchmarking charts from indicators aggregated across climate years.
-Shares the script with [`plot_cba_benchmark`](#rule-plot_cba_benchmark).
+TYNDP 2024 reference values.
 
 ::: plot_benchmark_indicators
 

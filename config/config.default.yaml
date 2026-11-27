@@ -3,7 +3,7 @@
 # yaml-language-server: $schema=./schema.default.json
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration/#version_cf
-version: v0.9
+version: v0.9.2
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration/#tutorial_cf
 tutorial: false
@@ -1732,7 +1732,7 @@ cba:
   planning_horizons: []
   cba_scenario_input:
     use_presolved: false
-    sb_version: latest
+    sb_version:
   sb_scenario:
   scenarios: []
   projects: []

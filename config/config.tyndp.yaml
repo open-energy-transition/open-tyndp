@@ -177,15 +177,14 @@ electricity:
   constrain_dsr: true
 
 atlite:
-  default_cutout: europe-2009-sarah3-era5
+  default_cutout: europe-grid
   cutouts:
-    europe-2009-sarah3-era5:
-      module: [sarah, era5] # in priority order
-      x: [-12., 42.]
+    europe-grid:
+      module: era5
+      x: [-12., 40.8]
       y: [33., 72.]
       dx: 0.3
       dy: 0.3
-      time: ['2009', '2009']
 
 conventional:
   tyndp_availability_profiles: true
@@ -294,6 +293,7 @@ sector:
       sng: gas
   smr_ramp_limits_tyndp: true
   gas_network: false
+  gas_distribution_grid: false
   gas_demand_exogenously: true
   biomass_spatial: false
   biomass_to_liquid: true
@@ -409,6 +409,9 @@ solving:
       OptimalityTol: 1.0e-06
 
 data:
+  cutout:
+    source: tyndp-archive
+    version: latest
   version_files:
   - data/versions.csv
   - data/tyndp_versions.csv
@@ -460,7 +463,7 @@ cba:
   - 2040
   cba_scenario_input:
     use_presolved: false
-    sb_version: latest # use 'latest' or a supported version from data/tyndp_versions.csv for pre-solved SB network input in CBA; only applies if use_presolved is true
+    sb_version: # use 'latest' or a supported version for pre-solved SB network input in CBA; defaults to data:open_tyndp_prelim:version
   projects:
   - t225 # PINT
   - t339 # TOOT

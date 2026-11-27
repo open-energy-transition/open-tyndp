@@ -17,6 +17,7 @@ path = workflow.source_path("../scripts/_helpers.py")
 sys.path.insert(0, os.path.dirname(path))
 
 from scripts._helpers import load_data_versions
+from snakemake.iocontainers import Wildcards
 from snakemake.utils import update_config
 
 
@@ -141,6 +142,19 @@ def config_provider(*keys, default=None):
         return partial(dynamic_getter, keys=keys, default=default)
     else:
         return partial(static_getter, keys=keys, default=default)
+
+
+def run_names() -> list[str]:
+    names = config["run"]["name"]
+    return [names] if isinstance(names, str) else names
+
+
+def runs_with(*keys: str) -> list[str]:
+    return [
+        run
+        for run in run_names()
+        if config_provider(*keys)(Wildcards(fromdict={"run": run} if run else {}))
+    ]
 
 
 # Retrieval is disabled while reading from a populated local cache
