@@ -7,6 +7,9 @@
 NT:
   tyndp_scenario: NT
 
+NT-1H-20261127:
+  tyndp_scenario: NT
+
 # HEV: same inputs as NT, with fuel and CO2 prices +10% (TYNDP 2026 Scenarios Methodology Report, ch. 10, p. 65)
 # TODO: demand adjustment (electricity market, prosumer demand, EV, H2, thermal energy demand), hydrogen import prices, benchmarking
 
