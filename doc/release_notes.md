@@ -110,6 +110,8 @@
 
 * Remove code retrieving unused TYNDP 2024 data ([#1195](https://github.com/open-energy-transition/open-tyndp/pull/1195)). Only the 2024 node lists (`Nodes.zip` and `Offshore-hubs.zip`) are kept, because the CBA still uses them to validate the TYNDP 2024 projects.
 
+* fix: scale the EU27 biomass final demand and CO2 sequestration potential of the TYNDP 2026 Supply Tool to the full model scope with the new `sector: eu27_to_model_scope` ratios, so they match the biomass and biogas potentials, which already cover all modelled countries. Benchmarks scale the model values back to EU27 ([#1186](https://github.com/open-energy-transition/open-tyndp/issues/1186)).
+
 **Documentation**
 
 * Fix the broken links in the documentation ([#997](https://github.com/open-energy-transition/open-tyndp/pull/997)).
