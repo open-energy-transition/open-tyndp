@@ -1283,6 +1283,8 @@ def add_co2_biogenic_capture_constraint(
     terms = []
     for carrier, port in capture_ports.items():
         links = n.links.index[n.links.carrier == carrier]
+        if links.empty:
+            continue
         bus_carriers = n.links.loc[links, f"bus{port}"].map(n.buses.carrier)
         wrong = bus_carriers.index[bus_carriers != "co2 stored"]
         if not wrong.empty:
@@ -1292,6 +1294,11 @@ def add_co2_biogenic_capture_constraint(
         p = n.model["Link-p"].loc[snapshots, links]
         captured = n.links.loc[links, f"efficiency{port}"]
         terms.append((p * captured * weightings).sum())
+    if not terms:
+        logger.info(
+            "No biogenic carbon capture links, skipping co2_biogenic_capture_limit."
+        )
+        return
     lhs = sum(terms)
     rhs = n.global_constraints.at["co2_biogenic_capture_limit", "constant"]
     n.model.add_constraints(
