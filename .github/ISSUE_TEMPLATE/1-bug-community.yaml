@@ -74,7 +74,7 @@ body:
     description: What should happen instead? Describe the expected correct behavior. Include information such as expected outputs, resolution of errors, and how the proposed fix should be tested (specific commands, files to check, or validation steps).
     placeholder: |
       Example:
-      The rule should complete successfully and produce `results/[prefix]/[run]/benchmarks/tyndp-2024/resources/benchmarks_s_all___2040.csv`.
+      The rule should complete successfully and produce `results/[prefix]/[run]/benchmarks/tyndp-2026/resources/benchmarks_2040.csv`.
   validations:
     required: true
 
