@@ -28,6 +28,7 @@ from tqdm import tqdm
 from scripts._helpers import configure_logging, get_snapshots, set_scenario_config
 from scripts.sb._helpers import (
     check_snapshot_year,
+    format_bz_names,
     get_wscenario,
     safe_planning_horizon,
 )
@@ -48,7 +49,7 @@ def read_hydro_inflows_file(
         hydro_inflows_dir,
         "Hydro Inflows",
         str(planning_horizon),
-        f"{node.replace('GB', 'UK')}_Hydro_Inflows_{hydro_tech}_{planning_horizon}.csv",
+        f"{format_bz_names(node, reverse=True)}_Hydro_Inflows_{hydro_tech}_{planning_horizon}.csv",
     )
 
     if not os.path.isfile(fn):
