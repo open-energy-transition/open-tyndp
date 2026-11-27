@@ -93,6 +93,8 @@
 
 * Make the retrieval of pre-solved networks version-aware to support the network renaming in [PyPSA-Eur#1838](https://github.com/PyPSA/pypsa-eur/pull/1838), and share it between the SB and CBA workflows ([#1125](https://github.com/open-energy-transition/open-tyndp/pull/1125)). `cba: cba_scenario_input: sb_version` now defaults to `data: open_tyndp_prelim: version`.
 
+* fix: use the TYNDP 2026 fossil natural gas price instead of the blended gas price for NT ([#1191](https://github.com/open-energy-transition/open-tyndp/pull/1191)). The blended price includes biomethane and synthetic methane, which are modelled explicitly, so their cost was counted twice. In 2050 the gas price drops from 51.1 to 35.28 EUR/MWh.
+
 * Improve scenario management compatibility by removing top level gating references in `smk` files ([#1136](https://github.com/open-energy-transition/open-tyndp/pull/1136)). The `all` target is also fixed to collect tyndp outputs dependent on run settings.
 
 * Keep isolated TYNDP offshore buses (e.g. `DKN7_OFF`) via the new switch `electricity: remove_unconnected_components` (`false` for TYNDP); isolated AC buses without assets are removed in `compose_network` ([#967](https://github.com/open-energy-transition/open-tyndp/issues/967), [#1135](https://github.com/open-energy-transition/open-tyndp/pull/1135)).
