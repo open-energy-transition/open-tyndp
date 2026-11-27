@@ -139,7 +139,7 @@
 
 * Update HPC high-res run memory requirements ([#1201](https://github.com/open-energy-transition/open-tyndp/pull/1201)).
 
-* Bump and lock tornado to 6.6.1 and soupsieve to 4.1.2 ([#1203](https://github.com/open-energy-transition/open-tyndp/pull/1203)).
+* Bump and lock `tornado` to 6.6.1 and `soupsieve` to 4.1.2, respectively ([#1203](https://github.com/open-energy-transition/open-tyndp/pull/1203)).
 
 
 ## Upcoming PyPSA-Eur Release
