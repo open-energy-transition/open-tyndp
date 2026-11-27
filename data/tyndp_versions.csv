@@ -91,7 +91,7 @@ tyndp_pecd,4.2,tyndp-archive,supported,2026-08-13,TYNDP 2026 preliminary data pa
 tyndp_pecd,3.1+pre-built.0.1,archive,not-supported,2026-01-27,Pre-built PECD data for Open-TYNDP,https://storage.googleapis.com/open-tyndp-data-store/PECD/
 tyndp_pecd,3.1+pre-built.0.1,tyndp-archive,not-supported,2026-01-27,Pre-built PECD data for Open-TYNDP,https://storage.googleapis.com/open-tyndp-data-store/PECD/
 tyndp_pecd,3.1,primary,not-supported,2026-01-27,Pre-built PECD data for Open-TYNDP,https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/PECD.zip
-tyndp_pecd,3.1,archive,supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/PECD/
-tyndp_pecd,3.1,tyndp-archive,supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/PECD/
+tyndp_pecd,3.1,archive,not-supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/PECD/
+tyndp_pecd,3.1,tyndp-archive,not-supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/PECD/
 worldbank_commodity_prices,jan-2026,tyndp-archive,latest supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/worldbank_commodity_prices/jan-2026/CMO-Historical-Data-Monthly.xlsx
 worldbank_urban_population,2025-08-14,tyndp-archive,latest supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/worldbank_urban_population/2025-08-14/API_SP.URB.TOTL.IN.ZS_DS2_en_csv_v2_22447.zip
