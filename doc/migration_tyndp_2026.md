@@ -197,7 +197,7 @@ Columns of `data/tyndp_technology_map.csv`:
 | `tyndp_vis_plfm` | no longer retrieved | [#960](https://github.com/open-energy-transition/open-tyndp/pull/960) |
 | `countries_centroids` | no longer retrieved | [#939](https://github.com/open-energy-transition/open-tyndp/pull/939) |
 
-From the 2024 dataset, `retrieve_tyndp` still downloads `Nodes.zip`, `Offshore-hubs.zip`, `20240518-Supply-Tool.xlsm.zip`, the 2024 Scenarios Package and the 2024 market model outputs ([#1051](https://github.com/open-energy-transition/open-tyndp/pull/1051)).
+From the 2024 dataset, `retrieve_tyndp` only downloads `Nodes.zip` and `Offshore-hubs.zip`. The CBA still uses these data to validate the borders of the TYNDP 2024 projects.
 
 ### Rules, wildcards and files
 

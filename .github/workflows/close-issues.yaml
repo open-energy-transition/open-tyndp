@@ -1,9 +1,19 @@
-name: Close linked issues on merge into tyndp-2026
+# Cycle handling
+# - The CURRENT_CYCLE repository variable holds the year of the TYNDP cycle on master
+#   (e.g. 2026). Set it in Settings > Secrets and variables > Actions > Variables.
+# - This workflow acts only on a `tyndp-YYYY` branch with YYYY > CURRENT_CYCLE, i.e. the
+#   next cycle under development. Archived cycle branches (e.g. `tyndp-2024`) are ignored.
+# - Next cycle (e.g. 2028): create `tyndp-2028`; nothing else to change.
+# - When `tyndp-2028` replaces master, set CURRENT_CYCLE to 2028 in the same step.
+#   Otherwise the workflows still treat `tyndp-2028` as the next cycle, and the weekly merge
+#   opens sync PRs into it. Without a newer branch, the workflows then do nothing.
+
+name: Close linked issues on merge into the next-cycle branch
 
 on:
   pull_request:
     types: [closed]
-    branches: [tyndp-2026]
+    branches: ['tyndp-*']
 
 permissions:
   issues: write
@@ -20,7 +30,22 @@ jobs:
         GH_TOKEN: ${{ github.token }}
         PR_NUMBER: ${{ github.event.pull_request.number }}
         BASE: ${{ github.event.pull_request.base.ref }}
+        CURRENT_CYCLE: ${{ vars.CURRENT_CYCLE }}
       run: |
+        cycle=${BASE#tyndp-}
+        if [[ ! $cycle =~ ^[0-9]{4}$ ]]; then
+          echo "::notice::$BASE is not a tyndp-YYYY branch; nothing to close."
+          exit 0
+        fi
+        if [[ ! $CURRENT_CYCLE =~ ^[0-9]{4}$ ]]; then
+          echo "::error::Set the CURRENT_CYCLE repository variable to the TYNDP cycle on master (e.g. 2026)."
+          exit 1
+        fi
+        if (( cycle <= CURRENT_CYCLE )); then
+          echo "::notice::$BASE is not a cycle newer than $CURRENT_CYCLE; nothing to close."
+          exit 0
+        fi
+
         # Fetch sidebar links before closing anything, so that an API failure aborts
         # the job (bash -e)
         issues=$(

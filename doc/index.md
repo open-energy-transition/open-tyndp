@@ -19,16 +19,16 @@
 
 
 !!! warning
-    Open-TYNDP is under active development and is not yet feature-complete. The current development status and the general [limitations](limitations.md) are important to understand before using the model. Benchmarking against the TYNDP 2024 cycle is complete, and the outcomes can be viewed [online](https://open-tyndp.openenergytransition.org). The development is now moving forward to align with the TYNDP 2026 cycle, covering the National Trends+ (NT+) scenario and its High Economic Variant (HEV) and Low Economic Variant (LEV). The GitHub repository's [issues](https://github.com/open-energy-transition/open-tyndp/issues) collect known topics we are working on (please feel free to help or make suggestions). The fact that this project relies on a soft-fork strategy implies that [upstream issues](https://github.com/PyPSA/PyPSA-Eur/issues) need to be addressed in the PyPSA-Eur repository. The [documentation](https://open-tyndp.readthedocs.io/) also remains work in progress.
+    Open-TYNDP is under active development and is not yet feature-complete. The current [development status](#development-status) and the general [limitations](limitations.md) are important to understand before using the model. Open-TYNDP now follows the TYNDP 2026 cycle, covering the National Trends+ (NT+) scenario and its High Economic Variant (HEV) and Low Economic Variant (LEV). The last release for the TYNDP 2024 cycle was [v0.9.2](https://github.com/open-energy-transition/open-tyndp/releases/tag/v0.9.2). Benchmarking against the TYNDP 2024 cycle is complete, and the outcomes can be viewed [online](https://open-tyndp.openenergytransition.org/). The GitHub repository's [issues](https://github.com/open-energy-transition/open-tyndp/issues) collect known topics we are working on (please feel free to help or make suggestions). The fact that this project relies on a soft-fork strategy implies that [upstream issues](https://github.com/PyPSA/PyPSA-Eur/issues) need to be addressed in the PyPSA-Eur repository. The [documentation](https://open-tyndp.readthedocs.io/) also remains a work in progress.
 
 
 This repository introduces the open-source model of the Open-TYNDP research and innovation project, which is a collaboration between [Open Energy Transition (OET)](https://openenergytransition.org/) and the European Network of Transmission System Operators for Electricity (ENTSO-E).
 The project's aim is to explore the capabilities of an open-source tool to replicate the Ten-Year Network Development Plan (TYNDP) 2026 by building a workflow based on [PyPSA-Eur](https://github.com/pypsa/pypsa-eur).
 It seeks to complement the tools currently used in the TYNDP cycles, especially for Scenario Building (SB) and Cost-Benefit Analysis (CBA). This approach is designed to enhance transparency and lower barriers to stakeholder participation in European energy planning. Beyond Europe, the project aspires to demonstrate the viability of open-source (OS) frameworks in energy planning, encouraging broader global adoption.
 
-To build trust in and ensure reproducibility with the new open-source toolchain, the project first focuses on replicating key figures from the 2024 TYNDP cycle, before aligning with the current 2026 TYNDP cycle. This process involves developing new features within the open-source domain to address existing gaps, integrating tools for data interoperability and dynamic visualizations, and publishing best practices to encourage the adoption of open energy models. Additionally, the project emphasizes stakeholder consultations and [interactive workshops](https://open-energy-transition.github.io/open-tyndp-workshops/intro.html) alongside the development of the open-source tool, further promoting collaboration and transparency throughout the process.
+To build trust in and ensure reproducibility with the new open-source toolchain, Open-TYNDP first replicated key figures from the TYNDP 2024 cycle and now aligns with the current TYNDP 2026 cycle. This process involves developing new features within the open-source domain to address existing gaps, integrating tools for data interoperability and dynamic visualizations, and publishing best practices to encourage the adoption of open energy models. Additionally, the project emphasizes stakeholder consultations and [interactive workshops](https://open-energy-transition.github.io/open-tyndp-workshops/intro.html) alongside the development of the open-source tool, further promoting collaboration and transparency throughout the process.
 
-First outcomes for the TYNDP 2024 NT scenario are presented [here](https://open-tyndp.openenergytransition.org/), while preliminary outcomes and outputs for every release can be found on [Zenodo](https://zenodo.org/records/18608105). To follow the project's development, subscribe to the [Open-TYNDP newsletter](https://openenergytransition.eo.page/opentyndp).
+Benchmarking outcomes for the TYNDP 2024 NT scenario are presented [here](https://open-tyndp.openenergytransition.org/), while preliminary outcomes and outputs for every release can be found on [Zenodo](https://zenodo.org/records/18608105). To follow the project's development, subscribe to the [Open-TYNDP newsletter](https://openenergytransition.eo.page/opentyndp).
 
 This repository is a soft-fork of [OET/PyPSA-Eur](https://github.com/open-energy-transition/pypsa-eur) and contains the entire project `Open-TYNDP` supported by OET, including code and documentation. The philosophy behind this repository is that no intermediary results are included, but all results are computed from raw data and code.
 
@@ -41,7 +41,7 @@ This repository is a soft-fork of [OET/PyPSA-Eur](https://github.com/open-energy
 
 ## What Can You Do Now?
 
-- **Independently reproduce** and examine the official TYNDP 2026 National Trends scenario.
+- **Independently reproduce** and examine the official TYNDP 2026 National Trends+ scenario.
 - **Test custom scenarios** (e.g., alternative demand or RES assumptions) without starting from scratch.
 - **Directly compare** open-source model results with ENTSO-E outputs in a transparent framework.
 - **Collaborate** more easily across organizations using a shared, community-maintained codebase.
@@ -76,13 +76,34 @@ Feel free to check out our explainer video on ["What is Open Energy Modelling"](
 ## Development status {#development-status}
 
 !!! warning
-    Open-TYNDP is under active development and is not yet feature-complete. The current development status and the general [limitations](limitations.md) are important to understand before using the model. Benchmarking against the TYNDP 2024 cycle is complete, and the outcomes can be viewed [online](https://open-tyndp.openenergytransition.org). The development is now moving forward to align with the TYNDP 2026 cycle, covering the National Trends+ (NT+) scenario and its High Economic Variant (HEV) and Low Economic Variant (LEV). The GitHub repository's [issues](https://github.com/open-energy-transition/open-tyndp/issues) collect known topics we are working on (please feel free to help or make suggestions). The fact that this project relies on a soft-fork strategy implies that [upstream issues](https://github.com/PyPSA/PyPSA-Eur/issues) need to be addressed in the PyPSA-Eur repository. The [documentation](https://open-tyndp.readthedocs.io/) also remains work in progress.
-
-If you used Open-TYNDP for the TYNDP 2024 cycle, the [Open-TYNDP cycle migration guide](migration_tyndp_2026.md) explains what changed and what you have to change.
+    Open-TYNDP is under active development and is not yet feature-complete. The current [development status](#development-status) and the general [limitations](limitations.md) are important to understand before using the model. Open-TYNDP now follows the TYNDP 2026 cycle, covering the National Trends+ (NT+) scenario and its High Economic Variant (HEV) and Low Economic Variant (LEV). The last release for the TYNDP 2024 cycle was [v0.9.2](https://github.com/open-energy-transition/open-tyndp/releases/tag/v0.9.2). Benchmarking against the TYNDP 2024 cycle is complete, and the outcomes can be viewed [online](https://open-tyndp.openenergytransition.org/). The GitHub repository's [issues](https://github.com/open-energy-transition/open-tyndp/issues) collect known topics we are working on (please feel free to help or make suggestions). The fact that this project relies on a soft-fork strategy implies that [upstream issues](https://github.com/PyPSA/PyPSA-Eur/issues) need to be addressed in the PyPSA-Eur repository. The [documentation](https://open-tyndp.readthedocs.io/) also remains a work in progress.
 
 ### Already implemented features
 
-The back-casting of the 2024 TYNDP cycle involves developing new features based on the published [modelling methodology report](https://2024.entsos-tyndp-scenarios.eu/wp-content/uploads/2025/01/TYNDP_2024_Scenarios_Methodology_Report_Final_Version_250128.pdf). The major features already implemented are summarized below. Please refer to the [release notes](release_notes.md) for a more comprehensive list of features and to the relevant [pull requests](https://github.com/open-energy-transition/open-tyndp/pulls?q=is%3Apr+label%3A%22major+feature%22) for extensive documentation of the implementations.
+The major features already implemented are summarized below. Please refer to the [release notes](release_notes.md) for a more comprehensive list of features and to the [pull requests](https://github.com/open-energy-transition/open-tyndp/pulls?q=is%3Apr+state%3Aclosed) for extensive documentation of the implementations.
+
+#### TYNDP 2026 cycle
+
+The alignment with the TYNDP 2026 cycle follows the [TYNDP 2026 Scenarios Methodology Report](https://2026.entsos-tyndp-scenarios.eu/scenarios-methodology-report/). It builds on the features of the TYNDP 2024 cycle listed below.
+
+- Added the retrieval of the TYNDP 2026 data package as a separate, versioned dataset (see PRs [#816](https://github.com/open-energy-transition/open-tyndp/pull/816), [#893](https://github.com/open-energy-transition/open-tyndp/pull/893), [#1055](https://github.com/open-energy-transition/open-tyndp/pull/1055), [#1148](https://github.com/open-energy-transition/open-tyndp/pull/1148)).
+- Introduced the NT+ scenario with its HEV and LEV variants, as well as removed the DE and GA scenarios (see PRs [#1066](https://github.com/open-energy-transition/open-tyndp/pull/1066), [#1092](https://github.com/open-energy-transition/open-tyndp/pull/1092)).
+- Aligned the electricity and hydrogen topologies, including the hydrogen import corridors, with the TYNDP 2026 reference grids (see PRs [#920](https://github.com/open-energy-transition/open-tyndp/pull/920), [#939](https://github.com/open-energy-transition/open-tyndp/pull/939)).
+- Added PECD v4.2 renewable profiles and hydro inflows (see PRs [#843](https://github.com/open-energy-transition/open-tyndp/pull/843), [#887](https://github.com/open-energy-transition/open-tyndp/pull/887), [#1059](https://github.com/open-energy-transition/open-tyndp/pull/1059)).
+- Aligned the PEMMDB generation capacities and profiles, including Shared RES (SRES) and Dedicated RES (DRES) generation (see PRs [#865](https://github.com/open-energy-transition/open-tyndp/pull/865), [#999](https://github.com/open-energy-transition/open-tyndp/pull/999), [#1083](https://github.com/open-energy-transition/open-tyndp/pull/1083), [#1130](https://github.com/open-energy-transition/open-tyndp/pull/1130)).
+- Added the TYNDP 2026 demands (with market, prosumer and behind-the-meter electricity demands) and the prosumer modelling with wheeling charges (see PRs [#808](https://github.com/open-energy-transition/open-tyndp/pull/808), [#944](https://github.com/open-energy-transition/open-tyndp/pull/944), [#935](https://github.com/open-energy-transition/open-tyndp/pull/935)).
+- Added explicit passenger EV fleets with smart charging and V2G (see PR [#1039](https://github.com/open-energy-transition/open-tyndp/pull/1039)).
+- Added hybrid heat pumps with CH4 and H2 boilers (see PR [#1090](https://github.com/open-energy-transition/open-tyndp/pull/1090)).
+- Added the synthetic fuels methodology with domestic production and imports of e-liquids and SNG (see PR [#1098](https://github.com/open-energy-transition/open-tyndp/pull/1098)).
+- Aligned the H2 storage, SMR, battery and nuclear assumptions (see PRs [#931](https://github.com/open-energy-transition/open-tyndp/pull/931), [#892](https://github.com/open-energy-transition/open-tyndp/pull/892), [#1073](https://github.com/open-energy-transition/open-tyndp/pull/1073)).
+- Aligned the technology assumptions, CO2 prices and Supply Tool values (see PRs [#880](https://github.com/open-energy-transition/open-tyndp/pull/880), [#1038](https://github.com/open-energy-transition/open-tyndp/pull/1038), [#941](https://github.com/open-energy-transition/open-tyndp/pull/941), [#1041](https://github.com/open-energy-transition/open-tyndp/pull/1041)).
+- Aligned the Scenario Building benchmarking with the TYNDP 2026 Time Series Dashboards and Scenarios Report (see PR [#960](https://github.com/open-energy-transition/open-tyndp/pull/960)).
+
+If you used Open-TYNDP for the TYNDP 2024 cycle, the [Open-TYNDP cycle migration guide](migration_tyndp_2026.md) explains what changed between Open-TYNDP 2024 and Open-TYNDP 2026.
+
+#### TYNDP 2024 cycle
+
+The back-casting of the TYNDP 2024 cycle follows the published [modelling methodology report](https://2024.entsos-tyndp-scenarios.eu/wp-content/uploads/2025/01/TYNDP_2024_Scenarios_Methodology_Report_Final_Version_250128.pdf). The last release for the TYNDP 2024 cycle was [v0.9.2](https://github.com/open-energy-transition/open-tyndp/releases/tag/v0.9.2).
 
 - Introduced a benchmarking framework that assesses Open-TYNDP quality against published TYNDP 2024 data from the report, the market model outputs and the Visualisation Platform (see PRs [#73](https://github.com/open-energy-transition/open-tyndp/pull/73), [#117](https://github.com/open-energy-transition/open-tyndp/pull/117), [#281](https://github.com/open-energy-transition/open-tyndp/pull/281), [#467](https://github.com/open-energy-transition/open-tyndp/pull/467), [#543](https://github.com/open-energy-transition/open-tyndp/pull/543), [#574](https://github.com/open-energy-transition/open-tyndp/pull/574), [#607](https://github.com/open-energy-transition/open-tyndp/pull/607), [#615](https://github.com/open-energy-transition/open-tyndp/pull/615), [#609](https://github.com/open-energy-transition/open-tyndp/pull/609), [#604](https://github.com/open-energy-transition/open-tyndp/pull/604), [#667](https://github.com/open-energy-transition/open-tyndp/pull/667), [#663](https://github.com/open-energy-transition/open-tyndp/pull/663), [#657](https://github.com/open-energy-transition/open-tyndp/pull/657), [#680](https://github.com/open-energy-transition/open-tyndp/pull/680) and [#718](https://github.com/open-energy-transition/open-tyndp/pull/718)).
 - Introduced the electricity and hydrogen reference grids from TYNDP 2024 grid data (see PRs [#18](https://github.com/open-energy-transition/open-tyndp/pull/18), [#17](https://github.com/open-energy-transition/open-tyndp/pull/17), [#340](https://github.com/open-energy-transition/open-tyndp/pull/340), [#475](https://github.com/open-energy-transition/open-tyndp/pull/475), [#489](https://github.com/open-energy-transition/open-tyndp/pull/489), [#496](https://github.com/open-energy-transition/open-tyndp/pull/496), [#527](https://github.com/open-energy-transition/open-tyndp/pull/527), [#537](https://github.com/open-energy-transition/open-tyndp/pull/537), [#611](https://github.com/open-energy-transition/open-tyndp/pull/611)), including hydrogen import potentials and corridors from outside the modelled countries (see PR [#36](https://github.com/open-energy-transition/open-tyndp/pull/36)).
@@ -109,6 +130,8 @@ The back-casting of the 2024 TYNDP cycle involves developing new features based 
 - Added storage projects to the CBA assessment, using the PINT method (see PR [#838](https://github.com/open-energy-transition/open-tyndp/pull/838)).
 - Added a source-agnostic local data cache to allow runs on machines without internet access (see PR [#907](https://github.com/open-energy-transition/open-tyndp/pull/907)).
 
+The table below compares the TYNDP 2024 topologies with the Open-TYNDP topologies of the TYNDP 2024 cycle.
+
 <table style="margin: 0 auto;">
 <thead><tr><th><strong>Feature</strong></th><th><strong>TYNDP 2024 topology</strong></th><th><strong>Open-TYNDP topology</strong></th></tr></thead>
 <tbody>
@@ -120,6 +143,9 @@ The back-casting of the 2024 TYNDP cycle involves developing new features based 
 
 
 ### Features in development
+
+!!! note
+    This table still shows the status of the TYNDP 2024 cycle, with some TYNDP 2026 additions. Its update to the TYNDP 2026 cycle will be addressed soon (see [#1153](https://github.com/open-energy-transition/open-tyndp/issues/1153)).
 
 While multiple TYNDP features have already been introduced into the Open-TYNDP model, several other features and assumptions are still in development and currently rely on default implementations and assumptions from PyPSA-Eur.
 
@@ -173,7 +199,7 @@ Versions v0.5 and v0.5.1 are archived at [10.5281/zenodo.18494362](https://doi.o
 
 If you use Open-TYNDP in your research, please cite it as shown on Zenodo or using the "Cite this repository" button in the sidebar of [Open-TYNDP](https://github.com/open-energy-transition/open-tyndp).
 
-This work builds upon [PyPSA-Eur](https://github.com/pypsa/pypsa-eur) and follows the methodology described in [ENTSO-E's and entsog's TYNDP 2024 Scenarios Methodology Report](https://2024.entsos-tyndp-scenarios.eu/scenarios-methodology-report/).
+This work builds upon [PyPSA-Eur](https://github.com/pypsa/pypsa-eur) and follows the methodology described in [ENTSO-E's and ENTSOG's TYNDP 2026 Scenarios Methodology Report](https://2026.entsos-tyndp-scenarios.eu/scenarios-methodology-report/).
 
 
 ## Background on PyPSA-Eur

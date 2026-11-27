@@ -1274,41 +1274,21 @@ if (TYNDP_DATASET := dataset_version("tyndp"))["source"] in [
 
     else:
 
+        # TODO: Rename `retrieve_tyndp_2026` to `retrieve_tyndp` once the CBA
+        # no longer needs the TYNDP 2024 node lists.
         rule retrieve_tyndp:
             input:
                 nodes=storage(TYNDP_DATASET["url"] + "/Nodes.zip"),
-                supply_tool=storage(
-                    TYNDP_DATASET["url"] + "/20240518-Supply-Tool.xlsm.zip"
-                ),
-                benchmark=storage(
-                    TYNDP_DATASET["url"] + "/TYNDP-2024-Scenarios-Package-20250128.zip"
-                ),
                 offshore_hubs=storage(TYNDP_DATASET["url"] + "/Offshore-hubs.zip"),
-                market_outputs_NT2030_CY2009=storage(
-                    TYNDP_DATASET["url"]
-                    + "/MMStandardOutputFile_NT2030_Plexos_CY2009_2.5_v40.xlsx.zip"
-                ),
-                market_outputs_NT2040_CY2009=storage(
-                    TYNDP_DATASET["url"]
-                    + "/MMStandardOutputFile_NT2040_Plexos_CY2009_2.5_v40.xlsx.zip"
-                ),
             output:
                 nodes_zip=f"{TYNDP_DATASET['folder']}/Nodes.zip",
                 nodes=f"{TYNDP_DATASET['folder']}/Nodes/LIST OF NODES.xlsx",
-                supply_tool_zip=f"{TYNDP_DATASET['folder']}/20240518-Supply-Tool.xlsm.zip",
-                supply_tool=f"{TYNDP_DATASET['folder']}/20240518-Supply-Tool.xlsm",
-                benchmark_zip=f"{TYNDP_DATASET['folder']}/TYNDP-2024-Scenarios-Package-20250128.zip",
-                benchmark=f"{TYNDP_DATASET['folder']}/TYNDP-2024-Scenarios-Package/TYNDP_2024-Scenario-Report-Data-Figures_240522.xlsx",
                 offshore_hubs_zip=f"{TYNDP_DATASET['folder']}/Offshore-hubs.zip",
                 offshore_nodes=f"{TYNDP_DATASET['folder']}/Offshore hubs/NODE.xlsx",
-                market_outputs_NT2030_CY2009_zip=f"{TYNDP_DATASET['folder']}/MMStandardOutputFile_NT2030_Plexos_CY2009_2.5_v40.xlsx.zip",
-                market_outputs_NT2030_CY2009=f"{TYNDP_DATASET['folder']}/MMStandardOutputFile_NT2030_Plexos_CY2009_2.5_v40.xlsx",
-                market_outputs_NT2040_CY2009_zip=f"{TYNDP_DATASET['folder']}/MMStandardOutputFile_NT2040_Plexos_CY2009_2.5_v40.xlsx.zip",
-                market_outputs_NT2040_CY2009=f"{TYNDP_DATASET['folder']}/MMStandardOutputFile_NT2040_Plexos_CY2009_2.5_v40.xlsx",
             log:
                 "logs/retrieve_tyndp.log",
             message:
-                "Retrieving TYNDP 2024 data package"
+                "Retrieving TYNDP 2024 node lists for the CBA projects"
             run:
                 for key in input.keys():
                     # Keep zip file
@@ -1321,9 +1301,8 @@ if (TYNDP_DATASET := dataset_version("tyndp"))["source"] in [
                     rmtree(macosx_dir, ignore_errors=True)
 
 
-# TYNDP 2026 data package. Added alongside `retrieve_tyndp` (2024) rather than
-# replacing it. Subsequent rules are going to be migrated to it gradually.
-# TODO: rename to retrieve_tyndp for 2026 and phase out 2024 retrieve
+# TYNDP 2026 data package. Under a TYNDP scenario, the TYNDP 2024 `retrieve_tyndp`
+# above only serves the CBA projects, which still follow the TYNDP 2024 cycle.
 
 if (TYNDP_2026_DATASET := dataset_version("tyndp_2026"))["source"] in ARCHIVE_SOURCES:
 
