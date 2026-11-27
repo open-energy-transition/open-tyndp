@@ -137,7 +137,7 @@
 
 * Make the weekly merge and linked-issue closing workflows cycle-agnostic ([#1197](https://github.com/open-energy-transition/open-tyndp/pull/1197)). They now target the only `tyndp-YYYY` branch newer than the `CURRENT_CYCLE` repository variable, which holds the cycle on `master`.
 
-* chore: update HPC high-res run memory requirements ([#1201](https://github.com/open-energy-transition/open-tyndp/pull/1201))
+* Update HPC high-res run memory requirements ([#1201](https://github.com/open-energy-transition/open-tyndp/pull/1201)).
 
 
 ## Upcoming PyPSA-Eur Release
