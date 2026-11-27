@@ -93,7 +93,7 @@ This page contains frequently asked questions about the Open-TYNDP project:
 
 ??? question "What data sources and assumptions does Open-TYNDP use, and where can I find them?"
 
-    Open-TYNDP integrates TYNDP 2026 data (electricity and hydrogen demands, electricity and hydrogen topologies, PECD renewable profiles, PEMMDB capacities, CBA projects and more) with PyPSA-Eur's open-source workflow. All data sources and their licenses are documented in [tyndp_2026](tyndp_2026.md). The Open-TYNDP reproduces the 2026 TYNDP-specific assumptions and methodology based on the [TYNDP 2026 Scenarios Methodology Report](https://2026.entsos-tyndp-scenarios.eu/scenarios-methodology-report/introduction/).
+    Open-TYNDP integrates TYNDP 2026 data (electricity and hydrogen demands, electricity and hydrogen topologies, PECD renewable profiles, PEMMDB capacities, CBA projects and more) with PyPSA-Eur's open-source workflow. All data sources and their licenses are documented in [tyndp_2026](tyndp_2026.md). The Open-TYNDP reproduces the 2026 TYNDP-specific assumptions and methodology based on the [TYNDP 2026 Scenarios Methodology Report](https://2026.entsos-tyndp-scenarios.eu/scenarios-methodology-report/).
 
 ??? question "How can I verify that Open-TYNDP results are reliable and accurate?"
 
