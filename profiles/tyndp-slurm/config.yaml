@@ -32,7 +32,7 @@ keep-going: true
 rerun-incomplete: true
 # Define solver license limitation
 resources:
-  solver_license: 2
+  solver_license: 4
 # Account for variations in HPC memory consumption
 set-resources:
   build_shapes:
