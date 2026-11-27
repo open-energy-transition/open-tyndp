@@ -101,6 +101,8 @@
 
 * Change the benchmarking of SRES electricity for power generation tables and plots ([#1194](https://github.com/open-energy-transition/open-tyndp/pull/1194)). The Open-TYNDP previously benchmarked SRES electricity as the total generation from the SRES nodes. However, the TYNDP 2026 NT+ TimeSeries Dashboards benchmarks SRES electricity as only the electricity fed into the grid (e-market).
 
+* Remove code retrieving unused TYNDP 2024 data ([#1195](https://github.com/open-energy-transition/open-tyndp/pull/1195)). Only the 2024 node lists (`Nodes.zip` and `Offshore-hubs.zip`) are kept, because the CBA still uses them to validate the TYNDP 2024 projects.
+
 **Documentation**
 
 * Fix the broken links in the documentation ([#997](https://github.com/open-energy-transition/open-tyndp/pull/997)).
