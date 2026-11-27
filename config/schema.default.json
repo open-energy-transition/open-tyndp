@@ -6516,6 +6516,32 @@
           "default": false,
           "description": "Biomass final demand in TWh/a. Can be a boolean (false to disable) or a dictionary mapping planning horizons to demand values."
         },
+        "eu27_to_model_scope": {
+          "anyOf": [
+            {
+              "const": false,
+              "type": "boolean"
+            },
+            {
+              "additionalProperties": {
+                "additionalProperties": {
+                  "type": "number"
+                },
+                "type": "object"
+              },
+              "propertyNames": {
+                "enum": [
+                  "solid biomass",
+                  "biogas",
+                  "co2 sequestration"
+                ]
+              },
+              "type": "object"
+            }
+          ],
+          "default": false,
+          "description": "Ratio of all modelled countries to EU27, per key and planning horizon. `solid biomass` and `biogas` are PyPSA-Eur potential ratios; `solid biomass` scales `biomass_final_demand`, and both scale benchmark values back to EU27. `co2 sequestration` scales `co2_sequestration_potential` and is derived from the biogenic and fossil shares of captured CO2. Set to false to disable scaling."
+        },
         "force_biomass_potential": {
           "default": false,
           "description": "Add option to force all solid biomass potential to be used\t.",
@@ -14873,6 +14899,32 @@
           ],
           "default": false,
           "description": "Biomass final demand in TWh/a. Can be a boolean (false to disable) or a dictionary mapping planning horizons to demand values."
+        },
+        "eu27_to_model_scope": {
+          "anyOf": [
+            {
+              "const": false,
+              "type": "boolean"
+            },
+            {
+              "additionalProperties": {
+                "additionalProperties": {
+                  "type": "number"
+                },
+                "type": "object"
+              },
+              "propertyNames": {
+                "enum": [
+                  "solid biomass",
+                  "biogas",
+                  "co2 sequestration"
+                ]
+              },
+              "type": "object"
+            }
+          ],
+          "default": false,
+          "description": "Ratio of all modelled countries to EU27, per key and planning horizon. `solid biomass` and `biogas` are PyPSA-Eur potential ratios; `solid biomass` scales `biomass_final_demand`, and both scale benchmark values back to EU27. `co2 sequestration` scales `co2_sequestration_potential` and is derived from the biogenic and fossil shares of captured CO2. Set to false to disable scaling."
         },
         "force_biomass_potential": {
           "default": false,
