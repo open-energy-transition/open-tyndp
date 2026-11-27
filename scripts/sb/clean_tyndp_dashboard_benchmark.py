@@ -509,18 +509,17 @@ def drop_extra_prosumer_dump(stats: pd.DataFrame) -> pd.DataFrame:
     pd.DataFrame
         `stats` without the resource adequacy unit dump energy columns.
     """
+
+    logger.warning(
+        "Dropping undispatched capacity from resource adequacy"
+    )
+
     is_extra = (
         stats.sheet.eq("Prosumer")
         & stats.carrier.eq("RES curtailment")
         & stats.element.astype(str).str.split().str[0].ne(stats.bus.astype(str))
     )
-    dropped = stats.loc[is_extra & stats.stats.eq("sum"), "value"].sum()
-    if dropped:
-        logger.info(
-            f"Dropping {dropped / 1e3:.2f} TWh of undispatched resource adequacy unit "
-            f"capacity reported as Prosumer dump energy "
-            f"from {is_extra.sum() // len(STATS)} column(s)"
-        )
+
     return stats[~is_extra]
 
 
