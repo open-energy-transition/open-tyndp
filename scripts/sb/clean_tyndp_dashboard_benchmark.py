@@ -488,12 +488,16 @@ def set_load_sign(
 
 def drop_extra_prosumer_dump(stats: pd.DataFrame) -> pd.DataFrame:
     """
-    Drop the extra RES curtailment column in the Prosumer sheets.
+    Drop the resource adequacy unit columns from the Prosumer RES curtailment.
 
     Prosumer sheets report the prosumer zone's own dump energy as
     "<zone>RETE Dump Energy" and an additional "<zone> Dump Energy" column
-    named after the E-Market zone, which is not prosumer curtailment (often a
-    flat value for all hours).
+    named after the E-Market zone. The latter is not RES curtailment but
+    belongs to the resource adequacy unit of the prosumer zone: together with
+    the "<zone> Adequacy RETE" dispatch it adds up to the adequacy unit's
+    capacity in every hour, i.e. it is the capacity left undispatched. Where
+    the adequacy unit is never dispatched, the column is flat at the full
+    capacity.
 
     Parameters
     ----------
@@ -503,7 +507,7 @@ def drop_extra_prosumer_dump(stats: pd.DataFrame) -> pd.DataFrame:
     Returns
     -------
     pd.DataFrame
-        `stats` without the extra Prosumer dump energy columns.
+        `stats` without the resource adequacy unit dump energy columns.
     """
     is_extra = (
         stats.sheet.eq("Prosumer")
@@ -513,7 +517,8 @@ def drop_extra_prosumer_dump(stats: pd.DataFrame) -> pd.DataFrame:
     dropped = stats.loc[is_extra & stats.stats.eq("sum"), "value"].sum()
     if dropped:
         logger.info(
-            f"Dropping {dropped / 1e3:.2f} TWh of extra Prosumer dump energy "
+            f"Dropping {dropped / 1e3:.2f} TWh of undispatched resource adequacy unit "
+            f"capacity reported as Prosumer dump energy "
             f"from {is_extra.sum() // len(STATS)} column(s)"
         )
     return stats[~is_extra]

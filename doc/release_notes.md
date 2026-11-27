@@ -67,8 +67,6 @@
 
 **Bugfixes and Compatibility**
 
-* fix: exclude the extra `<zone> Dump Energy` column of the Prosumer sheets from the TYNDP 2026 dashboard "dumped energy" benchmark. Only the prosumer zone's own `<zone>RETE Dump Energy` is kept ([#1190](https://github.com/open-energy-transition/open-tyndp/pull/1190)).
-
 * fix: keep isolated TYNDP offshore buses (e.g. `DKN7_OFF`) via the new switch `electricity: remove_unconnected_components` (`false` for TYNDP); isolated AC buses without assets are removed in `compose_network` ([#967](https://github.com/open-energy-transition/open-tyndp/issues/967), [#1135](https://github.com/open-energy-transition/open-tyndp/pull/1135)).
 
 * fix: remove hardcoded changes to the emissions factors of AT Other Non-RES gas CCGTs in 2040/2050 ([#1012](https://github.com/open-energy-transition/open-tyndp/pull/1012)). The reported PEMMDB value of 0 is used for 2040/2050 instead.
@@ -80,6 +78,8 @@
 * fix: add missing plotting colors for electricity demand and btm ([#1053](https://github.com/open-energy-transition/open-tyndp/pull/1053)).
 
 * fix: remove the TYNDP 2024 trajectories and unused TYNDP 2024 inputs ([#1051](https://github.com/open-energy-transition/open-tyndp/pull/1051)). Generation capacities now follow PEMMDB in all planning horizons. The `build_tyndp_trajectories` rule is removed and `build_pemmdb_and_trajectories` is renamed to `build_tyndp_pemmdb_datas`. Unused TYNDP 2024 inputs are no longer retrieved.
+
+* fix: exclude the extra `<zone> Dump Energy` column of the Prosumer sheets from the TYNDP 2026 dashboard "dumped energy" benchmark. This column is not RES curtailment but the undispatched capacity of the prosumer zone's resource adequacy unit (`<zone> Adequacy RETE`). Only the prosumer zone's own `<zone>RETE Dump Energy` is kept ([#1190](https://github.com/open-energy-transition/open-tyndp/pull/1190)).
 
 **Documentation**
 
