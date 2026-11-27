@@ -49,6 +49,8 @@ set-resources:
     mem_mb: 10000
   build_solar_thermal_profiles:
     mem_mb: 32000
+  base_network:
+    mem_mb: 4000
   simplify_sb_network:
     mem_mb: 8000
   prepare_reference:
