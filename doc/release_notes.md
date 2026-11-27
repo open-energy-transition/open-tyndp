@@ -79,7 +79,7 @@
 
 * fix: remove the TYNDP 2024 trajectories and unused TYNDP 2024 inputs ([#1051](https://github.com/open-energy-transition/open-tyndp/pull/1051)). Generation capacities now follow PEMMDB in all planning horizons. The `build_tyndp_trajectories` rule is removed and `build_pemmdb_and_trajectories` is renamed to `build_tyndp_pemmdb_datas`. Unused TYNDP 2024 inputs are no longer retrieved.
 
-* fix: exclude the extra `<zone> Dump Energy` column of the Prosumer sheets from the TYNDP 2026 dashboard "dumped energy" benchmark. This column is not RES curtailment but the undispatched capacity of the prosumer zone's resource adequacy unit (`<zone> Adequacy RETE`). Only the prosumer zone's own `<zone>RETE Dump Energy` is kept ([#1190](https://github.com/open-energy-transition/open-tyndp/pull/1190)).
+* fix: exclude the extra `<zone> Dump Energy` column of the Prosumer sheets from the TYNDP 2026 dashboard "dumped energy" benchmark. This column is not RES curtailment but the undispatched capacity of the prosumer zone's resource adequacy unit (`<zone> Adequacy RETE`). Only the prosumer zone's own `<zone>RETE Dump Energy` is kept. For the same reason, the "dumped hydrogen" of the H2 Zone 1 sheets is excluded from the hydrogen supply benchmark ([#1190](https://github.com/open-energy-transition/open-tyndp/pull/1190)).
 
 **Documentation**
 

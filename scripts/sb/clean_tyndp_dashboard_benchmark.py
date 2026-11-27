@@ -486,18 +486,20 @@ def set_load_sign(
     return df.assign(value=df.value.where(df.flow != "Load", -df.value))
 
 
-def drop_extra_prosumer_dump(stats: pd.DataFrame) -> pd.DataFrame:
+def drop_adequacy_unit_dump(stats: pd.DataFrame) -> pd.DataFrame:
     """
-    Drop the resource adequacy unit columns from the Prosumer RES curtailment.
+    Drop the undispatched capacity of resource adequacy units from the dump energy.
 
-    Prosumer sheets report the prosumer zone's own dump energy as
-    "<zone>RETE Dump Energy" and an additional "<zone> Dump Energy" column
-    named after the E-Market zone. The latter is not RES curtailment but
-    belongs to the resource adequacy unit of the prosumer zone: together with
-    the "<zone> Adequacy RETE" dispatch it adds up to the adequacy unit's
-    capacity in every hour, i.e. it is the capacity left undispatched. Where
-    the adequacy unit is never dispatched, the column is flat at the full
-    capacity.
+    Some dump energy columns are not curtailment but belong to the zone's resource
+    adequacy unit: together with the adequacy unit's dispatch they add up to the
+    adequacy unit's capacity in every hour, i.e. they are the capacity left
+    undispatched. Where the adequacy unit is never dispatched, the column is flat at
+    the full capacity. The columns are identified by name:
+
+    - Prosumer sheets: the "<zone> Dump Energy" column named after the E-Market
+      zone. The prosumer zone's own dump energy "<zone>RETE Dump Energy" is kept.
+    - H2 Zone 1 sheets: the "Dumped Hydrogen" column. These zones report no other
+      dump energy, so all of it is dropped.
 
     Parameters
     ----------
@@ -509,18 +511,19 @@ def drop_extra_prosumer_dump(stats: pd.DataFrame) -> pd.DataFrame:
     pd.DataFrame
         `stats` without the resource adequacy unit dump energy columns.
     """
-
     logger.warning(
-        "Dropping undispatched capacity from resource adequacy"
+        "Dropping undispatched capacity of resource adequacy units from the dump "
+        "energy, if available"
     )
 
-    is_extra = (
+    is_prosumer_dump = (
         stats.sheet.eq("Prosumer")
         & stats.carrier.eq("RES curtailment")
         & stats.element.astype(str).str.split().str[0].ne(stats.bus.astype(str))
     )
+    is_h2_dump = stats.sheet.eq("H2 Zone 1") & stats.carrier.eq("Dumped Hydrogen")
 
-    return stats[~is_extra]
+    return stats[~(is_prosumer_dump | is_h2_dump)]
 
 
 def clean_crossborder_for_benchmarking(
@@ -625,7 +628,7 @@ if __name__ == "__main__":
     with ProcessPoolExecutor(max_workers=snakemake.threads) as executor:
         stats, capacity = zip(*executor.map(read_dashboard, dashboard_files))
     stats = pd.concat(stats, ignore_index=True)
-    stats = drop_extra_prosumer_dump(stats)
+    stats = drop_adequacy_unit_dump(stats)
     capacity = pd.concat(capacity, ignore_index=True)
 
     # Tables for which TYNDP dashboard files provide data
