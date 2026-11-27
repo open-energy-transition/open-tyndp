@@ -41,6 +41,7 @@ from tqdm.contrib.logging import logging_redirect_tqdm
 from scripts._helpers import configure_logging, get_snapshots, set_scenario_config
 from scripts.sb._helpers import (
     convert_units,
+    format_band_number,
     get_wscenario,
     map_tyndp_carrier_names,
     parse_wscenario,
@@ -201,20 +202,7 @@ def _drop_duplicate_price_bands(
     return df.groupby(groupby, **kwargs).agg(agg)
 
 
-def _format_band_number(s: pd.Series) -> pd.Series:
-    """
-    Format a numeric price band attribute as a compact rounded string,
-    e.g. 4.0 -> "4" and 564.0000000000001 -> "564".
-    """
-    return (
-        pd.to_numeric(s, errors="coerce")
-        .round(2)
-        .map(lambda v: f"{v:.10g}")
-        .astype(str)
-    )
-
-
-def _extract_price_band_type(df: pd.DataFrame) -> str:
+def _extract_price_band_type(df: pd.DataFrame) -> pd.Series:
     """
     Extract price band type information consisting of the PEMMDB type, the purpose of
     the plant and the price from Dataframe and combine into one string.
@@ -225,21 +213,18 @@ def _extract_price_band_type(df: pd.DataFrame) -> str:
             + "-"
             + df.purpose.astype(str).fillna("nan")
             + "-"
-            + pd.to_numeric(df.price, errors="coerce")
-            .round(2)
-            .astype(str)
-            .fillna("nan")
+            + format_band_number(df.price)
             + "eur"
         )
     elif "hours" in df.columns:
         return (
-            _format_band_number(df.hours) + "h-" + _format_band_number(df.price) + "eur"
+            format_band_number(df.hours) + "h-" + format_band_number(df.price) + "eur"
         )
     else:
         logger.debug(
             "No purpose or hours column in Dataframe to extract for price band type."
         )
-        return df.price.astype(str).fillna("nan") + "eur"
+        return format_band_number(df.price) + "eur"
 
 
 def _process_thermal_hydrogen_capacities(
@@ -346,17 +331,12 @@ def _process_other_nonres_capacities(
         df.pemmdb_type,
     )
 
-    # Manually fix missing efficiency information for PL, ITS1
-    # with values of equivalent plant types of other countries (same for all countries)
     df[["efficiency", "co2_factor"]] = df[["efficiency", "co2_factor"]].astype(float)
-    if node in ["ITS1", "PL00"]:
-        # hydrogen CCGT efficiency missing in 2050
-        missing_efficiency = (
-            (df.pemmdb_carrier == "Other Non-RES Hydrogen")
-            & (df.pemmdb_type == "ccgt")
-            & (df.efficiency == 0)
+    if df.co2_factor.isna().any():
+        raise ValueError(
+            f"Other Non-RES price bands at {node} have no CO2 factor: "
+            f"{df.loc[df.co2_factor.isna(), ['pemmdb_carrier', 'pemmdb_type', 'p_nom']].to_dict('records')}"
         )
-        df.loc[missing_efficiency, "efficiency"] = 0.6
 
     if df.empty:
         logger.debug(
