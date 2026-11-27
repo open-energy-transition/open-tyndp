@@ -139,7 +139,7 @@
 
 * Update HPC high-res run memory requirements ([#1201](https://github.com/open-energy-transition/open-tyndp/pull/1201)).
 
-* Replace manual renaming of UK -> GB with `format_bz_names` helper function ([#1128](https://github.com/open-energy-transition/open-tyndp/pull/1128)).
+* Replace manual renaming of UK -> GB and GB -> UK with `format_bz_names` helper function ([#1128](https://github.com/open-energy-transition/open-tyndp/pull/1128)).
 
 
 ## Upcoming PyPSA-Eur Release
